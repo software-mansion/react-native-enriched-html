@@ -20,4 +20,12 @@ export const MOCK_USERS: MockUser[] = [
     id: '4',
     name: 'Bob Brown',
   },
+  {
+    id: '5',
+    name: 'MentionBug',
+  },
+  {
+    id: '6',
+    name: 'aaa @MentionBugssss',
+  },
 ];
