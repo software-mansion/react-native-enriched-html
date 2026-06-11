@@ -522,9 +522,23 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
       [NSString stringWithFormat:@"%C", [text characterAtIndex:0]];
   NSString *textString =
       [text substringWithRange:NSMakeRange(1, text.length - 1)];
+
+  BOOL startMention = NO;
+
+  // switching directly to an active mention
+  if (![_activeMentionIndicator isEqualToString:indicatorString]) {
+    startMention = YES;
+    [self removeActiveMentionRange];
+  }
+
+  // explicit startMention event before changeMention event
+  if (startMention && textString.length > 0) {
+    [self.host emitOnMentionEvent:indicatorString text:@""];
+  }
+
+  [self.host emitOnMentionEvent:indicatorString text:textString];
   _activeMentionIndicator = indicatorString;
   _activeMentionRange = [NSValue valueWithRange:range];
-  [self.host emitOnMentionEvent:indicatorString text:textString];
 }
 
 // removes stored mention range + indicator, which means that we no longer edit
