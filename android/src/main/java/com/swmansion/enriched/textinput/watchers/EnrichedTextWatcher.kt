@@ -68,6 +68,8 @@ class EnrichedTextWatcher(
     if (s == null) return
     emitEvents(s)
 
+    view.recentInputString = s.toString()
+
     if (view.isDuringTransaction) return
     applyStyles(s)
     view.layoutManager.invalidateLayout()
