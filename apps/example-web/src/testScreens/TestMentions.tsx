@@ -15,6 +15,7 @@ export function TestMentions() {
   const [detectedCount, setDetectedCount] = useState(0);
   const [detectedText, setDetectedText] = useState('');
   const [detectedIndicator, setDetectedIndicator] = useState('');
+  const [lastEndEvent, setLastEndEvent] = useState('');
 
   const preventDefault = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -40,10 +41,11 @@ export function TestMentions() {
             setEventIndicator(indicator);
             setEventText(text);
           }}
-          onEndMention={() => {
+          onEndMention={(indicator) => {
             setEventType('end');
-            setEventIndicator('');
+            setEventIndicator(indicator);
             setEventText('');
+            setLastEndEvent(indicator);
           }}
           onMentionDetected={({ text, indicator }) => {
             setDetectedCount((c) => c + 1);
@@ -64,6 +66,9 @@ export function TestMentions() {
         </Field>
         <Field label="event text">
           <span data-testid="mention-event-text">{eventText}</span>
+        </Field>
+        <Field label="last end event">
+          <span data-testid="mention-last-end-event">{lastEndEvent}</span>
         </Field>
         <Field label="detected count">
           <span data-testid="mention-detected-count">{detectedCount}</span>

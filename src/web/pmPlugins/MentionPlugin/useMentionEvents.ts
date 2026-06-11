@@ -26,6 +26,15 @@ export function useMentionEvents(
       } else if (
         prevTriggerState.active &&
         curr.active &&
+        prevTriggerState.indicator !== curr.indicator
+      ) {
+        cb.onEndMention?.(prevTriggerState.indicator);
+        cb.onStartMention?.(curr.indicator);
+        if (curr.query !== '')
+          cb.onChangeMention?.({ indicator: curr.indicator, text: curr.query });
+      } else if (
+        prevTriggerState.active &&
+        curr.active &&
         curr.query !== prevTriggerState.query
       ) {
         cb.onChangeMention?.({ indicator: curr.indicator, text: curr.query });

@@ -12,6 +12,7 @@ const sel = {
   eventType: '[data-testid="mention-event-type"]',
   eventIndicator: '[data-testid="mention-event-indicator"]',
   eventText: '[data-testid="mention-event-text"]',
+  lastEndEvent: '[data-testid="mention-last-end-event"]',
   htmlOutput: '[data-testid="mention-html-output"]',
   detectedCount: '[data-testid="mention-detected-count"]',
   detectedText: '[data-testid="mention-detected-text"]',
@@ -40,6 +41,9 @@ function eventIndicator(page: Page) {
 }
 function eventText(page: Page) {
   return page.locator(sel.eventText);
+}
+function lastEndEvent(page: Page) {
+  return page.locator(sel.lastEndEvent);
 }
 function htmlOutput(page: Page) {
   return page.locator(sel.htmlOutput);
@@ -262,4 +266,28 @@ test('mention renders correctly', async ({ page }) => {
     '<html><p>Hello <mention indicator="@" text="@Jane" id="1">@Jane</mention> world</p></html>'
   );
   await expect(editorLocator(page)).toHaveScreenshot('mention-visual.png');
+});
+
+test('switching to a different mention starts it and ends the previous one', async ({
+  page,
+}) => {
+  await gotoMentionTest(page);
+  const editor = mentionEditor(page);
+  await editor.click();
+  await editor.pressSequentially('foo #g ', { delay: 80 });
+  await expect(eventType(page)).toHaveText('change');
+  await expect(eventIndicator(page)).toHaveText('#');
+  await editor.pressSequentially('@', { delay: 80 });
+  await expect(eventType(page)).toHaveText('start');
+  await expect(eventIndicator(page)).toHaveText('@');
+  await expect(lastEndEvent(page)).toHaveText('#');
+  await editor.press('ArrowLeft'); // back to the '#' mention
+  await expect(eventType(page)).toHaveText('change');
+  await expect(eventIndicator(page)).toHaveText('#');
+  await expect(lastEndEvent(page)).toHaveText('@');
+  await editor.press('ArrowLeft');
+  await editor.press('ArrowLeft');
+  await editor.press('ArrowLeft'); // leaving the '#' mention
+  await expect(eventType(page)).toHaveText('end');
+  await expect(eventIndicator(page)).toHaveText('#');
 });
