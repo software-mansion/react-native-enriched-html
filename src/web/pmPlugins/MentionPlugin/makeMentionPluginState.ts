@@ -65,8 +65,8 @@ function findLastValidMentionIndicator(
     const isAfterSpace = idx > 0 && text[idx - 1] === ' ';
     if (!isAtStart && !isAfterSpace) continue;
 
-    // Skip indicators inside a finalized mention
-    if (isIndicatorInsideFinalizedMention(idx)) continue;
+    // Stops inside a finalized mention
+    if (isIndicatorInsideFinalizedMention(idx)) return null;
 
     return { indexInText: idx, indicator: ch };
   }
