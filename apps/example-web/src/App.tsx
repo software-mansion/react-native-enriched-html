@@ -68,17 +68,21 @@ function App() {
   const channelMention = useChannelMention();
 
   const openUserMentionPopup = () => {
+    console.log('[EnrichedTextInput] Open user mention');
     setIsUserPopupOpen(true);
   };
   const closeUserMentionPopup = () => {
+    console.log('[EnrichedTextInput] Close user mention');
     setIsUserPopupOpen(false);
     userMention.onMentionChange('');
   };
 
   const openChannelMentionPopup = () => {
+    console.log('[EnrichedTextInput] Open channel mention');
     setIsChannelPopupOpen(true);
   };
   const closeChannelMentionPopup = () => {
+    console.log('[EnrichedTextInput] Close channel mention');
     setIsChannelPopupOpen(false);
     channelMention.onMentionChange('');
   };

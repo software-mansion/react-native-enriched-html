@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useImperativeHandle,
   useMemo,
@@ -69,7 +70,7 @@ import {
   MentionPlugin,
   setMention,
   startMention,
-  subscribeMentionEvents,
+  useMentionEvents,
 } from './pmPlugins/MentionPlugin';
 import { StripMarksOnImagePlugin } from './pmPlugins/StripMarksOnImagePlugin';
 import { ShortcutPlugin } from './pmPlugins/ShortcutPlugin';
@@ -149,6 +150,11 @@ export const EnrichedTextInput = ({
       onMentionDetected,
     };
   }, [onStartMention, onChangeMention, onEndMention, onMentionDetected]);
+
+  const getMentionCallbacks = useCallback(
+    () => mentionCallbacksRef.current,
+    []
+  );
 
   const submitBehaviorRef = useRef(submitBehavior);
   const onSubmitEditingRef = useRef(onSubmitEditing);
@@ -291,11 +297,7 @@ export const EnrichedTextInput = ({
     editor?.commands.normalizeBoldInStyledHeadings();
   }, [editor, resolvedHtmlStyle]);
 
-  useEffect(() => {
-    if (!editor) return;
-    return subscribeMentionEvents(editor, () => mentionCallbacksRef.current);
-  }, [editor]);
-
+  useMentionEvents(editor, getMentionCallbacks);
   useOnChangeHtml(editor, onChangeHtml);
   useOnChangeText(editor, onChangeText);
   useOnChangeState(editor, resolvedHtmlStyle, onChangeState);
