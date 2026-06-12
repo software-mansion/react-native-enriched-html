@@ -13,6 +13,8 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
   NSValue *_activeMentionRange;
   NSString *_activeMentionIndicator;
   BOOL _blockMentionEditing;
+  NSString *_lastEmittedMentionIndicator;
+  NSString *_lastEmittedMentionText;
 }
 
 + (StyleType)getType {
@@ -533,10 +535,11 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
 
   // explicit startMention event before changeMention event
   if (startMention && textString.length > 0) {
-    [self.host emitOnMentionEvent:indicatorString text:@""];
+    [self emitOnMentionEvent:indicatorString text:@""];
   }
 
-  [self.host emitOnMentionEvent:indicatorString text:textString];
+  [self emitOnMentionEvent:indicatorString text:textString];
+
   _activeMentionIndicator = indicatorString;
   _activeMentionRange = [NSValue valueWithRange:range];
 }
@@ -548,7 +551,16 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
     NSString *indicatorCopy = [_activeMentionIndicator copy];
     _activeMentionIndicator = nullptr;
     _activeMentionRange = nullptr;
-    [self.host emitOnMentionEvent:indicatorCopy text:nullptr];
+    [self emitOnMentionEvent:indicatorCopy text:nullptr];
+  }
+}
+
+- (void)emitOnMentionEvent:(NSString *)indicator text:(NSString *)text {
+  if (![_lastEmittedMentionIndicator isEqualToString:indicator] ||
+      ![_lastEmittedMentionText isEqualToString:text]) {
+    [self.host emitOnMentionEvent:indicator text:text];
+    _lastEmittedMentionIndicator = indicator;
+    _lastEmittedMentionText = text;
   }
 }
 
