@@ -131,9 +131,6 @@ export function useEditorState() {
     indicator === '@'
       ? userMention.onMentionChange(text)
       : channelMention.onMentionChange(text);
-    indicator === '@'
-      ? !isUserPopupOpen && setIsUserPopupOpen(true)
-      : !isChannelPopupOpen && setIsChannelPopupOpen(true);
   };
 
   const handleUserMentionSelected = (item: MentionItem) => {

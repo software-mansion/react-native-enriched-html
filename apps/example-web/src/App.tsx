@@ -109,10 +109,8 @@ function App() {
     console.log('[EnrichedTextInput] Change mention', indicator, text);
     if (indicator === '@') {
       userMention.onMentionChange(text);
-      if (!isUserPopupOpen) setIsUserPopupOpen(true);
     } else {
       channelMention.onMentionChange(text);
-      if (!isChannelPopupOpen) setIsChannelPopupOpen(true);
     }
   };
 
