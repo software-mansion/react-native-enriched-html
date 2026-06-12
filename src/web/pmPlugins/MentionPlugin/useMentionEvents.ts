@@ -45,30 +45,27 @@ export function useMentionEvents(
 
       if (!cb.onMentionDetected) return;
 
-      const mention = getActiveMention(editor);
+      const mention = getMentionInCurrentSelection(editor);
       if (!mention) {
+        wasInMention = false;
+        prevMentionKey = null;
         if (wasInMention) {
-          wasInMention = false;
-          prevMentionKey = null;
           cb.onMentionDetected({
             text: '',
             indicator: '',
             attributes: {},
           });
-        } else {
-          prevMentionKey = null;
         }
-        return;
+      } else {
+        wasInMention = true;
+        if (mention.key === prevMentionKey) return;
+        prevMentionKey = mention.key;
+        cb.onMentionDetected({
+          text: mention.text,
+          indicator: mention.indicator,
+          attributes: mention.attributes,
+        });
       }
-
-      wasInMention = true;
-      if (mention.key === prevMentionKey) return;
-      prevMentionKey = mention.key;
-      cb.onMentionDetected({
-        text: mention.text,
-        indicator: mention.indicator,
-        attributes: mention.attributes,
-      });
     };
 
     const handleBlur = () => {
@@ -90,7 +87,7 @@ export function useMentionEvents(
   }, [editor, getCallbacks]);
 }
 
-function getActiveMention(
+function getMentionInCurrentSelection(
   editor: Editor
 ): (OnMentionDetected & { key: string }) | null {
   const { state } = editor;
