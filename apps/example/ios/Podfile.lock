@@ -2026,7 +2026,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   FBLazyVector: c00c20551d40126351a6783c47ce75f5b374851b
-  hermes-engine: d80056af9dcb5ba3db80f37943f96751037c7381
+  hermes-engine: b4dad6ba67535bb03c8ff1006b337cba14db16cb
   RCTDeprecation: 3bb167081b134461cfeb875ff7ae1945f8635257
   RCTRequired: 74839f55d5058a133a0bc4569b0afec750957f64
   RCTSwiftUI: 87a316382f3eab4dd13d2a0d0fd2adcce917361a
@@ -2035,7 +2035,7 @@ SPEC CHECKSUMS:
   React: 1b1536b9099195944034e65b1830f463caaa8390
   React-callinvoker: 6dff6d17d1d6cc8fdf85468a649bafed473c65f5
   React-Core: 39ee05b5798296f433dd3c3624c57a187c1510e3
-  React-Core-prebuilt: ff86a9cfffdf1ac6deca527352be5e6d0290354a
+  React-Core-prebuilt: 69556f895326f23c007f3a6869340045d7dca106
   React-CoreModules: e78bfd2617075bc0e50c689df4a29232bd72ad82
   React-cxxreact: 3fe21801d46097cf74c3dff6953677bebc4a3c2a
   React-debug: e1f00fcd2cef58a2897471a6d76a4ef5f5f90c74

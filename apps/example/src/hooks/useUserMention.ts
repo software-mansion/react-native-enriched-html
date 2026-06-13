@@ -17,18 +17,6 @@ const MOCKED_DATA = [
     id: '4',
     name: 'Bob Brown',
   },
-  {
-    id: '5',
-    name: 'MentionBug',
-  },
-  {
-    id: '6',
-    name: 'aaa @MentionBugssss',
-  },
-  {
-    id: '7',
-    name: 'John Marston',
-  },
 ];
 
 export const useUserMention = () => {
