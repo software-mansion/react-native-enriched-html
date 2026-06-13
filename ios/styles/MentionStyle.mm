@@ -158,9 +158,25 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
   params.indicator = indicator;
   params.attributes = attributes;
 
-  // add a single space after the mention
-  NSString *newText = [NSString stringWithFormat:@"%@ ", text];
   NSRange rangeToBeReplaced = [_activeMentionRange rangeValue];
+
+  // add a single space after the mention if there isn't one already
+  BOOL hasSpaceAfter = NO;
+  NSUInteger nextCharIndex =
+      rangeToBeReplaced.location + rangeToBeReplaced.length;
+
+  if (nextCharIndex < self.host.textView.textStorage.string.length) {
+    unichar nextChar =
+        [self.host.textView.textStorage.string characterAtIndex:nextCharIndex];
+    if ([[NSCharacterSet whitespaceAndNewlineCharacterSet]
+            characterIsMember:nextChar]) {
+      hasSpaceAfter = YES;
+    }
+  }
+
+  NSString *newText =
+      hasSpaceAfter ? text : [NSString stringWithFormat:@"%@ ", text];
+
   [TextInsertionUtils replaceText:newText
                                at:rangeToBeReplaced
              additionalAttributes:nullptr
