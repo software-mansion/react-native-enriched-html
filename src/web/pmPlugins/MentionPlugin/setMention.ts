@@ -41,8 +41,11 @@ export function setMention(
 
   // avoid inserting a space if there already is one
   const parentEnd = state.doc.resolve(extendedTo).end();
-  const charAfter = state.doc.textBetween(extendedTo, extendedTo + 1, '');
-  const hasSpaceAfter = extendedTo < parentEnd && /\s/.test(charAfter);
+  let hasSpaceAfter = false;
+  if (extendedTo < parentEnd) {
+    const charAfter = state.doc.textBetween(extendedTo, extendedTo + 1, '');
+    hasSpaceAfter = /\s/.test(charAfter);
+  }
 
   const mentionMark = mentionType.create({
     indicator,

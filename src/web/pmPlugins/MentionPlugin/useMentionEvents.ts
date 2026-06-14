@@ -47,14 +47,14 @@ export function useMentionEvents(
 
       const mention = getMentionInCurrentSelection(editor);
       if (!mention) {
-        wasInMention = false;
-        prevMentionKey = null;
         if (wasInMention) {
           cb.onMentionDetected({
             text: '',
             indicator: '',
             attributes: {},
           });
+          wasInMention = false;
+          prevMentionKey = null;
         }
       } else {
         wasInMention = true;
