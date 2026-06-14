@@ -376,9 +376,7 @@ test.describe('test-links autolink', () => {
 
     await expect
       .poll(async () => getTestLinksSerializedHtml(page))
-      .toContain(
-        '<a href="https://example.com" data-auto="true">https://example.com</a>'
-      );
+      .toContain('<a href="https://example.com">https://example.com</a>');
   });
 
   test('creates link while typing with custom regex', async ({ page }) => {
@@ -394,7 +392,7 @@ test.describe('test-links autolink', () => {
 
     await expect
       .poll(async () => getTestLinksSerializedHtml(page))
-      .toContain('<a href="issue-123" data-auto="true">issue-123</a>');
+      .toContain('<a href="issue-123">issue-123</a>');
   });
 
   test('creates link when pasting plain URL with default regex', async ({
@@ -409,9 +407,7 @@ test.describe('test-links autolink', () => {
 
     await expect
       .poll(async () => getTestLinksSerializedHtml(page))
-      .toContain(
-        '<a href="https://example.com" data-auto="true">https://example.com</a>'
-      );
+      .toContain('<a href="https://example.com">https://example.com</a>');
   });
 
   test('does not autolink when link regex is disabled', async ({ page }) => {

@@ -210,7 +210,9 @@ export const EnrichedTextInput = ({
       EnrichedUnderline,
       EnrichedStrike,
       EnrichedCode,
-      EnrichedLink,
+      EnrichedLink.configure({
+        getLinkRegex: () => linkEmitterRef.current.linkRegex,
+      }),
       EnrichedImage,
       EnrichedMention,
       EnrichedHeading,
