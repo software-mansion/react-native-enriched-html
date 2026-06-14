@@ -572,8 +572,10 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
 }
 
 - (void)emitOnMentionEvent:(NSString *)indicator text:(NSString *)text {
-  if (![_lastEmittedMentionIndicator isEqualToString:indicator] ||
-      ![_lastEmittedMentionText isEqualToString:text]) {
+  BOOL sameText = (_lastEmittedMentionText == text) ||
+                  [_lastEmittedMentionText isEqualToString:text];
+
+  if (![_lastEmittedMentionIndicator isEqualToString:indicator] || !sameText) {
     [self.host emitOnMentionEvent:indicator text:text];
     _lastEmittedMentionIndicator = indicator;
     _lastEmittedMentionText = text;
