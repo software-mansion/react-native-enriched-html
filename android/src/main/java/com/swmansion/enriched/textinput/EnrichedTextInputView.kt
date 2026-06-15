@@ -57,6 +57,7 @@ import com.swmansion.enriched.textinput.spans.EnrichedInputImageSpan
 import com.swmansion.enriched.textinput.spans.EnrichedLineHeightSpan
 import com.swmansion.enriched.textinput.spans.EnrichedSpans
 import com.swmansion.enriched.textinput.spans.interfaces.EnrichedInputSpan
+import com.swmansion.enriched.textinput.styles.AlignmentStyles
 import com.swmansion.enriched.textinput.styles.HtmlStyle
 import com.swmansion.enriched.textinput.styles.InlineStyles
 import com.swmansion.enriched.textinput.styles.ListStyles
@@ -66,6 +67,7 @@ import com.swmansion.enriched.textinput.utils.EnrichedEditableFactory
 import com.swmansion.enriched.textinput.utils.EnrichedSelection
 import com.swmansion.enriched.textinput.utils.EnrichedSpanState
 import com.swmansion.enriched.textinput.utils.RichContentReceiver
+import com.swmansion.enriched.textinput.utils.ShortcutsHandler
 import com.swmansion.enriched.textinput.utils.mergeSpannables
 import com.swmansion.enriched.textinput.utils.setCheckboxClickListener
 import com.swmansion.enriched.textinput.utils.zwsCountBefore
@@ -84,7 +86,9 @@ class EnrichedTextInputView :
   val inlineStyles: InlineStyles? = InlineStyles(this)
   val paragraphStyles: ParagraphStyles? = ParagraphStyles(this)
   val listStyles: ListStyles? = ListStyles(this)
+  val shortcutsHandler: ShortcutsHandler? = ShortcutsHandler(this)
   val parametrizedStyles: ParametrizedStyles? = ParametrizedStyles(this)
+  val alignmentStyles: AlignmentStyles? = AlignmentStyles(this)
   var isDuringTransaction: Boolean = false
   var isRemovingMany: Boolean = false
   var scrollEnabled: Boolean = true
@@ -122,6 +126,9 @@ class EnrichedTextInputView :
   var experimentalSynchronousEvents: Boolean = false
   var useHtmlNormalizer: Boolean = false
 
+  // Pair: (trigger, style)
+  var textShortcuts: List<Pair<String, String>> = emptyList()
+
   private var fontSizeRaw: Float? = null
   var fontSize: Float? = null
   private var lineHeight: Float? = null
@@ -154,6 +161,16 @@ class EnrichedTextInputView :
     defStyleAttr,
   ) {
     prepareComponent()
+  }
+
+  override fun scrollTo(
+    x: Int,
+    y: Int,
+  ) {
+    // Android's internal cursor tracker gets confused by ALIGN_CENTER + LeadingMarginSpan
+    // and attempts to scroll the text horizontally.
+    // We lock the horizontal scroll to 0 to prevent the view from shifting.
+    super.scrollTo(0, y)
   }
 
   override fun onCreateInputConnection(outAttrs: EditorInfo): InputConnection? {
@@ -782,7 +799,7 @@ class EnrichedTextInputView :
     layoutManager.invalidateLayout()
   }
 
-  private fun toggleStyle(name: String) {
+  internal fun toggleStyle(name: String) {
     when (name) {
       EnrichedSpans.BOLD -> inlineStyles?.toggleStyle(EnrichedSpans.BOLD)
       EnrichedSpans.ITALIC -> inlineStyles?.toggleStyle(EnrichedSpans.ITALIC)
@@ -976,6 +993,13 @@ class EnrichedTextInputView :
     if (!isValid) return
 
     parametrizedStyles?.setMentionSpan(text, indicator, attributes)
+  }
+
+  fun setTextAlignment(alignment: String) {
+    runAsATransaction {
+      alignmentStyles?.setAlignment(alignment)
+    }
+    selection?.validateStyles()
   }
 
   fun requestHTML(requestId: Int) {

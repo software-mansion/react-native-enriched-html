@@ -241,6 +241,29 @@ export interface HtmlStyle {
   };
 }
 
+export type TextShortcutStyle =
+  | 'bold'
+  | 'italic'
+  | 'underline'
+  | 'strikethrough'
+  | 'inline_code'
+  | 'h1'
+  | 'h2'
+  | 'h3'
+  | 'h4'
+  | 'h5'
+  | 'h6'
+  | 'blockquote'
+  | 'codeblock'
+  | 'unordered_list'
+  | 'ordered_list'
+  | 'checkbox_list';
+
+export interface TextShortcut {
+  trigger: string;
+  style: TextShortcutStyle;
+}
+
 // Event types
 
 export interface OnChangeTextEvent {
@@ -691,7 +714,11 @@ export interface EnrichedTextInputProps extends Omit<ViewProps, 'children'> {
   /** Called when the user presses the return key and `submitBehavior` triggers a submit. */
   onSubmitEditing?: (e: NativeSyntheticEvent<OnSubmitEditing>) => void;
 
-  /** Called when the user pastes one or more images into the editor. */
+  /** Called when the user pastes one or more images into the editor.
+   * Web: each `images[].uri` is a `blob:` URL from `URL.createObjectURL`. If you keep
+   * URIs around (or replace them after upload), call `URL.revokeObjectURL(uri)` when done
+   * to avoid retaining blob memory. Native uses non-blob URIs; revoke does not apply.
+   */
   onPasteImages?: (e: NativeSyntheticEvent<OnPasteImagesEvent>) => void;
 
   /**
@@ -699,6 +726,8 @@ export interface EnrichedTextInputProps extends Omit<ViewProps, 'children'> {
    * (the popover that appears when the user long-presses selected text).
    */
   contextMenuItems?: ContextMenuItem[];
+
+  textShortcuts?: TextShortcut[];
 
   /**
    * If true, Android will use experimental synchronous events.
