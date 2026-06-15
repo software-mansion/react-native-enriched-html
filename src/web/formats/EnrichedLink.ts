@@ -16,6 +16,20 @@ export const EnrichedLink = Link.extend<
 >({
   excludes: 'link code',
 
+  parseHTML() {
+    return [
+      {
+        tag: 'a[href]',
+        getAttrs: (node: string | HTMLElement) => {
+          if (typeof node === 'string') return null;
+          const href = node.getAttribute('href');
+          if (!href || /^javascript:/i.test(href)) return false;
+          return null;
+        },
+      },
+    ];
+  },
+
   addAttributes() {
     return {
       ...this.parent?.(),

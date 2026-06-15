@@ -6,7 +6,11 @@ import {
   gotoVisualRegression,
   setEditorHtml,
 } from '../helpers/visual-regression';
-import { pastePlainTextIntoEditor } from '../helpers/clipboard';
+import {
+  copySelectionFrom,
+  pasteInto,
+  pastePlainTextIntoEditor,
+} from '../helpers/clipboard';
 
 test.setTimeout(90_000);
 
@@ -421,5 +425,92 @@ test.describe('test-links autolink', () => {
     await expect
       .poll(async () => getTestLinksSerializedHtml(page))
       .not.toContain('<a href');
+  });
+});
+
+test.describe('test-links copy-paste', () => {
+  test.use({ permissions: ['clipboard-read', 'clipboard-write'] });
+
+  test('manual link (href ≠ text) survives copy-paste', async ({ page }) => {
+    await gotoTestLinks(page);
+    const editor = page.locator(sel.editorInner);
+
+    await setTestLinksEditorHtml(
+      page,
+      '<html><p><a href="https://example.com">Click here</a></p></html>'
+    );
+
+    await copySelectionFrom(editor);
+    await setTestLinksEditorHtml(page, '<html><p></p></html>');
+    await pasteInto(editor);
+
+    await expect
+      .poll(async () => getTestLinksSerializedHtml(page))
+      .toContain('<a href="https://example.com">Click here</a>');
+  });
+
+  test('autolink (href == text, matches regex) survives copy-paste', async ({
+    page,
+  }) => {
+    await gotoTestLinks(page);
+    await page.locator(sel.linkRegexMode).selectOption('default');
+    const editor = page.locator(sel.editorInner);
+
+    await setTestLinksEditorHtml(
+      page,
+      '<html><p><a href="https://example.com">https://example.com</a></p></html>'
+    );
+
+    await copySelectionFrom(editor);
+    await setTestLinksEditorHtml(page, '<html><p></p></html>');
+    await pasteInto(editor);
+
+    await expect
+      .poll(async () => getTestLinksSerializedHtml(page))
+      .toContain('<a href="https://example.com">https://example.com</a>');
+  });
+
+  test('manual link where href == text is not removed by autolink', async ({
+    page,
+  }) => {
+    await gotoTestLinks(page);
+    await page.locator(sel.linkRegexMode).selectOption('disabled');
+    const editor = page.locator(sel.editorInner);
+
+    await setTestLinksEditorHtml(
+      page,
+      '<html><p><a href="custom://link">custom://link</a></p></html>'
+    );
+
+    await copySelectionFrom(editor);
+    await setTestLinksEditorHtml(page, '<html><p></p></html>');
+    await pasteInto(editor);
+
+    await expect
+      .poll(async () => getTestLinksSerializedHtml(page))
+      .toContain('<a href="custom://link">custom://link</a>');
+  });
+});
+
+test.describe('test-links manual link editing', () => {
+  test('typing inside a manual link keeps the link covering the typed text', async ({
+    page,
+  }) => {
+    await gotoTestLinks(page);
+    await setTestLinksEditorHtml(
+      page,
+      '<html><p><a href="https://example.com">Hello</a></p></html>'
+    );
+
+    await page.fill(sel.selectionStart, '3');
+    await page.fill(sel.selectionEnd, '3');
+    await page.click(sel.applySelection);
+
+    await page.waitForTimeout(100);
+    await page.keyboard.type('TEST', { delay: 80 });
+
+    await expect
+      .poll(async () => getTestLinksSerializedHtml(page))
+      .toContain('<a href="https://example.com">HelTESTlo</a>');
   });
 });
