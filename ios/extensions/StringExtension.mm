@@ -63,6 +63,9 @@
                          range:NSMakeRange(0, text.length)
                     usingBlock:^(NSTextCheckingResult *match,
                                  NSMatchingFlags flags, BOOL *stop) {
+                      if (match == nil) {
+                        return;
+                      }
                       NSRange fullRange = [match range];
                       NSString *entityStr = [text substringWithRange:fullRange];
                       NSString *valueStr =
@@ -83,10 +86,12 @@
                         codePoint = (UTF32Char)strtoul(decStr, NULL, 10);
                       }
 
-                      // Safety check: Valid Unicode scalar values are
-                      // 0x1..0x10FFFF, excluding surrogate code points
-                      // (0xD800-0xDFFF). Replace invalid values with U+FFFD
-                      // (Replacement Character) to avoid crashes/truncation.
+                      // Safety check: HTML numeric character references should
+                      // map to valid Unicode scalar values (0x0..0x10FFFF),
+                      // excluding surrogate code points (0xD800-0xDFFF). Per
+                      // HTML5, code point 0 is treated as U+FFFD. Replace
+                      // invalid values with U+FFFD (Replacement Character) to
+                      // avoid crashes/truncation.
                       if (codePoint == 0 || codePoint > 0x10FFFF ||
                           (codePoint >= 0xD800 && codePoint <= 0xDFFF)) {
                         codePoint = 0xFFFD;
