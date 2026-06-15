@@ -613,9 +613,8 @@ export interface EnrichedTextInputProps extends Omit<ViewProps, 'children'> {
   mentionIndicators?: string[];
 
   /**
-   * Initial content rendered when the component mounts. Changes to this prop
-   * after mount are **ignored** — use `ref.setValue()` to update the content
-   * imperatively.
+   * Initial content rendered when the component mounts.
+   * Use `ref.setValue()` to update the content imperatively.
    */
   defaultValue?: string;
 
