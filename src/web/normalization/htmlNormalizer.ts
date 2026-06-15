@@ -140,14 +140,14 @@ function findCssValue(style: string, prop: string): string | null {
   // Mirrors GumboNormalizer's find_css_value scanning behavior.
   const re = new RegExp(
     `(?:^|;)\\s*${prop.replace(/[-/\\^$*+?.()|[\\]{}]/g, '\\$&')}\\s*:\\s*([^;]*)`,
-    'gi'
+    'i'
   );
-  let m: RegExpExecArray | null;
-  let last: string | null = null;
-  while ((m = re.exec(style)) !== null) {
-    last = (m[1] ?? '').trim();
+
+  const m = re.exec(style);
+  if (m !== null) {
+    return (m[1] ?? '').trim();
   }
-  return last;
+  return null;
 }
 
 function findAllCssValues(style: string, prop: string): string[] {
