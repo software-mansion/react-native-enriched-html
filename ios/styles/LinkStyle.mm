@@ -367,18 +367,8 @@ static NSString *const AutomaticLinkAttributeName = @"EnrichedAutomaticLink";
     return NO;
   }
   NSRange range = NSMakeRange(0, url.length);
-  if (linkRegexConfig.isDefault) {
-    return [[self fullRegex] numberOfMatchesInString:url
-                                             options:0
-                                               range:range] > 0 ||
-           [[self wwwRegex] numberOfMatchesInString:url options:0
-                                              range:range] > 0 ||
-           [[self bareRegex] numberOfMatchesInString:url
-                                             options:0
-                                               range:range] > 0;
-  }
   NSRegularExpression *userRegex = [config parsedLinkRegex];
-  if (userRegex == nullptr) {
+  if (linkRegexConfig.isDefault || userRegex == nullptr) {
     return [[self fullRegex] numberOfMatchesInString:url
                                              options:0
                                                range:range] > 0 ||
