@@ -413,7 +413,7 @@ class EnrichedTextInputView :
     val normalized = GumboNormalizer.normalizeHtml(text.toString()) ?: return text
 
     return try {
-      val parsed = EnrichedParser.fromHtml(normalized, htmlStyle, spannableFactory)
+      val parsed = EnrichedParser.fromHtml(normalized, htmlStyle, spannableFactory, linkRegex)
       parsed.trimEnd('\n')
     } catch (e: Exception) {
       Log.e(TAG, "Error parsing normalized HTML: ${e.message}")
@@ -426,7 +426,7 @@ class EnrichedTextInputView :
 
     if (isInternalHtml) {
       try {
-        val parsed = EnrichedParser.fromHtml(text.toString(), htmlStyle, spannableFactory)
+        val parsed = EnrichedParser.fromHtml(text.toString(), htmlStyle, spannableFactory, linkRegex)
         return parsed.trimEnd('\n')
       } catch (e: Exception) {
         Log.e(TAG, "Error parsing HTML: ${e.message}")
