@@ -6,12 +6,12 @@
 
 # react-native-enriched-html
 
-`react-native-enriched-html` is a powerful React Native rich text solution:
+`react-native-enriched-html` is a powerful React Native Rich Text solution:
 
-⚡ Fully native input and display components (Supports New Architecture only)
-💻 HTML-based parsing with live, synchronous text styling
-🎨 Fully customizable styles for seamless UI integration
-🌐 Solid mobile support with an experimental Web implementation
+- ⚡ Fully native input and display components (Supports New Architecture only)
+- 💻 HTML-based parsing with live, synchronous text styling
+- 🎨 Fully customizable styles for seamless UI integration
+- 🌐 Solid mobile support with an experimental Web implementation
 
 `EnrichedTextInput`, the rich text input component is an uncontrolled input. This means that it doesn't use any state or props to store its value, but instead directly interacts with the underlying platform-specific components. Thanks to this, the component is really performant and simple to use while offering complex and advanced features no other solution has.
 
