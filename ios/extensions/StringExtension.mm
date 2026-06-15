@@ -53,7 +53,7 @@
 
   // Numeric character references: &#NNNN; (decimal) and &#xHHHH; (hex)
   NSRegularExpression *numericEntityRegex = [NSRegularExpression
-      regularExpressionWithPattern:@"&#(x[0-9a-fA-F]+|[0-9]+);"
+      regularExpressionWithPattern:@"&#([xX][0-9a-fA-F]+|[0-9]+);"
                            options:0
                              error:nil];
 
