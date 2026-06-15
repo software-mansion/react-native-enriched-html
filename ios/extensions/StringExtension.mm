@@ -83,11 +83,11 @@
                         codePoint = (UTF32Char)strtoul(decStr, NULL, 10);
                       }
 
-                      // Safety check: The highest valid Unicode character is
-                      // 0x10FFFF. If the parsed number is larger than this,
-                      // it's invalid/corrupted data. We replace it with the
-                      // standard "Replacement Character" () to prevent crashes.
-                      if (codePoint > 0x10FFFF) {
+                      // Safety check: Valid Unicode scalar values are 0x1..0x10FFFF,
+                      // excluding surrogate code points (0xD800-0xDFFF). Replace invalid
+                      // values with U+FFFD (Replacement Character) to avoid crashes/truncation.
+                      if (codePoint == 0 || codePoint > 0x10FFFF ||
+                          (codePoint >= 0xD800 && codePoint <= 0xDFFF)) {
                         codePoint = 0xFFFD;
                       }
 
