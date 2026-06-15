@@ -12553,32 +12553,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"react-native-enriched-web-example@workspace:apps/example-web":
+"react-native-enriched-html@workspace:.":
   version: 0.0.0-use.local
-  resolution: "react-native-enriched-web-example@workspace:apps/example-web"
-  dependencies:
-    "@eslint/js": "npm:^9.39.1"
-    "@types/node": "npm:^24.10.1"
-    "@types/react": "npm:^19.1.0"
-    "@types/react-dom": "npm:^19.2.3"
-    "@vitejs/plugin-react": "npm:^5.1.1"
-    eslint: "npm:^9.22.0"
-    eslint-plugin-react-dom: "npm:^2.3.13"
-    eslint-plugin-react-hooks: "npm:^7.0.1"
-    eslint-plugin-react-refresh: "npm:^0.4.24"
-    eslint-plugin-react-x: "npm:^2.3.13"
-    globals: "npm:^16.5.0"
-    react: "npm:^19.1.0"
-    react-dom: "npm:^19.1.0"
-    typescript: "npm:^5.8.3"
-    typescript-eslint: "npm:^8.46.4"
-    vite: "npm:^7.2.4"
-  languageName: unknown
-  linkType: soft
-
-"react-native-enriched@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "react-native-enriched@workspace:."
+  resolution: "react-native-enriched-html@workspace:."
   dependencies:
     "@commitlint/config-conventional": "npm:^19.6.0"
     "@eslint/compat": "npm:^1.2.7"
@@ -12629,6 +12606,29 @@ __metadata:
   peerDependencies:
     react: "*"
     react-native: "*"
+  languageName: unknown
+  linkType: soft
+
+"react-native-enriched-web-example@workspace:apps/example-web":
+  version: 0.0.0-use.local
+  resolution: "react-native-enriched-web-example@workspace:apps/example-web"
+  dependencies:
+    "@eslint/js": "npm:^9.39.1"
+    "@types/node": "npm:^24.10.1"
+    "@types/react": "npm:^19.1.0"
+    "@types/react-dom": "npm:^19.2.3"
+    "@vitejs/plugin-react": "npm:^5.1.1"
+    eslint: "npm:^9.22.0"
+    eslint-plugin-react-dom: "npm:^2.3.13"
+    eslint-plugin-react-hooks: "npm:^7.0.1"
+    eslint-plugin-react-refresh: "npm:^0.4.24"
+    eslint-plugin-react-x: "npm:^2.3.13"
+    globals: "npm:^16.5.0"
+    react: "npm:^19.1.0"
+    react-dom: "npm:^19.1.0"
+    typescript: "npm:^5.8.3"
+    typescript-eslint: "npm:^8.46.4"
+    vite: "npm:^7.2.4"
   languageName: unknown
   linkType: soft
 
