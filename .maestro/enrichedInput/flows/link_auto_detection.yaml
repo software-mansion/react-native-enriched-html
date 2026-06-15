@@ -1,0 +1,17 @@
+appId: swmansion.enriched.example
+---
+# Verifies typing a URL directly into the editor
+- launchApp
+
+- tapOn:
+    id: 'toggle-screen-button'
+
+- tapOn:
+    id: "editor-input"
+
+- inputText: 'swmansion.com'
+
+- runFlow:
+    file: '../subflows/capture_or_assert_screenshot.yaml'
+    env:
+      SCREENSHOT_NAME: 'link_auto_detection'
