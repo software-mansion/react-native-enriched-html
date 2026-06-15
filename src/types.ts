@@ -438,7 +438,7 @@ export interface EnrichedTextInputInstance extends NativeMethods {
   /** Removes focus from the editor and dismisses the software keyboard. */
   blur: () => void;
 
-  /** Replaces the entire editor content with the supplied html/plain-text`value`. */
+  /** Replaces the entire editor content with the supplied HTML/plain-text `value`. */
   setValue: (value: string) => void;
 
   /** Moves the text cursor (or extends the selection) to the range `[start, end]`. */
