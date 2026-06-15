@@ -281,6 +281,7 @@ test('switching to a different mention starts it and ends the previous one', asy
   await expect(eventType(page)).toHaveText('start');
   await expect(eventIndicator(page)).toHaveText('@');
   await expect(lastEndEvent(page)).toHaveText('#');
+  await editor.press('ArrowLeft');
   await editor.press('ArrowLeft'); // back to the '#' mention
   await expect(eventType(page)).toHaveText('change');
   await expect(eventIndicator(page)).toHaveText('#');
@@ -290,4 +291,25 @@ test('switching to a different mention starts it and ends the previous one', asy
   await editor.press('ArrowLeft'); // leaving the '#' mention
   await expect(eventType(page)).toHaveText('end');
   await expect(eventIndicator(page)).toHaveText('#');
+});
+
+test("inserting a mention between text doesn't produce a double space", async ({
+  page,
+}) => {
+  await gotoMentionTest(page);
+  const editor = mentionEditor(page);
+  await editor.click();
+  await editor.pressSequentially('example ', { delay: 80 });
+  await editor.pressSequentially(' test', { delay: 80 });
+  for (let i = 0; i < 5; i++) {
+    await editor.press('ArrowLeft');
+  }
+  await editor.press('@');
+  await page.locator(sel.setUserButton).click();
+  await page.waitForTimeout(2000);
+  await expect
+    .poll(async () => await htmlOutput(page).textContent())
+    .toEqual(
+      '<html><p>example <mention text="Jane" indicator="@" id="1">Jane</mention> test</p></html>'
+    );
 });
