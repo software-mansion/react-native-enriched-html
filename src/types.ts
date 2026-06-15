@@ -259,8 +259,18 @@ export type TextShortcutStyle =
   | 'ordered_list'
   | 'checkbox_list';
 
+/**
+ * Defines a single text shortcut: a character sequence that, when typed at
+ * the start of a line, is replaced by the corresponding block or inline style.
+ *
+ * @example
+ * // Typing "- " at the start of a line converts it to an unordered list item.
+ * { trigger: '- ', style: 'unordered_list' }
+ */
 export interface TextShortcut {
+  /** The character sequence that activates the shortcut (e.g. `'- '`, `'1. '`). */
   trigger: string;
+  /** The formatting style applied when the trigger is matched. */
   style: TextShortcutStyle;
 }
 
@@ -727,6 +737,13 @@ export interface EnrichedTextInputProps extends Omit<ViewProps, 'children'> {
    */
   contextMenuItems?: ContextMenuItem[];
 
+  /**
+   * List of text shortcuts that automatically apply a formatting style when
+   * the user types the trigger sequence.
+   *
+   * Defaults to `[{ trigger: '- ', style: 'unordered_list' }, { trigger: '1. ', style: 'ordered_list' }]`.
+   * Pass an empty array to disable all shortcuts.
+   */
   textShortcuts?: TextShortcut[];
 
   /**
