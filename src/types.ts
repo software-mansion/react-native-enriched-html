@@ -260,8 +260,7 @@ export type TextShortcutStyle =
   | 'checkbox_list';
 
 /**
- * Defines a single text shortcut: a character sequence that, when typed at
- * the start of a line, is replaced by the corresponding block or inline style.
+ * Defines a single text shortcut: a character sequence that, when typed is replaced by the corresponding paragraph or inline style.
  *
  * @example
  * // Typing "- " at the start of a line converts it to an unordered list item.
@@ -441,7 +440,7 @@ export interface EnrichedTextInputInstance extends NativeMethods {
   /** Replaces the entire editor content with the supplied HTML/plain-text `value`. */
   setValue: (value: string) => void;
 
-  /** Moves the text cursor (or extends the selection) to the range `[start, end]`. */
+  /** Moves the text cursor (or extends the selection) to the range `[start, end)`. */
   setSelection: (start: number, end: number) => void;
 
   /**
@@ -465,28 +464,28 @@ export interface EnrichedTextInputInstance extends NativeMethods {
   /** Toggles inline code on the current selection (or toggles it for future typing if nothing is selected). */
   toggleInlineCode: () => void;
 
-  /** Toggles an H1 heading on the current selection or the focused paragraph. */
+  /** Toggles an H1 heading for the paragraph(s) at the current selection. */
   toggleH1: () => void;
 
-  /** Toggles an H2 heading on the current selection or the focused paragraph. */
+  /** Toggles an H2 heading for the paragraph(s) at the current selection. */
   toggleH2: () => void;
 
-  /** Toggles an H3 heading on the current selection or the focused paragraph. */
+  /** Toggles an H3 heading for the paragraph(s) at the current selection. */
   toggleH3: () => void;
 
-  /** Toggles an H4 heading on the current selection or the focused paragraph. */
+  /** Toggles an H4 heading for the paragraph(s) at the current selection. */
   toggleH4: () => void;
 
-  /** Toggles an H5 heading on the current selection or the focused paragraph. */
+  /** Toggles an H5 heading for the paragraph(s) at the current selection. */
   toggleH5: () => void;
 
-  /** Toggles an H6 heading on the current selection or the focused paragraph. */
+  /** Toggles an H6 heading for the paragraph(s) at the current selection. */
   toggleH6: () => void;
 
-  /** Toggles a code block on the current selection or the focused paragraph. */
+  /** Toggles a code block for the paragraph(s) at the current selection. */
   toggleCodeBlock: () => void;
 
-  /** Toggles a block-quote on the current selection or the focused paragraph. */
+  /** Toggles a block-quote for the paragraph(s) at the current selection. */
   toggleBlockQuote: () => void;
 
   /**
@@ -508,7 +507,7 @@ export interface EnrichedTextInputInstance extends NativeMethods {
   toggleCheckboxList: (checked: boolean) => void;
 
   /**
-   * Inserts or updates a hyperlink over the character range `[start, end]`.
+   * Inserts or updates a hyperlink over the character range `[start, end)`.
    *
    * @param start - Start offset of the linked text (inclusive).
    * @param end   - End offset of the linked text (exclusive).
@@ -518,7 +517,7 @@ export interface EnrichedTextInputInstance extends NativeMethods {
   setLink: (start: number, end: number, text: string, url: string) => void;
 
   /**
-   * Removes any hyperlink from the `[start, end]` range while
+   * Removes any hyperlink from the `[start, end)` range while
    * preserving the underlying text.
    *
    * @param start - Start offset (inclusive).
