@@ -1502,11 +1502,12 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   NSData *jsonData = [styleJSON dataUsingEncoding:NSUTF8StringEncoding];
   if (jsonData == nil)
     return;
-  NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:jsonData
-                                                       options:0
-                                                         error:nil];
-  if (dict == nil)
+  id parsed = [NSJSONSerialization JSONObjectWithData:jsonData
+                                              options:0
+                                                error:nil];
+  if (![parsed isKindOfClass:[NSDictionary class]])
     return;
+  NSDictionary *dict = (NSDictionary *)parsed;
 
   NSRange selectedRange = textView.selectedRange;
   CustomStyle *customStyleClass =
@@ -1962,8 +1963,10 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
             replacementText:(NSString *)text {
   // Capture the attributes at range.location that are being replaced
   // (autocorrect / predictive) so didProcessEditing: can re-stamp them onto the
-  // replacement.
-  if (range.length > 0) {
+  // replacement. Skip pure deletions (text.length == 0) — there is no incoming
+  // text to receive attributes, and capturing here would cause the deleted
+  // character's CustomStyleData to be re-stamped onto the widened editedRange.
+  if (range.length > 0 && text.length > 0) {
     _capturedAttributesBeforeChange =
         [textView.textStorage attributesAtIndex:range.location
                                  effectiveRange:NULL];
