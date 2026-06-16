@@ -1,0 +1,20 @@
+appId: com.apple.Preferences
+---
+- launchApp
+- tapOn: "General"
+- waitForAnimationToEnd :
+    timeout: 1000
+
+- tapOn: "Keyboard"
+
+
+# turn-off auto-correction
+- runFlow:
+    when:
+      notVisible:
+        text: "0"
+        index: 1
+    commands:
+      - tapOn:
+          text: "1"
+          index: 3

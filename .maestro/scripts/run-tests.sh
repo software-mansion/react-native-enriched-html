@@ -144,6 +144,11 @@ run_maestro() {
   return "$rc"
 }
 
+if [ "$PLATFORM" = ios ]; then
+  echo "=== Running iOS device setup ==="
+  run_maestro --device "$DEVICE_ID" "$MAESTRO_ROOT/setup/ios_keyboard_settings.yaml"
+fi
+
 set +e
 
 echo "=== Running maestro tests ==="

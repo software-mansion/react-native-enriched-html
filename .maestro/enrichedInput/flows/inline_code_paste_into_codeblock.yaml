@@ -21,7 +21,7 @@ appId: swmansion.enriched.example
 
 - doubleTapOn:
     id: 'editor-input'
-    point: '10%, 30%'
+    point: '8%, 25%'
 
 - tapOn:
     text: 'Copy'
