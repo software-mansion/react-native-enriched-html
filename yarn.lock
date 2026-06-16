@@ -4516,6 +4516,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/shell-quote@npm:^1":
+  version: 1.7.5
+  resolution: "@types/shell-quote@npm:1.7.5"
+  checksum: 10c0/ddcf225e85e5520e3f44411d7d79eee0e56477fab705d0d93e293b61b9f8de2a57db6e859d492a24bc9e0d071c0490271efeae832756e2ac0d4d255922ac281d
+  languageName: node
+  linkType: hard
+
 "@types/stack-utils@npm:^2.0.0":
   version: 2.0.3
   resolution: "@types/stack-utils@npm:2.0.3"
@@ -12587,6 +12594,7 @@ __metadata:
     "@types/jest": "npm:^29.5.5"
     "@types/react": "npm:^19.1.0"
     "@types/react-dom": "npm:^19.1.0"
+    "@types/shell-quote": "npm:^1"
     clang-format: "npm:^1.8.0"
     commitlint: "npm:^19.6.1"
     del-cli: "npm:^5.1.0"
@@ -12601,6 +12609,7 @@ __metadata:
     react-native: "npm:0.81.0"
     react-native-builder-bob: "npm:^0.40.18"
     release-it: "npm:^17.10.0"
+    shell-quote: "npm:1.8.4"
     turbo: "npm:^1.10.7"
     typescript: "npm:^5.8.3"
   peerDependencies:
@@ -13486,6 +13495,13 @@ __metadata:
   version: 3.0.0
   resolution: "shebang-regex@npm:3.0.0"
   checksum: 10c0/1dbed0726dd0e1152a92696c76c7f06084eb32a90f0528d11acd764043aacf76994b2fb30aa1291a21bd019d6699164d048286309a278855ee7bec06cf6fb690
+  languageName: node
+  linkType: hard
+
+"shell-quote@npm:1.8.4":
+  version: 1.8.4
+  resolution: "shell-quote@npm:1.8.4"
+  checksum: 10c0/86c93678bc394cb81f5ddcdc87df9c95d279ef9652775cd1cd1eed361404169a8d8cbaacaeed232ab09919e36ee1e5363863570390d78571f8c22b7f6312fb40
   languageName: node
   linkType: hard
 
