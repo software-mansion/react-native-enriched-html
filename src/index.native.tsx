@@ -32,3 +32,6 @@ export type {
   OnMentionPressEvent,
   OnLinkPressEvent,
 } from './types';
+
+import { warnDeprecated } from './deprecate';
+warnDeprecated();

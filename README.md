@@ -1,5 +1,13 @@
 <img src="https://github.com/user-attachments/assets/c8ba03bc-4ea8-48f4-9566-02ebac0c19d3" alt="react-native-enriched by Software Mansion" width="100%">
 
+> [!WARNING]
+> **`react-native-enriched` has been renamed to [`react-native-enriched-html`](https://github.com/software-mansion/react-native-enriched-html).**
+> This package will not receive any further updates or bug fixes. Migrate without any breaking changes:
+> ```sh
+> npm install react-native-enriched-html
+> ```
+> See the [official announcement](https://github.com/software-mansion/react-native-enriched-html/releases/tag/v1.0.0) for details.
+
 [![Ad](https://swm-delivery.com/www/images/zone-gh-react-native-enriched-1?n=1)](https://swm-delivery.com/www/delivery/ck-slug.php?zoneid=zone-gh-react-native-enriched-1&n=1)
 [![Ad](https://swm-delivery.com/www/images/zone-gh-react-native-enriched-2?n=1)](https://swm-delivery.com/www/delivery/ck-slug.php?zoneid=zone-gh-react-native-enriched-2&n=1)
 [![Ad](https://swm-delivery.com/www/images/zone-gh-react-native-enriched-3?n=1)](https://swm-delivery.com/www/delivery/ck-slug.php?zoneid=zone-gh-react-native-enriched-3&n=1)
