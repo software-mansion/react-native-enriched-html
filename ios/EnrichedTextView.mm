@@ -13,9 +13,9 @@
 #import "TextDecorationLineEnum.h"
 #import "TextHtmlParser.h"
 #import <React/RCTConversions.h>
-#import <ReactNativeEnriched/EnrichedTextComponentDescriptor.h>
-#import <ReactNativeEnriched/EventEmitters.h>
-#import <ReactNativeEnriched/Props.h>
+#import <ReactNativeEnrichedHtml/EnrichedTextComponentDescriptor.h>
+#import <ReactNativeEnrichedHtml/EventEmitters.h>
+#import <ReactNativeEnrichedHtml/Props.h>
 #import <folly/dynamic.h>
 #import <react/utils/ManagedObjectWrapper.h>
 

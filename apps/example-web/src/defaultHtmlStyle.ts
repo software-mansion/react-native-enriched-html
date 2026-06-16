@@ -1,4 +1,4 @@
-import type { HtmlStyle } from 'react-native-enriched';
+import type { HtmlStyle } from 'react-native-enriched-html';
 
 export const WEB_DEFAULT_HTML_STYLE: HtmlStyle = {
   h1: {

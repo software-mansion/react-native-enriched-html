@@ -745,7 +745,7 @@ setValue: (value: string) => void;
 
 Sets the input's value.
 
-- `value: string` - value to set, it can either be `react-native-enriched` supported HTML string or raw text.
+- `value: string` - value to set, it can either be `react-native-enriched-html` supported HTML string or raw text.
 
 ### `.setSelection()`
 

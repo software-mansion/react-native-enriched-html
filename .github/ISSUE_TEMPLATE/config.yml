@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: Feature Request 💡
-    url: https://github.com/software-mansion/react-native-enriched/discussions/new?category=ideas
+    url: https://github.com/software-mansion/react-native-enriched-html/discussions/new?category=ideas
     about: If you have a feature request, please create a new discussion on GitHub.
   - name: Discussions on GitHub 💬
-    url: https://github.com/software-mansion/react-native-enriched/discussions
+    url: https://github.com/software-mansion/react-native-enriched-html/discussions
     about: If this library works as promised but you need help, please ask questions there.

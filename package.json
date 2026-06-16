@@ -1,7 +1,7 @@
 {
-  "name": "react-native-enriched",
-  "version": "0.8.0",
-  "description": "Rich Text Editor component for React Native",
+  "name": "react-native-enriched-html",
+  "version": "1.0.0",
+  "description": "HTML-based Rich Text solution for React Native",
   "source": "./src/index.tsx",
   "main": "./lib/module/index.js",
   "module": "./lib/module/index.js",
@@ -76,14 +76,14 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/software-mansion/react-native-enriched.git"
+    "url": "git+https://github.com/software-mansion/react-native-enriched-html.git"
   },
   "author": "Software Mansion <contact@swmansion.com> (https://swmansion.com)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/software-mansion/react-native-enriched/issues"
+    "url": "https://github.com/software-mansion/react-native-enriched-html/issues"
   },
-  "homepage": "https://github.com/software-mansion/react-native-enriched#readme",
+  "homepage": "https://github.com/software-mansion/react-native-enriched-html#readme",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },

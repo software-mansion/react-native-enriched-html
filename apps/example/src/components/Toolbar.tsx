@@ -3,7 +3,7 @@ import { ToolbarButton } from './ToolbarButton';
 import type {
   OnChangeStateEvent,
   EnrichedTextInputInstance,
-} from 'react-native-enriched';
+} from 'react-native-enriched-html';
 import type { FC } from 'react';
 
 const GRID_COLUMNS = 8;
