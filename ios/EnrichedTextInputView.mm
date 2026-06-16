@@ -1,6 +1,7 @@
 #import "EnrichedTextInputView.h"
 #import "AlignmentUtils.h"
 #import "AttachmentLayoutUtils.h"
+#import "ColorExtension.h"
 #import "CoreText/CoreText.h"
 #import "DotReplacementUtils.h"
 #import "HtmlParser.h"
@@ -17,6 +18,7 @@
 #import "WordsUtils.h"
 #import "ZeroWidthSpaceUtils.h"
 #import <React/RCTConversions.h>
+#import <React/RCTConvert.h>
 #import <ReactNativeEnriched/EnrichedTextInputViewComponentDescriptor.h>
 #import <ReactNativeEnriched/EventEmitters.h>
 #import <ReactNativeEnriched/Props.h>
@@ -60,6 +62,7 @@ using namespace facebook::react;
   NSString *_submitBehavior;
   NSDictionary<NSAttributedStringKey, id> *_capturedAttributesBeforeChange;
   NSString *_recentlyEmittedAlignment;
+  CustomStyleData *_recentlyEmittedCustomStyle;
 }
 
 @synthesize blockEmitting = blockEmitting;
@@ -1092,6 +1095,15 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
     updateNeeded = YES;
   }
 
+  // detect custom style change
+  CustomStyle *customStyle = stylesDict[@([CustomStyle getType])];
+  CustomStyleData *currentCustomStyle =
+      [customStyle getCustomStyleDataAt:textView.selectedRange.location];
+  if (currentCustomStyle != _recentlyEmittedCustomStyle &&
+      ![currentCustomStyle isEqual:_recentlyEmittedCustomStyle]) {
+    updateNeeded = YES;
+  }
+
   if (updateNeeded) {
     auto emitter = [self getEventEmitter];
     if (emitter != nullptr) {
@@ -1099,6 +1111,7 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
       _activeStyles = newActiveStyles;
       _blockedStyles = newBlockedStyles;
       _recentlyEmittedAlignment = currentAlignment;
+      _recentlyEmittedCustomStyle = currentCustomStyle;
 
       emitter->onChangeState(
           {.bold = GET_STYLE_STATE([BoldStyle getType]),
@@ -1120,7 +1133,14 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
            .codeBlock = GET_STYLE_STATE([CodeBlockStyle getType]),
            .image = GET_STYLE_STATE([ImageStyle getType]),
            .checkboxList = GET_STYLE_STATE([CheckboxListStyle getType]),
-           .alignment = [currentAlignment UTF8String]});
+           .alignment = [currentAlignment UTF8String],
+           .customStyle = {
+               .foregroundColor =
+                   [[currentCustomStyle.foregroundColor rgbaString] UTF8String]
+                       ?: "",
+               .backgroundColor =
+                   [[currentCustomStyle.backgroundColor rgbaString] UTF8String]
+                       ?: ""}});
     }
   }
 
@@ -1268,6 +1288,9 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
     if (!_placeholderLabel.isHidden) {
       [self refreshPlaceholderLabelStyles];
     }
+  } else if ([commandName isEqualToString:@"setStyle"]) {
+    NSString *styleJSON = (NSString *)args[0];
+    [self setStyle:styleJSON];
   }
 }
 
@@ -1473,6 +1496,52 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
     [style toggle:range];
     [self anyTextMayHaveBeenModified];
   }
+}
+
+- (void)setStyle:(NSString *)styleJSON {
+  NSData *jsonData = [styleJSON dataUsingEncoding:NSUTF8StringEncoding];
+  if (jsonData == nil)
+    return;
+  NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:jsonData
+                                                       options:0
+                                                         error:nil];
+  if (dict == nil)
+    return;
+
+  NSRange selectedRange = textView.selectedRange;
+  CustomStyle *customStyleClass =
+      (CustomStyle *)stylesDict[@([CustomStyle getType])];
+  if (customStyleClass == nil)
+    return;
+
+  if (![StyleUtils handleStyleBlocksAndConflicts:[CustomStyle getType]
+                                           range:selectedRange
+                                         forHost:self]) {
+    return;
+  }
+
+  // Convert raw JSON values (NSNumber ARGB integers from processColor) to
+  // UIColor. NSNull is passed through as-is so mergeFromDict: can clear
+  // the color when the caller explicitly passes null.
+  NSMutableDictionary *processedDict = [NSMutableDictionary new];
+
+  id fgRaw = dict[@"foregroundColor"];
+  if (fgRaw != nil) {
+    processedDict[@"foregroundColor"] = [fgRaw isKindOfClass:[NSNull class]]
+                                            ? [NSNull null]
+                                            : [RCTConvert UIColor:fgRaw];
+  }
+
+  id bgRaw = dict[@"backgroundColor"];
+  if (bgRaw != nil) {
+    processedDict[@"backgroundColor"] = [bgRaw isKindOfClass:[NSNull class]]
+                                            ? [NSNull null]
+                                            : [RCTConvert UIColor:bgRaw];
+  }
+
+  [customStyleClass applyStyleFromDict:processedDict
+                         selectedRange:selectedRange];
+  [self anyTextMayHaveBeenModified];
 }
 
 - (void)toggleCheckboxList:(BOOL)checked {
@@ -1827,6 +1896,10 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
     AlignmentStyle *alignmentStyle = stylesDict[@([AlignmentStyle getType])];
     NSString *currentAlignment = [alignmentStyle getStyleState];
 
+    CustomStyle *customStyle = stylesDict[@([CustomStyle getType])];
+    CustomStyleData *contextCustomStyleData =
+        [customStyle getCustomStyleDataAt:textView.selectedRange.location];
+
     emitter->onContextMenuItemPress(
         {.itemText = [itemText toCppString],
          .selectedText = [selectedText toCppString],
@@ -1853,7 +1926,16 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
              .image = GET_STYLE_STATE([ImageStyle getType]),
              .mention = GET_STYLE_STATE([MentionStyle getType]),
              .checkboxList = GET_STYLE_STATE([CheckboxListStyle getType]),
-             .alignment = [currentAlignment UTF8String]}});
+             .alignment = [currentAlignment UTF8String],
+             .customStyle = {
+                 .foregroundColor =
+                     [[contextCustomStyleData.foregroundColor rgbaString]
+                         UTF8String]
+                         ?: "",
+                 .backgroundColor =
+                     [[contextCustomStyleData.backgroundColor rgbaString]
+                         UTF8String]
+                         ?: ""}}});
   }
 }
 

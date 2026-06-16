@@ -37,6 +37,13 @@
   return false;
 }
 
+// Returns the application priority for this style.
+// 0 = paragraph, 1 = custom (parametric colors), 2 = inline (default).
+// Styles are applied in ascending priority order so inline styles win.
+- (NSInteger)stylePriority {
+  return [self isParagraph] ? 0 : 2;
+}
+
 - (BOOL)needsZWS {
   return NO;
 }

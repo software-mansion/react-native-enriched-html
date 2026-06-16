@@ -1,14 +1,15 @@
 #import "HtmlParser.h"
 #import "AlignmentEntry.h"
 #import "AlignmentUtils.h"
+#import "ColorExtension.h"
+#import "CustomStyleData.h"
+#include "GumboParser.hpp"
 #import "ImageData.h"
 #import "LinkData.h"
 #import "MentionParams.h"
 #import "StringExtension.h"
 #import "StyleHeaders.h"
 #import "StylePair.h"
-
-#include "GumboParser.hpp"
 
 @implementation HtmlParser
 
@@ -41,9 +42,10 @@
  * you MUST add it to the `textTags` set below.
  */
 + (NSString *)stripExtraWhiteSpacesAndNewlines:(NSString *)html {
-  NSSet *textTags = [NSSet setWithObjects:@"p", @"h1", @"h2", @"h3", @"h4",
-                                          @"h5", @"h6", @"li", @"b", @"a", @"s",
-                                          @"mention", @"code", @"u", @"i", nil];
+  NSSet *textTags =
+      [NSSet setWithObjects:@"p", @"h1", @"h2", @"h3", @"h4", @"h5", @"h6",
+                            @"li", @"b", @"a", @"s", @"mention", @"code", @"u",
+                            @"i", @"span", nil];
 
   NSMutableString *output = [NSMutableString stringWithCapacity:html.length];
   NSMutableString *currentTagBuffer = [NSMutableString string];
@@ -817,6 +819,13 @@
       [styleArr addObject:@([BlockQuoteStyle getType])];
     } else if ([tagName isEqualToString:@"codeblock"]) {
       [styleArr addObject:@([CodeBlockStyle getType])];
+    } else if ([tagName isEqualToString:@"span"]) {
+      CustomStyleData *data = [self parseCustomStyleDataFromSpanParams:params];
+      if (data == nil || data.isEmpty) {
+        continue;
+      }
+      [styleArr addObject:@([CustomStyle getType])];
+      stylePair.styleValue = data;
     } else {
       // some other external tags like span just don't get put into the
       // processed styles
@@ -849,6 +858,7 @@
   BOOL inCodeBlock = NO;
   BOOL inCheckboxList = NO;
   unichar lastCharacter = 0;
+  CustomStyleData *lastCustomStyleData = nil;
 
   for (int i = 0; i < text.length; i++) {
     NSRange currentRange = NSMakeRange(offset + i, 1);
@@ -988,6 +998,7 @@
 
       // clear the previous styles
       previousActiveStyles = [[NSSet<NSNumber *> alloc] init];
+      lastCustomStyleData = nil;
 
       // next character opens new paragraph
       newLine = YES;
@@ -1149,6 +1160,23 @@
         }
       }
 
+      // Force close+reopen if CustomStyle is continuously active but its data
+      // changed, so adjacent runs with different styles produce separate <span>
+      // tags instead of being merged into one.
+      NSNumber *customType = @([CustomStyle getType]);
+      if (![endedStyles member:customType] &&
+          [currentActiveStyles member:customType] &&
+          [previousActiveStyles member:customType]) {
+        CustomStyle *customStyleObj =
+            (CustomStyle *)host.stylesDict[customType];
+        CustomStyleData *currentData =
+            [customStyleObj getStoredCustomStyleDataAt:currentRange.location];
+        if (![currentData isEqual:lastCustomStyleData]) {
+          [fixedEndedStyles addObject:customType];
+          [stylesToBeReAdded addObject:customType];
+        }
+      }
+
       // they are sorted in a descending order
       NSArray<NSNumber *> *sortedEndedStyles = [fixedEndedStyles
           sortedArrayUsingDescriptors:@[ [NSSortDescriptor
@@ -1193,6 +1221,11 @@
 
       // append the letter and escape it if needed
       [result appendString:[NSString stringByEscapingHtml:currentCharacterStr]];
+
+      // track CustomStyleData for the next character's data-change check
+      lastCustomStyleData =
+          [(CustomStyle *)host.stylesDict[@([CustomStyle getType])]
+              getStoredCustomStyleDataAt:currentRange.location];
 
       // save current styles for next character's checks
       previousActiveStyles = currentActiveStyles;
@@ -1413,6 +1446,34 @@
              [style isEqualToNumber:@([CodeBlockStyle getType])]) {
     // blockquotes and codeblock use <p> tags the same way lists use <li>
     return [NSString stringWithFormat:@"p%@", cssStyleString];
+  } else if ([style isEqualToNumber:@([CustomStyle getType])]) {
+    if (openingTag) {
+      CustomStyle *customStyle =
+          (CustomStyle *)host.stylesDict[@([CustomStyle getType])];
+      if (customStyle != nil) {
+        CustomStyleData *data =
+            [customStyle getStoredCustomStyleDataAt:location];
+        if (data != nil && !data.isEmpty) {
+          NSMutableString *cssProps = [NSMutableString string];
+          NSString *fg = [[data foregroundColor] rgbaString];
+          NSString *bg = [[data backgroundColor] rgbaString];
+          if (fg != nil) {
+            [cssProps appendFormat:@"color: %@;", fg];
+          }
+          if (bg != nil) {
+            if (cssProps.length > 0)
+              [cssProps appendString:@" "];
+            [cssProps appendFormat:@"background-color: %@;", bg];
+          }
+          if (cssProps.length > 0) {
+            return [NSString stringWithFormat:@"span style=\"%@\"", cssProps];
+          }
+        }
+      }
+      return @"span";
+    } else {
+      return @"span";
+    }
   }
   return @"";
 }
@@ -1435,6 +1496,62 @@
   }
 
   return @"";
+}
+
++ (CustomStyleData *_Nullable)parseCustomStyleDataFromSpanParams:
+    (NSString *)params {
+  static NSRegularExpression *styleAttrRegex;
+  static NSRegularExpression *fgRegex;
+  static NSRegularExpression *bgRegex;
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{
+    styleAttrRegex = [NSRegularExpression
+        regularExpressionWithPattern:@"style\\s*=\\s*[\"']([^\"']*)[\"']"
+                             options:NSRegularExpressionCaseInsensitive
+                               error:nil];
+    // Captures everything after "color:" until a semicolon or end of string
+    fgRegex = [NSRegularExpression
+        regularExpressionWithPattern:@"(?:^|;)\\s*color\\s*:\\s*([^;]+)"
+                             options:NSRegularExpressionCaseInsensitive
+                               error:nil];
+
+    // Captures everything after "background-color:" until a semicolon or end of
+    // string
+    bgRegex = [NSRegularExpression
+        regularExpressionWithPattern:@"background-color\\s*:\\s*([^;]+)"
+                             options:NSRegularExpressionCaseInsensitive
+                               error:nil];
+  });
+
+  NSTextCheckingResult *attrMatch =
+      [styleAttrRegex firstMatchInString:params
+                                 options:0
+                                   range:NSMakeRange(0, params.length)];
+  if (!attrMatch)
+    return nil;
+
+  NSString *css = [params substringWithRange:[attrMatch rangeAtIndex:1]];
+  CustomStyleData *data = [[CustomStyleData alloc] init];
+
+  NSTextCheckingResult *fgMatch =
+      [fgRegex firstMatchInString:css
+                          options:0
+                            range:NSMakeRange(0, css.length)];
+  if (fgMatch) {
+    data.foregroundColor = [UIColor
+        colorFromRgbaString:[css substringWithRange:[fgMatch rangeAtIndex:1]]];
+  }
+
+  NSTextCheckingResult *bgMatch =
+      [bgRegex firstMatchInString:css
+                          options:0
+                            range:NSMakeRange(0, css.length)];
+  if (bgMatch) {
+    data.backgroundColor = [UIColor
+        colorFromRgbaString:[css substringWithRange:[bgMatch rangeAtIndex:1]]];
+  }
+
+  return data.isEmpty ? nil : data;
 }
 
 + (void)checkForAlignments:(NSArray *)tagData

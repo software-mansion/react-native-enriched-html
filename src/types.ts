@@ -1,13 +1,13 @@
 import type { RefObject } from 'react';
-import type {
-  ColorValue,
-  DimensionValue,
-  NativeMethods,
-  NativeSyntheticEvent,
-  ReturnKeyTypeOptions,
-  TargetedEvent,
-  TextStyle,
-  ViewProps,
+import {
+  type ColorValue,
+  type DimensionValue,
+  type NativeMethods,
+  type NativeSyntheticEvent,
+  type ReturnKeyTypeOptions,
+  type TargetedEvent,
+  type TextStyle,
+  type ViewProps,
 } from 'react-native';
 
 /**
@@ -348,6 +348,10 @@ export interface OnChangeStateEvent {
     isBlocking: boolean;
   };
   alignment: string;
+  customStyle: {
+    foregroundColor: string;
+    backgroundColor: string;
+  };
 }
 
 export interface OnLinkDetected {
@@ -428,6 +432,10 @@ export interface EnrichedTextInputInstance extends NativeMethods {
   setTextAlignment: (
     alignment: 'left' | 'center' | 'right' | 'justify' | 'auto'
   ) => void;
+  setStyle: (customStyle: {
+    foregroundColor?: ColorValue | null;
+    backgroundColor?: ColorValue | null;
+  }) => void;
 }
 
 export interface ContextMenuItem {

@@ -35,4 +35,60 @@
   }
   return self;
 }
+
+- (NSString *)rgbaString {
+  CGFloat red = 0.0;
+  CGFloat green = 0.0;
+  CGFloat blue = 0.0;
+  CGFloat alpha = 0.0;
+
+  // getRed:green:blue:alpha: returns YES if the color can be converted to RGB.
+  // It natively handles monochrome/grayscale colors as well.
+  if ([self getRed:&red green:&green blue:&blue alpha:&alpha]) {
+    // Convert 0.0-1.0 floats to 0-255 integers for RGB
+    int r = (int)round(red * 255.0);
+    int g = (int)round(green * 255.0);
+    int b = (int)round(blue * 255.0);
+
+    return
+        [NSString stringWithFormat:@"rgba(%d, %d, %d, %.2f)", r, g, b, alpha];
+  }
+
+  // Fallback for unsupported color
+  return @"";
+}
+
++ (UIColor *)colorFromRgbaString:(NSString *)rgba {
+  if (rgba.length == 0)
+    return nil;
+
+  static NSRegularExpression *regex;
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{
+    regex = [NSRegularExpression
+        regularExpressionWithPattern:
+            @"rgba\\(\\s*(\\d+)\\s*,\\s*(\\d+)\\s*,\\s*(\\d+)\\s*,"
+            @"\\s*([\\d.]+)\\s*\\)"
+                             options:NSRegularExpressionCaseInsensitive
+                               error:nil];
+  });
+
+  NSTextCheckingResult *match =
+      [regex firstMatchInString:rgba
+                        options:0
+                          range:NSMakeRange(0, rgba.length)];
+  if (!match || match.numberOfRanges < 5)
+    return nil;
+
+  CGFloat r =
+      [[rgba substringWithRange:[match rangeAtIndex:1]] integerValue] / 255.0;
+  CGFloat g =
+      [[rgba substringWithRange:[match rangeAtIndex:2]] integerValue] / 255.0;
+  CGFloat b =
+      [[rgba substringWithRange:[match rangeAtIndex:3]] integerValue] / 255.0;
+  CGFloat a = [[rgba substringWithRange:[match rangeAtIndex:4]] doubleValue];
+
+  return [UIColor colorWithRed:r green:g blue:b alpha:a];
+}
+
 @end

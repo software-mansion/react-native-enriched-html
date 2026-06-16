@@ -91,7 +91,8 @@
       @([CheckboxListStyle getType])
     ],
     @([ImageStyle getType]) :
-        @[ @([LinkStyle getType]), @([MentionStyle getType]) ]
+        @[ @([LinkStyle getType]), @([MentionStyle getType]) ],
+    @([CustomStyle getType]) : @[]
   };
 }
 
@@ -123,23 +124,35 @@
     @([AlignmentStyle getType]) : @[],
     @([BlockQuoteStyle getType]) : @[],
     @([CodeBlockStyle getType]) : @[],
-    @([ImageStyle getType]) : @[ @([InlineCodeStyle getType]) ]
+    @([ImageStyle getType]) : @[ @([InlineCodeStyle getType]) ],
+    @([CustomStyle getType]) : @[]
   };
 }
 
 + (NSDictionary *)stylesDictForHost:(id<EnrichedViewHost>)host
                             isInput:(BOOL)isInput {
   NSArray<Class> *baseClasses = @[
-    [BoldStyle class],        [ItalicStyle class],
-    [UnderlineStyle class],   [StrikethroughStyle class],
-    [InlineCodeStyle class],  [LinkStyle class],
-    [MentionStyle class],     [H1Style class],
-    [H2Style class],          [H3Style class],
-    [H4Style class],          [H5Style class],
-    [H6Style class],          [UnorderedListStyle class],
-    [OrderedListStyle class], [CheckboxListStyle class],
-    [AlignmentStyle class],   [BlockQuoteStyle class],
-    [CodeBlockStyle class],   [ImageStyle class]
+    [BoldStyle class],
+    [ItalicStyle class],
+    [UnderlineStyle class],
+    [StrikethroughStyle class],
+    [InlineCodeStyle class],
+    [LinkStyle class],
+    [MentionStyle class],
+    [H1Style class],
+    [H2Style class],
+    [H3Style class],
+    [H4Style class],
+    [H5Style class],
+    [H6Style class],
+    [CustomStyle class],
+    [UnorderedListStyle class],
+    [OrderedListStyle class],
+    [CheckboxListStyle class],
+    [AlignmentStyle class],
+    [BlockQuoteStyle class],
+    [CodeBlockStyle class],
+    [ImageStyle class]
   ];
 
   NSArray<Class> *viewerClasses = @[
@@ -156,6 +169,7 @@
     [EnrichedTextH4Style class],
     [EnrichedTextH5Style class],
     [EnrichedTextH6Style class],
+    [EnrichedTextCustomStyle class],
     [EnrichedTextUnorderedListStyle class],
     [EnrichedTextOrderedListStyle class],
     [EnrichedTextCheckboxListStyle class],

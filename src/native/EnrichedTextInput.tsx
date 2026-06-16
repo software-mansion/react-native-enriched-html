@@ -14,13 +14,15 @@ import EnrichedTextInputNativeComponent, {
   type OnMentionDetectedInternal,
   type OnRequestHtmlResultEvent,
 } from '../spec/EnrichedTextInputNativeComponent';
-import type {
-  HostInstance,
-  MeasureInWindowOnSuccessCallback,
-  MeasureLayoutOnSuccessCallback,
-  MeasureOnSuccessCallback,
-  NativeMethods,
-  NativeSyntheticEvent,
+import {
+  processColor,
+  type ColorValue,
+  type HostInstance,
+  type MeasureInWindowOnSuccessCallback,
+  type MeasureLayoutOnSuccessCallback,
+  type MeasureOnSuccessCallback,
+  type NativeMethods,
+  type NativeSyntheticEvent,
 } from 'react-native';
 import { normalizeHtmlStyle } from '../utils/normalizeHtmlStyle';
 import { toNativeRegexConfig } from '../utils/regexParser';
@@ -275,6 +277,28 @@ export const EnrichedTextInput = ({
       alignment: 'left' | 'center' | 'right' | 'justify' | 'auto'
     ) => {
       Commands.setTextAlignment(nullthrows(nativeRef.current), alignment);
+    },
+    setStyle: (customStyle: {
+      foregroundColor?: ColorValue | null;
+      backgroundColor?: ColorValue | null;
+    }) => {
+      const payload: {
+        foregroundColor?: number | null;
+        backgroundColor?: number | null;
+      } = {};
+      if ('foregroundColor' in customStyle) {
+        payload.foregroundColor =
+          customStyle.foregroundColor != null
+            ? (processColor(customStyle.foregroundColor) as number)
+            : null;
+      }
+      if ('backgroundColor' in customStyle) {
+        payload.backgroundColor =
+          customStyle.backgroundColor != null
+            ? (processColor(customStyle.backgroundColor) as number)
+            : null;
+      }
+      Commands.setStyle(nullthrows(nativeRef.current), JSON.stringify(payload));
     },
   }));
 

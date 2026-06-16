@@ -1,8 +1,19 @@
 #pragma once
+#import "CustomStyleData.h"
 #import "ImageData.h"
 #import "LinkData.h"
 #import "MentionParams.h"
 #import "StyleBase.h"
+
+@interface CustomStyle : StyleBase
+- (void)applyStyleFromDict:(NSDictionary *)dict selectedRange:(NSRange)range;
+- (void)setCustomStyleData:(CustomStyleData *)data
+                     range:(NSRange)range
+                withTyping:(BOOL)withTyping
+            withDirtyRange:(BOOL)withDirtyRange;
+- (CustomStyleData *_Nullable)getCustomStyleDataAt:(NSUInteger)location;
+- (CustomStyleData *_Nullable)getStoredCustomStyleDataAt:(NSUInteger)location;
+@end
 
 @interface BoldStyle : StyleBase
 @end

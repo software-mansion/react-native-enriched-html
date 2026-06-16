@@ -355,6 +355,7 @@ export const EnrichedTextInput = ({
       measureLayout: () => {},
       setNativeProps: () => {},
       setTextAlignment: () => {},
+      setStyle: () => {},
     }),
     [editor]
   );
