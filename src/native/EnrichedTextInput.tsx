@@ -286,13 +286,13 @@ export const EnrichedTextInput = ({
         foregroundColor?: number | null;
         backgroundColor?: number | null;
       } = {};
-      if ('foregroundColor' in customStyle) {
+      if (customStyle.foregroundColor !== undefined) {
         payload.foregroundColor =
           customStyle.foregroundColor != null
             ? (processColor(customStyle.foregroundColor) as number)
             : null;
       }
-      if ('backgroundColor' in customStyle) {
+      if (customStyle.backgroundColor !== undefined) {
         payload.backgroundColor =
           customStyle.backgroundColor != null
             ? (processColor(customStyle.backgroundColor) as number)

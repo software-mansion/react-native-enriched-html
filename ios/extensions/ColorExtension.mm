@@ -46,9 +46,9 @@
   // It natively handles monochrome/grayscale colors as well.
   if ([self getRed:&red green:&green blue:&blue alpha:&alpha]) {
     // Convert 0.0-1.0 floats to 0-255 integers for RGB
-    int r = (int)round(red * 255.0);
-    int g = (int)round(green * 255.0);
-    int b = (int)round(blue * 255.0);
+    int r = (int)(red * 255.0 + 0.5);
+    int g = (int)(green * 255.0 + 0.5);
+    int b = (int)(blue * 255.0 + 0.5);
 
     return
         [NSString stringWithFormat:@"rgba(%d, %d, %d, %.2f)", r, g, b, alpha];
@@ -58,7 +58,7 @@
   return @"";
 }
 
-+ (UIColor *)colorFromRgbaString:(NSString *)rgba {
++ (UIColor *_Nullable)colorFromRgbaString:(NSString *_Nullable)rgba {
   if (rgba.length == 0)
     return nil;
 

@@ -1457,10 +1457,10 @@
           NSMutableString *cssProps = [NSMutableString string];
           NSString *fg = [[data foregroundColor] rgbaString];
           NSString *bg = [[data backgroundColor] rgbaString];
-          if (fg != nil) {
+          if (fg.length > 0) {
             [cssProps appendFormat:@"color: %@;", fg];
           }
-          if (bg != nil) {
+          if (bg.length > 0) {
             if (cssProps.length > 0)
               [cssProps appendString:@" "];
             [cssProps appendFormat:@"background-color: %@;", bg];

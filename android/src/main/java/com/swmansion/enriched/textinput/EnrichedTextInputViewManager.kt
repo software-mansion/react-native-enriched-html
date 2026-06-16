@@ -463,6 +463,13 @@ class EnrichedTextInputViewManager :
     TODO("Not yet implemented")
   }
 
+  override fun setStyle(
+    view: EnrichedTextInputView?,
+    styleJSON: String,
+  ) {
+    // TODO: Implement
+  }
+
   override fun measure(
     context: Context,
     localData: ReadableMap?,
