@@ -80,13 +80,9 @@
 @end
 
 @interface UnorderedListStyle : StyleBase
-- (BOOL)tryHandlingListShorcutInRange:(NSRange)range
-                      replacementText:(NSString *)text;
 @end
 
 @interface OrderedListStyle : StyleBase
-- (BOOL)tryHandlingListShorcutInRange:(NSRange)range
-                      replacementText:(NSString *)text;
 @end
 
 @interface CheckboxListStyle : StyleBase

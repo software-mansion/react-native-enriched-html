@@ -4,7 +4,7 @@ import {
   type EnrichedInputStyle,
   type EnrichedTextInputInstance,
   type OnLinkDetected,
-} from 'react-native-enriched';
+} from 'react-native-enriched-html';
 import { WEB_DEFAULT_HTML_STYLE } from '../defaultHtmlStyle';
 
 function toInteger(value: string): number {

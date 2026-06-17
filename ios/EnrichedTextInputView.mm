@@ -10,19 +10,21 @@
 #import "LayoutManagerExtension.h"
 #import "ParagraphAttributesUtils.h"
 #import "RCTFabricComponentsPlugins.h"
+#import "ShortcutsUtils.h"
 #import "StringExtension.h"
 #import "StyleHeaders.h"
 #import "StyleUtils.h"
 #import "TextBlockTapGestureRecognizer.h"
+#import "TextInsertionUtils.h"
 #import "UIView+React.h"
 #import "WordsUtils.h"
 #import "ZeroWidthSpaceUtils.h"
 #import <React/RCTConversions.h>
 #import <React/RCTConvert.h>
-#import <ReactNativeEnriched/EnrichedTextInputViewComponentDescriptor.h>
-#import <ReactNativeEnriched/EventEmitters.h>
-#import <ReactNativeEnriched/Props.h>
-#import <ReactNativeEnriched/RCTComponentViewHelpers.h>
+#import <ReactNativeEnrichedHtml/EnrichedTextInputViewComponentDescriptor.h>
+#import <ReactNativeEnrichedHtml/EventEmitters.h>
+#import <ReactNativeEnrichedHtml/Props.h>
+#import <ReactNativeEnrichedHtml/RCTComponentViewHelpers.h>
 #import <folly/dynamic.h>
 #import <react/utils/ManagedObjectWrapper.h>
 
@@ -692,6 +694,32 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   // useHtmlNormalizer
   if (newViewProps.useHtmlNormalizer != oldViewProps.useHtmlNormalizer) {
     useHtmlNormalizer = newViewProps.useHtmlNormalizer;
+  }
+
+  // textShortcuts
+  bool textShortcutsChanged =
+      newViewProps.textShortcuts.size() != oldViewProps.textShortcuts.size();
+  if (!textShortcutsChanged) {
+    for (size_t i = 0; i < newViewProps.textShortcuts.size(); i++) {
+      const auto &newItem = newViewProps.textShortcuts[i];
+      const auto &oldItem = oldViewProps.textShortcuts[i];
+      if (newItem.trigger != oldItem.trigger ||
+          newItem.style != oldItem.style) {
+        textShortcutsChanged = true;
+        break;
+      }
+    }
+  }
+
+  if (textShortcutsChanged) {
+    NSMutableArray *shortcuts = [NSMutableArray new];
+    for (const auto &item : newViewProps.textShortcuts) {
+      [shortcuts addObject:@{
+        @"trigger" : [NSString fromCppString:item.trigger],
+        @"style" : [NSString fromCppString:item.style],
+      }];
+    }
+    textShortcuts = shortcuts;
   }
 
   // default value - must be set before placeholder to make sure it correctly
@@ -1992,8 +2020,6 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
 
   [self handleKeyPressInRange:text range:range];
 
-  UnorderedListStyle *uStyle = stylesDict[@([UnorderedListStyle getType])];
-  OrderedListStyle *oStyle = stylesDict[@([OrderedListStyle getType])];
   CheckboxListStyle *cbLStyle =
       (CheckboxListStyle *)stylesDict[@([CheckboxListStyle getType])];
   H1Style *h1Style = stylesDict[@([H1Style getType])];
@@ -2012,8 +2038,6 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
       [ZeroWidthSpaceUtils handleBackspaceInRange:range
                                   replacementText:text
                                              host:self] ||
-      [uStyle tryHandlingListShorcutInRange:range replacementText:text] ||
-      [oStyle tryHandlingListShorcutInRange:range replacementText:text] ||
       [cbLStyle handleNewlinesInRange:range replacementText:text] ||
       [h1Style handleNewlinesInRange:range replacementText:text] ||
       [h2Style handleNewlinesInRange:range replacementText:text] ||
@@ -2027,7 +2051,14 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
       [ParagraphAttributesUtils handleResetTypingAttributesOnBackspace:range
                                                        replacementText:text
                                                                  input:self]
-
+      // Check configurable text shortcuts (block: "# " → h1, inline: `code` →
+      // inline_code)
+      || [ShortcutsUtils tryHandlingParagraphShortcutsInRange:range
+                                              replacementText:text
+                                                        input:self] ||
+      [ShortcutsUtils tryHandlingInlineShortcutsInRange:range
+                                        replacementText:text
+                                                  input:self]
       //       CRITICAL: This callback HAS TO be always evaluated last.
       //
       //       This function is the "Generic Fallback": if no specific style

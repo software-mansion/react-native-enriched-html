@@ -3,7 +3,7 @@ import {
   EnrichedTextInput,
   type EnrichedTextInputInstance,
   type OnChangeSelectionEvent,
-} from 'react-native-enriched';
+} from 'react-native-enriched-html';
 
 const SAMPLE_HTML = '<p>AAAA</p><br><br><p>BBBB</p><p>CCCC</p>';
 

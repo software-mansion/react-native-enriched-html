@@ -3,7 +3,8 @@
 
 @interface UIColor (ColorExtension)
 - (BOOL)isEqualToColor:(UIColor *)otherColor;
-- (UIColor *)colorWithAlphaIfNotTransparent:(CGFloat)newAlpha;
+- (UIColor *)colorWithResolvedAlpha;
+- (UIColor *)colorWithResolvedAlpha:(CGFloat)newAlpha;
 - (NSString *)hexString;
 
 + (UIColor *_Nullable)colorFromCSSString:(NSString *_Nullable)cssString;

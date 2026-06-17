@@ -2,7 +2,7 @@ import './Toolbar.css';
 import type {
   EnrichedTextInputInstance,
   OnChangeStateEvent,
-} from 'react-native-enriched';
+} from 'react-native-enriched-html';
 import type { RefObject } from 'react';
 import { useDragScroll } from '../hooks/useDragScroll';
 

@@ -177,6 +177,11 @@ export interface ContextMenuItemConfig {
   text: string;
 }
 
+export interface TextShortcut {
+  trigger: string;
+  style: string;
+}
+
 export interface OnContextMenuItemPressEvent {
   itemText: string;
   selectedText: string;
@@ -375,6 +380,7 @@ export interface NativeProps extends ViewProps {
   scrollEnabled?: boolean;
   linkRegex?: LinkNativeRegex;
   contextMenuItems?: ReadonlyArray<Readonly<ContextMenuItemConfig>>;
+  textShortcuts: ReadonlyArray<Readonly<TextShortcut>>;
   returnKeyType?: string;
   returnKeyLabel?: string;
   submitBehavior?: string;

@@ -3,7 +3,7 @@ import {
   EnrichedText,
   type OnLinkPressEvent,
   type OnMentionPressEvent,
-} from 'react-native-enriched';
+} from 'react-native-enriched-html';
 import { enrichedTextHtmlStyle } from '../constants/editorConfig';
 
 interface TextRendererProps {

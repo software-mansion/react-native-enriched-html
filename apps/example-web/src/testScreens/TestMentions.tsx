@@ -3,7 +3,7 @@ import {
   EnrichedTextInput,
   type EnrichedInputStyle,
   type EnrichedTextInputInstance,
-} from 'react-native-enriched';
+} from 'react-native-enriched-html';
 import { WEB_DEFAULT_HTML_STYLE } from '../defaultHtmlStyle';
 
 export function TestMentions() {
