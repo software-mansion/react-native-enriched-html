@@ -5,5 +5,6 @@
 - (BOOL)isEqualToColor:(UIColor *)otherColor;
 - (UIColor *)colorWithAlphaIfNotTransparent:(CGFloat)newAlpha;
 - (NSString *)hexString;
-+ (UIColor *_Nullable)colorFromHexString:(NSString *_Nullable)hex;
+
++ (UIColor *_Nullable)colorFromCSSString:(NSString *_Nullable)cssString;
 @end

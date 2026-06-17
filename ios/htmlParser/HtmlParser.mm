@@ -1539,9 +1539,7 @@
                             range:NSMakeRange(0, css.length)];
   if (fgMatch) {
     data.foregroundColor = [UIColor
-        colorFromHexString:[[css substringWithRange:[fgMatch rangeAtIndex:1]]
-                               stringByTrimmingCharactersInSet:
-                                   NSCharacterSet.whitespaceCharacterSet]];
+        colorFromCSSString:[css substringWithRange:[fgMatch rangeAtIndex:1]]];
   }
 
   NSTextCheckingResult *bgMatch =
@@ -1550,9 +1548,7 @@
                             range:NSMakeRange(0, css.length)];
   if (bgMatch) {
     data.backgroundColor = [UIColor
-        colorFromHexString:[[css substringWithRange:[bgMatch rangeAtIndex:1]]
-                               stringByTrimmingCharactersInSet:
-                                   NSCharacterSet.whitespaceCharacterSet]];
+        colorFromCSSString:[css substringWithRange:[bgMatch rangeAtIndex:1]]];
   }
 
   return data.isEmpty ? nil : data;
