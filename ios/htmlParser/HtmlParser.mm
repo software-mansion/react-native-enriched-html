@@ -415,10 +415,6 @@
   return fixedHtml;
 }
 
-+ (NSArray *_Nonnull)getTextAndStylesFromHtml:(NSString *_Nonnull)fixedHtml {
-  return [self getTextAndStylesFromHtml:fixedHtml config:nil];
-}
-
 + (NSArray *_Nonnull)getTextAndStylesFromHtml:(NSString *_Nonnull)fixedHtml
                                        config:
                                            (EnrichedConfig *_Nullable)config {
