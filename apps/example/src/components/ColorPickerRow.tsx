@@ -21,14 +21,20 @@ export const ColorPickerRow: FC<Props> = ({
       style={styles.container}
       contentContainerStyle={styles.content}
     >
-      <Pressable style={styles.clearButton} onPress={onClear}>
+      <Pressable
+        testID="color-swatch-clear"
+        style={styles.clearButton}
+        onPress={onClear}
+      >
         <Text style={styles.clearText}>✕</Text>
       </Pressable>
       {colors.map((color) => {
         const isActive = color.toLowerCase() === activeColor?.toLowerCase();
+        const swatchId = `color-swatch-${color.replace('#', '').toUpperCase()}`;
         return (
           <Pressable
             key={color}
+            testID={swatchId}
             onPress={() => onSelectColor(color)}
             style={[
               styles.swatch,
