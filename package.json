@@ -121,7 +121,7 @@
     "@types/jest": "^29.5.5",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
-    "@types/shell-quote": "^1",
+    "@types/shell-quote": "^1.7.5",
     "clang-format": "^1.8.0",
     "commitlint": "^19.6.1",
     "del-cli": "^5.1.0",

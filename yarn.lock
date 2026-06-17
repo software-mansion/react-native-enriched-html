@@ -4516,7 +4516,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/shell-quote@npm:^1":
+"@types/shell-quote@npm:^1.7.5":
   version: 1.7.5
   resolution: "@types/shell-quote@npm:1.7.5"
   checksum: 10c0/ddcf225e85e5520e3f44411d7d79eee0e56477fab705d0d93e293b61b9f8de2a57db6e859d492a24bc9e0d071c0490271efeae832756e2ac0d4d255922ac281d
@@ -12594,7 +12594,7 @@ __metadata:
     "@types/jest": "npm:^29.5.5"
     "@types/react": "npm:^19.1.0"
     "@types/react-dom": "npm:^19.1.0"
-    "@types/shell-quote": "npm:^1"
+    "@types/shell-quote": "npm:^1.7.5"
     clang-format: "npm:^1.8.0"
     commitlint: "npm:^19.6.1"
     del-cli: "npm:^5.1.0"
