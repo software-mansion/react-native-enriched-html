@@ -1,0 +1,3 @@
+.et ::selection {
+  background-color: var(--et-selection-color, Highlight);
+}
