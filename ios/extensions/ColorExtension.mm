@@ -275,21 +275,39 @@ static NSDictionary<NSString *, NSString *> *getNamedHexColors(void) {
   if ([str hasPrefix:@"rgb"]) {
     NSScanner *scanner = [NSScanner scannerWithString:str];
 
+    // Scan up to and including the opening parenthesis
     [scanner scanUpToString:@"(" intoString:NULL];
     if (![scanner scanString:@"(" intoString:NULL])
       return nil;
 
     float r = 0, g = 0, b = 0, a = 1.0;
 
-    [scanner scanFloat:&r];
-    [scanner scanString:@"," intoString:NULL];
-    [scanner scanFloat:&g];
-    [scanner scanString:@"," intoString:NULL];
-    [scanner scanFloat:&b];
+    // Scan Red, then require a comma
+    if (![scanner scanFloat:&r])
+      return nil;
+    if (![scanner scanString:@"," intoString:NULL])
+      return nil;
 
+    // Scan Green, then require a comma
+    if (![scanner scanFloat:&g])
+      return nil;
+    if (![scanner scanString:@"," intoString:NULL])
+      return nil;
+
+    // Scan Blue (comma not required yet, might be alpha or closing parenthesis)
+    if (![scanner scanFloat:&b])
+      return nil;
+
+    // Check if there is a 4th parameter (Alpha)
     if ([scanner scanString:@"," intoString:NULL]) {
-      [scanner scanFloat:&a];
+      if (![scanner scanFloat:&a])
+        return nil;
     }
+
+    // Require the closing parenthesis to guarantee the string wasn't malformed
+    // or cut off
+    if (![scanner scanString:@")" intoString:NULL])
+      return nil;
 
     return [UIColor colorWithRed:r / 255.0
                            green:g / 255.0

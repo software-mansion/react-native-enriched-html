@@ -827,8 +827,7 @@
       [styleArr addObject:@([CustomStyle getType])];
       stylePair.styleValue = data;
     } else {
-      // some other external tags like span just don't get put into the
-      // processed styles
+      // some other external tags don't get put into the processed styles
       continue;
     }
 

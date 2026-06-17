@@ -41,6 +41,19 @@ const warnMentionIndicators = (indicator: string) => {
   );
 };
 
+const getSafeColorInt = (
+  color: ColorValue | null | undefined
+): number | null => {
+  if (color == null) return null;
+
+  const processed = processColor(color);
+  if (typeof processed === 'number') {
+    return processed;
+  }
+
+  return null;
+};
+
 type ComponentType = (Component<NativeProps, {}, any> & NativeMethods) | null;
 
 type HtmlRequest = {
@@ -288,16 +301,10 @@ export const EnrichedTextInput = ({
         backgroundColor?: number | null;
       } = {};
       if (customStyle.foregroundColor !== undefined) {
-        payload.foregroundColor =
-          customStyle.foregroundColor != null
-            ? (processColor(customStyle.foregroundColor) as number)
-            : null;
+        payload.foregroundColor = getSafeColorInt(customStyle.foregroundColor);
       }
       if (customStyle.backgroundColor !== undefined) {
-        payload.backgroundColor =
-          customStyle.backgroundColor != null
-            ? (processColor(customStyle.backgroundColor) as number)
-            : null;
+        payload.backgroundColor = getSafeColorInt(customStyle.backgroundColor);
       }
       Commands.setStyle(nullthrows(nativeRef.current), JSON.stringify(payload));
     },
