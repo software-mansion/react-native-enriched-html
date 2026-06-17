@@ -875,8 +875,7 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
 
   private static boolean urlMatchesLinkRegex(String url, Pattern linkRegex) {
     if (linkRegex == null) return false;
-    Matcher m = linkRegex.matcher(url);
-    return m.find() && m.start() == 0 && m.end() == url.length();
+    return linkRegex.matcher(url).matches();
   }
 
   private static <T> void endA(
