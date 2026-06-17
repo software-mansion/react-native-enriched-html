@@ -138,6 +138,7 @@ static NSString *const CustomStyleAttributeName = @"EnrichedCustomStyle";
         self.host.textView.typingAttributes[CustomStyleAttributeName];
     if ([typingValue isKindOfClass:[CustomStyleData class]])
       return (CustomStyleData *)typingValue;
+    return nil;
   }
 
   return [self getStoredCustomStyleDataAt:location];

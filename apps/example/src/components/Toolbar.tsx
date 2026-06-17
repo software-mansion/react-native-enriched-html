@@ -1,5 +1,14 @@
-import { FlatList, type ListRenderItemInfo, StyleSheet } from 'react-native';
+import { useState } from 'react';
+import {
+  FlatList,
+  type ListRenderItemInfo,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { ToolbarButton } from './ToolbarButton';
+import { ColorPickerRow } from './ColorPickerRow';
 import type {
   OnChangeStateEvent,
   EnrichedTextInputInstance,
@@ -7,6 +16,25 @@ import type {
 import type { FC } from 'react';
 
 const GRID_COLUMNS = 8;
+
+const COLORS = [
+  '#000000',
+  '#FFFFFF',
+  '#808080',
+  '#FF0000',
+  '#FF6600',
+  '#FFFF00',
+  '#00FF00',
+  '#008000',
+  '#00FFFF',
+  '#0000FF',
+  '#800080',
+  '#FF00FF',
+  '#FF69B4',
+  '#A52A2A',
+  '#FFA500',
+  '#ADD8E6',
+];
 
 const STYLE_ITEMS = [
   {
@@ -97,10 +125,19 @@ const STYLE_ITEMS = [
     name: 'align-right',
     icon: 'align-right',
   },
+  {
+    name: 'text-color',
+    text: 'A',
+  },
+  {
+    name: 'bg-color',
+    text: 'BG',
+  },
 ] as const;
 
 type Item = (typeof STYLE_ITEMS)[number];
 type StylesState = OnChangeStateEvent;
+type OpenPicker = 'text-color' | 'bg-color' | null;
 
 export interface ToolbarProps {
   stylesState: StylesState;
@@ -117,6 +154,20 @@ export const Toolbar: FC<ToolbarProps> = ({
   onSelectImage,
   layout = 'horizontal',
 }) => {
+  const [openPicker, setOpenPicker] = useState<OpenPicker>(null);
+
+  const activeFgColor = stylesState.customStyle?.foregroundColor ?? '';
+  const activeBgColor = stylesState.customStyle?.backgroundColor ?? '';
+
+  const fgIndicatorColor =
+    activeFgColor.length > 0 ? activeFgColor : 'transparent';
+  const fgIndicatorBorder =
+    activeFgColor.length > 0 ? activeFgColor : 'rgba(255,255,255,0.4)';
+  const bgIndicatorColor =
+    activeBgColor.length > 0 ? activeBgColor : 'transparent';
+  const bgIndicatorBorder =
+    activeBgColor.length > 0 ? activeBgColor : 'rgba(255,255,255,0.4)';
+
   const handlePress = (item: Item) => {
     const currentRef = editorRef?.current;
     if (!currentRef) return;
@@ -168,7 +219,6 @@ export const Toolbar: FC<ToolbarProps> = ({
         editorRef.current?.toggleOrderedList();
         break;
       case 'checkbox-list':
-        // Make checkbox checked by default
         editorRef.current?.toggleCheckboxList(true);
         break;
       case 'link':
@@ -289,6 +339,62 @@ export const Toolbar: FC<ToolbarProps> = ({
   };
 
   const renderItem = ({ item }: ListRenderItemInfo<Item>) => {
+    if (item.name === 'text-color') {
+      return (
+        <Pressable
+          testID="toolbar-text-color"
+          onPress={() =>
+            setOpenPicker((prev) =>
+              prev === 'text-color' ? null : 'text-color'
+            )
+          }
+          style={[
+            styles.colorButton,
+            layout === 'grid' ? styles.gridItem : undefined,
+            openPicker === 'text-color' && styles.colorButtonActive,
+          ]}
+        >
+          <Text style={styles.colorButtonLabel}>A</Text>
+          <View
+            style={[
+              styles.colorIndicator,
+              {
+                backgroundColor: fgIndicatorColor,
+                borderColor: fgIndicatorBorder,
+              },
+            ]}
+          />
+        </Pressable>
+      );
+    }
+
+    if (item.name === 'bg-color') {
+      return (
+        <Pressable
+          testID="toolbar-bg-color"
+          onPress={() =>
+            setOpenPicker((prev) => (prev === 'bg-color' ? null : 'bg-color'))
+          }
+          style={[
+            styles.colorButton,
+            layout === 'grid' ? styles.gridItem : undefined,
+            openPicker === 'bg-color' && styles.colorButtonActive,
+          ]}
+        >
+          <Text style={styles.colorButtonLabel}>BG</Text>
+          <View
+            style={[
+              styles.colorIndicator,
+              {
+                backgroundColor: bgIndicatorColor,
+                borderColor: bgIndicatorBorder,
+              },
+            ]}
+          />
+        </Pressable>
+      );
+    }
+
     return (
       <ToolbarButton
         {...item}
@@ -303,27 +409,91 @@ export const Toolbar: FC<ToolbarProps> = ({
 
   const keyExtractor = (item: Item) => item.name;
 
+  const handleSelectFgColor = (color: string) => {
+    editorRef?.current?.setStyle({ foregroundColor: color });
+    setOpenPicker(null);
+  };
+
+  const handleClearFgColor = () => {
+    editorRef?.current?.setStyle({ foregroundColor: null });
+    setOpenPicker(null);
+  };
+
+  const handleSelectBgColor = (color: string) => {
+    editorRef?.current?.setStyle({ backgroundColor: color });
+    setOpenPicker(null);
+  };
+
+  const handleClearBgColor = () => {
+    editorRef?.current?.setStyle({ backgroundColor: null });
+    setOpenPicker(null);
+  };
+
   return (
-    <FlatList
-      key={layout}
-      numColumns={layout === 'grid' ? GRID_COLUMNS : undefined}
-      horizontal={layout === 'horizontal'}
-      scrollEnabled={layout === 'horizontal'}
-      data={STYLE_ITEMS}
-      renderItem={renderItem}
-      keyExtractor={keyExtractor}
-      style={styles.container}
-      testID="toolbar"
-    />
+    <View style={styles.wrapper}>
+      <FlatList
+        key={layout}
+        numColumns={layout === 'grid' ? GRID_COLUMNS : undefined}
+        horizontal={layout === 'horizontal'}
+        scrollEnabled={layout === 'horizontal'}
+        data={STYLE_ITEMS}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        style={styles.list}
+        testID="toolbar"
+      />
+      {openPicker === 'text-color' && (
+        <ColorPickerRow
+          colors={COLORS}
+          activeColor={activeFgColor}
+          onSelectColor={handleSelectFgColor}
+          onClear={handleClearFgColor}
+        />
+      )}
+      {openPicker === 'bg-color' && (
+        <ColorPickerRow
+          colors={COLORS}
+          activeColor={activeBgColor}
+          onSelectColor={handleSelectBgColor}
+          onClear={handleClearBgColor}
+        />
+      )}
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  wrapper: {
+    width: '100%',
+  },
+  list: {
     width: '100%',
   },
   gridItem: {
     flexBasis: `${100 / GRID_COLUMNS}%`,
     aspectRatio: 1,
+  },
+  colorButton: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 56,
+    height: 56,
+    backgroundColor: 'rgba(0, 26, 114, 0.8)',
+    gap: 2,
+  },
+  colorButtonActive: {
+    backgroundColor: 'rgb(0, 26, 114)',
+  },
+  colorButtonLabel: {
+    color: 'white',
+    fontSize: 15,
+    fontWeight: '700',
+    lineHeight: 17,
+  },
+  colorIndicator: {
+    width: 20,
+    height: 5,
+    borderRadius: 2,
+    borderWidth: 1,
   },
 });
