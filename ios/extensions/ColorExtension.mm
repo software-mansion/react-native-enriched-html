@@ -36,57 +36,60 @@
   return self;
 }
 
-- (NSString *)rgbaString {
+// Returns a CSS hex color string.
+// Opaque colors produce 6-digit form (#RRGGBB); semi-transparent produce
+// 8-digit form (#RRGGBBAA). Returns @"" if the color cannot be expressed
+// in RGB.
+- (NSString *)hexString {
   CGFloat red = 0.0;
   CGFloat green = 0.0;
   CGFloat blue = 0.0;
   CGFloat alpha = 0.0;
 
-  // getRed:green:blue:alpha: returns YES if the color can be converted to RGB.
-  // It natively handles monochrome/grayscale colors as well.
-  if ([self getRed:&red green:&green blue:&blue alpha:&alpha]) {
-    // Convert 0.0-1.0 floats to 0-255 integers for RGB
-    int r = (int)(red * 255.0 + 0.5);
-    int g = (int)(green * 255.0 + 0.5);
-    int b = (int)(blue * 255.0 + 0.5);
+  if (![self getRed:&red green:&green blue:&blue alpha:&alpha])
+    return @"";
 
-    return
-        [NSString stringWithFormat:@"rgba(%d, %d, %d, %.2f)", r, g, b, alpha];
-  }
+  int r = (int)(red * 255.0 + 0.5);
+  int g = (int)(green * 255.0 + 0.5);
+  int b = (int)(blue * 255.0 + 0.5);
+  int a = (int)(alpha * 255.0 + 0.5);
 
-  // Fallback for unsupported color
-  return @"";
+  if (a == 255)
+    return [NSString stringWithFormat:@"#%02X%02X%02X", r, g, b];
+  return [NSString stringWithFormat:@"#%02X%02X%02X%02X", r, g, b, a];
 }
 
-+ (UIColor *_Nullable)colorFromRgbaString:(NSString *_Nullable)rgba {
-  if (rgba.length == 0)
+// Parses a CSS hex color string (#RRGGBB or #RRGGBBAA). Returns nil if
+// the string is not a valid hex color value.
++ (UIColor *_Nullable)colorFromHexString:(NSString *_Nullable)hex {
+  if (hex.length == 0)
     return nil;
 
-  static NSRegularExpression *regex;
-  static dispatch_once_t onceToken;
-  dispatch_once(&onceToken, ^{
-    regex = [NSRegularExpression
-        regularExpressionWithPattern:
-            @"rgba\\(\\s*(\\d+)\\s*,\\s*(\\d+)\\s*,\\s*(\\d+)\\s*,"
-            @"\\s*([\\d.]+)\\s*\\)"
-                             options:NSRegularExpressionCaseInsensitive
-                               error:nil];
-  });
+  NSString *str = hex;
+  if ([str hasPrefix:@"#"])
+    str = [str substringFromIndex:1];
 
-  NSTextCheckingResult *match =
-      [regex firstMatchInString:rgba
-                        options:0
-                          range:NSMakeRange(0, rgba.length)];
-  if (!match || match.numberOfRanges < 5)
+  NSUInteger len = str.length;
+  if (len != 6 && len != 8)
     return nil;
 
-  CGFloat r =
-      [[rgba substringWithRange:[match rangeAtIndex:1]] integerValue] / 255.0;
-  CGFloat g =
-      [[rgba substringWithRange:[match rangeAtIndex:2]] integerValue] / 255.0;
-  CGFloat b =
-      [[rgba substringWithRange:[match rangeAtIndex:3]] integerValue] / 255.0;
-  CGFloat a = [[rgba substringWithRange:[match rangeAtIndex:4]] doubleValue];
+  unsigned int value = 0;
+  NSScanner *scanner = [NSScanner scannerWithString:str];
+  if (![scanner scanHexInt:&value])
+    return nil;
+
+  CGFloat r, g, b, a;
+  if (len == 6) {
+    r = ((value >> 16) & 0xFF) / 255.0;
+    g = ((value >> 8) & 0xFF) / 255.0;
+    b = (value & 0xFF) / 255.0;
+    a = 1.0;
+  } else {
+    r = ((value >> 24) & 0xFF) / 255.0;
+    g = ((value >> 16) & 0xFF) / 255.0;
+    b = ((value >> 8) & 0xFF) / 255.0;
+    a = (value & 0xFF) / 255.0;
+  }
 
   return [UIColor colorWithRed:r green:g blue:b alpha:a];
 }

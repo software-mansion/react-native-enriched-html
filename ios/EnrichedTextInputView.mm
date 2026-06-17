@@ -1136,10 +1136,10 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
            .alignment = [currentAlignment UTF8String],
            .customStyle = {
                .foregroundColor =
-                   [[currentCustomStyle.foregroundColor rgbaString] UTF8String]
+                   [[currentCustomStyle.foregroundColor hexString] UTF8String]
                        ?: "",
                .backgroundColor =
-                   [[currentCustomStyle.backgroundColor rgbaString] UTF8String]
+                   [[currentCustomStyle.backgroundColor hexString] UTF8String]
                        ?: ""}});
     }
   }
@@ -1930,11 +1930,11 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
              .alignment = [currentAlignment UTF8String],
              .customStyle = {
                  .foregroundColor =
-                     [[contextCustomStyleData.foregroundColor rgbaString]
+                     [[contextCustomStyleData.foregroundColor hexString]
                          UTF8String]
                          ?: "",
                  .backgroundColor =
-                     [[contextCustomStyleData.backgroundColor rgbaString]
+                     [[contextCustomStyleData.backgroundColor hexString]
                          UTF8String]
                          ?: ""}}});
   }

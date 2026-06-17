@@ -1455,8 +1455,8 @@
             [customStyle getStoredCustomStyleDataAt:location];
         if (data != nil && !data.isEmpty) {
           NSMutableString *cssProps = [NSMutableString string];
-          NSString *fg = [[data foregroundColor] rgbaString];
-          NSString *bg = [[data backgroundColor] rgbaString];
+          NSString *fg = [[data foregroundColor] hexString];
+          NSString *bg = [[data backgroundColor] hexString];
           if (fg.length > 0) {
             [cssProps appendFormat:@"color: %@;", fg];
           }
@@ -1539,7 +1539,9 @@
                             range:NSMakeRange(0, css.length)];
   if (fgMatch) {
     data.foregroundColor = [UIColor
-        colorFromRgbaString:[css substringWithRange:[fgMatch rangeAtIndex:1]]];
+        colorFromHexString:[[css substringWithRange:[fgMatch rangeAtIndex:1]]
+                               stringByTrimmingCharactersInSet:
+                                   NSCharacterSet.whitespaceCharacterSet]];
   }
 
   NSTextCheckingResult *bgMatch =
@@ -1548,7 +1550,9 @@
                             range:NSMakeRange(0, css.length)];
   if (bgMatch) {
     data.backgroundColor = [UIColor
-        colorFromRgbaString:[css substringWithRange:[bgMatch rangeAtIndex:1]]];
+        colorFromHexString:[[css substringWithRange:[bgMatch rangeAtIndex:1]]
+                               stringByTrimmingCharactersInSet:
+                                   NSCharacterSet.whitespaceCharacterSet]];
   }
 
   return data.isEmpty ? nil : data;

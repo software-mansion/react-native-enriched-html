@@ -8,9 +8,8 @@
 
 - (BOOL)isEmpty;
 
-// Applies a partial update from a dict (keys: "foregroundColor",
-// "backgroundColor"). A key absent from the dict leaves the field unchanged;
-// NSNull or any non-UIColor value clears it; a UIColor value sets it.
+// Applies a partial update from a dict. A key absent from the dict leaves the
+// field unchanged; NSNull value clears it.
 - (void)mergeFromDict:(NSDictionary *)dict;
 
 @end
