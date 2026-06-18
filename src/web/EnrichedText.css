@@ -251,3 +251,48 @@
   flex-shrink: 0;
   accent-color: var(--et-checkbox-box-color, #0000ff);
 }
+
+.et-view ul[data-type="checkbox"] {
+  margin: 0;
+  list-style: none;
+  padding: 0;
+  padding-left: calc(
+    var(--et-checkbox-margin-left, 16px) + var(--et-checkbox-gap-width, 16px)
+  );
+}
+
+.et-view ul[data-type="checkbox"] > li {
+  position: relative;
+  list-style: none;
+  pointer-events: none;
+}
+
+.et-view ul[data-type="checkbox"] > li > p {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+}
+
+.et-view ul[data-type="checkbox"] > li > input[type='checkbox'] {
+  position: absolute;
+  left: calc(
+    -1 * var(--et-checkbox-gap-width, 16px) - var(--et-checkbox-box-size, 24px)
+  );
+  width: var(--et-checkbox-box-size, 24px);
+  height: var(--et-checkbox-box-size, 24px);
+  margin: 0 var(--et-checkbox-gap-width, 16px) 0 0;
+  flex-shrink: 0;
+  accent-color: var(--et-checkbox-box-color, #0000ff);
+}
+
+.et-view ul[data-type="checkbox"] > li > label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+}

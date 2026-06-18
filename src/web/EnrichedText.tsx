@@ -6,6 +6,7 @@ import { htmlStyleToCSSVariables } from './styleConversion/htmlStyleToCSSVariabl
 import { ENRICHED_TEXT_CLASSNAME } from './consts/classNames';
 import { enrichedInputThemingToCSSProperties } from './styleConversion/enrichedInputThemingToCSSProperties';
 import { buildMentionRulesCSS } from './styleConversion/buildMentionRulesCSS';
+import { checkboxHtmlToWeb } from './checkboxHtmlToWeb';
 
 export const EnrichedText = ({
   children,
@@ -13,6 +14,8 @@ export const EnrichedText = ({
   style,
   selectionColor,
 }: EnrichedTextProps) => {
+  const html = useMemo(() => checkboxHtmlToWeb(children), [children]);
+
   const textStyle: CSSProperties = useMemo(
     () => enrichedTextStyleToCSSProperties(style ?? {}),
     [style]
@@ -44,7 +47,7 @@ export const EnrichedText = ({
       <div
         style={finalStyle}
         className={ENRICHED_TEXT_CLASSNAME}
-        dangerouslySetInnerHTML={{ __html: children }}
+        dangerouslySetInnerHTML={{ __html: html }}
       />
     </>
   );
