@@ -5,7 +5,6 @@ import { TestSetSelection } from './testScreens/TestSetSelection';
 import { VisualRegression } from './testScreens/VisualRegression';
 import { TestSubmitProps } from './testScreens/TestSubmitProps';
 import { useEffect, useState } from 'react';
-import EnrichedTextApp from './EnrichedTextApp';
 
 export default function RouteSelector() {
   const [path, setPath] = useState(window.location.pathname);
@@ -39,10 +38,6 @@ export default function RouteSelector() {
 
   if (path === '/test-mentions') {
     return <TestMentions />;
-  }
-
-  if (path === '/text') {
-    return <EnrichedTextApp />;
   }
 
   return <App />;

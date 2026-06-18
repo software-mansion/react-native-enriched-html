@@ -2,10 +2,14 @@ import { useMemo, type CSSProperties } from 'react';
 import type { EnrichedTextProps } from '../types';
 import './EnrichedText.css';
 import { enrichedTextStyleToCSSProperties } from './styleConversion/enrichedTextStyleToCSSProperties';
-import { enrichedTextThemingToCSSProperties } from './styleConversion/enrichedTextThemingToCSSProperties';
+import { htmlStyleToCSSVariables } from './styleConversion/htmlStyleToCSSVariables';
+import { ENRICHED_TEXT_CLASSNAME } from './consts/classNames';
+import { enrichedInputThemingToCSSProperties } from './styleConversion/enrichedInputThemingToCSSProperties';
+import { buildMentionRulesCSS } from './styleConversion/buildMentionRulesCSS';
 
 export const EnrichedText = ({
   children,
+  htmlStyle,
   style,
   selectionColor,
 }: EnrichedTextProps) => {
@@ -14,21 +18,32 @@ export const EnrichedText = ({
     [style]
   );
 
+  const cssVars = useMemo(
+    () => htmlStyleToCSSVariables(htmlStyle),
+    [htmlStyle]
+  );
+
   const themingStyle = useMemo(
-    () => enrichedTextThemingToCSSProperties({ selectionColor }),
+    () => enrichedInputThemingToCSSProperties({ selectionColor }),
     [selectionColor]
   );
 
+  const mentionRulesCSS = useMemo(
+    () => buildMentionRulesCSS('text', htmlStyle),
+    [htmlStyle]
+  );
+
   const finalStyle = useMemo(
-    () => ({ ...textStyle, ...themingStyle }),
-    [textStyle, themingStyle]
+    () => ({ ...textStyle, ...themingStyle, ...cssVars }),
+    [textStyle, themingStyle, cssVars]
   );
 
   return (
     <>
+      <style>{mentionRulesCSS}</style>
       <div
         style={finalStyle}
-        className="et"
+        className={ENRICHED_TEXT_CLASSNAME}
         dangerouslySetInnerHTML={{ __html: children }}
       />
     </>

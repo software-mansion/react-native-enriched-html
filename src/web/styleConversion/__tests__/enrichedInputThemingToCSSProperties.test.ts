@@ -15,8 +15,8 @@ describe('enrichedInputThemingToCSSProperties', () => {
       })
     ).toEqual({
       'caretColor': '#111',
-      '--eti-placeholder-text-color': '#222',
-      '--eti-selection-color': '#333',
+      '--et-placeholder-text-color': '#222',
+      '--et-selection-color': '#333',
     } as CSSProperties);
   });
 });

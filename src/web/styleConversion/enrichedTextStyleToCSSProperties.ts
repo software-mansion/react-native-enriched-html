@@ -1,17 +1,13 @@
 import type { CSSProperties } from 'react';
 import type { TextStyle } from 'react-native';
-import {
-  enrichedBaseStyleToCSSProperties,
-  type StyleConversionExtraOptions,
-} from './enrichedBaseStyleToCSSProperties';
+import { enrichedBaseStyleToCSSProperties } from './enrichedBaseStyleToCSSProperties';
 import { toColor } from './toColor';
 
 export function enrichedTextStyleToCSSProperties(
-  style: TextStyle,
-  extraOptions?: StyleConversionExtraOptions
+  style: TextStyle
 ): CSSProperties {
   const css: CSSProperties = {
-    ...enrichedBaseStyleToCSSProperties(style, extraOptions),
+    ...enrichedBaseStyleToCSSProperties(style, { scrollEnabled: false }),
 
     // Text-only properties
     // textAlign: RN 'auto' has no CSS equivalent

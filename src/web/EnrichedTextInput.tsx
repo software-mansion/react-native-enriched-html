@@ -5,7 +5,7 @@ import {
   useRef,
   type CSSProperties,
 } from 'react';
-import './EnrichedTextInput.css';
+import './EnrichedText.css';
 import type { Node } from '@tiptap/pm/model';
 import type {
   EnrichedTextInputInstance,
@@ -74,6 +74,7 @@ import {
 import { StripMarksOnImagePlugin } from './pmPlugins/StripMarksOnImagePlugin';
 import { ShortcutPlugin } from './pmPlugins/ShortcutPlugin';
 import { returnKeyTypeToEnterKeyHint } from './returnKeyTypeToEnterKeyHint';
+import { ENRICHED_TEXT_INPUT_CLASSNAME } from './consts/classNames';
 function runFocused(
   editor: Editor,
   apply: (chain: ChainedCommands) => ChainedCommands
@@ -393,7 +394,7 @@ export const EnrichedTextInput = ({
   );
 
   const mentionRulesCSS = useMemo(
-    () => buildMentionRulesCSS(resolvedHtmlStyle),
+    () => buildMentionRulesCSS('input', resolvedHtmlStyle),
     [resolvedHtmlStyle]
   );
 
@@ -407,7 +408,7 @@ export const EnrichedTextInput = ({
       {mentionRulesCSS ? <style>{mentionRulesCSS}</style> : null}
       <EditorContent
         editor={editor}
-        className="eti-editor"
+        className={ENRICHED_TEXT_INPUT_CLASSNAME}
         style={finalStyle}
         data-placeholder={placeholder}
       />

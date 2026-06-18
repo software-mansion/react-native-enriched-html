@@ -4,8 +4,8 @@ import { toColor } from './toColor';
 
 type EnrichedInputThemingStyle = Partial<
   Pick<CSSProperties, 'caretColor'> & {
-    '--eti-placeholder-text-color': string;
-    '--eti-selection-color': string;
+    '--et-placeholder-text-color': string;
+    '--et-selection-color': string;
   }
 >;
 
@@ -25,10 +25,10 @@ export function enrichedInputThemingToCSSProperties({
   if (caret) extra.caretColor = caret;
 
   const placeholderCss = toColor(placeholderTextColor);
-  if (placeholderCss) extra['--eti-placeholder-text-color'] = placeholderCss;
+  if (placeholderCss) extra['--et-placeholder-text-color'] = placeholderCss;
 
   const selectionCss = toColor(selectionColor);
-  if (selectionCss) extra['--eti-selection-color'] = selectionCss;
+  if (selectionCss) extra['--et-selection-color'] = selectionCss;
 
   return extra;
 }
