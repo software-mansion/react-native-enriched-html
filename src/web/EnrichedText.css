@@ -125,6 +125,7 @@
 .eti-editor ul:not([data-type]) > li,
 .et-view ul:not([data-type]) > li {
   position: relative;
+  min-height: max(1lh, var(--et-ul-bullet-size));
 }
 
 .eti-editor ul:not([data-type]) > li::before,
@@ -159,6 +160,7 @@
 .et-view ol > li {
   position: relative;
   counter-increment: eti-ol;
+  min-height: 1lh;
 }
 
 .eti-editor ol > li::before,
@@ -265,6 +267,8 @@
   position: relative;
   list-style: none;
   pointer-events: none;
+  min-height: max(1lh, var(--et-checkbox-box-size, 24px)
+  );
 }
 
 .et-view ul[data-type="checkbox"] > li > p {
