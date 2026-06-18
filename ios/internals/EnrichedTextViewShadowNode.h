@@ -1,7 +1,7 @@
 #pragma once
-#include <ReactNativeEnriched/EnrichedTextViewState.h>
-#include <ReactNativeEnriched/EventEmitters.h>
-#include <ReactNativeEnriched/Props.h>
+#include <ReactNativeEnrichedHtml/EnrichedTextViewState.h>
+#include <ReactNativeEnrichedHtml/EventEmitters.h>
+#include <ReactNativeEnrichedHtml/Props.h>
 #include <jsi/jsi.h>
 #include <react/renderer/components/view/ConcreteViewShadowNode.h>
 #include <react/renderer/core/LayoutConstraints.h>

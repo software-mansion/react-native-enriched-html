@@ -1,4 +1,7 @@
-import type { EnrichedTextHtmlStyle, HtmlStyle } from 'react-native-enriched';
+import type {
+  EnrichedTextHtmlStyle,
+  HtmlStyle,
+} from 'react-native-enriched-html';
 
 export const htmlStyle = {
   h1: {

@@ -14,7 +14,7 @@ import {
   type OnSubmitEditing,
   type OnChangeMentionEvent,
   type OnMentionDetected,
-} from 'react-native-enriched';
+} from 'react-native-enriched-html';
 import { WEB_DEFAULT_HTML_STYLE } from './defaultHtmlStyle';
 import type { NativeSyntheticEvent } from 'react-native';
 import { EditorActions } from './components/EditorActions';
@@ -264,6 +264,7 @@ function App() {
           mentionIndicators={['@', '#']}
           htmlStyle={WEB_DEFAULT_HTML_STYLE}
           linkRegex={LINK_REGEX}
+          useHtmlNormalizer
         />
         <MentionPopup
           variant="user"

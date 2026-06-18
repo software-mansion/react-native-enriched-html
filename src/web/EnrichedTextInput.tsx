@@ -36,7 +36,7 @@ import type { LinkEmitterState } from './emitLinkDetected';
 import {
   prepareHtmlForTiptap,
   normalizeHtmlFromTiptap,
-} from './tiptapHtmlNormalizer';
+} from './normalization/tiptapHtmlNormalizer';
 import { ENRICHED_TEXT_INPUT_DEFAULT_PROPS } from '../utils/EnrichedTextInputDefaultProps';
 import { enrichedInputStyleToCSSProperties } from './styleConversion/enrichedInputStyleToCSSProperties';
 import { enrichedInputThemingToCSSProperties } from './styleConversion/enrichedInputThemingToCSSProperties';
@@ -115,9 +115,12 @@ export const EnrichedTextInput = ({
   onEndMention,
   linkRegex,
   htmlStyle,
+  useHtmlNormalizer,
 }: EnrichedTextInputProps) => {
   const tiptapContent =
-    defaultValue != null ? prepareHtmlForTiptap(defaultValue) : defaultValue;
+    defaultValue != null
+      ? prepareHtmlForTiptap(defaultValue, useHtmlNormalizer)
+      : defaultValue;
 
   const resolvedHtmlStyle = useMemo(
     () => mergeWithDefaultHtmlStyle(htmlStyle),
@@ -168,6 +171,11 @@ export const EnrichedTextInput = ({
   useEffect(() => {
     onKeyPressRef.current = onKeyPress;
   }, [onKeyPress]);
+
+  const useHtmlNormalizerRef = useRef(useHtmlNormalizer);
+  useEffect(() => {
+    useHtmlNormalizerRef.current = useHtmlNormalizer;
+  }, [useHtmlNormalizer]);
 
   const handleKeyDown = (doc: Node, event: KeyboardEvent): boolean => {
     onKeyPressRef.current?.(adaptWebToNativeEvent(event, { key: event.key }));
@@ -291,6 +299,9 @@ export const EnrichedTextInput = ({
           autoCapitalize,
           enterkeyhint: returnKeyTypeToEnterKeyHint(returnKeyType),
         },
+        transformPastedHTML: (html) => {
+          return prepareHtmlForTiptap(html, useHtmlNormalizerRef.current);
+        },
       },
     },
     [tiptapContent, extensions]
@@ -334,7 +345,9 @@ export const EnrichedTextInput = ({
       focus: () => editor.commands.focus(),
       blur: () => editor.commands.blur(),
       setValue: (value: string) =>
-        editor.commands.setContent(prepareHtmlForTiptap(value)),
+        editor.commands.setContent(
+          prepareHtmlForTiptap(value, useHtmlNormalizerRef.current)
+        ),
       setSelection: (start, end) => {
         const doc = editor.state.doc;
         runFocused(editor, (c) =>
