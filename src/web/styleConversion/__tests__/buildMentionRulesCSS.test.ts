@@ -3,7 +3,7 @@ import { buildMentionRulesCSS } from '../buildMentionRulesCSS';
 import {
   ENRICHED_TEXT_CLASSNAME,
   ENRICHED_TEXT_INPUT_CLASSNAME,
-} from '../../consts/classNames';
+} from '../../constants/classNames';
 
 describe('buildMentionRulesCSS', () => {
   it.each([

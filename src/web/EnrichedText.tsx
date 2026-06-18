@@ -3,10 +3,11 @@ import type { EnrichedTextProps } from '../types';
 import './EnrichedText.css';
 import { enrichedTextStyleToCSSProperties } from './styleConversion/enrichedTextStyleToCSSProperties';
 import { htmlStyleToCSSVariables } from './styleConversion/htmlStyleToCSSVariables';
-import { ENRICHED_TEXT_CLASSNAME } from './consts/classNames';
+import { ENRICHED_TEXT_CLASSNAME } from './constants/classNames';
 import { enrichedInputThemingToCSSProperties } from './styleConversion/enrichedInputThemingToCSSProperties';
 import { buildMentionRulesCSS } from './styleConversion/buildMentionRulesCSS';
-import { checkboxHtmlToWeb } from './checkboxHtmlToWeb';
+import { sanitizeHtml } from './sanitization/htmlSanitizer';
+import { prepareHtmlForWeb } from './normalization/prepareHtmlForWeb';
 
 export const EnrichedText = ({
   children,
@@ -14,7 +15,12 @@ export const EnrichedText = ({
   style,
   selectionColor,
 }: EnrichedTextProps) => {
-  const html = useMemo(() => checkboxHtmlToWeb(children), [children]);
+  const sanitizedHtml = useMemo(() => sanitizeHtml(children), [children]);
+
+  const finalHtml = useMemo(
+    () => prepareHtmlForWeb(sanitizedHtml),
+    [sanitizedHtml]
+  );
 
   const textStyle: CSSProperties = useMemo(
     () => enrichedTextStyleToCSSProperties(style ?? {}),
@@ -47,7 +53,7 @@ export const EnrichedText = ({
       <div
         style={finalStyle}
         className={ENRICHED_TEXT_CLASSNAME}
-        dangerouslySetInnerHTML={{ __html: html }}
+        dangerouslySetInnerHTML={{ __html: finalHtml }}
       />
     </>
   );

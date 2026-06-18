@@ -3,7 +3,7 @@ import { isMentionStyleRecord } from '../../utils/isMentionStyleRecord';
 import {
   ENRICHED_TEXT_CLASSNAME,
   ENRICHED_TEXT_INPUT_CLASSNAME,
-} from '../consts/classNames';
+} from '../constants/classNames';
 import { ET_MENTION_CSS_VARS } from './htmlStyleToCSSVariables';
 import { MENTION_STYLE_DEFAULT_KEY } from './mentionIndicatorCssKey';
 

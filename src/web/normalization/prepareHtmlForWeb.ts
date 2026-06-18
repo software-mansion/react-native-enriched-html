@@ -1,3 +1,7 @@
+export function prepareHtmlForWeb(html: string) {
+  return checkboxHtmlToWeb(html);
+}
+
 /*
  * Native checkbox format (as produced by the editor):
  *   <ul data-type="checkbox">
@@ -17,7 +21,7 @@
  *     </li>
  *   </ul>
  */
-export function checkboxHtmlToWeb(html: string): string {
+function checkboxHtmlToWeb(html: string): string {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
 

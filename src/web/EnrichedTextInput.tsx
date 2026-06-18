@@ -74,7 +74,8 @@ import {
 import { StripMarksOnImagePlugin } from './pmPlugins/StripMarksOnImagePlugin';
 import { ShortcutPlugin } from './pmPlugins/ShortcutPlugin';
 import { returnKeyTypeToEnterKeyHint } from './returnKeyTypeToEnterKeyHint';
-import { ENRICHED_TEXT_INPUT_CLASSNAME } from './consts/classNames';
+import { ENRICHED_TEXT_INPUT_CLASSNAME } from './constants/classNames';
+
 function runFocused(
   editor: Editor,
   apply: (chain: ChainedCommands) => ChainedCommands
