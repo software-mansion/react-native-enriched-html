@@ -7,8 +7,8 @@ import {
   setEditorHtml,
 } from '../helpers/visual-regression';
 import {
-  copySelectionFrom,
-  pasteInto,
+  copyWholeContent,
+  pasteIntoWholeContent,
   pastePlainTextIntoEditor,
 } from '../helpers/clipboard';
 
@@ -440,9 +440,9 @@ test.describe('test-links copy-paste', () => {
       '<html><p><a href="https://example.com">Click here</a></p></html>'
     );
 
-    await copySelectionFrom(editor);
+    await copyWholeContent(editor);
     await setTestLinksEditorHtml(page, '<html><p></p></html>');
-    await pasteInto(editor);
+    await pasteIntoWholeContent(editor);
 
     await expect
       .poll(async () => getTestLinksSerializedHtml(page))
@@ -461,9 +461,9 @@ test.describe('test-links copy-paste', () => {
       '<html><p><a href="https://example.com">https://example.com</a></p></html>'
     );
 
-    await copySelectionFrom(editor);
+    await copyWholeContent(editor);
     await setTestLinksEditorHtml(page, '<html><p></p></html>');
-    await pasteInto(editor);
+    await pasteIntoWholeContent(editor);
 
     await expect
       .poll(async () => getTestLinksSerializedHtml(page))
@@ -482,9 +482,9 @@ test.describe('test-links copy-paste', () => {
       '<html><p><a href="custom://link">custom://link</a></p></html>'
     );
 
-    await copySelectionFrom(editor);
+    await copyWholeContent(editor);
     await setTestLinksEditorHtml(page, '<html><p></p></html>');
-    await pasteInto(editor);
+    await pasteIntoWholeContent(editor);
 
     await expect
       .poll(async () => getTestLinksSerializedHtml(page))
