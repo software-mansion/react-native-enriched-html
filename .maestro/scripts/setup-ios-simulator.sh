@@ -25,6 +25,21 @@ if [ -z "$UDID" ]; then
   exit 1
 fi
 
+# disable automatic text manipulation: auto-correction, spelling-check and auto-capitalization
+SIM_PREFS_DIR="$HOME/Library/Developer/CoreSimulator/Devices/$UDID/data/Library/Preferences"
+mkdir -p "$SIM_PREFS_DIR"
+
+PLIST="$SIM_PREFS_DIR/com.apple.keyboard.preferences.plist"
+
+/usr/libexec/PlistBuddy -c "Add :KeyboardAutocorrection bool false" "$PLIST" 2>/dev/null || \
+/usr/libexec/PlistBuddy -c "Set :KeyboardAutocorrection bool false" "$PLIST"
+
+/usr/libexec/PlistBuddy -c "Add :KeyboardCheckSpelling bool false" "$PLIST" 2>/dev/null || \
+/usr/libexec/PlistBuddy -c "Set :KeyboardCheckSpelling bool false" "$PLIST"
+
+/usr/libexec/PlistBuddy -c "Add :KeyboardAutocapitalization bool false" "$PLIST" 2>/dev/null || \
+/usr/libexec/PlistBuddy -c "Set :KeyboardAutocapitalization bool false" "$PLIST"
+
 STATE=$(xcrun simctl list devices | grep "$UDID" | grep -oE '\(Booted\)|\(Shutdown\)' || true)
 if [ "$STATE" != "(Booted)" ]; then
   echo "Booting '$DEVICE_NAME' ($UDID)..."
