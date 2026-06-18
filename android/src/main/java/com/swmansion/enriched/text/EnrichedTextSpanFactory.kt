@@ -1,11 +1,13 @@
 package com.swmansion.enriched.text
 
 import com.swmansion.enriched.common.parser.EnrichedSpanFactory
+import com.swmansion.enriched.common.spans.EnrichedCustomStyleSpan
 import com.swmansion.enriched.text.spans.EnrichedTextAlignmentSpan
 import com.swmansion.enriched.text.spans.EnrichedTextBlockQuoteSpan
 import com.swmansion.enriched.text.spans.EnrichedTextBoldSpan
 import com.swmansion.enriched.text.spans.EnrichedTextCheckboxListSpan
 import com.swmansion.enriched.text.spans.EnrichedTextCodeBlockSpan
+import com.swmansion.enriched.text.spans.EnrichedTextCustomStyleSpan
 import com.swmansion.enriched.text.spans.EnrichedTextH1Span
 import com.swmansion.enriched.text.spans.EnrichedTextH2Span
 import com.swmansion.enriched.text.spans.EnrichedTextH3Span
@@ -80,4 +82,9 @@ class EnrichedTextSpanFactory : EnrichedSpanFactory<EnrichedTextStyle> {
   override fun createBlockQuoteSpan(style: EnrichedTextStyle) = EnrichedTextBlockQuoteSpan(style)
 
   override fun createCodeBlockSpan(style: EnrichedTextStyle) = EnrichedTextCodeBlockSpan(style)
+
+  override fun createCustomStyleSpan(
+    foregroundColor: Int?,
+    backgroundColor: Int?,
+  ): EnrichedCustomStyleSpan = EnrichedTextCustomStyleSpan(foregroundColor, backgroundColor)
 }

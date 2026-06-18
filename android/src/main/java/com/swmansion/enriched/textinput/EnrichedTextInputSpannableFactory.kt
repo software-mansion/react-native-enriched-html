@@ -1,12 +1,14 @@
 package com.swmansion.enriched.textinput
 
 import com.swmansion.enriched.common.parser.EnrichedSpanFactory
+import com.swmansion.enriched.common.spans.EnrichedCustomStyleSpan
 import com.swmansion.enriched.common.spans.EnrichedImageSpan
 import com.swmansion.enriched.textinput.spans.EnrichedInputAlignmentSpan
 import com.swmansion.enriched.textinput.spans.EnrichedInputBlockQuoteSpan
 import com.swmansion.enriched.textinput.spans.EnrichedInputBoldSpan
 import com.swmansion.enriched.textinput.spans.EnrichedInputCheckboxListSpan
 import com.swmansion.enriched.textinput.spans.EnrichedInputCodeBlockSpan
+import com.swmansion.enriched.textinput.spans.EnrichedInputCustomStyleSpan
 import com.swmansion.enriched.textinput.spans.EnrichedInputH1Span
 import com.swmansion.enriched.textinput.spans.EnrichedInputH2Span
 import com.swmansion.enriched.textinput.spans.EnrichedInputH3Span
@@ -82,4 +84,9 @@ class EnrichedTextInputSpannableFactory : EnrichedSpanFactory<HtmlStyle> {
   override fun createBlockQuoteSpan(style: HtmlStyle) = EnrichedInputBlockQuoteSpan(style)
 
   override fun createCodeBlockSpan(style: HtmlStyle) = EnrichedInputCodeBlockSpan(style)
+
+  override fun createCustomStyleSpan(
+    foregroundColor: Int?,
+    backgroundColor: Int?,
+  ) = EnrichedInputCustomStyleSpan(foregroundColor, backgroundColor)
 }
