@@ -287,14 +287,6 @@ export const EnrichedTextInput = ({
             () => editorInstanceRef.current,
             () => onPasteImagesRef.current
           ),
-        transformPastedHTML: (html) => {
-          console.log('parse trasform html', html);
-          return html;
-        },
-        transformPastedText: (text) => {
-          console.log('parse trasform text', text);
-          return text;
-        },
         attributes: {
           autoCapitalize,
           enterkeyhint: returnKeyTypeToEnterKeyHint(returnKeyType),
