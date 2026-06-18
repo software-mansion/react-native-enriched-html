@@ -1,4 +1,4 @@
-import { useMemo, type CSSProperties } from 'react';
+import { memo, useMemo, type CSSProperties } from 'react';
 import type { EnrichedTextProps } from '../types';
 import './EnrichedText.css';
 import { enrichedTextStyleToCSSProperties } from './styleConversion/enrichedTextStyleToCSSProperties';
@@ -9,52 +9,51 @@ import { buildMentionRulesCSS } from './styleConversion/buildMentionRulesCSS';
 import { sanitizeHtml } from './sanitization/htmlSanitizer';
 import { prepareHtmlForWeb } from './normalization/prepareHtmlForWeb';
 
-export const EnrichedText = ({
-  children,
-  htmlStyle,
-  style,
-  selectionColor,
-}: EnrichedTextProps) => {
-  const sanitizedHtml = useMemo(() => sanitizeHtml(children), [children]);
+export const EnrichedText = memo(
+  ({ children, htmlStyle, style, selectionColor }: EnrichedTextProps) => {
+    const sanitizedHtml = useMemo(() => sanitizeHtml(children), [children]);
 
-  const finalHtml = useMemo(
-    () => prepareHtmlForWeb(sanitizedHtml),
-    [sanitizedHtml]
-  );
+    console.log('rerender enriched');
 
-  const textStyle: CSSProperties = useMemo(
-    () => enrichedTextStyleToCSSProperties(style ?? {}),
-    [style]
-  );
+    const finalHtml = useMemo(
+      () => prepareHtmlForWeb(sanitizedHtml),
+      [sanitizedHtml]
+    );
 
-  const cssVars = useMemo(
-    () => htmlStyleToCSSVariables(htmlStyle),
-    [htmlStyle]
-  );
+    const textStyle: CSSProperties = useMemo(
+      () => enrichedTextStyleToCSSProperties(style ?? {}),
+      [style]
+    );
 
-  const themingStyle = useMemo(
-    () => enrichedInputThemingToCSSProperties({ selectionColor }),
-    [selectionColor]
-  );
+    const cssVars = useMemo(
+      () => htmlStyleToCSSVariables(htmlStyle),
+      [htmlStyle]
+    );
 
-  const mentionRulesCSS = useMemo(
-    () => buildMentionRulesCSS('text', htmlStyle),
-    [htmlStyle]
-  );
+    const themingStyle = useMemo(
+      () => enrichedInputThemingToCSSProperties({ selectionColor }),
+      [selectionColor]
+    );
 
-  const finalStyle = useMemo(
-    () => ({ ...textStyle, ...themingStyle, ...cssVars }),
-    [textStyle, themingStyle, cssVars]
-  );
+    const mentionRulesCSS = useMemo(
+      () => buildMentionRulesCSS('text', htmlStyle),
+      [htmlStyle]
+    );
 
-  return (
-    <>
-      <style>{mentionRulesCSS}</style>
-      <div
-        style={finalStyle}
-        className={ENRICHED_TEXT_CLASSNAME}
-        dangerouslySetInnerHTML={{ __html: finalHtml }}
-      />
-    </>
-  );
-};
+    const finalStyle = useMemo(
+      () => ({ ...textStyle, ...themingStyle, ...cssVars }),
+      [textStyle, themingStyle, cssVars]
+    );
+
+    return (
+      <>
+        <style>{mentionRulesCSS}</style>
+        <div
+          style={finalStyle}
+          className={ENRICHED_TEXT_CLASSNAME}
+          dangerouslySetInnerHTML={{ __html: finalHtml }}
+        />
+      </>
+    );
+  }
+);

@@ -4,6 +4,7 @@ import { TestLinks } from './testScreens/TestLinks';
 import { TestSetSelection } from './testScreens/TestSetSelection';
 import { VisualRegression } from './testScreens/VisualRegression';
 import { TestSubmitProps } from './testScreens/TestSubmitProps';
+import { TestEnrichedText } from './testScreens/TestEnrichedText';
 import { useEffect, useState } from 'react';
 
 export default function RouteSelector() {
@@ -38,6 +39,10 @@ export default function RouteSelector() {
 
   if (path === '/test-mentions') {
     return <TestMentions />;
+  }
+
+  if (path === '/test-enriched-text') {
+    return <TestEnrichedText />;
   }
 
   return <App />;
