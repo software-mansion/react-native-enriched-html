@@ -531,7 +531,7 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
           if (mSpannableStringBuilder.getSpanStart(span) != start + 1) continue;
           int spanEnd = mSpannableStringBuilder.getSpanEnd(span);
           mSpannableStringBuilder.removeSpan(span);
-          mSpannableStringBuilder.setSpan(span, start, spanEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+          mSpannableStringBuilder.setSpan(span, start, spanEnd, EnrichedSpanFlags.forSpan(span));
         }
       }
 
@@ -868,7 +868,8 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
 
   private static void start(Editable text, Object mark) {
     int len = text.length();
-    text.setSpan(mark, len, len, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+    text.setSpan(
+        mark, len, len, EnrichedSpanFlags.forSpan(mark, Spannable.SPAN_INCLUSIVE_EXCLUSIVE));
   }
 
   private static void end(Editable text, Class kind, Object repl) {

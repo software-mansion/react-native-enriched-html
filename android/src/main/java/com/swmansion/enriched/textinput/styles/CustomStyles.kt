@@ -2,6 +2,7 @@ package com.swmansion.enriched.textinput.styles
 
 import android.text.Editable
 import android.text.Spannable
+import com.swmansion.enriched.common.EnrichedSpanFlags
 import com.swmansion.enriched.common.spans.EnrichedCustomStyleSpan
 import com.swmansion.enriched.textinput.EnrichedTextInputView
 import com.swmansion.enriched.textinput.spans.EnrichedInputCustomStyleSpan
@@ -202,11 +203,12 @@ class CustomStyles(
   ) {
     if (start >= end || (fg == null && bg == null)) return
 
+    val span = EnrichedInputCustomStyleSpan(fg, bg)
     spannable.setSpan(
-      EnrichedInputCustomStyleSpan(fg, bg),
+      span,
       start,
       end,
-      Spannable.SPAN_EXCLUSIVE_EXCLUSIVE,
+      EnrichedSpanFlags.forSpan(span),
     )
   }
 }
