@@ -11,7 +11,10 @@ export function TestEnrichedText() {
 
   return (
     <div data-testid="test-enriched-text-root">
-      <div data-testid="test-enriched-text-display">
+      <div
+        data-testid="test-enriched-text-display"
+        style={enrichedTextContainerStyle}
+      >
         <EnrichedText
           style={enrichedTextStyle}
           htmlStyle={WEB_DEFAULT_HTML_STYLE}
@@ -50,4 +53,8 @@ const enrichedTextStyle: TextStyle = {
   paddingHorizontal: 8,
   backgroundColor: 'gainsboro',
   fontSize: 16,
+};
+
+const enrichedTextContainerStyle = {
+  width: 'fit-content',
 };

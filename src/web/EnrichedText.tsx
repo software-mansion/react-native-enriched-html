@@ -8,7 +8,7 @@ import { enrichedInputThemingToCSSProperties } from './styleConversion/enrichedI
 import { buildMentionRulesCSS } from './styleConversion/buildMentionRulesCSS';
 import { sanitizeHtml } from './sanitization/htmlSanitizer';
 import { prepareHtmlForWeb } from './normalization/prepareHtmlForWeb';
-import { BROKEN_IMAGE_GLYPH_MASK } from './constants/brokenImageGlyph';
+import { INLINE_IMAGE_CSS_VARIABLES } from './styleConversion/inlineImageCSSVariables';
 
 export const EnrichedText = memo(
   ({ children, htmlStyle, style, selectionColor }: EnrichedTextProps) => {
@@ -29,7 +29,7 @@ export const EnrichedText = memo(
     const cssVars = useMemo(
       () => ({
         ...htmlStyleToCSSVariables(htmlStyle),
-        '--et-broken-image-glyph': BROKEN_IMAGE_GLYPH_MASK,
+        ...INLINE_IMAGE_CSS_VARIABLES,
       }),
       [htmlStyle]
     );
