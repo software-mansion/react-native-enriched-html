@@ -1,25 +1,26 @@
 package com.swmansion.enriched.common
 
 import android.text.Spannable
+import com.swmansion.enriched.common.spans.EnrichedAlignmentSpan
 import com.swmansion.enriched.common.spans.interfaces.EnrichedInlineSpan
-import com.swmansion.enriched.common.spans.interfaces.EnrichedSpan
 
 object EnrichedSpanFlags {
-  private const val PARAGRAPH_SPAN_PRIORITY = 2
+  private const val ALIGNMENT_SPAN_PRIORITY = 0
   private const val INLINE_SPAN_PRIORITY = 1
+  private const val PARAGRAPH_SPAN_PRIORITY = 2
 
-  @JvmField
-  val paragraphSpanFlags: Int = applyPriority(Spannable.SPAN_EXCLUSIVE_EXCLUSIVE, PARAGRAPH_SPAN_PRIORITY)
-
-  @JvmField
-  val inlineSpanFlags: Int = applyPriority(Spannable.SPAN_EXCLUSIVE_EXCLUSIVE, INLINE_SPAN_PRIORITY)
-
+  @JvmStatic
+  @JvmOverloads
   fun forSpan(
-    span: EnrichedSpan,
-    baseFlags: Int,
+    span: Any?,
+    baseFlags: Int = Spannable.SPAN_EXCLUSIVE_EXCLUSIVE,
   ): Int {
-    val isInlineSpan = span is EnrichedInlineSpan
-    val priority = if (isInlineSpan) INLINE_SPAN_PRIORITY else PARAGRAPH_SPAN_PRIORITY
+    val priority =
+      when (span) {
+        is EnrichedAlignmentSpan -> ALIGNMENT_SPAN_PRIORITY
+        is EnrichedInlineSpan -> INLINE_SPAN_PRIORITY
+        else -> PARAGRAPH_SPAN_PRIORITY
+      }
     return applyPriority(baseFlags, priority)
   }
 

@@ -64,7 +64,7 @@ class ParametrizedStyles(
     val spanEnd = start + text.length
     val span = EnrichedInputLinkSpan(url, view.htmlStyle, true)
     val (safeStart, safeEnd) = spannable.getSafeSpanBoundaries(start, spanEnd)
-    spannable.setSpan(span, safeStart, safeEnd, EnrichedSpanFlags.inlineSpanFlags)
+    spannable.setSpan(span, safeStart, safeEnd, EnrichedSpanFlags.forSpan(span))
 
     view.selection?.validateStyles()
     isSettingLinkSpan = false
@@ -161,7 +161,7 @@ class ParametrizedStyles(
           span,
           safeStart,
           safeEnd,
-          EnrichedSpanFlags.inlineSpanFlags,
+          EnrichedSpanFlags.forSpan(span),
         )
       }
     }
@@ -374,7 +374,7 @@ class ParametrizedStyles(
       val span = EnrichedInputMentionSpan(text, indicator, attributes, view.htmlStyle)
       val spanEnd = start + text.length
       val (safeStart, safeEnd) = spannable.getSafeSpanBoundaries(start, spanEnd)
-      spannable.setSpan(span, safeStart, safeEnd, EnrichedSpanFlags.inlineSpanFlags)
+      spannable.setSpan(span, safeStart, safeEnd, EnrichedSpanFlags.forSpan(span))
 
       val hasSpaceAtTheEnd = spannable.length > safeEnd && spannable[safeEnd] == ' '
       if (!hasSpaceAtTheEnd) {

@@ -90,7 +90,7 @@ class ParagraphStyles(
     }
 
     val (safeStart, safeEnd) = spannable.getSafeSpanBoundaries(newStart, newEnd)
-    spannable.setSpan(span, safeStart, safeEnd, EnrichedSpanFlags.paragraphSpanFlags)
+    spannable.setSpan(span, safeStart, safeEnd, EnrichedSpanFlags.forSpan(span))
   }
 
   private fun <T> setSpan(
@@ -106,7 +106,7 @@ class ParagraphStyles(
 
     val span = type.getDeclaredConstructor(HtmlStyle::class.java).newInstance(view.htmlStyle)
     val (safeStart, safeEnd) = spannable.getSafeSpanBoundaries(start, end)
-    spannable.setSpan(span, safeStart, safeEnd, EnrichedSpanFlags.paragraphSpanFlags)
+    spannable.setSpan(span, safeStart, safeEnd, EnrichedSpanFlags.forSpan(span))
   }
 
   // Removes spans of the given type in the specified range.
@@ -233,7 +233,7 @@ class ParagraphStyles(
     val (safeStart, safeEnd) = s.getSafeSpanBoundaries(newStart, newEnd)
     val span = type.getDeclaredConstructor(HtmlStyle::class.java).newInstance(view.htmlStyle)
 
-    s.setSpan(span, safeStart, safeEnd, EnrichedSpanFlags.paragraphSpanFlags)
+    s.setSpan(span, safeStart, safeEnd, EnrichedSpanFlags.forSpan(span))
   }
 
   private fun handleConflictsDuringNewlineDeletion(

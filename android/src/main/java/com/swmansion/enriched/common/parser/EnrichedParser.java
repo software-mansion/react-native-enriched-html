@@ -468,11 +468,7 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
       if (end == start) {
         mSpannableStringBuilder.removeSpan(obj[i]);
       } else {
-        // TODO: verify if Spannable.SPAN_EXCLUSIVE_EXCLUSIVE from
-        // EnrichedSpanFlags.paragraphSpanFlags does not break anything.
-        // Previously it was SPAN_PARAGRAPH. I've changed that in order to fix ranges for list
-        // items.
-        mSpannableStringBuilder.setSpan(obj[i], start, end, EnrichedSpanFlags.paragraphSpanFlags);
+        mSpannableStringBuilder.setSpan(obj[i], start, end, EnrichedSpanFlags.forSpan(obj[i]));
       }
     }
 
@@ -507,7 +503,7 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
 
       mSpannableStringBuilder.removeSpan(zeroWidthSpaceSpan);
       mSpannableStringBuilder.setSpan(
-          zeroWidthSpaceSpan, start, end, EnrichedSpanFlags.paragraphSpanFlags);
+          zeroWidthSpaceSpan, start, end, EnrichedSpanFlags.forSpan(zeroWidthSpaceSpan));
     }
 
     return mSpannableStringBuilder;
@@ -804,7 +800,7 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
     int len = text.length();
     if (where != len) {
       for (Object span : spans) {
-        text.setSpan(span, where, len, EnrichedSpanFlags.inlineSpanFlags);
+        text.setSpan(span, where, len, EnrichedSpanFlags.forSpan(span));
       }
     }
   }
@@ -827,7 +823,7 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
 
     if (where != len) {
       for (Object span : spans) {
-        text.setSpan(span, where, len, EnrichedSpanFlags.paragraphSpanFlags);
+        text.setSpan(span, where, len, EnrichedSpanFlags.forSpan(span));
       }
     }
   }
@@ -852,11 +848,9 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
 
     int len = text.length();
     text.append("￼");
-    text.setSpan(
-        spanFactory.createImageSpan(src, Integer.parseInt(width), Integer.parseInt(height)),
-        len,
-        text.length(),
-        EnrichedSpanFlags.inlineSpanFlags);
+    Object imageSpan =
+        spanFactory.createImageSpan(src, Integer.parseInt(width), Integer.parseInt(height));
+    text.setSpan(imageSpan, len, text.length(), EnrichedSpanFlags.forSpan(imageSpan));
   }
 
   private static void startA(Editable text, Attributes attributes) {

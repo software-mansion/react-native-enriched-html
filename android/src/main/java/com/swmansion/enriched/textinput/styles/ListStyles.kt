@@ -67,18 +67,18 @@ class ListStyles(
     when (name) {
       EnrichedSpans.UNORDERED_LIST -> {
         val span = EnrichedInputUnorderedListSpan(view.htmlStyle)
-        spannable.setSpan(span, safeStart, safeEnd, EnrichedSpanFlags.paragraphSpanFlags)
+        spannable.setSpan(span, safeStart, safeEnd, EnrichedSpanFlags.forSpan(span))
       }
 
       EnrichedSpans.ORDERED_LIST -> {
         val index = getOrderedListIndex(spannable, safeStart)
         val span = EnrichedInputOrderedListSpan(index, view.htmlStyle)
-        spannable.setSpan(span, safeStart, safeEnd, EnrichedSpanFlags.paragraphSpanFlags)
+        spannable.setSpan(span, safeStart, safeEnd, EnrichedSpanFlags.forSpan(span))
       }
 
       EnrichedSpans.CHECKBOX_LIST -> {
         val span = EnrichedInputCheckboxListSpan(isChecked ?: false, view.htmlStyle)
-        spannable.setSpan(span, safeStart, safeEnd, EnrichedSpanFlags.paragraphSpanFlags)
+        spannable.setSpan(span, safeStart, safeEnd, EnrichedSpanFlags.forSpan(span))
 
         // Invalidate layout to update checkbox drawing in case checkbox is bigger than line height
         view.layoutManager.invalidateLayout()

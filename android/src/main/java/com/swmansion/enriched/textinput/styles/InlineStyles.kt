@@ -42,7 +42,7 @@ class InlineStyles(
 
     val span = type.getDeclaredConstructor(HtmlStyle::class.java).newInstance(view.htmlStyle)
     val (safeStart, safeEnd) = spannable.getSafeSpanBoundaries(minimum, maximum)
-    spannable.setSpan(span, safeStart, safeEnd, EnrichedSpanFlags.inlineSpanFlags)
+    spannable.setSpan(span, safeStart, safeEnd, EnrichedSpanFlags.forSpan(span))
   }
 
   private fun <T> setAndMergeSpans(

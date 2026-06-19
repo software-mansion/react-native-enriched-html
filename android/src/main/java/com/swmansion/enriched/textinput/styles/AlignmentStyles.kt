@@ -4,6 +4,7 @@ import android.text.Editable
 import android.text.Spannable
 import android.text.SpannableStringBuilder
 import com.swmansion.enriched.common.EnrichedConstants
+import com.swmansion.enriched.common.EnrichedSpanFlags
 import com.swmansion.enriched.textinput.EnrichedTextInputView
 import com.swmansion.enriched.textinput.spans.EnrichedInputAlignmentSpan
 import com.swmansion.enriched.textinput.spans.EnrichedInputCheckboxListSpan
@@ -24,12 +25,8 @@ class AlignmentStyles(
     flags: Int = Spannable.SPAN_EXCLUSIVE_EXCLUSIVE,
   ) {
     val (safeStart, safeEnd) = spannable.getSafeSpanBoundaries(start, end)
-    spannable.setSpan(
-      EnrichedInputAlignmentSpan(cssValue),
-      safeStart,
-      safeEnd,
-      flags,
-    )
+    val span = EnrichedInputAlignmentSpan(cssValue)
+    spannable.setSpan(span, safeStart, safeEnd, EnrichedSpanFlags.forSpan(span, flags))
   }
 
   private fun toCssValue(alignment: String): String =
@@ -302,7 +299,9 @@ class AlignmentStyles(
     // INCLUSIVE_EXCLUSIVE is intentional here: autoStretchAlignmentSpan will convert
     // it to EXCLUSIVE_EXCLUSIVE once the merge is complete.
     val (safeStart, safeEnd) = s.getSafeSpanBoundaries(paraStart, paraEnd)
-    dominantTopSpan?.let { s.setSpan(it, safeStart, safeEnd, Spannable.SPAN_INCLUSIVE_EXCLUSIVE) }
+    dominantTopSpan?.let {
+      s.setSpan(it, safeStart, safeEnd, EnrichedSpanFlags.forSpan(it, Spannable.SPAN_INCLUSIVE_EXCLUSIVE))
+    }
     return cursorPosition
   }
 
