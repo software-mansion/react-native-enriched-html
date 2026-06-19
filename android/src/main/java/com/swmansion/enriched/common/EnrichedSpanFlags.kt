@@ -4,6 +4,9 @@ import android.text.Spannable
 import com.swmansion.enriched.common.spans.EnrichedAlignmentSpan
 import com.swmansion.enriched.common.spans.interfaces.EnrichedInlineSpan
 
+// Higher priority spans are processed first, so styles with lower priorities are painted on top of previously applied styles.
+// For example, inline styles are applied on top of paragraph styles, allowing them to override paragraph-level styling.
+// Alignment styles are applied last, ensuring they position the final, fully styled text.
 object EnrichedSpanFlags {
   private const val ALIGNMENT_SPAN_PRIORITY = 0
   private const val INLINE_SPAN_PRIORITY = 1
