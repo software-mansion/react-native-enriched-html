@@ -1008,6 +1008,9 @@ class EnrichedTextInputView :
   }
 
   fun setStyle(styleJSON: String) {
+    val isValid = verifyStyle(EnrichedSpans.CUSTOM_STYLE)
+    if (!isValid) return
+
     runAsATransaction {
       customStyles?.setStyle(styleJSON)
     }
