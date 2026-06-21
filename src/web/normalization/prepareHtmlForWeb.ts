@@ -22,6 +22,8 @@ export function prepareHtmlForWeb(html: string) {
  *   </ul>
  */
 function checkboxHtmlToWeb(html: string): string {
+  if (typeof DOMParser === 'undefined') return html;
+
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
 
