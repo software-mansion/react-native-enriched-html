@@ -59,7 +59,7 @@ export const EnrichedText = memo(
 
     return (
       <>
-        <style>{mentionRulesCSS}</style>
+        {mentionRulesCSS ? <style>{mentionRulesCSS}</style> : null}
         <div
           ref={containerRef}
           style={finalStyle}

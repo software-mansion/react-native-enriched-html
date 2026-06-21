@@ -272,8 +272,7 @@
   position: relative;
   list-style: none;
   pointer-events: none;
-  min-height: max(1lh, var(--et-checkbox-box-size, 24px)
-  );
+  min-height: max(1lh, var(--et-checkbox-box-size, 24px));
 }
 
 .et-view ul[data-type="checkbox"] > li > p {
@@ -297,6 +296,7 @@
 }
 
 .et-view ul[data-type="checkbox"] > li > label {
+  display: inline-flex;
   align-items: center;
   gap: 0;
   margin: 0;
