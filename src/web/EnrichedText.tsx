@@ -1,4 +1,4 @@
-import { memo, useMemo, type CSSProperties } from 'react';
+import { memo, useMemo, useRef, type CSSProperties } from 'react';
 import type { EnrichedTextProps } from '../types';
 import './EnrichedText.css';
 import { enrichedTextStyleToCSSProperties } from './styleConversion/enrichedTextStyleToCSSProperties';
@@ -9,9 +9,12 @@ import { buildMentionRulesCSS } from './styleConversion/buildMentionRulesCSS';
 import { sanitizeHtml } from './sanitization/htmlSanitizer';
 import { prepareHtmlForWeb } from './normalization/prepareHtmlForWeb';
 import { INLINE_IMAGE_CSS_VARIABLES } from './styleConversion/inlineImageCSSVariables';
+import { useImageErrorFallback } from './useImageErrorFallback';
 
 export const EnrichedText = memo(
   ({ children, htmlStyle, style, selectionColor }: EnrichedTextProps) => {
+    const containerRef = useRef<HTMLDivElement>(null);
+
     const sanitizedHtml = useMemo(() => sanitizeHtml(children), [children]);
 
     const finalHtml = useMemo(
@@ -52,10 +55,13 @@ export const EnrichedText = memo(
       [textStyle, themingStyle, cssVars]
     );
 
+    useImageErrorFallback(containerRef, finalHtml);
+
     return (
       <>
         <style>{mentionRulesCSS}</style>
         <div
+          ref={containerRef}
           style={finalStyle}
           className={ENRICHED_TEXT_CLASSNAME}
           dangerouslySetInnerHTML={{ __html: finalHtml }}
