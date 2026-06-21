@@ -138,12 +138,11 @@
   content: '';
   position: absolute;
   left: calc(-1 * var(--et-ul-gap-width, 16px) - var(--et-ul-bullet-size, 8px));
-  bottom: 0.4em;
-  @supports (bottom: 0.5lh) {
-    bottom: 0.5lh;
+  top: 0.6em;
+  @supports (top: 0.5lh) {
+    top: 0.5lh;
   }
-
-  transform: translateY(50%);
+  transform: translateY(-50%);
   width: var(--et-ul-bullet-size, 8px);
   height: var(--et-ul-bullet-size, 8px);
   border-radius: 50%;
@@ -158,23 +157,26 @@
   padding-left: calc(
     var(--et-ol-margin-left, 16px) + var(--et-ol-gap-width, 16px)
   );
-  counter-reset: eti-ol;
+  counter-reset: et-ol;
 }
 
 .eti-editor ol > li,
 .et-view ol > li {
   position: relative;
-  counter-increment: eti-ol;
+  counter-increment: et-ol;
   min-height: 1lh;
 }
 
 .eti-editor ol > li::before,
 .et-view ol > li::before {
-  content: counter(eti-ol) '.';
+  content: counter(et-ol) '.';
   position: absolute;
   left: calc(-1 * var(--et-ol-gap-width, 16px));
-  bottom: 0;
-  transform: translateX(-50%);
+  top: 0.6em;
+  @supports (top: 0.5lh) {
+    top: 0.5lh;
+  }
+  transform: translate3d(-50%, -50%, 0);
   color: var(--et-ol-marker-color, currentColor);
   font-weight: var(--et-ol-marker-font-weight, inherit);
   white-space: nowrap;
@@ -238,17 +240,17 @@
   left: calc(
     -1 * var(--et-checkbox-gap-width, 16px) - var(--et-checkbox-box-size, 24px)
   );
-  transform: translateY(50%);
   display: inline-flex;
   align-items: center;
   gap: 0;
   margin: 0;
   padding: 0;
   user-select: none;
-  bottom: 0.4em;
-  @supports (bottom: 0.5lh) {
-    bottom: 0.5lh;
+  top: 0.6em;
+  @supports (top: 0.5lh) {
+    top: 0.5lh;
   }
+  transform: translateY(-50%);
 }
 
 .eti-editor ul[data-type='checkboxList'] > li > label input[type='checkbox'] {
@@ -280,6 +282,13 @@
   left: calc(
     -1 * var(--et-checkbox-gap-width, 16px) - var(--et-checkbox-box-size, 24px)
   );
+  font-size: inherit;
+  line-height: inherit;
+  top: 0.6em;
+  @supports (top: 0.5lh) {
+    top: 0.5lh;
+  }
+  transform: translateY(-50%);
   width: var(--et-checkbox-box-size, 24px);
   height: var(--et-checkbox-box-size, 24px);
   margin: 0 var(--et-checkbox-gap-width, 16px) 0 0;
