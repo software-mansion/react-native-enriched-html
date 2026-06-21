@@ -29,13 +29,11 @@ export function enrichedTextStyleToCSSProperties(
       style.verticalAlign !== 'auto' ? style.verticalAlign : undefined,
   };
 
-  // Clean undefined values
   return Object.fromEntries(
     Object.entries(css).filter(([, v]) => v !== undefined)
   );
 }
 
-// RN exposes textShadow* as separate props; CSS uses a single shorthand.
 function resolveTextShadow(style: TextStyle): string | undefined {
   const { textShadowColor, textShadowOffset, textShadowRadius } = style;
   if (

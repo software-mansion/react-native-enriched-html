@@ -127,7 +127,7 @@ test.describe('visual: typography, blocks, and wrapping', () => {
       snapshot: 'enriched-text-blockquote-code-codeblock.png',
       html: [
         '<html>',
-        '<blockquote><p>This is a blockquote. It should have a border and padding.</p></blockquote>',
+        '<blockquote><p>This is a blockquote. Blockquote for quoting in a block.</p></blockquote>',
         '<p>Here is some <code>inline code</code> mixed in text.</p>',
         '<codeblock><p>function test() {</p><p>  return true;</p><p>}</p></codeblock>',
         '</html>',
@@ -218,7 +218,7 @@ test.describe('visual: images', () => {
     {
       name: 'image placeholder inside lists',
       snapshot: 'enriched-text-images-placeholder-list.png',
-      html: '<html><ol><li>Broken inside list <img src="" width="20" height="20" /> right here.</li></ol></html>',
+      html: '<html><ol><li>List with a broken image <img src="" width="20" height="20" /> inside.</li></ol></html>',
     },
   ];
 

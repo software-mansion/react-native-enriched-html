@@ -14,7 +14,6 @@ function convert(style: TextStyle): CSSProperties {
 
 // These suites only cover the text-only properties that
 // enrichedTextStyleToCSSProperties adds on top of the shared base.
-// The shared (ViewStyle) conversions are covered by the base function's tests.
 
 describe('empty input', () => {
   it('returns an empty object for an empty style', () => {

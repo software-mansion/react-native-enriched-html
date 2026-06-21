@@ -233,7 +233,6 @@ function App() {
     ref.current
       ?.getHTML()
       .then((html) => {
-        console.log('getHtml', html);
         setEnrichedTextValue(html);
       })
       .catch((error: unknown) => {

@@ -4,7 +4,7 @@ import './EnrichedText.css';
 import { enrichedTextStyleToCSSProperties } from './styleConversion/enrichedTextStyleToCSSProperties';
 import { htmlStyleToCSSVariables } from './styleConversion/htmlStyleToCSSVariables';
 import { ENRICHED_TEXT_CLASSNAME } from './constants/classNames';
-import { enrichedInputThemingToCSSProperties } from './styleConversion/enrichedInputThemingToCSSProperties';
+import { enrichedInputThemingToCSSProperties } from './styleConversion/enrichedThemingToCSSProperties';
 import { buildMentionRulesCSS } from './styleConversion/buildMentionRulesCSS';
 import { sanitizeHtml } from './sanitization/htmlSanitizer';
 import { prepareHtmlForWeb } from './normalization/prepareHtmlForWeb';
@@ -13,8 +13,6 @@ import { INLINE_IMAGE_CSS_VARIABLES } from './styleConversion/inlineImageCSSVari
 export const EnrichedText = memo(
   ({ children, htmlStyle, style, selectionColor }: EnrichedTextProps) => {
     const sanitizedHtml = useMemo(() => sanitizeHtml(children), [children]);
-
-    console.log('rerender enriched');
 
     const finalHtml = useMemo(
       () => prepareHtmlForWeb(sanitizedHtml),

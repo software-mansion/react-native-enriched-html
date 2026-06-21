@@ -37,12 +37,12 @@ function addImageErrorFallback(html: string): string {
  * Web-native, display-only format:
  *   <ul data-type="checkbox">
  *     <li>
- *       <input type="checkbox" id="…" checked>
- *       <label for="…">foo</label>
+ *       <input type="checkbox" checked>
+ *       <label>foo</label>
  *     </li>
  *     <li>
- *       <input type="checkbox" id="…">
- *       <label for="…">bar</label>
+ *       <input type="checkbox">
+ *       <label>bar</label>
  *     </li>
  *   </ul>
  */
@@ -50,18 +50,15 @@ function checkboxHtmlToWeb(html: string): string {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
 
-  let idCounter = 0;
-
   doc.querySelectorAll('ul[data-type="checkbox"]').forEach((ul) => {
     ul.querySelectorAll('li').forEach((li) => {
       const checked = li.hasAttribute('checked');
-      const id = `enriched-checkbox-${idCounter++}`;
       const labelContent = li.innerHTML;
 
       li.removeAttribute('checked');
       li.innerHTML =
-        `<input type="checkbox" id="${id}"${checked ? ' checked' : ''}>` +
-        `<label for="${id}">${labelContent}</label>`;
+        `<input type="checkbox"${checked ? ' checked' : ''}>` +
+        `<label>${labelContent}</label>`;
     });
   });
 

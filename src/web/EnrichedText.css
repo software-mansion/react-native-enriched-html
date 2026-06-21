@@ -312,9 +312,8 @@
 }
 
 .et-view img.error {
-  /* hide the browser's broken-image alt text; the ::before overlay covers
-     the native broken-image icon. We keep `color` intact so the glyph below
-     can inherit the surrounding text color via currentColor. */
+  /* hide the browser's broken-image alt text;
+    the ::before overlay covers the native broken-image icon. */
   font-size: 0;
   visibility: hidden;
 }
