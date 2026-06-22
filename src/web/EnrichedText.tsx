@@ -2,7 +2,10 @@ import { memo, useMemo, useRef, type CSSProperties } from 'react';
 import type { EnrichedTextProps } from '../types';
 import './EnrichedText.css';
 import { enrichedTextStyleToCSSProperties } from './styleConversion/enrichedTextStyleToCSSProperties';
-import { htmlStyleToCSSVariables } from './styleConversion/htmlStyleToCSSVariables';
+import {
+  htmlStyleToCSSVariables,
+  mergeWithDefaultEnrichedTextHtmlStyle,
+} from './styleConversion/htmlStyleToCSSVariables';
 import { ENRICHED_TEXT_CLASSNAME } from './constants/classNames';
 import { enrichedInputThemingToCSSProperties } from './styleConversion/enrichedThemingToCSSProperties';
 import { buildMentionRulesCSS } from './styleConversion/buildMentionRulesCSS';
@@ -22,6 +25,11 @@ export const EnrichedText = memo(
       [sanitizedHtml]
     );
 
+    const resolvedHtmlStyle = useMemo(
+      () => mergeWithDefaultEnrichedTextHtmlStyle(htmlStyle),
+      [htmlStyle]
+    );
+
     const textStyle: CSSProperties = useMemo(
       () => enrichedTextStyleToCSSProperties(style ?? {}),
       [style]
@@ -29,10 +37,10 @@ export const EnrichedText = memo(
 
     const cssVars = useMemo(
       () => ({
-        ...htmlStyleToCSSVariables(htmlStyle),
+        ...htmlStyleToCSSVariables(resolvedHtmlStyle),
         ...INLINE_IMAGE_CSS_VARIABLES,
       }),
-      [htmlStyle]
+      [resolvedHtmlStyle]
     );
 
     const themingStyle = useMemo(
@@ -41,8 +49,8 @@ export const EnrichedText = memo(
     );
 
     const mentionRulesCSS = useMemo(
-      () => buildMentionRulesCSS('text', htmlStyle),
-      [htmlStyle]
+      () => buildMentionRulesCSS(resolvedHtmlStyle),
+      [resolvedHtmlStyle]
     );
 
     const finalStyle = useMemo(

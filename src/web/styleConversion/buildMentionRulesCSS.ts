@@ -1,4 +1,8 @@
-import type { HtmlStyle, MentionStyleProperties } from '../../types';
+import type {
+  EnrichedTextHtmlStyle,
+  HtmlStyle,
+  MentionStyleProperties,
+} from '../../types';
 import { isMentionStyleRecord } from '../../utils/isMentionStyleRecord';
 import {
   ENRICHED_TEXT_CLASSNAME,
@@ -14,9 +18,14 @@ function escapeIndicatorForCssAttributeSelector(indicator: string): string {
   return indicator.replace(/["\\]/g, '\\$&');
 }
 
+function mentionSelector(className: string, indicator: string): string {
+  return indicator === MENTION_STYLE_DEFAULT_KEY
+    ? `.${className} mention`
+    : `.${className} mention[indicator="${escapeIndicatorForCssAttributeSelector(indicator)}"]`;
+}
+
 export function buildMentionRulesCSS(
-  component: 'input' | 'text',
-  htmlStyle?: HtmlStyle
+  htmlStyle?: HtmlStyle | EnrichedTextHtmlStyle
 ): string {
   const mapRaw = htmlStyle?.mention;
   if (!mapRaw || typeof mapRaw !== 'object' || !isMentionStyleRecord(mapRaw)) {
@@ -29,20 +38,18 @@ export function buildMentionRulesCSS(
     return '';
   }
 
-  const className =
-    component === 'input'
-      ? ENRICHED_TEXT_INPUT_CLASSNAME
-      : ENRICHED_TEXT_CLASSNAME;
-
   const lines: string[] = [];
+
   for (const indicator of keys) {
-    const selector =
-      indicator === MENTION_STYLE_DEFAULT_KEY
-        ? `.${className} mention`
-        : `.${className} mention[indicator="${escapeIndicatorForCssAttributeSelector(indicator)}"]`;
+    const inputSelector = mentionSelector(
+      ENRICHED_TEXT_INPUT_CLASSNAME,
+      indicator
+    );
+    const textSelector = mentionSelector(ENRICHED_TEXT_CLASSNAME, indicator);
 
     lines.push(
-      `${selector} {
+      `${inputSelector},
+${textSelector} {
   color: var(${ET_MENTION_CSS_VARS.color(indicator)});
   background-color: var(${ET_MENTION_CSS_VARS.backgroundColor(indicator)});
   text-decoration-line: var(${ET_MENTION_CSS_VARS.textDecorationLine(indicator)});

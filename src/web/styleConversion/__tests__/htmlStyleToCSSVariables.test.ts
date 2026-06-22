@@ -8,16 +8,6 @@ import {
 
 type CodeStyle = HtmlStyle['code'];
 
-const DEFAULT_MENTION_CSS_VARS: Record<string, string> = {
-  '--et-mention-default-color': String(DEFAULT_HTML_STYLE.mention.color),
-  '--et-mention-default-background-color': String(
-    DEFAULT_HTML_STYLE.mention.backgroundColor
-  ),
-  '--et-mention-default-text-decoration-line': String(
-    DEFAULT_HTML_STYLE.mention.textDecorationLine
-  ),
-};
-
 const defaultMentionOnlyResolved = {
   default: { ...DEFAULT_HTML_STYLE.mention },
 };
@@ -108,16 +98,8 @@ describe('mergeWithDefaultHtmlStyle', () => {
 });
 
 describe('htmlStyleToCSSVariables', () => {
-  it('undefined → default mention vars only', () => {
-    expect(htmlStyleToCSSVariables(undefined)).toEqual(
-      DEFAULT_MENTION_CSS_VARS as CSSProperties
-    );
-  });
-
-  it('empty style → default mention vars only', () => {
-    expect(htmlStyleToCSSVariables({})).toEqual(
-      DEFAULT_MENTION_CSS_VARS as CSSProperties
-    );
+  it('empty style → empty vars', () => {
+    expect(htmlStyleToCSSVariables({})).toEqual({} as CSSProperties);
   });
 
   it('integer color → rgba string', () => {
@@ -275,9 +257,10 @@ describe('htmlStyleToCSSVariables', () => {
 
 describe('mention CSS variables', () => {
   it('flat mention → default vars', () => {
-    const vars = htmlStyleToCSSVariables({
+    const merged = mergeWithDefaultHtmlStyle({
       mention: { color: '#f00' },
-    }) as Record<string, string>;
+    });
+    const vars = htmlStyleToCSSVariables(merged) as Record<string, string>;
     expect(vars['--et-mention-default-color']).toBe('#f00');
   });
 
@@ -293,10 +276,8 @@ describe('mention CSS variables', () => {
   });
 
   it('mention {} → default vars', () => {
-    const vars = htmlStyleToCSSVariables({ mention: {} }) as Record<
-      string,
-      string
-    >;
+    const merged = mergeWithDefaultHtmlStyle({ mention: {} });
+    const vars = htmlStyleToCSSVariables(merged) as Record<string, string>;
     expect(vars['--et-mention-default-color']).toBe(
       DEFAULT_HTML_STYLE.mention.color
     );

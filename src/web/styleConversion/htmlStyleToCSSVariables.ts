@@ -1,7 +1,15 @@
 import type { CSSProperties } from 'react';
 import type { ColorValue } from 'react-native';
-import type { HtmlStyle, MentionStyleProperties } from '../../types';
-import { DEFAULT_HTML_STYLE } from '../../utils/defaultHtmlStyle';
+import type {
+  EnrichedTextHtmlStyle,
+  EnrichedTextMentionStyleProperties,
+  HtmlStyle,
+  MentionStyleProperties,
+} from '../../types';
+import {
+  DEFAULT_ENRICHED_TEXT_STYLE,
+  DEFAULT_HTML_STYLE,
+} from '../../utils/defaultHtmlStyle';
 import { expandMentionStylesForIndicators } from '../../utils/expandMentionStylesForIndicators';
 import { HEADING_TAGS } from '../formats/EnrichedHeading';
 import {
@@ -12,17 +20,21 @@ import { toColor } from './toColor';
 import { isMentionStyleRecord } from '../../utils/isMentionStyleRecord';
 
 export function mergeWithDefaultHtmlStyle(
-  htmlStyle?: HtmlStyle
+  htmlStyle?: HtmlStyle,
+  htmlStyleToMergeWith: HtmlStyle = DEFAULT_HTML_STYLE
 ): Required<HtmlStyle> {
   const style = htmlStyle ?? {};
 
-  const mentionMap = expandMentionStylesForIndicatorsIncludeDefault(style);
+  const mentionMap = expandMentionStylesForIndicatorsIncludeDefault(
+    style,
+    htmlStyleToMergeWith
+  );
   const converted: HtmlStyle = {
     ...style,
     mention: mentionMap,
   };
 
-  const merged: Record<string, unknown> = { ...DEFAULT_HTML_STYLE };
+  const merged: Record<string, unknown> = { ...htmlStyleToMergeWith };
 
   for (const key in converted) {
     if (key === 'mention') {
@@ -30,12 +42,45 @@ export function mergeWithDefaultHtmlStyle(
       continue;
     }
     merged[key] = {
-      ...DEFAULT_HTML_STYLE[key as keyof HtmlStyle],
+      ...htmlStyleToMergeWith[key as keyof HtmlStyle],
       ...(converted[key as keyof HtmlStyle] as object),
     };
   }
 
   return merged as Required<HtmlStyle>;
+}
+
+export function mergeWithDefaultEnrichedTextHtmlStyle(
+  htmlStyle?: EnrichedTextHtmlStyle
+): Required<EnrichedTextHtmlStyle> {
+  const merged = mergeWithDefaultHtmlStyle(
+    htmlStyle as HtmlStyle,
+    DEFAULT_ENRICHED_TEXT_STYLE
+  );
+
+  const a = {
+    ...DEFAULT_ENRICHED_TEXT_STYLE.a,
+    ...htmlStyle?.a,
+  };
+
+  const mentionDefaults = DEFAULT_ENRICHED_TEXT_STYLE.mention;
+  const mentionMap = htmlStyle?.mention as Record<
+    string,
+    EnrichedTextMentionStyleProperties
+  >;
+  const mention: Record<string, EnrichedTextMentionStyleProperties> = {};
+  for (const indicator in mentionMap) {
+    mention[indicator] = {
+      ...mentionDefaults,
+      ...mentionMap[indicator],
+    };
+  }
+
+  return {
+    ...merged,
+    a,
+    mention,
+  } as Required<EnrichedTextHtmlStyle>;
 }
 
 const ET_CSS_VARS = {
@@ -176,6 +221,8 @@ function applyMentionVars(
   vars: Record<string, string>,
   mention: Record<string, MentionStyleProperties>
 ): void {
+  if (!mention) return;
+
   for (const [indicator, mentionStyle] of Object.entries(mention)) {
     setColorVar(vars, ET_MENTION_CSS_VARS.color(indicator), mentionStyle.color);
     setColorVar(
@@ -190,7 +237,10 @@ function applyMentionVars(
   }
 }
 
-function expandMentionStylesForIndicatorsIncludeDefault(htmlStyle?: HtmlStyle) {
+function expandMentionStylesForIndicatorsIncludeDefault(
+  htmlStyle: HtmlStyle,
+  htmlStyleToMergeWith: HtmlStyle
+) {
   const mentionIndicators = isMentionStyleRecord(htmlStyle?.mention)
     ? Object.keys(htmlStyle?.mention)
     : [];
@@ -200,11 +250,12 @@ function expandMentionStylesForIndicatorsIncludeDefault(htmlStyle?: HtmlStyle) {
 
   return expandMentionStylesForIndicators(
     htmlStyle?.mention,
-    mentionIndicators
+    mentionIndicators,
+    htmlStyleToMergeWith
   );
 }
 
-export function htmlStyleToCSSVariables(htmlStyle?: HtmlStyle): CSSProperties {
+export function htmlStyleToCSSVariables(htmlStyle: HtmlStyle): CSSProperties {
   const vars: Record<string, string> = {};
   applyCodeVars(vars, htmlStyle?.code);
   applyHeadingVars(vars, htmlStyle);
@@ -216,7 +267,7 @@ export function htmlStyleToCSSVariables(htmlStyle?: HtmlStyle): CSSProperties {
   applyCheckboxListVars(vars, htmlStyle?.ulCheckbox);
   applyMentionVars(
     vars,
-    expandMentionStylesForIndicatorsIncludeDefault(htmlStyle)
+    htmlStyle.mention as Record<string, MentionStyleProperties>
   );
   return vars as CSSProperties;
 }

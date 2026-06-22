@@ -395,7 +395,7 @@ export const EnrichedTextInput = ({
   );
 
   const mentionRulesCSS = useMemo(
-    () => buildMentionRulesCSS('input', resolvedHtmlStyle),
+    () => buildMentionRulesCSS(resolvedHtmlStyle),
     [resolvedHtmlStyle]
   );
 
