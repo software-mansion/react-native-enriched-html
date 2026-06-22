@@ -1173,6 +1173,19 @@
         if (![currentData isEqual:lastCustomStyleData]) {
           [fixedEndedStyles addObject:customType];
           [stylesToBeReAdded addObject:customType];
+
+          // Inner styles (e.g. bold) must also close before the span ends and
+          // reopen inside the new span, otherwise tags cross span boundaries.
+          for (NSNumber *activeStyle in currentActiveStyles) {
+            if ([activeStyle isEqualToNumber:customType] ||
+                [activeStyle isEqualToNumber:@([ImageStyle getType])]) {
+              continue;
+            }
+            if ([activeStyle integerValue] > [customType integerValue]) {
+              [fixedEndedStyles addObject:activeStyle];
+              [stylesToBeReAdded addObject:activeStyle];
+            }
+          }
         }
       }
 
