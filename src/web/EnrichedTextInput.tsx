@@ -331,6 +331,25 @@ export const EnrichedTextInput = ({
         );
       },
       getHTML: () => Promise.resolve(normalizeHtmlFromTiptap(editor.getHTML())),
+      getCaretRect: () => {
+        try {
+          // Anchor to the selection END (active caret), matching native. ProseMirror
+          // returns viewport coords; convert to the editor element's coordinate space
+          // (parity with native returning the rect relative to the editor view).
+          const pos = editor.state.selection.to;
+          const coords = editor.view.coordsAtPos(pos);
+          const dom = editor.view.dom as HTMLElement;
+          const base = dom.getBoundingClientRect();
+          return Promise.resolve({
+            x: coords.left - base.left + dom.scrollLeft,
+            y: coords.top - base.top + dom.scrollTop,
+            width: Math.max(1, coords.right - coords.left),
+            height: Math.max(0, coords.bottom - coords.top),
+          });
+        } catch {
+          return Promise.resolve(null);
+        }
+      },
       toggleBold: () => runFocused(editor, (c) => c.toggleBold()),
       toggleItalic: () => runFocused(editor, (c) => c.toggleItalic()),
       toggleUnderline: () => runFocused(editor, (c) => c.toggleUnderline()),

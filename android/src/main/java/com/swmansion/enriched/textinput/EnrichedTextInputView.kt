@@ -1025,7 +1025,10 @@ class EnrichedTextInputView :
     var widthDp = 0.0
     var heightDp = 0.0
     val currentLayout = layout
-    val pos = selectionStart
+    // Anchor to the selection END (the active insertion point), matching iOS'
+    // selectedTextRange.end — so a non-empty selection reports the live caret,
+    // not the start of the range.
+    val pos = selectionEnd
     if (currentLayout != null && pos >= 0) {
       try {
         val line = currentLayout.getLineForOffset(pos)

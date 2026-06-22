@@ -1339,11 +1339,10 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
 }
 
 - (void)setCustomSelection:(NSInteger)visibleStart end:(NSInteger)visibleEnd {
-  NSUInteger textLength = textView.textStorage.string.length;
-  NSInteger clampedStart = MAX(visibleStart, 0);
-  NSInteger clampedEnd = MAX(visibleEnd, clampedStart);
-  NSUInteger actualStart = MIN((NSUInteger)clampedStart, textLength);
-  NSUInteger actualEnd = MIN((NSUInteger)clampedEnd, textLength);
+  NSString *text = textView.textStorage.string;
+
+  NSUInteger actualStart = [self getActualIndex:visibleStart text:text];
+  NSUInteger actualEnd = [self getActualIndex:visibleEnd text:text];
 
   textView.selectedRange = NSMakeRange(actualStart, actualEnd - actualStart);
 }
