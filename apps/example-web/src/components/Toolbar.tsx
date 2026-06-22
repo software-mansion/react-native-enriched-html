@@ -319,6 +319,7 @@ export function Toolbar({
         <div className="toolbar-color-picker">
           <button
             type="button"
+            data-testid="toolbar-color-swatch-clear"
             className="toolbar-color-swatch toolbar-color-swatch--clear"
             onPointerDown={(e) => {
               if (e.pointerType === 'mouse') e.preventDefault();
@@ -339,6 +340,7 @@ export function Toolbar({
               <button
                 key={color}
                 type="button"
+                data-testid={`toolbar-color-swatch-${color.replace('#', '')}`}
                 className={`toolbar-color-swatch${isActive ? ' toolbar-color-swatch--active' : ''}`}
                 style={{ backgroundColor: color }}
                 onPointerDown={(e) => {
