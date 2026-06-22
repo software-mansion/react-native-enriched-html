@@ -3,8 +3,28 @@ import type {
   EnrichedTextInputInstance,
   OnChangeStateEvent,
 } from 'react-native-enriched-html';
-import type { RefObject } from 'react';
+import { useState, type RefObject } from 'react';
 import { useDragScroll } from '../hooks/useDragScroll';
+
+const COLORS = [
+  'red',
+  '#808080',
+  '#FF0000',
+  '#FF6600',
+  '#FFFF00',
+  '#00FF00',
+  '#008000',
+  '#00FFFF',
+  '#0000FF',
+  '#800080',
+  '#FF00FF',
+  '#FF69B4',
+  '#A52A2A',
+  '#FFA500',
+  '#ADD8E6',
+];
+
+type OpenPicker = 'text-color' | 'bg-color' | null;
 
 interface ToolbarProps {
   editorRef: RefObject<EnrichedTextInputInstance | null>;
@@ -61,6 +81,27 @@ export function Toolbar({
 }: ToolbarProps) {
   const s = state;
   const dragScroll = useDragScroll();
+  const [openPicker, setOpenPicker] = useState<OpenPicker>(null);
+
+  const activeFgColor = s?.customStyle.foregroundColor ?? '';
+  const activeBgColor = s?.customStyle.backgroundColor ?? '';
+
+  const handleSelectFgColor = (color: string) => {
+    editorRef.current?.setStyle({ foregroundColor: color });
+    setOpenPicker(null);
+  };
+  const handleClearFgColor = () => {
+    editorRef.current?.setStyle({ foregroundColor: null });
+    setOpenPicker(null);
+  };
+  const handleSelectBgColor = (color: string) => {
+    editorRef.current?.setStyle({ backgroundColor: color });
+    setOpenPicker(null);
+  };
+  const handleClearBgColor = () => {
+    editorRef.current?.setStyle({ backgroundColor: null });
+    setOpenPicker(null);
+  };
 
   const toolbarItems = [
     {
@@ -203,23 +244,115 @@ export function Toolbar({
   }[];
 
   return (
-    <div className="toolbar">
-      <div className="toolbar-controls" {...dragScroll}>
-        {toolbarItems.map((item) => (
-          <ToolbarButton
-            key={item.key}
-            label={item.label}
-            testId={`toolbar-button-${item.key}`}
-            isActive={s?.[item.key].isActive ?? false}
-            isDisabled={s?.[item.key].isBlocking ?? false}
-            variant={item.variant}
-            onPress={() => {
-              item.onPress(editorRef.current);
+    <div className="toolbar-wrapper">
+      <div className="toolbar">
+        <div className="toolbar-controls" {...dragScroll}>
+          {toolbarItems.map((item) => (
+            <ToolbarButton
+              key={item.key}
+              label={item.label}
+              testId={`toolbar-button-${item.key}`}
+              isActive={s?.[item.key].isActive ?? false}
+              isDisabled={s?.[item.key].isBlocking ?? false}
+              variant={item.variant}
+              onPress={() => {
+                item.onPress(editorRef.current);
+              }}
+            />
+          ))}
+          <button
+            type="button"
+            data-testid="toolbar-text-color"
+            className={`toolbar-btn toolbar-color-btn${openPicker === 'text-color' ? ' toolbar-btn--active' : ''}`}
+            onPointerDown={(e) => {
+              if (e.pointerType === 'mouse') e.preventDefault();
             }}
-          />
-        ))}
+            onClick={() => {
+              setOpenPicker((prev) =>
+                prev === 'text-color' ? null : 'text-color'
+              );
+            }}
+          >
+            <span className="toolbar-color-label">A</span>
+            <span
+              className="toolbar-color-indicator"
+              style={{
+                backgroundColor:
+                  activeFgColor.length > 0 ? activeFgColor : 'transparent',
+                borderColor:
+                  activeFgColor.length > 0
+                    ? activeFgColor
+                    : 'rgba(255,255,255,0.4)',
+              }}
+            />
+          </button>
+          <button
+            type="button"
+            data-testid="toolbar-bg-color"
+            className={`toolbar-btn toolbar-color-btn${openPicker === 'bg-color' ? ' toolbar-btn--active' : ''}`}
+            onPointerDown={(e) => {
+              if (e.pointerType === 'mouse') e.preventDefault();
+            }}
+            onClick={() => {
+              setOpenPicker((prev) =>
+                prev === 'bg-color' ? null : 'bg-color'
+              );
+            }}
+          >
+            <span className="toolbar-color-label">BG</span>
+            <span
+              className="toolbar-color-indicator"
+              style={{
+                backgroundColor:
+                  activeBgColor.length > 0 ? activeBgColor : 'transparent',
+                borderColor:
+                  activeBgColor.length > 0
+                    ? activeBgColor
+                    : 'rgba(255,255,255,0.4)',
+              }}
+            />
+          </button>
+        </div>
+        <div className="toolbar-fill" aria-hidden="true" />
       </div>
-      <div className="toolbar-fill" aria-hidden="true" />
+      {openPicker !== null && (
+        <div className="toolbar-color-picker">
+          <button
+            type="button"
+            className="toolbar-color-swatch toolbar-color-swatch--clear"
+            onPointerDown={(e) => {
+              if (e.pointerType === 'mouse') e.preventDefault();
+            }}
+            onClick={() => {
+              if (openPicker === 'text-color') handleClearFgColor();
+              else handleClearBgColor();
+            }}
+          >
+            ✕
+          </button>
+          {COLORS.map((color) => {
+            const isActive =
+              openPicker === 'text-color'
+                ? activeFgColor.toLowerCase() === color.toLowerCase()
+                : activeBgColor.toLowerCase() === color.toLowerCase();
+            return (
+              <button
+                key={color}
+                type="button"
+                className={`toolbar-color-swatch${isActive ? ' toolbar-color-swatch--active' : ''}`}
+                style={{ backgroundColor: color }}
+                onPointerDown={(e) => {
+                  if (e.pointerType === 'mouse') e.preventDefault();
+                }}
+                onClick={() => {
+                  if (openPicker === 'text-color') handleSelectFgColor(color);
+                  else handleSelectBgColor(color);
+                }}
+              />
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

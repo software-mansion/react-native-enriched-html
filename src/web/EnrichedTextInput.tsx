@@ -60,6 +60,7 @@ import { EnrichedUnorderedList } from './formats/EnrichedUnorderedList';
 import { EnrichedOrderedList } from './formats/EnrichedOrderedList';
 import { EnrichedCheckboxItem } from './formats/EnrichedCheckboxItem';
 import { EnrichedCheckboxList } from './formats/EnrichedCheckboxList';
+import { EnrichedCustomStyle } from './formats/EnrichedCustomStyle';
 import { StripBoldInStyledHeadingsPlugin } from './pmPlugins/StripBoldInStyledHeadingsPlugin';
 import { StrictMarksPlugin } from './pmPlugins/StrictMarksPlugin';
 import { MergeAdjacentSameKindBlocksPlugin } from './pmPlugins/MergeAdjacentSameKindBlocksPlugin';
@@ -215,6 +216,7 @@ export const EnrichedTextInput = ({
       EnrichedUnorderedList,
       EnrichedOrderedList,
       EnrichedCheckboxList,
+      EnrichedCustomStyle,
       StripMarksInCodeBlockPlugin,
       StripMarksOnImagePlugin,
       StripBoldInStyledHeadingsPlugin.configure({
@@ -368,7 +370,27 @@ export const EnrichedTextInput = ({
       measureLayout: () => {},
       setNativeProps: () => {},
       setTextAlignment: () => {},
-      setStyle: () => {},
+      setStyle: (customStyle) => {
+        const current = editor.getAttributes('customStyle');
+
+        const resolvedColor =
+          'foregroundColor' in customStyle
+            ? (customStyle.foregroundColor ?? null)
+            : current.foregroundColor;
+        const resolvedBg =
+          'backgroundColor' in customStyle
+            ? (customStyle.backgroundColor ?? null)
+            : (current.backgroundColor ?? null);
+
+        if (!resolvedColor && !resolvedBg) {
+          editor.commands.unsetCustomStyle();
+        } else {
+          editor.commands.setCustomStyle({
+            foregroundColor: resolvedColor,
+            backgroundColor: resolvedBg,
+          });
+        }
+      },
     }),
     [editor]
   );
