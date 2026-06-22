@@ -1282,6 +1282,9 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   } else if ([commandName isEqualToString:@"requestHTML"]) {
     NSInteger requestId = [((NSNumber *)args[0]) integerValue];
     [self requestHTML:requestId];
+  } else if ([commandName isEqualToString:@"requestCaretRect"]) {
+    NSInteger requestId = [((NSNumber *)args[0]) integerValue];
+    [self requestCaretRect:requestId];
   } else if ([commandName isEqualToString:@"setTextAlignment"]) {
     NSString *alignmentString = (NSString *)args[0];
 
@@ -1336,10 +1339,11 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
 }
 
 - (void)setCustomSelection:(NSInteger)visibleStart end:(NSInteger)visibleEnd {
-  NSString *text = textView.textStorage.string;
-
-  NSUInteger actualStart = [self getActualIndex:visibleStart text:text];
-  NSUInteger actualEnd = [self getActualIndex:visibleEnd text:text];
+  NSUInteger textLength = textView.textStorage.string.length;
+  NSInteger clampedStart = MAX(visibleStart, 0);
+  NSInteger clampedEnd = MAX(visibleEnd, clampedStart);
+  NSUInteger actualStart = MIN((NSUInteger)clampedStart, textLength);
+  NSUInteger actualEnd = MIN((NSUInteger)clampedEnd, textLength);
 
   textView.selectedRange = NSMakeRange(actualStart, actualEnd - actualStart);
 }
@@ -1478,6 +1482,31 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
                                     .html = folly::dynamic(nullptr)});
     }
   }
+}
+
+- (void)requestCaretRect:(NSInteger)requestId {
+  auto emitter = [self getEventEmitter];
+  if (emitter == nullptr) {
+    return;
+  }
+  UITextRange *selectedRange = textView.selectedTextRange;
+  CGRect caretRect = CGRectNull;
+  if (selectedRange != nil) {
+    // Caret rect at the selection's end (the live insertion point), in textView
+    // coordinates, then converted into this component view's coordinate space so
+    // JS can position an overlay relative to the editor.
+    caretRect = [textView caretRectForPosition:selectedRange.end];
+    if (!CGRectIsNull(caretRect) && !CGRectIsInfinite(caretRect)) {
+      caretRect = [self convertRect:caretRect fromView:textView];
+    }
+  }
+  BOOL valid = !CGRectIsNull(caretRect) && !CGRectIsInfinite(caretRect);
+  emitter->onCaretRect({.requestId = static_cast<int>(requestId),
+                        .x = valid ? static_cast<double>(caretRect.origin.x) : 0.0,
+                        .y = valid ? static_cast<double>(caretRect.origin.y) : 0.0,
+                        .width = valid ? static_cast<double>(caretRect.size.width) : 0.0,
+                        .height = valid ? static_cast<double>(caretRect.size.height) : 0.0,
+                        .valid = valid ? true : false});
 }
 
 - (void)emitOnKeyPressEvent:(NSString *)key {
