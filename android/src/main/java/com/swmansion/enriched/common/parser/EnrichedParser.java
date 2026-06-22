@@ -12,6 +12,7 @@ import com.swmansion.enriched.common.spans.EnrichedAlignmentSpan;
 import com.swmansion.enriched.common.spans.EnrichedBoldSpan;
 import com.swmansion.enriched.common.spans.EnrichedCheckboxListSpan;
 import com.swmansion.enriched.common.spans.EnrichedCodeBlockSpan;
+import com.swmansion.enriched.common.spans.EnrichedCustomStyleSpan;
 import com.swmansion.enriched.common.spans.EnrichedH1Span;
 import com.swmansion.enriched.common.spans.EnrichedH2Span;
 import com.swmansion.enriched.common.spans.EnrichedH3Span;
@@ -339,6 +340,30 @@ public class EnrichedParser {
           // Don't output the placeholder character underlying the image.
           i = next;
         }
+        if (style[j] instanceof EnrichedCustomStyleSpan) {
+          EnrichedCustomStyleSpan cs = (EnrichedCustomStyleSpan) style[j];
+          Integer fgColor = cs.getForegroundColor();
+          Integer bgColor = cs.getBackgroundColor();
+          if (fgColor != null || bgColor != null) {
+            StringBuilder cssProps = new StringBuilder();
+            if (fgColor != null) {
+              cssProps
+                  .append("color: ")
+                  .append(EnrichedColorParser.colorToHex(fgColor))
+                  .append(";");
+            }
+            if (bgColor != null) {
+              if (cssProps.length() > 0) cssProps.append(" ");
+              cssProps
+                  .append("background-color: ")
+                  .append(EnrichedColorParser.colorToHex(bgColor))
+                  .append(";");
+            }
+            out.append("<span style=\"").append(cssProps).append("\">");
+          } else {
+            out.append("<span>");
+          }
+        }
       }
       withinStyle(out, text, i, next);
       for (int j = style.length - 1; j >= 0; j--) {
@@ -362,6 +387,9 @@ public class EnrichedParser {
         }
         if (style[j] instanceof EnrichedItalicSpan) {
           out.append("</i>");
+        }
+        if (style[j] instanceof EnrichedCustomStyleSpan) {
+          out.append("</span>");
         }
       }
     }
@@ -417,6 +445,12 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
 
   private static final Pattern CSS_ALIGNMENT_PATTERN =
       Pattern.compile("text-align\\s*:\\s*(left|center|right)", Pattern.CASE_INSENSITIVE);
+
+  private static final Pattern CSS_FG_PATTERN =
+      Pattern.compile("(?:^|;)\\s*(?<!background-)color\\s*:\\s*([^;]+)", Pattern.CASE_INSENSITIVE);
+
+  private static final Pattern CSS_BG_PATTERN =
+      Pattern.compile("background-color\\s*:\\s*([^;]+)", Pattern.CASE_INSENSITIVE);
 
   private static String parseCssAlignmentValue(Attributes attributes) {
     String style = attributes.getValue("", "style");
@@ -497,7 +531,7 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
           if (mSpannableStringBuilder.getSpanStart(span) != start + 1) continue;
           int spanEnd = mSpannableStringBuilder.getSpanEnd(span);
           mSpannableStringBuilder.removeSpan(span);
-          mSpannableStringBuilder.setSpan(span, start, spanEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+          mSpannableStringBuilder.setSpan(span, start, spanEnd, EnrichedSpanFlags.forSpan(span));
         }
       }
 
@@ -575,6 +609,8 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
       start(mSpannableStringBuilder, new Code());
     } else if (tag.equalsIgnoreCase("mention")) {
       startMention(mSpannableStringBuilder, attributes);
+    } else if (tag.equalsIgnoreCase("span")) {
+      startSpan(mSpannableStringBuilder, attributes);
     }
   }
 
@@ -624,6 +660,8 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
       end(mSpannableStringBuilder, Code.class, mSpanFactory.createInlineCodeSpan(mStyle));
     } else if (tag.equalsIgnoreCase("mention")) {
       endMention(mSpannableStringBuilder, mStyle, mSpanFactory);
+    } else if (tag.equalsIgnoreCase("span")) {
+      endSpan(mSpannableStringBuilder, mStyle, mSpanFactory);
     }
   }
 
@@ -830,7 +868,8 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
 
   private static void start(Editable text, Object mark) {
     int len = text.length();
-    text.setSpan(mark, len, len, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+    text.setSpan(
+        mark, len, len, EnrichedSpanFlags.forSpan(mark, Spannable.SPAN_INCLUSIVE_EXCLUSIVE));
   }
 
   private static void end(Editable text, Class kind, Object repl) {
@@ -891,6 +930,33 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
 
     setSpanFromMark(
         text, m, spanFactory.createMentionSpan(m.mText, m.mIndicator, m.mAttributes, style));
+  }
+
+  private static void startSpan(Editable text, Attributes attributes) {
+    String styleAttr = attributes.getValue("", "style");
+    Integer fg = null;
+    Integer bg = null;
+
+    if (styleAttr != null) {
+      Matcher fgMatcher = CSS_FG_PATTERN.matcher(styleAttr);
+      if (fgMatcher.find()) {
+        fg = EnrichedColorParser.parseCssColor(fgMatcher.group(1));
+      }
+      Matcher bgMatcher = CSS_BG_PATTERN.matcher(styleAttr);
+      if (bgMatcher.find()) {
+        bg = EnrichedColorParser.parseCssColor(bgMatcher.group(1));
+      }
+    }
+
+    if (fg != null || bg != null) {
+      start(text, new CustomStyleMark(fg, bg));
+    }
+  }
+
+  private static <T> void endSpan(Editable text, T style, EnrichedSpanFactory<T> spanFactory) {
+    CustomStyleMark mark = getLast(text, CustomStyleMark.class);
+    if (mark == null) return;
+    setSpanFromMark(text, mark, spanFactory.createCustomStyleSpan(mark.mFg, mark.mBg));
   }
 
   public void setDocumentLocator(Locator locator) {}
@@ -1017,6 +1083,16 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
 
     public Newline(int numNewlines) {
       mNumNewlines = numNewlines;
+    }
+  }
+
+  private static class CustomStyleMark {
+    public final Integer mFg;
+    public final Integer mBg;
+
+    public CustomStyleMark(Integer fg, Integer bg) {
+      mFg = fg;
+      mBg = bg;
     }
   }
 

@@ -9,6 +9,7 @@ import com.swmansion.enriched.textinput.EnrichedTextInputView
 import com.swmansion.enriched.textinput.events.OnChangeSelectionEvent
 import com.swmansion.enriched.textinput.events.OnLinkDetectedEvent
 import com.swmansion.enriched.textinput.events.OnMentionDetectedEvent
+import com.swmansion.enriched.textinput.spans.EnrichedInputCustomStyleSpan
 import com.swmansion.enriched.textinput.spans.EnrichedInputLinkSpan
 import com.swmansion.enriched.textinput.spans.EnrichedInputMentionSpan
 import com.swmansion.enriched.textinput.spans.EnrichedSpans
@@ -89,6 +90,7 @@ class EnrichedSelection(
       for ((style, config) in EnrichedSpans.inlineSpans) {
         state.setStart(style, getInlineStyleStart(config.clazz))
       }
+      validateCustomStyles()
     } else {
       view.isRemovingMany = false
     }
@@ -135,6 +137,31 @@ class EnrichedSelection(
     }
 
     return styleStart
+  }
+
+  private fun validateCustomStyles() {
+    val state = view.spanState ?: return
+    val (start, end) = getInlineSelection()
+    val spannable = view.text as Spannable
+    val spans = spannable.getSpans(start, end, EnrichedInputCustomStyleSpan::class.java)
+
+    var foundFg: Int? = null
+    var foundBg: Int? = null
+
+    for (span in spans) {
+      val spanStart = spannable.getSpanStart(span)
+      val spanEnd = spannable.getSpanEnd(span)
+
+      if (start == end && start == spanStart) {
+        continue
+      } else if (start >= spanStart && end <= spanEnd) {
+        foundFg = span.getForegroundColor()
+        foundBg = span.getBackgroundColor()
+        break
+      }
+    }
+
+    state.setCustomStyle(foundFg, foundBg)
   }
 
   fun getParagraphSelection(): Pair<Int, Int> {

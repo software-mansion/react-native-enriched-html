@@ -59,6 +59,7 @@ import com.swmansion.enriched.textinput.spans.EnrichedLineHeightSpan
 import com.swmansion.enriched.textinput.spans.EnrichedSpans
 import com.swmansion.enriched.textinput.spans.interfaces.EnrichedInputSpan
 import com.swmansion.enriched.textinput.styles.AlignmentStyles
+import com.swmansion.enriched.textinput.styles.CustomStyles
 import com.swmansion.enriched.textinput.styles.HtmlStyle
 import com.swmansion.enriched.textinput.styles.InlineStyles
 import com.swmansion.enriched.textinput.styles.ListStyles
@@ -90,6 +91,7 @@ class EnrichedTextInputView :
   val shortcutsHandler: ShortcutsHandler? = ShortcutsHandler(this)
   val parametrizedStyles: ParametrizedStyles? = ParametrizedStyles(this)
   val alignmentStyles: AlignmentStyles? = AlignmentStyles(this)
+  val customStyles: CustomStyles? = CustomStyles(this)
   var isDuringTransaction: Boolean = false
   var isRemovingMany: Boolean = false
   var scrollEnabled: Boolean = true
@@ -1001,6 +1003,15 @@ class EnrichedTextInputView :
       alignmentStyles?.setAlignment(alignment)
     }
     selection?.validateStyles()
+  }
+
+  fun setStyle(styleJSON: String) {
+    val isValid = verifyStyle(EnrichedSpans.CUSTOM_STYLE)
+    if (!isValid) return
+
+    runAsATransaction {
+      customStyles?.setStyle(styleJSON)
+    }
   }
 
   fun requestHTML(requestId: Int) {

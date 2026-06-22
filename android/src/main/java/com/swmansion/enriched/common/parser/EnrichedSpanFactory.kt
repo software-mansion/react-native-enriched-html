@@ -5,6 +5,7 @@ import com.swmansion.enriched.common.spans.EnrichedBlockQuoteSpan
 import com.swmansion.enriched.common.spans.EnrichedBoldSpan
 import com.swmansion.enriched.common.spans.EnrichedCheckboxListSpan
 import com.swmansion.enriched.common.spans.EnrichedCodeBlockSpan
+import com.swmansion.enriched.common.spans.EnrichedCustomStyleSpan
 import com.swmansion.enriched.common.spans.EnrichedH1Span
 import com.swmansion.enriched.common.spans.EnrichedH2Span
 import com.swmansion.enriched.common.spans.EnrichedH3Span
@@ -79,4 +80,9 @@ interface EnrichedSpanFactory<T> {
   fun createBlockQuoteSpan(style: T): EnrichedBlockQuoteSpan
 
   fun createCodeBlockSpan(style: T): EnrichedCodeBlockSpan
+
+  fun createCustomStyleSpan(
+    foregroundColor: Int?,
+    backgroundColor: Int?,
+  ): EnrichedCustomStyleSpan
 }
