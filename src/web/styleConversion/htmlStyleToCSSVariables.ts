@@ -275,3 +275,80 @@ export function htmlStyleToCSSVariables(htmlStyle: HtmlStyle): CSSProperties {
   );
   return vars as CSSProperties;
 }
+
+const ET_LINK_PRESS_COLOR_VAR = '--et-link-press-color';
+
+const ET_MENTION_PRESS_CSS_VARS = {
+  pressColor: (indicator: string) =>
+    `--et-mention-${indicatorToMentionCssKey(indicator)}-press-color`,
+  pressBackgroundColor: (indicator: string) =>
+    `--et-mention-${indicatorToMentionCssKey(indicator)}-press-background-color`,
+} as const;
+
+const DEFAULT_MENTION_PRESS =
+  DEFAULT_ENRICHED_TEXT_STYLE.mention as EnrichedTextMentionStyleProperties;
+
+function expandVarsWithEnrichedTextLink(
+  vars: Record<string, string>,
+  anchor?: EnrichedTextHtmlStyle['a']
+): void {
+  setColorVar(
+    vars,
+    ET_LINK_PRESS_COLOR_VAR,
+    anchor?.pressColor ?? DEFAULT_ENRICHED_TEXT_STYLE.a.pressColor
+  );
+}
+
+function expandVarsWithEnrichedTextMention(
+  vars: Record<string, string>,
+  mention?: EnrichedTextHtmlStyle['mention']
+): void {
+  const mentionIndicators = isMentionStyleRecord(mention)
+    ? Object.keys(mention)
+    : [];
+
+  if (!mentionIndicators.includes(MENTION_STYLE_DEFAULT_KEY))
+    mentionIndicators.push(MENTION_STYLE_DEFAULT_KEY);
+
+  for (const indicator of mentionIndicators) {
+    const style = isMentionStyleRecord(mention)
+      ? mention?.[indicator]
+      : mention;
+
+    setColorVar(
+      vars,
+      ET_MENTION_PRESS_CSS_VARS.pressColor(indicator),
+      style?.pressColor ??
+        (isMentionStyleRecord(mention)
+          ? mention.default?.pressColor
+          : undefined) ??
+        DEFAULT_MENTION_PRESS.pressColor
+    );
+    setColorVar(
+      vars,
+      ET_MENTION_PRESS_CSS_VARS.pressBackgroundColor(indicator),
+      style?.pressBackgroundColor ??
+        (isMentionStyleRecord(mention)
+          ? mention.default?.pressBackgroundColor
+          : undefined) ??
+        DEFAULT_MENTION_PRESS.pressBackgroundColor
+    );
+  }
+}
+
+function expandCSSPropertiesWithEnrichedTextHtmlStyle(
+  htmlStyle: EnrichedTextHtmlStyle | undefined,
+  cssProperties: CSSProperties
+): CSSProperties {
+  const vars = { ...cssProperties } as Record<string, string>;
+  expandVarsWithEnrichedTextLink(vars, htmlStyle?.a);
+  expandVarsWithEnrichedTextMention(vars, htmlStyle?.mention);
+  return vars as CSSProperties;
+}
+
+export function enrichedTextHtmlStyleToCSSVariables(
+  htmlStyle?: EnrichedTextHtmlStyle
+): CSSProperties {
+  const vars = htmlStyleToCSSVariables(htmlStyle);
+  return expandCSSPropertiesWithEnrichedTextHtmlStyle(htmlStyle, vars);
+}

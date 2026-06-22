@@ -1,7 +1,11 @@
 import type { CSSProperties } from 'react';
 import type { HtmlStyle, MentionStyleProperties } from '../../../types';
-import { DEFAULT_HTML_STYLE } from '../../../utils/defaultHtmlStyle';
 import {
+  DEFAULT_ENRICHED_TEXT_STYLE,
+  DEFAULT_HTML_STYLE,
+} from '../../../utils/defaultHtmlStyle';
+import {
+  enrichedTextHtmlStyleToCSSVariables,
   htmlStyleToCSSVariables,
   mergeWithDefaultHtmlStyle,
 } from '../htmlStyleToCSSVariables';
@@ -11,6 +15,15 @@ type CodeStyle = HtmlStyle['code'];
 const defaultMentionOnlyResolved = {
   default: { ...DEFAULT_HTML_STYLE.mention },
 };
+
+const DEFAULT_LINK_PRESS_COLOR = DEFAULT_ENRICHED_TEXT_STYLE.a.pressColor;
+const DEFAULT_MENTION_PRESS = DEFAULT_ENRICHED_TEXT_STYLE.mention as {
+  pressColor?: string;
+  pressBackgroundColor?: string;
+};
+const DEFAULT_MENTION_PRESS_COLOR = DEFAULT_MENTION_PRESS.pressColor;
+const DEFAULT_MENTION_PRESS_BACKGROUND_COLOR =
+  DEFAULT_MENTION_PRESS.pressBackgroundColor;
 
 describe('mergeWithDefaultHtmlStyle', () => {
   it('undefined → default mention key', () => {
@@ -280,6 +293,115 @@ describe('mention CSS variables', () => {
     const vars = htmlStyleToCSSVariables(merged) as Record<string, string>;
     expect(vars['--et-mention-default-color']).toBe(
       DEFAULT_HTML_STYLE.mention.color
+    );
+  });
+});
+
+describe('enrichedTextHtmlStyleToCSSVariables', () => {
+  it('keeps the base CSS variables', () => {
+    expect(
+      enrichedTextHtmlStyleToCSSVariables({
+        a: { color: 'blue' },
+        code: { color: 'purple' },
+      })
+    ).toMatchObject({
+      '--et-link-color': 'blue',
+      '--et-code-color': 'purple',
+    });
+  });
+
+  it('adds the link press color variable', () => {
+    const vars = enrichedTextHtmlStyleToCSSVariables({
+      a: { color: 'blue', pressColor: 'darkblue' },
+    }) as Record<string, string>;
+    expect(vars['--et-link-press-color']).toBe('darkblue');
+  });
+
+  it('adds two press variables for a flat mention (default key)', () => {
+    const vars = enrichedTextHtmlStyleToCSSVariables({
+      mention: { pressColor: '#123', pressBackgroundColor: '#456' },
+    }) as Record<string, string>;
+    expect(vars['--et-mention-default-press-color']).toBe('#123');
+    expect(vars['--et-mention-default-press-background-color']).toBe('#456');
+  });
+
+  it('adds two press variables per mention record entry', () => {
+    const vars = enrichedTextHtmlStyleToCSSVariables({
+      mention: {
+        '@': {
+          color: '#f00',
+          pressColor: '#a00',
+          pressBackgroundColor: '#fee',
+        },
+        '#': { pressColor: '#0a0' },
+      },
+    }) as Record<string, string>;
+    expect(vars['--et-mention-u0040-color']).toBe('#f00');
+    expect(vars['--et-mention-u0040-press-color']).toBe('#a00');
+    expect(vars['--et-mention-u0040-press-background-color']).toBe('#fee');
+    expect(vars['--et-mention-u0023-press-color']).toBe('#0a0');
+    expect(vars['--et-mention-u0023-press-background-color']).toBe(
+      DEFAULT_MENTION_PRESS_BACKGROUND_COLOR
+    );
+  });
+
+  it('falls back to the global defaults when press values are absent', () => {
+    const vars = enrichedTextHtmlStyleToCSSVariables({
+      a: { color: 'blue' },
+      mention: { color: '#f00' },
+    }) as Record<string, string>;
+    expect(vars['--et-link-press-color']).toBe(DEFAULT_LINK_PRESS_COLOR);
+    expect(vars['--et-mention-default-press-color']).toBe(
+      DEFAULT_MENTION_PRESS_COLOR
+    );
+    expect(vars['--et-mention-default-press-background-color']).toBe(
+      DEFAULT_MENTION_PRESS_BACKGROUND_COLOR
+    );
+  });
+
+  it('emits the global defaults even with no htmlStyle', () => {
+    const vars = enrichedTextHtmlStyleToCSSVariables() as Record<
+      string,
+      string
+    >;
+    expect(vars['--et-link-press-color']).toBe(DEFAULT_LINK_PRESS_COLOR);
+    expect(vars['--et-mention-default-press-color']).toBe(
+      DEFAULT_MENTION_PRESS_COLOR
+    );
+    expect(vars['--et-mention-default-press-background-color']).toBe(
+      DEFAULT_MENTION_PRESS_BACKGROUND_COLOR
+    );
+  });
+
+  it('falls back from a record indicator to the provided default indicator', () => {
+    const vars = enrichedTextHtmlStyleToCSSVariables({
+      mention: {
+        'default': { pressColor: '#0d0', pressBackgroundColor: '#eee' },
+        '@': { color: '#f00' },
+      },
+    }) as Record<string, string>;
+    expect(vars['--et-mention-u0040-press-color']).toBe('#0d0');
+    expect(vars['--et-mention-u0040-press-background-color']).toBe('#eee');
+    expect(vars['--et-mention-default-press-color']).toBe('#0d0');
+    expect(vars['--et-mention-default-press-background-color']).toBe('#eee');
+  });
+
+  it('mixes default-indicator and global-constant fallbacks', () => {
+    const vars = enrichedTextHtmlStyleToCSSVariables({
+      mention: {
+        'default': { pressColor: '#0d0' },
+        '@': { color: '#f00' },
+      },
+    }) as Record<string, string>;
+    // pressColor resolves to the `default` indicator...
+    expect(vars['--et-mention-u0040-press-color']).toBe('#0d0');
+    // ...while pressBackgroundColor falls through to the global constant.
+    expect(vars['--et-mention-u0040-press-background-color']).toBe(
+      DEFAULT_MENTION_PRESS_BACKGROUND_COLOR
+    );
+    expect(vars['--et-mention-default-press-color']).toBe('#0d0');
+    expect(vars['--et-mention-default-press-background-color']).toBe(
+      DEFAULT_MENTION_PRESS_BACKGROUND_COLOR
     );
   });
 });

@@ -2,10 +2,8 @@ import { memo, useMemo, useRef, type CSSProperties } from 'react';
 import type { EnrichedTextProps } from '../types';
 import './EnrichedText.css';
 import { enrichedTextStyleToCSSProperties } from './styleConversion/enrichedTextStyleToCSSProperties';
-import {
-  htmlStyleToCSSVariables,
-  mergeWithDefaultEnrichedTextHtmlStyle,
-} from './styleConversion/htmlStyleToCSSVariables';
+import { mergeWithDefaultEnrichedTextHtmlStyle } from './styleConversion/htmlStyleToCSSVariables';
+import { enrichedTextHtmlStyleToCSSVariables } from './styleConversion/htmlStyleToCSSVariables';
 import { ENRICHED_TEXT_CLASSNAME } from './constants/classNames';
 import { enrichedInputThemingToCSSProperties } from './styleConversion/enrichedThemingToCSSProperties';
 import { buildMentionRulesCSS } from './styleConversion/buildMentionRulesCSS';
@@ -38,7 +36,7 @@ export const EnrichedText = memo(
 
     const cssVars = useMemo(
       () => ({
-        ...htmlStyleToCSSVariables(resolvedHtmlStyle),
+        ...enrichedTextHtmlStyleToCSSVariables(resolvedHtmlStyle),
         ...INLINE_IMAGE_CSS_VARIABLES,
       }),
       [resolvedHtmlStyle]
