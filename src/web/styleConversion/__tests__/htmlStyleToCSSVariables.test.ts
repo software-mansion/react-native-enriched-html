@@ -360,7 +360,7 @@ describe('enrichedTextHtmlStyleToCSSVariables', () => {
   });
 
   it('emits the global defaults even with no htmlStyle', () => {
-    const vars = enrichedTextHtmlStyleToCSSVariables() as Record<
+    const vars = enrichedTextHtmlStyleToCSSVariables({}) as Record<
       string,
       string
     >;
@@ -393,9 +393,7 @@ describe('enrichedTextHtmlStyleToCSSVariables', () => {
         '@': { color: '#f00' },
       },
     }) as Record<string, string>;
-    // pressColor resolves to the `default` indicator...
     expect(vars['--et-mention-u0040-press-color']).toBe('#0d0');
-    // ...while pressBackgroundColor falls through to the global constant.
     expect(vars['--et-mention-u0040-press-background-color']).toBe(
       DEFAULT_MENTION_PRESS_BACKGROUND_COLOR
     );

@@ -118,6 +118,10 @@
   text-decoration-line: var(--et-link-text-decoration-line);
 }
 
+.et-view a:active {
+  color: var(--et-link-press-color);
+}
+
 .eti-editor ul:not([data-type]),
 .et-view ul:not([data-type]) {
   margin: 0;

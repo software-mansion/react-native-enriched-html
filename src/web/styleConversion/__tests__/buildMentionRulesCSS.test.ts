@@ -27,6 +27,29 @@ describe('buildMentionRulesCSS', () => {
     expect(css).toContain('var(--et-mention-u0040-text-decoration-line)');
   });
 
+  it('appends press-state rules for the read-only view only', () => {
+    const merged = mergeWithDefaultHtmlStyle({
+      mention: { '@': { color: 'red' } },
+    });
+    const css = buildMentionRulesCSS(merged);
+
+    expect(css).toContain(`.${ENRICHED_TEXT_CLASSNAME} mention:active`);
+    expect(css).toContain(
+      `.${ENRICHED_TEXT_CLASSNAME} mention[indicator="@"]:active`
+    );
+    expect(css).toContain('var(--et-mention-default-press-color)');
+    expect(css).toContain('var(--et-mention-default-press-background-color)');
+    expect(css).toContain('var(--et-mention-u0040-press-color)');
+    expect(css).toContain('var(--et-mention-u0040-press-background-color)');
+
+    expect(css).not.toContain(
+      `.${ENRICHED_TEXT_INPUT_CLASSNAME} mention:active`
+    );
+    expect(css).not.toContain(
+      `.${ENRICHED_TEXT_INPUT_CLASSNAME} mention[indicator="@"]:active`
+    );
+  });
+
   it('returns empty string when mention is missing', () => {
     expect(buildMentionRulesCSS(undefined)).toBe('');
     expect(buildMentionRulesCSS({})).toBe('');
