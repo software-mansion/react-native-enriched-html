@@ -18,6 +18,9 @@ export const StripMarksInCodeBlockPlugin = Extension.create({
           newState.doc.descendants((node, pos) => {
             if (node.type.name === 'codeBlock') {
               allMarks.forEach((markType) => {
+                if (markType.name === 'customStyle') {
+                  return;
+                }
                 tr.removeMark(pos + 1, pos + node.nodeSize - 1, markType);
               });
               return false;
