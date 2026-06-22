@@ -1,7 +1,6 @@
 package com.swmansion.enriched.textinput
 
 import com.swmansion.enriched.common.parser.EnrichedSpanFactory
-import com.swmansion.enriched.common.spans.EnrichedCustomStyleSpan
 import com.swmansion.enriched.common.spans.EnrichedImageSpan
 import com.swmansion.enriched.textinput.spans.EnrichedInputAlignmentSpan
 import com.swmansion.enriched.textinput.spans.EnrichedInputBlockQuoteSpan
