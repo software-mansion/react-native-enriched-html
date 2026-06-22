@@ -275,14 +275,6 @@
   min-height: max(1lh, var(--et-checkbox-box-size, 24px));
 }
 
-.et-view ul[data-type="checkbox"] > li > p {
-  align-items: center;
-  gap: 0;
-  margin: 0;
-  padding: 0;
-  user-select: none;
-}
-
 .et-view ul[data-type="checkbox"] > li > input[type='checkbox'] {
   position: absolute;
   left: calc(

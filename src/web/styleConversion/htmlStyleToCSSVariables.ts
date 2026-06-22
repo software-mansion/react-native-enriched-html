@@ -64,15 +64,19 @@ export function mergeWithDefaultEnrichedTextHtmlStyle(
   };
 
   const mentionDefaults = DEFAULT_ENRICHED_TEXT_STYLE.mention;
-  const mentionMap = htmlStyle?.mention as Record<
+  const passedMentionMap = htmlStyle?.mention;
+  const mergedMentionMap = merged.mention as Record<
     string,
     EnrichedTextMentionStyleProperties
   >;
   const mention: Record<string, EnrichedTextMentionStyleProperties> = {};
-  for (const indicator in mentionMap) {
+  for (const indicator in mergedMentionMap) {
     mention[indicator] = {
       ...mentionDefaults,
-      ...mentionMap[indicator],
+      ...(isMentionStyleRecord(passedMentionMap)
+        ? (passedMentionMap[indicator] ??
+          passedMentionMap[MENTION_STYLE_DEFAULT_KEY])
+        : passedMentionMap),
     };
   }
 
