@@ -720,9 +720,47 @@ static void walk_node(GumboNode *node, buffer_t *out) {
     const char *sval = get_attr(el, "style");
     size_t slen = sval ? strlen(sval) : 0;
     css_styles_t s = parse_css_style(sval, slen);
+
+    size_t fg_len = 0;
+    const char *fg = find_css_value(sval, slen, "color", &fg_len);
+
+    size_t bg_len = 0;
+    const char *bg = find_css_value(sval, slen, "background-color", &bg_len);
+
+    int has_fg = (fg && fg_len > 0);
+    int has_bg = (bg && bg_len > 0);
+
+    // emit the wrapper span if colors exist
+    if (has_fg || has_bg) {
+      buffer_append_str(out, "<span style=\"");
+      
+      if (has_fg) {
+        buffer_append_str(out, "color: ");
+        buffer_append(out, fg, fg_len);
+      }
+      
+      if (has_fg && has_bg) {
+        buffer_append_str(out, "; ");
+      }
+      
+      if (has_bg) {
+        buffer_append_str(out, "background-color: ");
+        buffer_append(out, bg, bg_len);
+      }
+      
+      buffer_append_str(out, "\">");
+    }
+
+    // handle inner formatting (<b>, <i>, etc.) and children
     emit_styles_open(out, s);
     walk_children(node, out);
     emit_styles_close(out, s);
+
+    // close the wrapper span
+    if (has_fg || has_bg) {
+      buffer_append_str(out, "</span>");
+    }
+
     return;
   }
 

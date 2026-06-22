@@ -1,0 +1,118 @@
+appId: swmansion.enriched.example
+---
+# Validates custom colors on plain text, inline styles, and paragraph styles.
+- launchApp
+
+- tapOn:
+    id: 'toggle-screen-button'
+
+- tapOn:
+    id: 'editor-input'
+
+# Section 1: Plain text with colors
+
+- tapOn:
+    id: 'toolbar-text-color'
+- tapOn:
+    id: 'color-swatch-FF0000'
+- inputText: 'Red text'
+- tapOn:
+    id: 'toolbar-text-color'
+- tapOn:
+    id: 'color-swatch-clear'
+- inputText: ' '
+
+- tapOn:
+    id: 'toolbar-bg-color'
+- tapOn:
+    id: 'color-swatch-FFFF00'
+- inputText: 'Yellow back'
+- tapOn:
+    id: 'toolbar-bg-color'
+- tapOn:
+    id: 'color-swatch-clear'
+- inputText: ' '
+
+- tapOn:
+    id: 'toolbar-text-color'
+- tapOn:
+    id: 'color-swatch-FF0000'
+- tapOn:
+    id: 'toolbar-bg-color'
+- tapOn:
+    id: 'color-swatch-FFFF00'
+- inputText: 'Red+Yellow'
+- tapOn:
+    id: 'toolbar-text-color'
+- tapOn:
+    id: 'color-swatch-clear'
+- tapOn:
+    id: 'toolbar-bg-color'
+- tapOn:
+    id: 'color-swatch-clear'
+- inputText: ' '
+
+# Section 2: Inline styles + color
+
+- tapOn:
+    id: 'toolbar-bold'
+- tapOn:
+    id: 'toolbar-text-color'
+- tapOn:
+    id: 'color-swatch-FF0000'
+- inputText: 'Bold red'
+- tapOn:
+    id: 'toolbar-bold'
+- tapOn:
+    id: 'toolbar-text-color'
+- tapOn:
+    id: 'color-swatch-clear'
+- inputText: ' '
+
+- tapOn:
+    id: 'toolbar-italic'
+- tapOn:
+    id: 'toolbar-bg-color'
+- tapOn:
+    id: 'color-swatch-FFFF00'
+- inputText: 'Italic yellow back'
+- tapOn:
+    id: 'toolbar-italic'
+- tapOn:
+    id: 'toolbar-bg-color'
+- tapOn:
+    id: 'color-swatch-clear'
+- inputText: ' '
+- pressKey: Enter
+
+# Section 3: Paragraph styles + color
+
+- tapOn:
+    id: 'toolbar-heading-5'
+- tapOn:
+    id: 'toolbar-text-color'
+- tapOn:
+    id: 'color-swatch-FF0000'
+- inputText: 'H5 red'
+- pressKey: Enter
+- tapOn:
+    id: 'toolbar-text-color'
+- tapOn:
+    id: 'color-swatch-clear'
+
+- tapOn:
+    id: 'toolbar-quote'
+- tapOn:
+    id: 'toolbar-bg-color'
+- tapOn:
+    id: 'color-swatch-FFFF00'
+- inputText: 'Quote yellow back'
+- tapOn:
+    id: 'toolbar-bg-color'
+- tapOn:
+    id: 'color-swatch-clear'
+
+- runFlow:
+    file: '../subflows/capture_or_assert_screenshot.yaml'
+    env:
+      SCREENSHOT_NAME: 'custom_style_colors'

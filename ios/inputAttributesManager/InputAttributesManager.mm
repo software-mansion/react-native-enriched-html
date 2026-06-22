@@ -95,17 +95,20 @@
     [ZeroWidthSpaceUtils applyKernForZeroWidthSpacesInRange:dirtyRange
                                                        host:_input];
 
-    // Sort style types so paragraph styles come first. Their broad visual
-    // attributes (e.g. foreground color, font) are laid down before inline
-    // styles override them on their specific sub-ranges.
+    // Sort style types by priority (0=paragraph, 1=custom, 2=inline) so
+    // paragraph styles come first. Their broad visual attributes (e.g.
+    // foreground color, font) are laid down before custom and inline styles
+    // override them on their specific sub-ranges.
     NSArray *sortedStyleTypes = [presentStyles.allKeys
         sortedArrayUsingComparator:^NSComparisonResult(NSNumber *a,
                                                        NSNumber *b) {
-          BOOL aPara = [_input->stylesDict[a] isParagraph];
-          BOOL bPara = [_input->stylesDict[b] isParagraph];
-          if (aPara == bPara)
-            return NSOrderedSame;
-          return aPara ? NSOrderedAscending : NSOrderedDescending;
+          NSInteger aPriority = [_input->stylesDict[a] stylePriority];
+          NSInteger bPriority = [_input->stylesDict[b] stylePriority];
+          if (aPriority < bPriority)
+            return NSOrderedAscending;
+          if (aPriority > bPriority)
+            return NSOrderedDescending;
+          return NSOrderedSame;
         }];
 
     // re-apply meta-attributes and apply visual styling following the saved

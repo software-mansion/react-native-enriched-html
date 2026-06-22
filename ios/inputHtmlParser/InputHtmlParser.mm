@@ -179,6 +179,12 @@
             }
           }
         }
+      } else if ([styleType isEqualToNumber:@([CustomStyle getType])]) {
+        CustomStyle *customStyle = (CustomStyle *)baseStyle;
+        [customStyle setCustomStyleData:stylePair.styleValue
+                                  range:styleRange
+                             withTyping:shouldAddTypingAttr
+                         withDirtyRange:YES];
       } else {
         [baseStyle add:styleRange
                 withTyping:shouldAddTypingAttr
