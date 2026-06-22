@@ -500,11 +500,11 @@ function walkNode(node: Node, out: { buf: string }): void {
 
   // <span>: CSS style → inline tags
   if (name === 'span') {
-    const rawStyle = node.getAttribute('style') || '';
-    const s = parseCssStyle(rawStyle);
+    const htmlNode = node as HTMLElement;
+    const s = parseCssStyle(node.getAttribute('style'));
 
-    const fg = findCssValue(rawStyle, 'color');
-    const bg = findCssValue(rawStyle, 'background-color');
+    const fg = htmlNode.style.color;
+    const bg = htmlNode.style.backgroundColor;
 
     // build the preserved span if colors exist
     let spanOpen = '';
