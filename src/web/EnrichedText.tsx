@@ -64,8 +64,8 @@ export const EnrichedText = memo(
       [textStyle, themingStyle, cssVars]
     );
 
-    useImageErrorFallback(containerRef, finalHtml);
     usePressInteractions(containerRef);
+    useImageErrorFallback(containerRef);
 
     return (
       <>

@@ -4,28 +4,39 @@ import { useEffect, type RefObject } from 'react';
  * Flag images that fail to load so CSS can swap in a broken-image placeholder.
  */
 export const useImageErrorFallback = (
-  containerRef: RefObject<HTMLElement | null>,
-  html: string
+  containerRef: RefObject<HTMLElement | null>
 ) => {
+  // listen for errors
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    const images = container.querySelectorAll<HTMLImageElement>('img');
-    const cleanups: (() => void)[] = [];
+    const handleImageError = (e: Event) => {
+      const target = e.target as HTMLElement;
+      if (target && target.tagName && target.tagName.toLowerCase() === 'img') {
+        target.classList.add('error');
+      }
+    };
+
+    container.addEventListener('error', handleImageError, true);
+
+    return () => {
+      container.removeEventListener('error', handleImageError, true);
+    };
+  }, [containerRef]);
+
+  // handle the cached unloaded images that will not emit the error event
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const images =
+      container.querySelectorAll<HTMLImageElement>('img:not(.error)');
 
     images.forEach((img) => {
-      const handleImageError = () => img.classList.add('error');
-
-      img.addEventListener('error', handleImageError);
-      cleanups.push(() => img.removeEventListener('error', handleImageError));
-
-      // Catch images that already failed before the listener attached
       if (img.complete && img.naturalHeight === 0) {
-        handleImageError();
+        img.classList.add('error');
       }
     });
-
-    return () => cleanups.forEach((cleanup) => cleanup());
-  }, [containerRef, html]);
+  });
 };
