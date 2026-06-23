@@ -51,56 +51,56 @@ const ROUND_TRIP_CASES: { name: string; input: string; expected: string }[] = [
     name: 'foreground color only',
     input: '<html><p><span style="color: #FF0000">Red text</span></p></html>',
     expected:
-      '<html><p><span style="color: rgb(255, 0, 0);">Red text</span></p></html>',
+      '<html><p><span style="color: #FF0000;">Red text</span></p></html>',
   },
   {
     name: 'background color only',
     input:
       '<html><p><span style="background-color: #FFFF00">Yellow bg</span></p></html>',
     expected:
-      '<html><p><span style="background-color: rgb(255, 255, 0);">Yellow bg</span></p></html>',
+      '<html><p><span style="background-color: #FFFF00;">Yellow bg</span></p></html>',
   },
   {
     name: 'foreground and background color',
     input:
       '<html><p><span style="color: #FF0000; background-color: #FFFF00">Both</span></p></html>',
     expected:
-      '<html><p><span style="color: rgb(255, 0, 0); background-color: rgb(255, 255, 0);">Both</span></p></html>',
+      '<html><p><span style="color: #FF0000; background-color: #FFFF00;">Both</span></p></html>',
   },
   {
     name: '8-digit hex background (transparent)',
     input:
       '<html><p><span style="background-color: #00FF0040">25% green bg</span></p></html>',
     expected:
-      '<html><p><span style="background-color: rgba(0, 255, 0, 0.25);">25% green bg</span></p></html>',
+      '<html><p><span style="background-color: #00FF0040;">25% green bg</span></p></html>',
   },
   {
     name: '8-digit hex foreground (transparent)',
     input:
       '<html><p><span style="color: #0000FF80">50% blue text</span></p></html>',
     expected:
-      '<html><p><span style="color: rgba(0, 0, 255, 0.5);">50% blue text</span></p></html>',
+      '<html><p><span style="color: #0000FF80;">50% blue text</span></p></html>',
   },
   {
     name: 'color inside heading',
     input:
       '<html><h6><span style="color: #000000; background-color: #00FF00">Black on green</span></h6></html>',
     expected:
-      '<html><h6><span style="color: rgb(0, 0, 0); background-color: rgb(0, 255, 0);">Black on green</span></h6></html>',
+      '<html><h6><span style="color: #000000; background-color: #00FF00;">Black on green</span></h6></html>',
   },
   {
     name: 'color wraps bold mark',
     input:
       '<html><p><span style="color: #FF0000"><b>Bold red</b></span></p></html>',
     expected:
-      '<html><p><span style="color: rgb(255, 0, 0);"><b>Bold red</b></span></p></html>',
+      '<html><p><span style="color: #FF0000;"><b>Bold red</b></span></p></html>',
   },
   {
     name: 'multiple colored spans in one paragraph',
     input:
       '<html><p><span style="color: #FF0000">Red</span> plain <span style="color: #0000FF">Blue</span></p></html>',
     expected:
-      '<html><p><span style="color: rgb(255, 0, 0);">Red</span> plain <span style="color: rgb(0, 0, 255);">Blue</span></p></html>',
+      '<html><p><span style="color: #FF0000;">Red</span> plain <span style="color: #0000FF;">Blue</span></p></html>',
   },
 ];
 
@@ -152,7 +152,7 @@ test.describe('custom style colors - toolbar interaction', () => {
     await expect
       .poll(async () => getSerializedHtml(page))
       .toBe(
-        '<html><p><span style="color: rgb(255, 0, 0);">Red text</span></p></html>'
+        '<html><p><span style="color: #FF0000;">Red text</span></p></html>'
       );
   });
 
@@ -168,7 +168,7 @@ test.describe('custom style colors - toolbar interaction', () => {
     await expect
       .poll(async () => getSerializedHtml(page))
       .toBe(
-        '<html><p><span style="color: rgb(255, 0, 0);">Red</span> plain</p></html>'
+        '<html><p><span style="color: #FF0000;">Red</span> plain</p></html>'
       );
   });
 
@@ -182,7 +182,7 @@ test.describe('custom style colors - toolbar interaction', () => {
     await expect
       .poll(async () => getSerializedHtml(page))
       .toBe(
-        '<html><p><span style="background-color: rgb(255, 255, 0);">Yellow back</span></p></html>'
+        '<html><p><span style="background-color: #FFFF00;">Yellow back</span></p></html>'
       );
   });
 
@@ -198,7 +198,7 @@ test.describe('custom style colors - toolbar interaction', () => {
     await expect
       .poll(async () => getSerializedHtml(page))
       .toBe(
-        '<html><p><span style="background-color: rgb(255, 255, 0);">Yellow</span> plain</p></html>'
+        '<html><p><span style="background-color: #FFFF00;">Yellow</span> plain</p></html>'
       );
   });
 
@@ -213,7 +213,7 @@ test.describe('custom style colors - toolbar interaction', () => {
     await expect
       .poll(async () => getSerializedHtml(page))
       .toBe(
-        '<html><p><span style="color: rgb(255, 0, 0); background-color: rgb(255, 255, 0);">Red+Yellow</span></p></html>'
+        '<html><p><span style="color: #FF0000; background-color: #FFFF00;">Red+Yellow</span></p></html>'
       );
   });
 
@@ -229,7 +229,7 @@ test.describe('custom style colors - toolbar interaction', () => {
     await expect
       .poll(async () => getSerializedHtml(page))
       .toBe(
-        '<html><p><span style="color: rgb(255, 0, 0);"><b>Bold red</b></span></p></html>'
+        '<html><p><span style="color: #FF0000;"><b>Bold red</b></span></p></html>'
       );
   });
 
@@ -245,7 +245,7 @@ test.describe('custom style colors - toolbar interaction', () => {
     await expect
       .poll(async () => getSerializedHtml(page))
       .toBe(
-        '<html><p><span style="background-color: rgb(255, 255, 0);"><i>Italic yellow back</i></span></p></html>'
+        '<html><p><span style="background-color: #FFFF00;"><i>Italic yellow back</i></span></p></html>'
       );
   });
 

@@ -2,6 +2,7 @@ import {
   checkboxHtmlForTiptap,
   checkboxHtmlFromTiptap,
 } from './checkboxHtmlNormalizer';
+import { normalizeColorToHex } from './colorNormalizer';
 import { normalizeHtml } from './htmlNormalizer';
 
 export function prepareHtmlForTiptap(
@@ -34,6 +35,31 @@ export function normalizeHtmlFromTiptap(html: string): string {
       return `<img${attrs}>`;
     }
     return `<img${attrs}/>`;
+  });
+
+  // Find all style="..." attributes in the HTML
+  html = html.replace(/style="([^"]*)"/gi, (_, styleString: string) => {
+    let updatedStyle = styleString;
+
+    // Convert color: <value> to hex
+    updatedStyle = updatedStyle.replace(
+      /(?:^|;)\s*(?<!-)color\s*:\s*([^;]+)/gi,
+      (match, colorValue) => {
+        const hex = normalizeColorToHex(colorValue);
+        return hex ? match.replace(colorValue, hex) : match;
+      }
+    );
+
+    // Convert background-color: <value> to hex
+    updatedStyle = updatedStyle.replace(
+      /(?:^|;)\s*background-color\s*:\s*([^;]+)/gi,
+      (match, bgColorValue) => {
+        const hex = normalizeColorToHex(bgColorValue);
+        return hex ? match.replace(bgColorValue, hex) : match;
+      }
+    );
+
+    return `style="${updatedStyle}"`;
   });
 
   return `<html>${html}</html>`;
