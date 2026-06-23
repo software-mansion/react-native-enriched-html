@@ -337,6 +337,12 @@ function App() {
         <EnrichedText
           style={enrichedTextStyle}
           htmlStyle={WEB_DEFAULT_HTML_STYLE}
+          onLinkPress={(e) => {
+            console.log('link press event', e);
+          }}
+          onMentionPress={(e) => {
+            console.log('mention press event', e);
+          }}
         >
           {enrichedTextValue}
         </EnrichedText>

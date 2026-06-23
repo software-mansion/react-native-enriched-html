@@ -14,7 +14,14 @@ import { useImageErrorFallback } from './useImageErrorFallback';
 import { usePressInteractions } from './usePressInteractions';
 
 export const EnrichedText = memo(
-  ({ children, htmlStyle, style, selectionColor }: EnrichedTextProps) => {
+  ({
+    children,
+    htmlStyle,
+    style,
+    selectionColor,
+    onLinkPress,
+    onMentionPress,
+  }: EnrichedTextProps) => {
     const containerRef = useRef<HTMLDivElement>(null);
 
     const sanitizedHtml = useMemo(() => sanitizeHtml(children), [children]);
@@ -62,8 +69,8 @@ export const EnrichedText = memo(
       [textStyle, themingStyle, cssVars]
     );
 
-    usePressInteractions(containerRef);
     useImageErrorFallback(containerRef);
+    usePressInteractions(containerRef, onLinkPress, onMentionPress);
 
     return (
       <>
