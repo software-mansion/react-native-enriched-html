@@ -234,6 +234,7 @@ function App() {
       ?.getHTML()
       .then((html) => {
         setEnrichedTextValue(html);
+        ref.current?.setValue('');
       })
       .catch((error: unknown) => {
         setEnrichedTextValue('');
@@ -323,7 +324,7 @@ function App() {
         data-testid="set-enriched-text-value"
         onClick={handleSetEnrichedTextValue}
       >
-        Set Enriched Text
+        Push Text
       </button>
 
       {showHtmlOutput && <HtmlOutputPanel html={currentHtml} />}
