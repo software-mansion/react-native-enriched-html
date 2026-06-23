@@ -7,7 +7,6 @@ import { useState, type RefObject } from 'react';
 import { useDragScroll } from '../hooks/useDragScroll';
 
 const COLORS = [
-  'red',
   '#808080',
   '#FF0000',
   '#FF6600',

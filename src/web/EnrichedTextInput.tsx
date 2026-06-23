@@ -382,14 +382,16 @@ export const EnrichedTextInput = ({
             ? (customStyle.backgroundColor ?? null)
             : (current.backgroundColor ?? null);
 
-        if (!resolvedColor && !resolvedBg) {
-          editor.commands.unsetCustomStyle();
-        } else {
-          editor.commands.setCustomStyle({
+        runFocused(editor, (c) => {
+          if (!resolvedColor && !resolvedBg) {
+            return c.unsetCustomStyle();
+          }
+
+          return c.setCustomStyle({
             foregroundColor: resolvedColor,
             backgroundColor: resolvedBg,
           });
-        }
+        });
       },
     }),
     [editor]

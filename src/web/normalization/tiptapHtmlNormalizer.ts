@@ -43,7 +43,7 @@ export function normalizeHtmlFromTiptap(html: string): string {
 
     // Convert color: <value> to hex
     updatedStyle = updatedStyle.replace(
-      /(?:^|;)\s*(?<!-)color\s*:\s*([^;]+)/gi,
+      /(?:^|;)\s*color\s*:\s*([^;]+)/gi,
       (match, colorValue) => {
         const hex = normalizeColorToHex(colorValue);
         return hex ? match.replace(colorValue, hex) : match;
