@@ -21,6 +21,11 @@ export function usePressInteractions(
     const handleInteraction = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
 
+      const checkbox = target.closest("input[type='checkbox']");
+      if (checkbox && container.contains(checkbox)) {
+        e.preventDefault();
+      }
+
       const anchor = target.closest('a');
       if (anchor && container.contains(anchor)) {
         const url = anchor.getAttribute('href');

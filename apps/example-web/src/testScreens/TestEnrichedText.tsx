@@ -1,5 +1,9 @@
 import { useState, type ChangeEvent } from 'react';
-import { EnrichedText } from 'react-native-enriched-html';
+import {
+  EnrichedText,
+  type OnLinkPressEvent,
+  type OnMentionPressEvent,
+} from 'react-native-enriched-html';
 import type { TextStyle } from 'react-native';
 import { WEB_DEFAULT_HTML_STYLE } from '../defaultHtmlStyle';
 
@@ -8,6 +12,11 @@ const INITIAL_VALUE = '<html><p></p></html>';
 export function TestEnrichedText() {
   const [htmlInput, setHtmlInput] = useState(INITIAL_VALUE);
   const [value, setValue] = useState(INITIAL_VALUE);
+  const [lastLinkPress, setLastLinkPress] = useState<OnLinkPressEvent | null>(
+    null
+  );
+  const [lastMentionPress, setLastMentionPress] =
+    useState<OnMentionPressEvent | null>(null);
 
   return (
     <div data-testid="test-enriched-text-root">
@@ -18,6 +27,12 @@ export function TestEnrichedText() {
         <EnrichedText
           style={enrichedTextStyle}
           htmlStyle={WEB_DEFAULT_HTML_STYLE}
+          onLinkPress={(event) => {
+            setLastLinkPress(event);
+          }}
+          onMentionPress={(event) => {
+            setLastMentionPress(event);
+          }}
         >
           {value}
         </EnrichedText>
@@ -42,6 +57,13 @@ export function TestEnrichedText() {
       </button>
 
       <pre data-testid="test-enriched-text-value-output">{value}</pre>
+
+      <pre data-testid="test-enriched-text-link-press-output">
+        {JSON.stringify(lastLinkPress)}
+      </pre>
+      <pre data-testid="test-enriched-text-mention-press-output">
+        {JSON.stringify(lastMentionPress)}
+      </pre>
     </div>
   );
 }

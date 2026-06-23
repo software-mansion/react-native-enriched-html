@@ -22,9 +22,15 @@ describe('buildMentionRulesCSS', () => {
       `.${ENRICHED_TEXT_INPUT_CLASSNAME} mention[indicator="@"]`
     );
     expect(css).toContain(`.${ENRICHED_TEXT_CLASSNAME} mention[indicator="@"]`);
-    expect(css).toContain('var(--et-mention-u0040-color)');
-    expect(css).toContain('var(--et-mention-u0040-background-color)');
-    expect(css).toContain('var(--et-mention-u0040-text-decoration-line)');
+    expect(css).toContain(
+      'var(--et-mention-u0040-color, var(--et-mention-default-color))'
+    );
+    expect(css).toContain(
+      'var(--et-mention-u0040-background-color, var(--et-mention-default-background-color))'
+    );
+    expect(css).toContain(
+      'var(--et-mention-u0040-text-decoration-line, var(--et-mention-default-text-decoration-line))'
+    );
   });
 
   it('appends press-state rules for the read-only view only', () => {
@@ -39,8 +45,12 @@ describe('buildMentionRulesCSS', () => {
     );
     expect(css).toContain('var(--et-mention-default-press-color)');
     expect(css).toContain('var(--et-mention-default-press-background-color)');
-    expect(css).toContain('var(--et-mention-u0040-press-color)');
-    expect(css).toContain('var(--et-mention-u0040-press-background-color)');
+    expect(css).toContain(
+      'var(--et-mention-u0040-press-color, var(--et-mention-default-press-color))'
+    );
+    expect(css).toContain(
+      'var(--et-mention-u0040-press-background-color, var(--et-mention-default-press-background-color))'
+    );
 
     expect(css).not.toContain(
       `.${ENRICHED_TEXT_INPUT_CLASSNAME} mention:active`
