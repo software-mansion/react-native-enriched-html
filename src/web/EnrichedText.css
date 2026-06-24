@@ -242,7 +242,6 @@
   vertical-align: middle;
   position: relative;
   top: -0.1em;
-  user-select: none;
 }
 
 .eti-editor ul[data-type='checkboxList'] > li > label input[type='checkbox'] {
