@@ -77,8 +77,39 @@ export function toggleParagraphFormat(
   isActive: () => boolean,
   deactivate: () => boolean,
   activate: (c: ChainedCommands) => ChainedCommands,
-  chain: () => ChainedCommands
+  chain: () => ChainedCommands,
+  editor: Editor
 ): boolean {
   if (isActive()) return deactivate();
-  return activate(chain().clearNodes()).run();
+
+  return withPreservedAlignment(editor, chain(), (c) =>
+    activate(c.clearNodes())
+  );
+}
+
+export function getCurrentAlignment(editor: Editor): string | null {
+  const { $from } = editor.state.selection;
+  for (let depth = $from.depth; depth >= 0; depth--) {
+    const node = $from.node(depth);
+    if (node.attrs.textAlign) {
+      return node.attrs.textAlign;
+    }
+  }
+  return null;
+}
+
+export function withPreservedAlignment(
+  editor: Editor,
+  chain: ChainedCommands,
+  mutateChain: (c: ChainedCommands) => ChainedCommands
+): boolean {
+  const currentAlignment = getCurrentAlignment(editor);
+
+  const c = mutateChain(chain);
+
+  if (currentAlignment && currentAlignment !== 'auto') {
+    c.setTextAlign(currentAlignment);
+  }
+
+  return c.run();
 }

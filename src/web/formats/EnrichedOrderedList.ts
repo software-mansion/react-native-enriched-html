@@ -2,6 +2,7 @@ import { wrappingInputRule } from '@tiptap/core';
 import { OrderedList } from '@tiptap/extension-list';
 
 import { applyWrappingListToSelection } from './applyWrappingListToSelection';
+import { withPreservedAlignment } from './formatRules';
 
 const ORDERED_LIST_INPUT_REGEX = /^1\.\s$/;
 
@@ -23,9 +24,11 @@ export const EnrichedOrderedList = OrderedList.extend({
     return {
       toggleOrderedList:
         () =>
-        ({ editor, commands, chain }) => {
+        ({ editor, chain }) => {
           if (editor.isActive('orderedList')) {
-            return commands.setParagraph();
+            return withPreservedAlignment(editor, chain(), (c) =>
+              c.setParagraph()
+            );
           }
 
           return applyWrappingListToSelection(

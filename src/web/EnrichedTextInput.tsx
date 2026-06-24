@@ -60,6 +60,7 @@ import { EnrichedUnorderedList } from './formats/EnrichedUnorderedList';
 import { EnrichedOrderedList } from './formats/EnrichedOrderedList';
 import { EnrichedCheckboxItem } from './formats/EnrichedCheckboxItem';
 import { EnrichedCheckboxList } from './formats/EnrichedCheckboxList';
+import { EnrichedTextAlign } from './formats/EnrichedTextAlign';
 import { StripBoldInStyledHeadingsPlugin } from './pmPlugins/StripBoldInStyledHeadingsPlugin';
 import { StrictMarksPlugin } from './pmPlugins/StrictMarksPlugin';
 import { MergeAdjacentSameKindBlocksPlugin } from './pmPlugins/MergeAdjacentSameKindBlocksPlugin';
@@ -215,6 +216,7 @@ export const EnrichedTextInput = ({
       EnrichedUnorderedList,
       EnrichedOrderedList,
       EnrichedCheckboxList,
+      EnrichedTextAlign,
       StripMarksInCodeBlockPlugin,
       StripMarksOnImagePlugin,
       StripBoldInStyledHeadingsPlugin.configure({
@@ -367,7 +369,13 @@ export const EnrichedTextInput = ({
       measureInWindow: () => {},
       measureLayout: () => {},
       setNativeProps: () => {},
-      setTextAlignment: () => {},
+      setTextAlignment: (alignment) => {
+        if (alignment === 'auto') {
+          runFocused(editor, (c) => c.unsetTextAlign());
+        } else {
+          runFocused(editor, (c) => c.setTextAlign(alignment));
+        }
+      },
     }),
     [editor]
   );
