@@ -13,7 +13,7 @@ export const EnrichedTextAlign = TextAlign.extend({
         }
 
         const { $from } = state.selection;
-        let listNode = null;
+        let listNode: typeof $from.parent | null = null;
         let listPos = -1;
 
         // Walk up the tree to see if the cursor is inside a list wrapper
@@ -42,7 +42,7 @@ export const EnrichedTextAlign = TextAlign.extend({
         }
 
         // If not in a list, fire the original Tiptap command
-        return this.parent?.()?.setTextAlign?.(alignment)(props);
+        return this.parent?.().setTextAlign?.(alignment)(props) ?? false;
       },
     };
   },
