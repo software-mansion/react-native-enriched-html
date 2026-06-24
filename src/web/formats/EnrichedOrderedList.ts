@@ -27,7 +27,7 @@ export const EnrichedOrderedList = OrderedList.extend({
         ({ editor, chain }) => {
           if (editor.isActive('orderedList')) {
             return withPreservedAlignment(editor, chain(), (c) =>
-              c.setParagraph()
+              c.clearNodes().setParagraph()
             );
           }
 

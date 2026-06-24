@@ -37,7 +37,7 @@ export const EnrichedUnorderedList = BulletList.extend({
         ({ editor, chain }: CommandProps) => {
           if (editor.isActive('unorderedList')) {
             return withPreservedAlignment(editor, chain(), (c) =>
-              c.setParagraph()
+              c.clearNodes().setParagraph()
             );
           }
 
