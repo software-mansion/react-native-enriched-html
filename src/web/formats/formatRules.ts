@@ -88,7 +88,16 @@ export function toggleParagraphFormat(
 }
 
 export function getCurrentAlignment(editor: Editor): string | null {
-  const { $from } = editor.state.selection;
+  const { doc, selection } = editor.state;
+  let { $from } = selection;
+
+  // If the user presses Cmd+A, the selection anchors to the document root (depth 0).
+  // We resolve position '1' to step exactly inside the first paragraph node
+  // so the loop can correctly read its alignment.
+  if ($from.depth === 0 && doc.content.size > 0) {
+    $from = doc.resolve(1);
+  }
+
   for (let depth = $from.depth; depth >= 0; depth--) {
     const node = $from.node(depth);
     if (node.attrs.textAlign) {
