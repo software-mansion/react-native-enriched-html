@@ -92,27 +92,21 @@ test.describe('EnrichedText display visual regression', () => {
 });
 
 test.describe('visual: complex lists and layouts', () => {
-  const cases = [
-    {
-      name: 'all 3 types of the list at once',
-      snapshot: 'enriched-text-all-list-types.png',
-      html: [
-        '<html>',
-        '<ul><li>Bullet item</li></ul>',
-        '<ol><li>Numbered item</li></ol>',
-        '<ul data-type="checkbox"><li checked>Checked item</li><li>Unchecked item</li></ul>',
-        '</html>',
-      ].join(''),
-    },
-  ];
+  test('all 3 types of the list at once', async ({ page }) => {
+    const html = [
+      '<html>',
+      '<ul><li>Bullet item</li></ul>',
+      '<ol><li>Numbered item</li></ol>',
+      '<ul data-type="checkbox"><li checked>Checked item</li><li>Unchecked item</li></ul>',
+      '</html>',
+    ].join('');
 
-  for (const c of cases) {
-    test(c.name, async ({ page }) => {
-      await gotoTestEnrichedText(page);
-      await setEnrichedTextValue(page, c.html);
-      await expect(displayLocator(page)).toHaveScreenshot(c.snapshot);
-    });
-  }
+    await gotoTestEnrichedText(page);
+    await setEnrichedTextValue(page, html);
+    await expect(displayLocator(page)).toHaveScreenshot(
+      'enriched-text-all-list-types.png'
+    );
+  });
 });
 
 test.describe('visual: typography, blocks, and wrapping', () => {
