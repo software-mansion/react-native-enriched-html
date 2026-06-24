@@ -1,3 +1,4 @@
+import { isTextSelection } from '@tiptap/core';
 import { TextAlign } from '@tiptap/extension-text-align';
 
 export const EnrichedTextAlign = TextAlign.extend({
@@ -42,6 +43,35 @@ export const EnrichedTextAlign = TextAlign.extend({
 
         // If not in a list, fire the original Tiptap command
         return this.parent?.()?.setTextAlign?.(alignment)(props);
+      },
+    };
+  },
+
+  addKeyboardShortcuts() {
+    return {
+      ...this.parent?.(),
+      Backspace: () => {
+        const { selection } = this.editor.state;
+
+        if (!selection.empty || !isTextSelection(selection)) {
+          return false;
+        }
+
+        const { $cursor } = selection;
+
+        if (!$cursor || !this.editor.isEmpty) {
+          return false;
+        }
+
+        const currentAlignment = $cursor.parent.attrs.textAlign;
+        const hasAlignment = currentAlignment && currentAlignment !== 'auto';
+
+        // If the input is empty and has an alignment, clear the alignment
+        if (hasAlignment) {
+          return this.editor.commands.unsetTextAlign();
+        }
+
+        return false;
       },
     };
   },
