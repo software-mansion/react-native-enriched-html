@@ -337,6 +337,7 @@ function App() {
         <EnrichedText
           style={enrichedTextStyle}
           htmlStyle={WEB_DEFAULT_HTML_STYLE}
+          useHtmlNormalizer
         >
           {enrichedTextValue}
         </EnrichedText>

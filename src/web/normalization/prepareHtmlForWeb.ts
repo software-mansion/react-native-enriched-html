@@ -1,4 +1,12 @@
-export function prepareHtmlForWeb(html: string) {
+import { normalizeHtml } from './htmlNormalizer';
+
+export function prepareHtmlForWeb(
+  html: string,
+  useHtmlNormalizer: boolean | undefined
+) {
+  if (useHtmlNormalizer) {
+    html = normalizeHtml(html);
+  }
   return checkboxHtmlToWeb(html);
 }
 

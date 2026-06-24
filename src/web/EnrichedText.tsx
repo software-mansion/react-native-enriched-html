@@ -7,7 +7,7 @@ import {
   mergeWithDefaultEnrichedTextHtmlStyle,
 } from './styleConversion/htmlStyleToCSSVariables';
 import { ENRICHED_TEXT_CLASSNAME } from './constants/classNames';
-import { enrichedInputThemingToCSSProperties } from './styleConversion/enrichedThemingToCSSProperties';
+import { enrichedTextThemingToCSSProperties } from './styleConversion/enrichedThemingToCSSProperties';
 import { buildMentionRulesCSS } from './styleConversion/buildMentionRulesCSS';
 import { sanitizeHtml } from './sanitization/htmlSanitizer';
 import { prepareHtmlForWeb } from './normalization/prepareHtmlForWeb';
@@ -16,14 +16,21 @@ import { useImageErrorFallback } from './useImageErrorFallback';
 import { usePressInteractions } from './usePressInteractions';
 
 export const EnrichedText = memo(
-  ({ children, htmlStyle, style, selectionColor }: EnrichedTextProps) => {
+  ({
+    children,
+    htmlStyle,
+    style,
+    selectionColor,
+    selectable = false,
+    useHtmlNormalizer = false,
+  }: EnrichedTextProps) => {
     const containerRef = useRef<HTMLDivElement>(null);
 
     const sanitizedHtml = useMemo(() => sanitizeHtml(children), [children]);
 
     const finalHtml = useMemo(
-      () => prepareHtmlForWeb(sanitizedHtml),
-      [sanitizedHtml]
+      () => prepareHtmlForWeb(sanitizedHtml, useHtmlNormalizer),
+      [sanitizedHtml, useHtmlNormalizer]
     );
 
     const resolvedHtmlStyle = useMemo(
@@ -45,8 +52,8 @@ export const EnrichedText = memo(
     );
 
     const themingStyle = useMemo(
-      () => enrichedInputThemingToCSSProperties({ selectionColor }),
-      [selectionColor]
+      () => enrichedTextThemingToCSSProperties({ selectionColor, selectable }),
+      [selectionColor, selectable]
     );
 
     const mentionRulesCSS = useMemo(
