@@ -37,8 +37,6 @@ See [Web Keyboard Shortcuts](./INPUT_API_REFERENCE.md#web-keyboard-shortcuts) fo
 
 ### What works
 
-- Setting the content using the `children` prop.
-- HTML's formatting equivalent to the input component's.
 - Customizing the styling using props: `style`, `htmlStyle`, `selectionColor`.
 
 ### Unsupported
