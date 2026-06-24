@@ -17,6 +17,7 @@ Web support is still experimental. APIs and behavior can change in future releas
 - Input theming via `placeholderTextColor`, `cursorColor` and `selectionColor` props
 - Keyboard shortcuts for formatting
 - `useHtmlNormalizer`
+- Setting text alignment via `setTextAlignment()`
 
 ## Keyboard shortcuts
 

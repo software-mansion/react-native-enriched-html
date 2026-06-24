@@ -771,9 +771,6 @@ Sets text alignment for the paragraph(s) at the current selection. When inside a
 > [!NOTE]
 > On Android, `'justify'` is not supported. Calling `setTextAlignment('justify')` does not apply justified text — the paragraph ends up with natural alignment, the same as `'auto'`. On iOS, justified alignment works as expected.
 
-> [!NOTE]
-> On Web text alignment is not supported. Calling `setTextAlignment()` has no effect.
-
 ### `.startMention()`
 
 ```ts
