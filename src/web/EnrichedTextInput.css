@@ -27,6 +27,9 @@
   padding: 0;
   line-height: inherit;
   vertical-align: baseline;
+  box-shadow:
+    0 -1px 0 var(--eti-code-bg-color),
+    0 0 0 var(--eti-code-bg-color);
 }
 
 .eti-editor h1 { font-size: var(--eti-h1-font-size); font-weight: var(--eti-h1-font-weight); margin: 0; line-height: normal; }
