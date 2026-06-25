@@ -17,7 +17,8 @@ export function enrichedTextStyleToCSSProperties(
     textDecorationStyle: style.textDecorationStyle,
     textDecorationColor: toColor(style.textDecorationColor),
     textShadow: resolveTextShadow(style),
-    userSelect: style.userSelect,
+    // userSelect: RN 'contain' has no CSS equivalent
+    userSelect: style.userSelect !== 'contain' ? style.userSelect : undefined,
     fontVariant: Array.isArray(style.fontVariant)
       ? style.fontVariant.join(' ')
       : undefined,

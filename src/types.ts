@@ -838,8 +838,7 @@ export interface EnrichedTextProps extends ViewProps {
   onMentionPress?: (event: OnMentionPressEvent) => void;
 }
 
-export interface EnrichedTextMentionStyleProperties
-  extends MentionStyleProperties {
+export interface EnrichedTextMentionStyleProperties extends MentionStyleProperties {
   pressColor?: ColorValue;
   pressBackgroundColor?: ColorValue;
 }
