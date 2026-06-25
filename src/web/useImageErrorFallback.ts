@@ -20,16 +20,7 @@ export const useImageErrorFallback = (
 
     container.addEventListener('error', handleImageError, true);
 
-    return () => {
-      container.removeEventListener('error', handleImageError, true);
-    };
-  }, [containerRef]);
-
-  // handle the cached unloaded images that will not emit the error event
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
+    // handle <img> elements that emitted an error event before we could set up a listener
     const images =
       container.querySelectorAll<HTMLImageElement>('img:not(.error)');
 
@@ -38,5 +29,9 @@ export const useImageErrorFallback = (
         img.classList.add('error');
       }
     });
-  });
+
+    return () => {
+      container.removeEventListener('error', handleImageError, true);
+    };
+  }, [containerRef]);
 };
