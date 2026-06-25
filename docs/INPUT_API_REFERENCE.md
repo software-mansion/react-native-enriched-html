@@ -932,6 +932,7 @@ The following keyboard shortcuts are available on Web. `Mod` is `⌘` on macOS a
 | Paste as plain text | ⌘ Shift+V         | Ctrl+Shift+V            |
 | Undo                | ⌘ Z               | Ctrl+Z                  |
 | Redo                | ⌘ Shift+Z         | Ctrl+Shift+Z            |
+| Select all          | ⌘ A               | Ctrl+A                  |
 
 ## HtmlStyle type
 

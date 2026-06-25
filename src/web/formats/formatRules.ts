@@ -1,7 +1,6 @@
 import type { Editor } from '@tiptap/core';
 import type { HtmlStyle } from '../../types';
 import { HEADING_LEVELS, HEADING_TAGS } from './EnrichedHeading';
-
 type ChainedCommands = ReturnType<Editor['chain']>;
 
 export function isAnyParagraphFormatActive(editor: Editor): boolean {
@@ -80,7 +79,12 @@ export function toggleParagraphFormat(
   chain: () => ChainedCommands,
   editor: Editor
 ): boolean {
-  if (isActive()) return deactivate();
+  if (isActive()) {
+    return withPreservedAlignment(editor, chain(), (c) => {
+      deactivate();
+      return c;
+    });
+  }
 
   return withPreservedAlignment(editor, chain(), (c) =>
     activate(c.clearNodes())
