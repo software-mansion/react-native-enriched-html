@@ -147,6 +147,9 @@
     "apps/example",
     "apps/example-web"
   ],
+  "resolutions": {
+    "shell-quote": "1.8.4"
+  },
   "packageManager": "yarn@4.13.0",
   "jest": {
     "projects": [
