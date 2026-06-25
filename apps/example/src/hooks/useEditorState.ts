@@ -10,7 +10,7 @@ import {
   type OnKeyPressEvent,
   type OnPasteImagesEvent,
   type OnSubmitEditing,
-} from 'react-native-enriched';
+} from 'react-native-enriched-html';
 import { useRef, useState } from 'react';
 import { type MentionItem } from '../components/MentionPopup';
 import { useUserMention } from './useUserMention';

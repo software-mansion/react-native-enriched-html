@@ -643,9 +643,9 @@ If true, Android will use experimental synchronous events. This will prevent fro
 
 If true, external HTML pasted/inserted into the input (e.g. from Google Docs, Word, or web pages) will be normalized into the canonical tag subset that the enriched parser understands. However, this is an experimental feature, which has not been thoroughly tested. We may decide to enable it by default in a future release.
 
-| Type   | Default Value | Platform     |
-| ------ | ------------- | ------------ |
-| `bool` | `false`       | iOS, Android |
+| Type   | Default Value | Platform          |
+| ------ | ------------- | ----------------- |
+| `bool` | `false`       | iOS, Android, Web |
 
 ## Ref Methods
 
@@ -745,7 +745,7 @@ setValue: (value: string) => void;
 
 Sets the input's value.
 
-- `value: string` - value to set, it can either be `react-native-enriched` supported HTML string or raw text.
+- `value: string` - value to set, it can either be `react-native-enriched-html` supported HTML string or raw text.
 
 ### `.setSelection()`
 

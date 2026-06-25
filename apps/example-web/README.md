@@ -1,6 +1,6 @@
-# React Native Enriched Web Example
+# React Native Enriched Html Web Example
 
-This is a [**Vite**](https://vite.dev) + [**React**](https://react.dev) web example for the React Native Enriched text input component, bootstrapped with Vite's React template.
+This is a [**Vite**](https://vite.dev) + [**React**](https://react.dev) web example for the React Native Enriched Html text input component, bootstrapped with Vite's React template.
 
 # Getting Started
 
