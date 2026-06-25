@@ -1,5 +1,5 @@
 import { Fragment } from '@tiptap/pm/model';
-import type { EditorState } from '@tiptap/pm/state';
+import { TextSelection, type EditorState } from '@tiptap/pm/state';
 import type { Editor } from '@tiptap/react';
 import { isCaretInBlockedContext } from './isCaretInBlockedContext';
 import { mentionPluginKey } from './mentionPluginKey';
@@ -68,6 +68,10 @@ export function setMention(
     .focus()
     .command(({ tr }) => {
       tr.replaceWith(from, extendedTo, fragment);
+
+      const targetPos = from + fragment.size + (hasSpaceAfter ? 1 : 0);
+      tr.setSelection(TextSelection.create(tr.doc, targetPos));
+
       return true;
     })
     .run();
