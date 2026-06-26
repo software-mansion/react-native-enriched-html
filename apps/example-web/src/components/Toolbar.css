@@ -77,3 +77,65 @@
 .toolbar-btn:focus-visible {
   outline: none;
 }
+
+.toolbar-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.toolbar-color-btn {
+  flex-direction: column;
+  gap: 2px;
+}
+
+.toolbar-color-label {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+}
+
+.toolbar-color-indicator {
+  display: block;
+  width: 20px;
+  height: 5px;
+  border-radius: 2px;
+  border: 1px solid;
+}
+
+.toolbar-color-picker {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 8px;
+  gap: 6px;
+  background: rgba(0, 26, 114, 0.95);
+}
+
+.toolbar-color-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.toolbar-color-swatch--clear {
+  background: transparent;
+  color: #fff;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.toolbar-color-swatch--active {
+  border-color: #fff;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.6);
+}
+
+.toolbar-color-swatch:focus-visible {
+  outline: none;
+}

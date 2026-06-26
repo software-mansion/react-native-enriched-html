@@ -500,10 +500,31 @@ function walkNode(node: Node, out: { buf: string }): void {
 
   // <span>: CSS style → inline tags
   if (name === 'span') {
+    const htmlNode = node as HTMLElement;
     const s = parseCssStyle(node.getAttribute('style'));
+
+    const fg = htmlNode.style.color;
+    const bg = htmlNode.style.backgroundColor;
+
+    // build the preserved span if colors exist
+    let spanOpen = '';
+    let spanClose = '';
+    const styleParts: string[] = [];
+
+    if (fg) styleParts.push(`color: ${fg}`);
+    if (bg) styleParts.push(`background-color: ${bg}`);
+
+    if (styleParts.length > 0) {
+      spanOpen = `<span style="${styleParts.join('; ')}">`;
+      spanClose = '</span>';
+    }
+
+    // output everything in the correct nested order
+    out.buf += spanOpen;
     out.buf += emitStylesOpen(s);
     walkChildren(node, out);
     out.buf += emitStylesClose(s);
+    out.buf += spanClose;
     return;
   }
 

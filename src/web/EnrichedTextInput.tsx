@@ -60,6 +60,7 @@ import { EnrichedUnorderedList } from './formats/EnrichedUnorderedList';
 import { EnrichedOrderedList } from './formats/EnrichedOrderedList';
 import { EnrichedCheckboxItem } from './formats/EnrichedCheckboxItem';
 import { EnrichedCheckboxList } from './formats/EnrichedCheckboxList';
+import { EnrichedCustomStyle } from './formats/EnrichedCustomStyle';
 import { StripBoldInStyledHeadingsPlugin } from './pmPlugins/StripBoldInStyledHeadingsPlugin';
 import { StrictMarksPlugin } from './pmPlugins/StrictMarksPlugin';
 import { MergeAdjacentSameKindBlocksPlugin } from './pmPlugins/MergeAdjacentSameKindBlocksPlugin';
@@ -74,6 +75,7 @@ import {
 import { StripMarksOnImagePlugin } from './pmPlugins/StripMarksOnImagePlugin';
 import { ShortcutPlugin } from './pmPlugins/ShortcutPlugin';
 import { returnKeyTypeToEnterKeyHint } from './returnKeyTypeToEnterKeyHint';
+import { normalizeColorValue } from './normalization/colorNormalizer';
 function runFocused(
   editor: Editor,
   apply: (chain: ChainedCommands) => ChainedCommands
@@ -215,6 +217,7 @@ export const EnrichedTextInput = ({
       EnrichedUnorderedList,
       EnrichedOrderedList,
       EnrichedCheckboxList,
+      EnrichedCustomStyle,
       StripMarksInCodeBlockPlugin,
       StripMarksOnImagePlugin,
       StripBoldInStyledHeadingsPlugin.configure({
@@ -368,7 +371,18 @@ export const EnrichedTextInput = ({
       measureLayout: () => {},
       setNativeProps: () => {},
       setTextAlignment: () => {},
-      setStyle: () => {},
+      setStyle: (customStyle) => {
+        runFocused(editor, (c) =>
+          c.setCustomStyle({
+            ...('foregroundColor' in customStyle && {
+              foregroundColor: normalizeColorValue(customStyle.foregroundColor),
+            }),
+            ...('backgroundColor' in customStyle && {
+              backgroundColor: normalizeColorValue(customStyle.backgroundColor),
+            }),
+          })
+        );
+      },
     }),
     [editor]
   );
