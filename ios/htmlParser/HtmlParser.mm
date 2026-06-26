@@ -744,9 +744,22 @@
       NSString *url =
           [params substringWithRange:NSMakeRange(hrefRange.location + 6,
                                                  hrefRange.length - 7)];
+
+      // tagRange location includes one extra offset per preceding image
+      // placeholder, which don't exist in plainText. Subtract them to map
+      // back to the correct plainText index.
       NSRange adjustedRange = tagRangeValue.rangeValue;
-      NSRange plainTextRange = NSMakeRange(
-          adjustedRange.location - secondPassImageCount, adjustedRange.length);
+      // Calculate the shifted location, ensuring it doesn't drop below 0
+      NSUInteger rawLoc = (adjustedRange.location >= secondPassImageCount)
+                              ? adjustedRange.location - secondPassImageCount
+                              : 0;
+      // Cap the location so it can never exceed the plain text length
+      NSUInteger plainLoc = MIN(rawLoc, plainText.length);
+      // Cap the length based on whatever space is left in the string
+      NSUInteger plainLen =
+          MIN(adjustedRange.length, plainText.length - plainLoc);
+
+      NSRange plainTextRange = NSMakeRange(plainLoc, plainLen);
       NSString *text = [plainText substringWithRange:plainTextRange];
 
       LinkData *linkData = [[LinkData alloc] init];
