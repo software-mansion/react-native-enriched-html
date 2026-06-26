@@ -645,6 +645,9 @@
 
   // process tags into proper StyleType + StylePair values
   NSMutableArray *processedStyles = [[NSMutableArray alloc] init];
+  // Tracks the number of processed images to remove their pre-generated
+  // placeholder offsets from tag ranges when reading from plainText
+  // (which does not contain those placeholders).
   NSInteger secondPassImageCount = 0;
 
   for (NSArray *arr in initiallyProcessedTags) {
@@ -749,17 +752,8 @@
       // placeholder, which don't exist in plainText. Subtract them to map
       // back to the correct plainText index.
       NSRange adjustedRange = tagRangeValue.rangeValue;
-      // Calculate the shifted location, ensuring it doesn't drop below 0
-      NSUInteger rawLoc = (adjustedRange.location >= secondPassImageCount)
-                              ? adjustedRange.location - secondPassImageCount
-                              : 0;
-      // Cap the location so it can never exceed the plain text length
-      NSUInteger plainLoc = MIN(rawLoc, plainText.length);
-      // Cap the length based on whatever space is left in the string
-      NSUInteger plainLen =
-          MIN(adjustedRange.length, plainText.length - plainLoc);
-
-      NSRange plainTextRange = NSMakeRange(plainLoc, plainLen);
+      NSRange plainTextRange = NSMakeRange(
+          adjustedRange.location - secondPassImageCount, adjustedRange.length);
       NSString *text = [plainText substringWithRange:plainTextRange];
 
       LinkData *linkData = [[LinkData alloc] init];
