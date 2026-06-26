@@ -172,7 +172,7 @@ describe('textShadow', () => {
 });
 
 describe('userSelect', () => {
-  it.each(['auto', 'none', 'text', 'contain', 'all'] as const)(
+  it.each(['auto', 'none', 'text', 'all'] as const)(
     '%s passes through',
     (value) => {
       expect(convert({ userSelect: value })).toEqual({
@@ -181,6 +181,12 @@ describe('userSelect', () => {
       });
     }
   );
+
+  it("the 'contain' value is omitted", () => {
+    expect(convert({ userSelect: 'contain' })).toEqual({
+      overflowY: 'hidden',
+    });
+  });
 });
 
 describe('fontVariant', () => {
