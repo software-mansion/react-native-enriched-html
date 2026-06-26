@@ -7,7 +7,6 @@ declare module '@tiptap/core' {
         foregroundColor?: string | null;
         backgroundColor?: string | null;
       }) => ReturnType;
-      unsetCustomStyle: () => ReturnType;
     };
   }
 }
@@ -111,11 +110,6 @@ export const EnrichedCustomStyle = Mark.create({
             })
             .run();
         },
-
-      unsetCustomStyle:
-        () =>
-        ({ chain }) =>
-          chain().unsetMark('customStyle').run(),
     };
   },
 });
