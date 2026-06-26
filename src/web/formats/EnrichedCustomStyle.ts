@@ -58,6 +58,33 @@ export const EnrichedCustomStyle = Mark.create({
     return ['span', { style: parts.join('; ') }, 0];
   },
 
+  addKeyboardShortcuts() {
+    return {
+      Backspace: ({ editor }) => {
+        const { state } = editor;
+        const { selection } = state;
+        if (!selection.empty) return false;
+
+        const { $from } = selection;
+        if (!$from.nodeBefore) return false;
+
+        const markType = state.schema.marks.customStyle;
+        const beforeHasMark = markType?.isInSet($from.nodeBefore.marks);
+        const afterHasMark =
+          $from.nodeAfter && markType?.isInSet($from.nodeAfter.marks);
+
+        if (beforeHasMark || !afterHasMark) return false;
+
+        // Cursor sits right at the plain-styled boundary.
+        // Handle deletion ourselves so Chrome's contenteditable
+        // normalization never touches the styled <span>.
+        const tr = state.tr.delete($from.pos - 1, $from.pos);
+        editor.view.dispatch(tr);
+        return true;
+      },
+    };
+  },
+
   addCommands() {
     return {
       setCustomStyle:

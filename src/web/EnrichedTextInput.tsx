@@ -75,6 +75,7 @@ import {
 import { StripMarksOnImagePlugin } from './pmPlugins/StripMarksOnImagePlugin';
 import { ShortcutPlugin } from './pmPlugins/ShortcutPlugin';
 import { returnKeyTypeToEnterKeyHint } from './returnKeyTypeToEnterKeyHint';
+import { normalizeColorValue } from './normalization/colorNormalizer';
 function runFocused(
   editor: Editor,
   apply: (chain: ChainedCommands) => ChainedCommands
@@ -371,27 +372,16 @@ export const EnrichedTextInput = ({
       setNativeProps: () => {},
       setTextAlignment: () => {},
       setStyle: (customStyle) => {
-        const current = editor.getAttributes('customStyle');
-
-        const resolvedColor =
-          'foregroundColor' in customStyle
-            ? (customStyle.foregroundColor ?? null)
-            : current.foregroundColor;
-        const resolvedBg =
-          'backgroundColor' in customStyle
-            ? (customStyle.backgroundColor ?? null)
-            : (current.backgroundColor ?? null);
-
-        runFocused(editor, (c) => {
-          if (!resolvedColor && !resolvedBg) {
-            return c.unsetCustomStyle();
-          }
-
-          return c.setCustomStyle({
-            foregroundColor: resolvedColor,
-            backgroundColor: resolvedBg,
-          });
-        });
+        runFocused(editor, (c) =>
+          c.setCustomStyle({
+            ...('foregroundColor' in customStyle && {
+              foregroundColor: normalizeColorValue(customStyle.foregroundColor),
+            }),
+            ...('backgroundColor' in customStyle && {
+              backgroundColor: normalizeColorValue(customStyle.backgroundColor),
+            }),
+          })
+        );
       },
     }),
     [editor]

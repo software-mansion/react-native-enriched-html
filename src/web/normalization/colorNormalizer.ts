@@ -1,3 +1,5 @@
+import type { ColorValue } from 'react-native';
+
 const CSS_NAMED_COLORS: Record<string, string> = {
   aliceblue: '#F0F8FFFF',
   antiquewhite: '#FAEBD7FF',
@@ -221,5 +223,16 @@ export function normalizeColorToHex(
     }
   }
 
+  return null;
+}
+
+export function normalizeColorValue(
+  color?: ColorValue | null
+): string | null | undefined {
+  if (color === undefined) return undefined;
+  if (color === null) return null;
+  if (typeof color === 'string') return color;
+
+  // If it's an OpaqueColorValue return null
   return null;
 }
