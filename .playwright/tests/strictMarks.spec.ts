@@ -155,7 +155,7 @@ test.describe('strict marks', () => {
     await editor.press('End');
     // land in he|llo
     for (let i = 0; i < 9; i++) {
-      await editor.press('ArrowLeft', { delay: 40 });
+      await editor.press('ArrowLeft', { delay: 80 });
     }
 
     await editor.press('Enter');
