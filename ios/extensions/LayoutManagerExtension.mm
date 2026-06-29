@@ -304,14 +304,17 @@ static void const *kInputKey = &kInputKey;
                                          if ([markerFormat
                                                  isEqualToString:
                                                      @"EnrichedOrderedList"]) {
+                                           CGPoint glyphLocation = [self locationForGlyphAtIndex:lineGlyphRange.location];
+                                           CGFloat absoluteBaselineY = origin.y + rect.origin.y + glyphLocation.y;
                                            NSString *marker = [self
                                                getDecimalMarkerForList:host
                                                              charIndex:charIdx];
+                                           
                                            [self drawDecimal:host
                                                          marker:marker
                                                markerAttributes:markerAttributes
                                                          origin:origin
-                                                       usedRect:usedRect
+                                                       baselineY:absoluteBaselineY
                                                          indent:indent];
                                          } else if ([markerFormat
                                                         isEqualToString:
@@ -439,13 +442,16 @@ static void const *kInputKey = &kInputKey;
               marker:(NSString *)marker
     markerAttributes:(NSDictionary *)markerAttributes
               origin:(CGPoint)origin
-            usedRect:(CGRect)usedRect
+            baselineY:(CGFloat)baselineY
               indent:(CGFloat)indent {
   CGFloat gapWidth = [host.config orderedListGapWidth];
   CGSize markerSize = [marker sizeWithAttributes:markerAttributes];
   CGFloat markerX = origin.x + indent - gapWidth - markerSize.width / 2;
-  CGFloat centerY = CGRectGetMidY(usedRect) + origin.y;
-  CGFloat markerY = centerY - markerSize.height / 2.0;
+  UIFont *markerFont = markerAttributes[NSFontAttributeName];
+  
+  // drawAtPoint draws from the top-left bounding box of the string.
+  // (baselineY - ascender) exactly pinpoints the top edge of the text
+  CGFloat markerY = baselineY - markerFont.ascender;
 
   [marker drawAtPoint:CGPointMake(markerX, markerY)
        withAttributes:markerAttributes];
