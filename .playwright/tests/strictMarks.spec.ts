@@ -161,7 +161,7 @@ test.describe('strict marks', () => {
     await editor.press('Enter');
     await expect(boldBtn).toHaveClass(/toolbar-btn--active/);
 
-    await editor.pressSequentially('X', { delay: 40 });
+    await editor.pressSequentially('X', { delay: 80 });
     await expect(boldBtn).toHaveClass(/toolbar-btn--active/);
 
     await expect.poll(async () => getSerializedHtml(page)).toMatch(/<p><b>X/);
