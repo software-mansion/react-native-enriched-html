@@ -143,6 +143,30 @@ test.describe('strict marks', () => {
     await expect(boldBtn).toHaveClass(/toolbar-btn--active/);
   });
 
+  test('pressing Enter in the middle of bold that is followed by plain text keeps bold and types bold', async ({
+    page,
+  }) => {
+    await setEditorHtml(page, '<html><p><b>hello</b> world</p></html>');
+
+    const editor = editorLocator(page);
+    const boldBtn = toolbarButton(page, 'bold');
+
+    await editor.click();
+    await editor.press('End');
+    // land in he|llo
+    for (let i = 0; i < 9; i++) {
+      await editor.press('ArrowLeft', { delay: 40 });
+    }
+
+    await editor.press('Enter');
+    await expect(boldBtn).toHaveClass(/toolbar-btn--active/);
+
+    await editor.pressSequentially('X', { delay: 40 });
+    await expect(boldBtn).toHaveClass(/toolbar-btn--active/);
+
+    await expect.poll(async () => getSerializedHtml(page)).toMatch(/<p><b>X/);
+  });
+
   test('pressing Enter after the last bold character keeps bold when the rest of the line is plain', async ({
     page,
   }) => {
