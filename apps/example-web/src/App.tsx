@@ -236,7 +236,7 @@ function App() {
       ?.getHTML()
       .then((html) => {
         setEnrichedTextValue(html);
-        ref.current?.setValue('');
+        // ref.current?.setValue('');
       })
       .catch((error: unknown) => {
         setEnrichedTextValue('');

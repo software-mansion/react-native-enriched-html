@@ -1,4 +1,4 @@
-import { memo, useMemo, useRef, type CSSProperties } from 'react';
+import { memo, useMemo, useRef, useState, type CSSProperties } from 'react';
 import type { EnrichedTextProps } from '../types';
 import './EnrichedText.css';
 import { enrichedTextStyleToCSSProperties } from './styleConversion/enrichedTextStyleToCSSProperties';
@@ -14,13 +14,14 @@ import { prepareHtmlForWeb } from './normalization/prepareHtmlForWeb';
 import { INLINE_IMAGE_CSS_VARIABLES } from './styleConversion/inlineImageCSSVariables';
 import { useImageErrorFallback } from './useImageErrorFallback';
 import { usePressInteractions } from './usePressInteractions';
+import { useTailEllipsize } from './ellipsizeMode/useTailEllipsize';
 
 export const EnrichedText = memo(
   ({ children, htmlStyle, style, selectionColor }: EnrichedTextProps) => {
     const containerRef = useRef<HTMLDivElement>(null);
+    const [clampedHtml, setClampedHtml] = useState<string | null>(null);
 
     const sanitizedHtml = useMemo(() => sanitizeHtml(children), [children]);
-
     const finalHtml = useMemo(
       () => prepareHtmlForWeb(sanitizedHtml),
       [sanitizedHtml]
@@ -64,6 +65,8 @@ export const EnrichedText = memo(
       [textStyle, themingStyle, cssVars]
     );
 
+    useTailEllipsize(containerRef, finalHtml, setClampedHtml);
+
     usePressInteractions(containerRef);
     useImageErrorFallback(containerRef);
 
@@ -74,7 +77,7 @@ export const EnrichedText = memo(
           ref={containerRef}
           style={finalStyle}
           className={ENRICHED_TEXT_CLASSNAME}
-          dangerouslySetInnerHTML={{ __html: finalHtml }}
+          dangerouslySetInnerHTML={{ __html: clampedHtml ?? '' }}
         />
       </>
     );
