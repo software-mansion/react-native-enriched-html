@@ -43,6 +43,7 @@ import com.swmansion.enriched.common.GumboNormalizer
 import com.swmansion.enriched.common.parser.EnrichedParser
 import com.swmansion.enriched.common.pixelFromSpOrDp
 import com.swmansion.enriched.textinput.events.MentionHandler
+import com.swmansion.enriched.textinput.events.OnCaretRectEvent
 import com.swmansion.enriched.textinput.events.OnContextMenuItemPressEvent
 import com.swmansion.enriched.textinput.events.OnInputBlurEvent
 import com.swmansion.enriched.textinput.events.OnInputFocusEvent
@@ -1015,6 +1016,44 @@ class EnrichedTextInputView :
     val surfaceId = UIManagerHelper.getSurfaceId(reactContext)
     val dispatcher = UIManagerHelper.getEventDispatcherForReactTag(reactContext, id)
     dispatcher?.dispatchEvent(OnRequestHtmlResultEvent(surfaceId, id, requestId, html, experimentalSynchronousEvents))
+  }
+
+  fun requestCaretRect(requestId: Int) {
+    var valid = false
+    var xDp = 0.0
+    var yDp = 0.0
+    var widthDp = 0.0
+    var heightDp = 0.0
+    val currentLayout = layout
+    // Anchor to the selection END (the active insertion point), matching iOS'
+    // selectedTextRange.end — so a non-empty selection reports the live caret,
+    // not the start of the range.
+    val pos = selectionEnd
+    if (currentLayout != null && pos >= 0) {
+      try {
+        val line = currentLayout.getLineForOffset(pos)
+        val xPx = currentLayout.getPrimaryHorizontal(pos) + totalPaddingLeft - scrollX
+        val topPx = currentLayout.getLineTop(line) + totalPaddingTop - scrollY
+        val bottomPx = currentLayout.getLineBottom(line) + totalPaddingTop - scrollY
+        // React Native lays out in density-independent pixels; convert from raw px
+        // so the caret rect matches the JS coordinate space (parity with iOS points).
+        val density = resources.displayMetrics.density.takeIf { it > 0f } ?: 1f
+        xDp = (xPx / density).toDouble()
+        yDp = (topPx / density).toDouble()
+        widthDp = (2f / density).toDouble()
+        heightDp = ((bottomPx - topPx) / density).toDouble()
+        valid = true
+      } catch (_: Exception) {
+        valid = false
+      }
+    }
+
+    val reactContext = context as ReactContext
+    val surfaceId = UIManagerHelper.getSurfaceId(reactContext)
+    val dispatcher = UIManagerHelper.getEventDispatcherForReactTag(reactContext, id)
+    dispatcher?.dispatchEvent(
+      OnCaretRectEvent(surfaceId, id, requestId, xDp, yDp, widthDp, heightDp, valid, experimentalSynchronousEvents)
+    )
   }
 
   // Sometimes setting up style triggers many changes in sequence

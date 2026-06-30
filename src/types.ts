@@ -423,6 +423,14 @@ export interface OnSubmitEditing {
 export type FocusEvent = NativeSyntheticEvent<TargetedEvent>;
 export type BlurEvent = NativeSyntheticEvent<TargetedEvent>;
 
+/** Caret bounding rect in the editor view's coordinate space (RN dp / iOS points). */
+export interface CaretRect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 /**
  * Imperative handle exposed via `ref` on `<EnrichedTextInput />`.
  *
@@ -448,6 +456,14 @@ export interface EnrichedTextInputInstance extends NativeMethods {
    * The promise resolves once the native layer has completed HTML parsing.
    */
   getHTML: () => Promise<string>;
+
+  /**
+   * Resolves the current caret's bounding rect (for positioning UI like a link
+   * popover or floating toolbar) in the editor view's coordinate space. Resolves
+   * `null` if unavailable or the native event doesn't arrive — callers should
+   * treat `null` as "no anchor".
+   */
+  getCaretRect: () => Promise<CaretRect | null>;
 
   /** Toggles bold on the current selection (or toggles it for future typing if nothing is selected). */
   toggleBold: () => void;
