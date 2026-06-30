@@ -74,6 +74,7 @@ import {
 } from './pmPlugins/MentionPlugin';
 import { StripMarksOnImagePlugin } from './pmPlugins/StripMarksOnImagePlugin';
 import { ShortcutPlugin } from './pmPlugins/ShortcutPlugin';
+import { TextShortcutsPlugin } from './pmPlugins/TextShortcutsPlugin';
 import { returnKeyTypeToEnterKeyHint } from './returnKeyTypeToEnterKeyHint';
 import { AutolinkPlugin } from './pmPlugins/AutolinkPlugin';
 
@@ -116,6 +117,7 @@ export const EnrichedTextInput = ({
   linkRegex,
   htmlStyle,
   useHtmlNormalizer,
+  textShortcuts = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.textShortcuts,
 }: EnrichedTextInputProps) => {
   const tiptapContent =
     defaultValue != null
@@ -141,6 +143,11 @@ export const EnrichedTextInput = ({
   useEffect(() => {
     mentionIndicatorsRef.current = mentionIndicators;
   }, [mentionIndicators]);
+
+  const textShortcutsRef = useRef(textShortcuts);
+  useEffect(() => {
+    textShortcutsRef.current = textShortcuts;
+  }, [textShortcuts]);
 
   const mentionCallbacksRef = useRef({
     onStartMention,
@@ -242,6 +249,10 @@ export const EnrichedTextInput = ({
         getIndicators: () => mentionIndicatorsRef.current,
       }),
       ShortcutPlugin.configure({
+        getHtmlStyle: () => htmlStyleRef.current,
+      }),
+      TextShortcutsPlugin.configure({
+        getTextShortcuts: () => textShortcutsRef.current,
         getHtmlStyle: () => htmlStyleRef.current,
       }),
       AutolinkPlugin.configure({
