@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
 import type { EnrichedInputStyle } from '../../../types';
-import { enrichedInputStyleToCSSProperties } from '../enrichedInputStyleToCSSProperties';
+import { enrichedBaseStyleToCSSProperties } from '../enrichedBaseStyleToCSSProperties';
 
 type TestCase = {
   description: string;
@@ -9,7 +9,7 @@ type TestCase = {
 };
 
 function convert(style: EnrichedInputStyle): CSSProperties {
-  return enrichedInputStyleToCSSProperties(style);
+  return enrichedBaseStyleToCSSProperties(style);
 }
 
 describe('empty input', () => {
@@ -931,7 +931,7 @@ describe('extraOptions.scrollEnabled', () => {
   it('sets overflowY to auto when scrollEnabled is true', () => {
     expect(convert({})).not.toHaveProperty('overflowY');
     expect(
-      enrichedInputStyleToCSSProperties({}, { scrollEnabled: true })
+      enrichedBaseStyleToCSSProperties({}, { scrollEnabled: true })
     ).toMatchObject({
       overflowY: 'auto',
     });
@@ -939,7 +939,7 @@ describe('extraOptions.scrollEnabled', () => {
 
   it('sets overflowY to hidden when scrollEnabled is false', () => {
     expect(
-      enrichedInputStyleToCSSProperties({}, { scrollEnabled: false })
+      enrichedBaseStyleToCSSProperties({}, { scrollEnabled: false })
     ).toMatchObject({
       overflowY: 'hidden',
     });

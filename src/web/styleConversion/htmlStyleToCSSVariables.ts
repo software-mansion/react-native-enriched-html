@@ -1,7 +1,15 @@
 import type { CSSProperties } from 'react';
 import type { ColorValue } from 'react-native';
-import type { HtmlStyle, MentionStyleProperties } from '../../types';
-import { DEFAULT_HTML_STYLE } from '../../utils/defaultHtmlStyle';
+import type {
+  EnrichedTextHtmlStyle,
+  EnrichedTextMentionStyleProperties,
+  HtmlStyle,
+  MentionStyleProperties,
+} from '../../types';
+import {
+  DEFAULT_ENRICHED_TEXT_STYLE,
+  DEFAULT_HTML_STYLE,
+} from '../../utils/defaultHtmlStyle';
 import { expandMentionStylesForIndicators } from '../../utils/expandMentionStylesForIndicators';
 import { HEADING_TAGS } from '../formats/EnrichedHeading';
 import {
@@ -12,17 +20,21 @@ import { toColor } from './toColor';
 import { isMentionStyleRecord } from '../../utils/isMentionStyleRecord';
 
 export function mergeWithDefaultHtmlStyle(
-  htmlStyle?: HtmlStyle
+  htmlStyle?: HtmlStyle,
+  htmlStyleToMergeWith: HtmlStyle = DEFAULT_HTML_STYLE
 ): Required<HtmlStyle> {
   const style = htmlStyle ?? {};
 
-  const mentionMap = expandMentionStylesForIndicatorsIncludeDefault(style);
+  const mentionMap = expandMentionStylesForIndicatorsIncludeDefault(
+    style,
+    htmlStyleToMergeWith
+  );
   const converted: HtmlStyle = {
     ...style,
     mention: mentionMap,
   };
 
-  const merged: Record<string, unknown> = { ...DEFAULT_HTML_STYLE };
+  const merged: Record<string, unknown> = { ...htmlStyleToMergeWith };
 
   for (const key in converted) {
     if (key === 'mention') {
@@ -30,7 +42,7 @@ export function mergeWithDefaultHtmlStyle(
       continue;
     }
     merged[key] = {
-      ...DEFAULT_HTML_STYLE[key as keyof HtmlStyle],
+      ...htmlStyleToMergeWith[key as keyof HtmlStyle],
       ...(converted[key as keyof HtmlStyle] as object),
     };
   }
@@ -38,39 +50,76 @@ export function mergeWithDefaultHtmlStyle(
   return merged as Required<HtmlStyle>;
 }
 
-const ETI_CSS_VARS = {
-  codeColor: '--eti-code-color',
-  codeBgColor: '--eti-code-bg-color',
-  blockquoteBorderColor: '--eti-blockquote-border-color',
-  blockquoteBorderWidth: '--eti-blockquote-border-width',
-  blockquoteGapWidth: '--eti-blockquote-gap-width',
-  blockquoteColor: '--eti-blockquote-color',
-  codeblockBgColor: '--eti-codeblock-bg-color',
-  codeblockColor: '--eti-codeblock-color',
-  codeblockBorderRadius: '--eti-codeblock-border-radius',
-  linkColor: '--eti-link-color',
-  linkTextDecorationLine: '--eti-link-text-decoration-line',
-  ulBulletColor: '--eti-ul-bullet-color',
-  ulBulletSize: '--eti-ul-bullet-size',
-  ulMarginLeft: '--eti-ul-margin-left',
-  ulGapWidth: '--eti-ul-gap-width',
-  olMarginLeft: '--eti-ol-margin-left',
-  olGapWidth: '--eti-ol-gap-width',
-  olMarkerColor: '--eti-ol-marker-color',
-  olMarkerFontWeight: '--eti-ol-marker-font-weight',
-  checkboxBoxSize: '--eti-checkbox-box-size',
-  checkboxGapWidth: '--eti-checkbox-gap-width',
-  checkboxMarginLeft: '--eti-checkbox-margin-left',
-  checkboxBoxColor: '--eti-checkbox-box-color',
+export function mergeWithDefaultEnrichedTextHtmlStyle(
+  htmlStyle?: EnrichedTextHtmlStyle
+): Required<EnrichedTextHtmlStyle> {
+  const merged = mergeWithDefaultHtmlStyle(
+    htmlStyle as HtmlStyle,
+    DEFAULT_ENRICHED_TEXT_STYLE
+  );
+
+  const a = {
+    ...DEFAULT_ENRICHED_TEXT_STYLE.a,
+    ...htmlStyle?.a,
+  };
+
+  const mentionDefaults = DEFAULT_ENRICHED_TEXT_STYLE.mention;
+  const passedMentionMap = htmlStyle?.mention;
+  const mergedMentionMap = merged.mention as Record<
+    string,
+    EnrichedTextMentionStyleProperties
+  >;
+  const mention: Record<string, EnrichedTextMentionStyleProperties> = {};
+  for (const indicator in mergedMentionMap) {
+    mention[indicator] = {
+      ...mentionDefaults,
+      ...(isMentionStyleRecord(passedMentionMap)
+        ? (passedMentionMap[indicator] ??
+          passedMentionMap[MENTION_STYLE_DEFAULT_KEY])
+        : passedMentionMap),
+    };
+  }
+
+  return {
+    ...merged,
+    a,
+    mention,
+  } as Required<EnrichedTextHtmlStyle>;
+}
+
+const ET_CSS_VARS = {
+  codeColor: '--et-code-color',
+  codeBgColor: '--et-code-bg-color',
+  blockquoteBorderColor: '--et-blockquote-border-color',
+  blockquoteBorderWidth: '--et-blockquote-border-width',
+  blockquoteGapWidth: '--et-blockquote-gap-width',
+  blockquoteColor: '--et-blockquote-color',
+  codeblockBgColor: '--et-codeblock-bg-color',
+  codeblockColor: '--et-codeblock-color',
+  codeblockBorderRadius: '--et-codeblock-border-radius',
+  linkColor: '--et-link-color',
+  linkTextDecorationLine: '--et-link-text-decoration-line',
+  ulBulletColor: '--et-ul-bullet-color',
+  ulBulletSize: '--et-ul-bullet-size',
+  ulMarginLeft: '--et-ul-margin-left',
+  ulGapWidth: '--et-ul-gap-width',
+  olMarginLeft: '--et-ol-margin-left',
+  olGapWidth: '--et-ol-gap-width',
+  olMarkerColor: '--et-ol-marker-color',
+  olMarkerFontWeight: '--et-ol-marker-font-weight',
+  checkboxBoxSize: '--et-checkbox-box-size',
+  checkboxGapWidth: '--et-checkbox-gap-width',
+  checkboxMarginLeft: '--et-checkbox-margin-left',
+  checkboxBoxColor: '--et-checkbox-box-color',
 } as const;
 
-export const ETI_MENTION_CSS_VARS = {
+export const ET_MENTION_CSS_VARS = {
   color: (indicator: string) =>
-    `--eti-mention-${indicatorToMentionCssKey(indicator)}-color`,
+    `--et-mention-${indicatorToMentionCssKey(indicator)}-color`,
   backgroundColor: (indicator: string) =>
-    `--eti-mention-${indicatorToMentionCssKey(indicator)}-background-color`,
+    `--et-mention-${indicatorToMentionCssKey(indicator)}-background-color`,
   textDecorationLine: (indicator: string) =>
-    `--eti-mention-${indicatorToMentionCssKey(indicator)}-text-decoration-line`,
+    `--et-mention-${indicatorToMentionCssKey(indicator)}-text-decoration-line`,
 } as const;
 
 function setColorVar(
@@ -94,8 +143,8 @@ function applyCodeVars(
   vars: Record<string, string>,
   code?: HtmlStyle['code']
 ): void {
-  setColorVar(vars, ETI_CSS_VARS.codeColor, code?.color);
-  setColorVar(vars, ETI_CSS_VARS.codeBgColor, code?.backgroundColor);
+  setColorVar(vars, ET_CSS_VARS.codeColor, code?.color);
+  setColorVar(vars, ET_CSS_VARS.codeBgColor, code?.backgroundColor);
 }
 
 function applyHeadingVars(
@@ -105,9 +154,9 @@ function applyHeadingVars(
   for (const level of HEADING_TAGS) {
     const h = htmlStyle?.[level];
     if (h?.fontSize != null)
-      vars[`--eti-${level}-font-size`] = `${h.fontSize}px`;
+      vars[`--et-${level}-font-size`] = `${h.fontSize}px`;
     if (h?.bold != null)
-      vars[`--eti-${level}-font-weight`] = h.bold ? 'bold' : 'normal';
+      vars[`--et-${level}-font-weight`] = h.bold ? 'bold' : 'normal';
   }
 }
 
@@ -115,28 +164,28 @@ function applyBlockquoteVars(
   vars: Record<string, string>,
   bq?: HtmlStyle['blockquote']
 ): void {
-  setColorVar(vars, ETI_CSS_VARS.blockquoteBorderColor, bq?.borderColor);
-  setPxVar(vars, ETI_CSS_VARS.blockquoteBorderWidth, bq?.borderWidth);
-  setPxVar(vars, ETI_CSS_VARS.blockquoteGapWidth, bq?.gapWidth);
-  setColorVar(vars, ETI_CSS_VARS.blockquoteColor, bq?.color);
+  setColorVar(vars, ET_CSS_VARS.blockquoteBorderColor, bq?.borderColor);
+  setPxVar(vars, ET_CSS_VARS.blockquoteBorderWidth, bq?.borderWidth);
+  setPxVar(vars, ET_CSS_VARS.blockquoteGapWidth, bq?.gapWidth);
+  setColorVar(vars, ET_CSS_VARS.blockquoteColor, bq?.color);
 }
 
 function applyCodeblockVars(
   vars: Record<string, string>,
   cb?: HtmlStyle['codeblock']
 ): void {
-  setColorVar(vars, ETI_CSS_VARS.codeblockBgColor, cb?.backgroundColor);
-  setColorVar(vars, ETI_CSS_VARS.codeblockColor, cb?.color);
-  setPxVar(vars, ETI_CSS_VARS.codeblockBorderRadius, cb?.borderRadius);
+  setColorVar(vars, ET_CSS_VARS.codeblockBgColor, cb?.backgroundColor);
+  setColorVar(vars, ET_CSS_VARS.codeblockColor, cb?.color);
+  setPxVar(vars, ET_CSS_VARS.codeblockBorderRadius, cb?.borderRadius);
 }
 
 function applyLinkVars(
   vars: Record<string, string>,
   anchor?: HtmlStyle['a']
 ): void {
-  setColorVar(vars, ETI_CSS_VARS.linkColor, anchor?.color);
+  setColorVar(vars, ET_CSS_VARS.linkColor, anchor?.color);
   if (anchor?.textDecorationLine != null) {
-    vars[ETI_CSS_VARS.linkTextDecorationLine] = anchor.textDecorationLine;
+    vars[ET_CSS_VARS.linkTextDecorationLine] = anchor.textDecorationLine;
   }
 }
 
@@ -144,21 +193,21 @@ function applyUnorderedListVars(
   vars: Record<string, string>,
   ul?: HtmlStyle['ul']
 ): void {
-  setColorVar(vars, ETI_CSS_VARS.ulBulletColor, ul?.bulletColor);
-  setPxVar(vars, ETI_CSS_VARS.ulBulletSize, ul?.bulletSize);
-  setPxVar(vars, ETI_CSS_VARS.ulMarginLeft, ul?.marginLeft);
-  setPxVar(vars, ETI_CSS_VARS.ulGapWidth, ul?.gapWidth);
+  setColorVar(vars, ET_CSS_VARS.ulBulletColor, ul?.bulletColor);
+  setPxVar(vars, ET_CSS_VARS.ulBulletSize, ul?.bulletSize);
+  setPxVar(vars, ET_CSS_VARS.ulMarginLeft, ul?.marginLeft);
+  setPxVar(vars, ET_CSS_VARS.ulGapWidth, ul?.gapWidth);
 }
 
 function applyOrderedListVars(
   vars: Record<string, string>,
   ol?: HtmlStyle['ol']
 ): void {
-  setPxVar(vars, ETI_CSS_VARS.olMarginLeft, ol?.marginLeft);
-  setPxVar(vars, ETI_CSS_VARS.olGapWidth, ol?.gapWidth);
-  setColorVar(vars, ETI_CSS_VARS.olMarkerColor, ol?.markerColor);
+  setPxVar(vars, ET_CSS_VARS.olMarginLeft, ol?.marginLeft);
+  setPxVar(vars, ET_CSS_VARS.olGapWidth, ol?.gapWidth);
+  setColorVar(vars, ET_CSS_VARS.olMarkerColor, ol?.markerColor);
   if (ol?.markerFontWeight != null) {
-    vars[ETI_CSS_VARS.olMarkerFontWeight] = String(ol.markerFontWeight);
+    vars[ET_CSS_VARS.olMarkerFontWeight] = String(ol.markerFontWeight);
   }
 }
 
@@ -166,35 +215,36 @@ function applyCheckboxListVars(
   vars: Record<string, string>,
   ulCheckbox?: HtmlStyle['ulCheckbox']
 ): void {
-  setPxVar(vars, ETI_CSS_VARS.checkboxBoxSize, ulCheckbox?.boxSize);
-  setPxVar(vars, ETI_CSS_VARS.checkboxGapWidth, ulCheckbox?.gapWidth);
-  setPxVar(vars, ETI_CSS_VARS.checkboxMarginLeft, ulCheckbox?.marginLeft);
-  setColorVar(vars, ETI_CSS_VARS.checkboxBoxColor, ulCheckbox?.boxColor);
+  setPxVar(vars, ET_CSS_VARS.checkboxBoxSize, ulCheckbox?.boxSize);
+  setPxVar(vars, ET_CSS_VARS.checkboxGapWidth, ulCheckbox?.gapWidth);
+  setPxVar(vars, ET_CSS_VARS.checkboxMarginLeft, ulCheckbox?.marginLeft);
+  setColorVar(vars, ET_CSS_VARS.checkboxBoxColor, ulCheckbox?.boxColor);
 }
 
 function applyMentionVars(
   vars: Record<string, string>,
   mention: Record<string, MentionStyleProperties>
 ): void {
+  if (!mention) return;
+
   for (const [indicator, mentionStyle] of Object.entries(mention)) {
+    setColorVar(vars, ET_MENTION_CSS_VARS.color(indicator), mentionStyle.color);
     setColorVar(
       vars,
-      ETI_MENTION_CSS_VARS.color(indicator),
-      mentionStyle.color
-    );
-    setColorVar(
-      vars,
-      ETI_MENTION_CSS_VARS.backgroundColor(indicator),
+      ET_MENTION_CSS_VARS.backgroundColor(indicator),
       mentionStyle.backgroundColor
     );
     if (mentionStyle.textDecorationLine != null) {
-      vars[ETI_MENTION_CSS_VARS.textDecorationLine(indicator)] =
+      vars[ET_MENTION_CSS_VARS.textDecorationLine(indicator)] =
         mentionStyle.textDecorationLine;
     }
   }
 }
 
-function expandMentionStylesForIndicatorsIncludeDefault(htmlStyle?: HtmlStyle) {
+function expandMentionStylesForIndicatorsIncludeDefault(
+  htmlStyle: HtmlStyle,
+  htmlStyleToMergeWith: HtmlStyle
+) {
   const mentionIndicators = isMentionStyleRecord(htmlStyle?.mention)
     ? Object.keys(htmlStyle?.mention)
     : [];
@@ -204,11 +254,12 @@ function expandMentionStylesForIndicatorsIncludeDefault(htmlStyle?: HtmlStyle) {
 
   return expandMentionStylesForIndicators(
     htmlStyle?.mention,
-    mentionIndicators
+    mentionIndicators,
+    htmlStyleToMergeWith
   );
 }
 
-export function htmlStyleToCSSVariables(htmlStyle?: HtmlStyle): CSSProperties {
+export function htmlStyleToCSSVariables(htmlStyle: HtmlStyle): CSSProperties {
   const vars: Record<string, string> = {};
   applyCodeVars(vars, htmlStyle?.code);
   applyHeadingVars(vars, htmlStyle);
@@ -220,7 +271,7 @@ export function htmlStyleToCSSVariables(htmlStyle?: HtmlStyle): CSSProperties {
   applyCheckboxListVars(vars, htmlStyle?.ulCheckbox);
   applyMentionVars(
     vars,
-    expandMentionStylesForIndicatorsIncludeDefault(htmlStyle)
+    htmlStyle.mention as Record<string, MentionStyleProperties>
   );
   return vars as CSSProperties;
 }
