@@ -125,7 +125,7 @@ export function VisualRegression() {
           onChange={(e: ChangeEvent<HTMLTextAreaElement>) => {
             setTextShortcutsJson(e.target.value);
           }}
-          placeholder={'e.g. [{"trigger":"* ","style":"italic"}]'}
+          placeholder={'e.g. [{"trigger":"*","style":"italic"}]'}
           rows={2}
           style={styles.htmlStyleOverrideInput}
         />
