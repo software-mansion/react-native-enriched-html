@@ -72,10 +72,14 @@ function getBlockContext(
 
   if (!$pos.parent.isTextblock) return null;
 
-  return {
-    blockText: $pos.parent.textContent,
-    blockStart: $pos.start(),
-  };
+  const blockStart = $pos.start();
+  const blockEnd = $pos.end();
+
+  // Use `leafText` so inline atom nodes (e.g. images) contribute a single
+  // placeholder character, keeping string indices aligned with doc positions.
+  const blockText = doc.textBetween(blockStart, blockEnd, undefined, '\ufffc');
+
+  return { blockText, blockStart };
 }
 
 /**
