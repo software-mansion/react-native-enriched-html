@@ -1,4 +1,11 @@
-import { memo, useMemo, useRef, useState, type CSSProperties } from 'react';
+import {
+  memo,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from 'react';
 import type { EnrichedTextProps } from '../types';
 import './EnrichedText.css';
 import { enrichedTextStyleToCSSProperties } from './styleConversion/enrichedTextStyleToCSSProperties';
@@ -14,12 +21,20 @@ import { prepareHtmlForWeb } from './normalization/prepareHtmlForWeb';
 import { INLINE_IMAGE_CSS_VARIABLES } from './styleConversion/inlineImageCSSVariables';
 import { useImageErrorFallback } from './useImageErrorFallback';
 import { usePressInteractions } from './usePressInteractions';
-// import { useHeadEllipsize } from './ellipsizeMode/useHeadEllipsize';
-import { useClip } from './ellipsizeMode/useClip';
-// import { useTailEllipsize } from './ellipsizeMode/useTailEllipsize';
+import { headEllipsize } from './ellipsizeMode/headEllipsize';
+import { middleEllipsize } from './ellipsizeMode/middleEllipsize';
+import { tailEllipsize } from './ellipsizeMode/tailEllipsize';
+import { clip } from './ellipsizeMode/clip';
 
 export const EnrichedText = memo(
-  ({ children, htmlStyle, style, selectionColor }: EnrichedTextProps) => {
+  ({
+    children,
+    htmlStyle,
+    style,
+    selectionColor,
+    ellipsizeMode = 'tail',
+    numberOfLines = 0,
+  }: EnrichedTextProps) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const [clampedHtml, setClampedHtml] = useState<string | null>(null);
 
@@ -67,9 +82,34 @@ export const EnrichedText = memo(
       [textStyle, themingStyle, cssVars]
     );
 
-    // useTailEllipsize(containerRef, finalHtml, setClampedHtml);
-    // useHeadEllipsize(containerRef, finalHtml, setClampedHtml);
-    useClip(containerRef, finalHtml, setClampedHtml);
+    // a single layout effect picks the truncation strategy so the hook is
+    // never called conditionally; the strategies themselves are plain functions
+    useLayoutEffect(() => {
+      const container = containerRef.current;
+      if (!container) return;
+
+      // 0 (or less) means no limit - render the full content
+      if (numberOfLines <= 0) {
+        setClampedHtml(finalHtml);
+        return;
+      }
+
+      switch (ellipsizeMode) {
+        case 'head':
+          headEllipsize(container, finalHtml, numberOfLines, setClampedHtml);
+          break;
+        case 'middle':
+          middleEllipsize(container, finalHtml, numberOfLines, setClampedHtml);
+          break;
+        case 'clip':
+          clip(container, finalHtml, numberOfLines, setClampedHtml);
+          break;
+        case 'tail':
+        default:
+          tailEllipsize(container, finalHtml, numberOfLines, setClampedHtml);
+          break;
+      }
+    }, [containerRef, finalHtml, ellipsizeMode, numberOfLines]);
 
     usePressInteractions(containerRef);
     useImageErrorFallback(containerRef);
