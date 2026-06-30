@@ -616,9 +616,9 @@ Default value:
 ];
 ```
 
-| Type             | Default Value | Platform |
-| ---------------- | ------------- | -------- |
-| `TextShortcut[]` | see above     | Both     |
+| Type             | Default Value | Platform          |
+| ---------------- | ------------- | ----------------- |
+| `TextShortcut[]` | see above     | iOS, Android, Web |
 
 > [!NOTE]
 > Pass an empty array to disable all shortcuts.

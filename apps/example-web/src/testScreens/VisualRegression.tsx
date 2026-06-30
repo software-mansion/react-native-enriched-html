@@ -5,6 +5,7 @@ import {
   type EnrichedTextInputInstance,
   type HtmlStyle,
   type OnChangeStateEvent,
+  type TextShortcut,
 } from 'react-native-enriched-html';
 import { Toolbar } from '../components/Toolbar';
 import { WEB_DEFAULT_HTML_STYLE } from '../defaultHtmlStyle';
@@ -35,6 +36,7 @@ export function VisualRegression() {
   );
   const [editorHtml, setEditorHtml] = useState('');
   const [htmlStyleOverrideJson, setHtmlStyleOverrideJson] = useState('');
+  const [textShortcutsJson, setTextShortcutsJson] = useState('');
 
   const htmlStyle = useMemo<HtmlStyle>(() => {
     const raw = htmlStyleOverrideJson.trim();
@@ -48,6 +50,17 @@ export function VisualRegression() {
       return WEB_DEFAULT_HTML_STYLE;
     }
   }, [htmlStyleOverrideJson]);
+
+  const textShortcuts = useMemo<TextShortcut[] | undefined>(() => {
+    const raw = textShortcutsJson.trim();
+    if (!raw) return undefined;
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+      return JSON.parse(raw) as TextShortcut[];
+    } catch {
+      return undefined;
+    }
+  }, [textShortcutsJson]);
 
   const handleSetValue = () => {
     ref.current?.setValue(htmlInput);
@@ -77,6 +90,7 @@ export function VisualRegression() {
           onChangeState={(e) => {
             setEditorState(e.nativeEvent);
           }}
+          textShortcuts={textShortcuts}
         />
       </div>
 
@@ -103,6 +117,16 @@ export function VisualRegression() {
           }}
           placeholder={'e.g. { "h1": { "bold": false } }'}
           rows={3}
+          style={styles.htmlStyleOverrideInput}
+        />
+        <textarea
+          data-testid="visual-regression-text-shortcuts"
+          value={textShortcutsJson}
+          onChange={(e: ChangeEvent<HTMLTextAreaElement>) => {
+            setTextShortcutsJson(e.target.value);
+          }}
+          placeholder={'e.g. [{"trigger":"*","style":"italic"}]'}
+          rows={2}
           style={styles.htmlStyleOverrideInput}
         />
         <textarea

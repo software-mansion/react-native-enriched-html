@@ -18,6 +18,7 @@ Web support is still experimental. APIs and behavior can change in future releas
 - Input theming via `placeholderTextColor`, `cursorColor` and `selectionColor` props
 - Keyboard shortcuts for formatting
 - `useHtmlNormalizer`
+- `textShortcuts`
 
 ## Keyboard shortcuts
 
@@ -30,7 +31,6 @@ See [Web Keyboard Shortcuts](./INPUT_API_REFERENCE.md#web-keyboard-shortcuts) fo
 - **RN layout ref methods**: `measure`, `measureInWindow`, `measureLayout`, and `setNativeProps` are no-ops.
 - **`EnrichedText`**: The read-only component is not exported on web.
 - **`ViewProps`**: Props inherited from `View` beyond the implemented subset are not forwarded.
-- **`textShortcuts`**: ignored on web.
 
 ## HTML sanitization
 
