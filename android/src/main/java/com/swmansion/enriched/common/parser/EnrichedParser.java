@@ -67,6 +67,11 @@ public class EnrichedParser {
   }
 
   public static <T> Spanned fromHtml(String source, T style, EnrichedSpanFactory<T> spanFactory) {
+    return fromHtml(source, style, spanFactory, null);
+  }
+
+  public static <T> Spanned fromHtml(
+      String source, T style, EnrichedSpanFactory<T> spanFactory, Pattern linkRegex) {
     Parser parser = new Parser();
     try {
       parser.setProperty(Parser.schemaProperty, HtmlParser.schema);
@@ -75,7 +80,7 @@ public class EnrichedParser {
       throw new RuntimeException(e);
     }
     HtmlToSpannedConverter converter =
-        new HtmlToSpannedConverter(source, style, parser, spanFactory);
+        new HtmlToSpannedConverter(source, style, parser, spanFactory, linkRegex);
     return converter.convert();
   }
 
@@ -409,6 +414,7 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
   private final String mSource;
   private final XMLReader mReader;
   private final SpannableStringBuilder mSpannableStringBuilder;
+  private final Pattern mLinkRegex;
   private static Integer currentOrderedListItemIndex = 0;
   private static Boolean isInOrderedList = false;
   private static Boolean isInCheckboxList = false;
@@ -433,12 +439,17 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
   }
 
   public HtmlToSpannedConverter(
-      String source, T style, Parser parser, EnrichedSpanFactory<T> spanFactory) {
+      String source,
+      T style,
+      Parser parser,
+      EnrichedSpanFactory<T> spanFactory,
+      Pattern linkRegex) {
     mStyle = style;
     mSource = source;
     mSpannableStringBuilder = new SpannableStringBuilder();
     mReader = parser;
     mSpanFactory = spanFactory;
+    mLinkRegex = linkRegex;
   }
 
   public Spanned convert() {
@@ -600,7 +611,7 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
     } else if (tag.equalsIgnoreCase("codeblock")) {
       endCodeBlock(mSpannableStringBuilder, mStyle, mSpanFactory);
     } else if (tag.equalsIgnoreCase("a")) {
-      endA(mSpannableStringBuilder, mStyle, mSpanFactory);
+      endA(mSpannableStringBuilder, mStyle, mSpanFactory, mLinkRegex);
     } else if (tag.equalsIgnoreCase("u")) {
       end(mSpannableStringBuilder, Underline.class, mSpanFactory.createUnderlineSpan(mStyle));
     } else if (tag.equalsIgnoreCase("s")) {
@@ -858,12 +869,18 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
     start(text, new Href(href));
   }
 
-  private static <T> void endA(Editable text, T style, EnrichedSpanFactory<T> spanFactory) {
+  private static boolean urlMatchesLinkRegex(String url, Pattern linkRegex) {
+    if (linkRegex == null) return false;
+    return linkRegex.matcher(url).matches();
+  }
+
+  private static <T> void endA(
+      Editable text, T style, EnrichedSpanFactory<T> spanFactory, Pattern linkRegex) {
     Href h = getLast(text, Href.class);
-    if (h != null) {
-      if (h.mHref != null) {
-        setSpanFromMark(text, h, spanFactory.createLinkSpan(h.mHref, style));
-      }
+    if (h != null && h.mHref != null) {
+      String linkText = text.subSequence(text.getSpanStart(h), text.length()).toString();
+      boolean isManual = !linkText.equals(h.mHref) || !urlMatchesLinkRegex(h.mHref, linkRegex);
+      setSpanFromMark(text, h, spanFactory.createLinkSpan(h.mHref, style, isManual));
     }
   }
 

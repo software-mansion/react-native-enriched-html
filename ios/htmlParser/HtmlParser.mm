@@ -1,6 +1,7 @@
 #import "HtmlParser.h"
 #import "AlignmentEntry.h"
 #import "AlignmentUtils.h"
+#import "EnrichedConfig.h"
 #import "ImageData.h"
 #import "LinkData.h"
 #import "MentionParams.h"
@@ -414,7 +415,9 @@
   return fixedHtml;
 }
 
-+ (NSArray *_Nonnull)getTextAndStylesFromHtml:(NSString *_Nonnull)fixedHtml {
++ (NSArray *_Nonnull)getTextAndStylesFromHtml:(NSString *_Nonnull)fixedHtml
+                                       config:
+                                           (EnrichedConfig *_Nullable)config {
   NSMutableString *plainText = [[NSMutableString alloc] initWithString:@""];
   NSMutableDictionary *ongoingTags = [[NSMutableDictionary alloc] init];
   NSMutableArray *initiallyProcessedTags = [[NSMutableArray alloc] init];
@@ -759,7 +762,7 @@
       LinkData *linkData = [[LinkData alloc] init];
       linkData.url = url;
       linkData.text = text;
-      linkData.isManual = ![text isEqualToString:url];
+      linkData.isManual = ![text isEqualToString:url] || ![LinkStyle matchesLinkRegexWithConfig:url config:config]);
 
       stylePair.styleValue = linkData;
     } else if ([tagName isEqualToString:@"mention"]) {
