@@ -76,6 +76,7 @@ import { StripMarksOnImagePlugin } from './pmPlugins/StripMarksOnImagePlugin';
 import { ShortcutPlugin } from './pmPlugins/ShortcutPlugin';
 import { returnKeyTypeToEnterKeyHint } from './returnKeyTypeToEnterKeyHint';
 import { AutolinkPlugin } from './pmPlugins/AutolinkPlugin';
+import { useStableRef } from './useStableRef';
 
 function runFocused(
   editor: Editor,
@@ -126,56 +127,26 @@ export const EnrichedTextInput = ({
     () => mergeWithDefaultHtmlStyle(htmlStyle),
     [htmlStyle]
   );
-
-  const htmlStyleRef = useRef(resolvedHtmlStyle);
-  useEffect(() => {
-    htmlStyleRef.current = resolvedHtmlStyle;
-  }, [resolvedHtmlStyle]);
-
-  const onPasteImagesRef = useRef(onPasteImages);
-  useEffect(() => {
-    onPasteImagesRef.current = onPasteImages;
-  }, [onPasteImages]);
-
-  const mentionIndicatorsRef = useRef(mentionIndicators);
-  useEffect(() => {
-    mentionIndicatorsRef.current = mentionIndicators;
-  }, [mentionIndicators]);
-
-  const mentionCallbacksRef = useRef({
-    onStartMention,
-    onChangeMention,
-    onEndMention,
-    onMentionDetected,
-  });
-  useEffect(() => {
-    mentionCallbacksRef.current = {
+  const mentionCallbacks = useMemo(
+    () => ({
       onStartMention,
       onChangeMention,
       onEndMention,
       onMentionDetected,
-    };
-  }, [onStartMention, onChangeMention, onEndMention, onMentionDetected]);
+    }),
+    [onStartMention, onChangeMention, onEndMention, onMentionDetected]
+  );
 
-  const submitBehaviorRef = useRef(submitBehavior);
-  const onSubmitEditingRef = useRef(onSubmitEditing);
-  const onKeyPressRef = useRef(onKeyPress);
+  const htmlStyleRef = useStableRef(resolvedHtmlStyle);
+  const onPasteImagesRef = useStableRef(onPasteImages);
+  const mentionIndicatorsRef = useStableRef(mentionIndicators);
+  const submitBehaviorRef = useStableRef(submitBehavior);
+  const onSubmitEditingRef = useStableRef(onSubmitEditing);
+  const onKeyPressRef = useStableRef(onKeyPress);
+  const useHtmlNormalizerRef = useStableRef(useHtmlNormalizer);
+  const mentionCallbacksRef = useStableRef(mentionCallbacks);
+
   const editorInstanceRef = useRef<Editor | null>(null);
-
-  useEffect(() => {
-    submitBehaviorRef.current = submitBehavior;
-  }, [submitBehavior]);
-  useEffect(() => {
-    onSubmitEditingRef.current = onSubmitEditing;
-  }, [onSubmitEditing]);
-  useEffect(() => {
-    onKeyPressRef.current = onKeyPress;
-  }, [onKeyPress]);
-
-  const useHtmlNormalizerRef = useRef(useHtmlNormalizer);
-  useEffect(() => {
-    useHtmlNormalizerRef.current = useHtmlNormalizer;
-  }, [useHtmlNormalizer]);
 
   const handleKeyDown = (doc: Node, event: KeyboardEvent): boolean => {
     onKeyPressRef.current?.(adaptWebToNativeEvent(event, { key: event.key }));
@@ -252,7 +223,7 @@ export const EnrichedTextInput = ({
         showOnlyWhenEditable: true,
       }),
     ],
-    [placeholder]
+    [placeholder, htmlStyleRef, mentionIndicatorsRef]
   );
 
   const editor = useEditor(
@@ -324,7 +295,7 @@ export const EnrichedTextInput = ({
   useEffect(() => {
     if (!editor) return;
     return subscribeMentionEvents(editor, () => mentionCallbacksRef.current);
-  }, [editor]);
+  }, [editor, mentionCallbacksRef]);
 
   useOnChangeHtml(editor, onChangeHtml);
   useOnChangeText(editor, onChangeText);
@@ -388,7 +359,7 @@ export const EnrichedTextInput = ({
       setNativeProps: () => {},
       setTextAlignment: () => {},
     }),
-    [editor]
+    [editor, mentionIndicatorsRef, useHtmlNormalizerRef]
   );
 
   const editorStyle: CSSProperties = useMemo(
