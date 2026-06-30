@@ -62,7 +62,9 @@ async function setMode(page: Page, mode: EllipsizeMode): Promise<void> {
     .toBe(mode);
 }
 
-const MODES: EllipsizeMode[] = ['head', 'middle', 'tail', 'clip'];
+// 'middle' is excluded - it is not implemented on web and falls back to 'tail',
+// so it would just duplicate the 'tail' snapshots
+const MODES: EllipsizeMode[] = ['head', 'tail', 'clip'];
 
 // Cases run for every ellipsize mode. Add a new entry here to have it
 // exercised across all four modes (it.each-style table).

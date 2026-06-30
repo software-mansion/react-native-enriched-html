@@ -22,7 +22,6 @@ import { INLINE_IMAGE_CSS_VARIABLES } from './styleConversion/inlineImageCSSVari
 import { useImageErrorFallback } from './useImageErrorFallback';
 import { usePressInteractions } from './usePressInteractions';
 import { headEllipsize } from './ellipsizeMode/headEllipsize';
-import { middleEllipsize } from './ellipsizeMode/middleEllipsize';
 import { tailEllipsize } from './ellipsizeMode/tailEllipsize';
 import { clip } from './ellipsizeMode/clip';
 
@@ -98,12 +97,10 @@ export const EnrichedText = memo(
         case 'head':
           headEllipsize(container, finalHtml, numberOfLines, setClampedHtml);
           break;
-        case 'middle':
-          middleEllipsize(container, finalHtml, numberOfLines, setClampedHtml);
-          break;
         case 'clip':
           clip(container, finalHtml, numberOfLines, setClampedHtml);
           break;
+        // 'middle' is not implemented on web - it falls back to the default 'tail'
         case 'tail':
         default:
           tailEllipsize(container, finalHtml, numberOfLines, setClampedHtml);
