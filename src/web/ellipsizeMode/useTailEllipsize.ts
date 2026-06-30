@@ -1,6 +1,19 @@
 import { useLayoutEffect } from 'react';
 import { ENRICHED_TEXT_CLASSNAME } from '../constants/classNames';
 
+const BLOCK_TAGS = new Set([
+  'P',
+  'H1',
+  'H2',
+  'H3',
+  'H4',
+  'H5',
+  'H6',
+  'LI',
+  'BLOCKQUOTE',
+  'CODEBLOCK',
+]);
+
 export function useTailEllipsize(
   containerRef: React.RefObject<HTMLDivElement | null>,
   finalHtml: string,
@@ -37,7 +50,17 @@ export function useTailEllipsize(
     const walkerFilter = {
       acceptNode: (n: Node) => {
         if (n.nodeType === Node.TEXT_NODE) return NodeFilter.FILTER_ACCEPT;
-        if (n.nodeName === 'IMG') return NodeFilter.FILTER_ACCEPT;
+        if (n.nodeName === 'IMG' || n.nodeName === 'BR')
+          return NodeFilter.FILTER_ACCEPT;
+
+        // let the walker see the empty blocks
+        if (n.nodeType === Node.ELEMENT_NODE && BLOCK_TAGS.has(n.nodeName)) {
+          const el = n as HTMLElement;
+          const textEmpty = !el.textContent?.trim();
+          const hasImg = !!el.querySelector('img');
+          if (textEmpty && !hasImg) return NodeFilter.FILTER_ACCEPT;
+        }
+
         return NodeFilter.FILTER_SKIP;
       },
     };
@@ -51,6 +74,7 @@ export function useTailEllipsize(
 
     let currentLine = 1;
     let lastBottom: number | null = null;
+    // the node that starts the overflow
     let targetNode: Node | null = null;
 
     // forward scan - we find the first element that overflows to the forbidden line
@@ -77,9 +101,13 @@ export function useTailEllipsize(
           }
           lastBottom = rect.bottom;
         }
-      } else if (node.nodeName === 'IMG') {
-        const imgElement = node as HTMLImageElement;
-        const rect = imgElement.getBoundingClientRect();
+      } else if (
+        node.nodeName === 'IMG' ||
+        node.nodeName === 'BR' ||
+        (node.nodeType === Node.ELEMENT_NODE && BLOCK_TAGS.has(node.nodeName))
+      ) {
+        const el = node as HTMLElement;
+        const rect = el.getBoundingClientRect();
 
         if (rect.height === 0) continue;
 
@@ -88,7 +116,7 @@ export function useTailEllipsize(
         }
 
         if (currentLine > NUMBER_OF_LINES) {
-          targetNode = imgElement;
+          targetNode = el;
           break;
         }
         lastBottom = rect.bottom;
@@ -151,6 +179,23 @@ export function useTailEllipsize(
             isOverflowing = false;
           }
         }
+        // handle empty blocks (like an empty <li>)
+        else if (
+          lastNode.nodeType === Node.ELEMENT_NODE &&
+          BLOCK_TAGS.has(lastNode.nodeName)
+        ) {
+          const ellipsisNode = document.createTextNode('...');
+          lastNode.appendChild(ellipsisNode);
+
+          range.selectNodeContents(ellipsisNode);
+          const rect = range.getBoundingClientRect();
+
+          if (lastBottom !== null && rect.bottom > lastBottom + 4) {
+            lastNode.parentNode?.removeChild(lastNode);
+          } else {
+            isOverflowing = false;
+          }
+        }
         // handling normal text nodes
         else {
           const lastTextNode = lastNode as Text;
@@ -162,14 +207,23 @@ export function useTailEllipsize(
             let parent = lastTextNode.parentNode;
             lastTextNode.parentNode?.removeChild(lastTextNode);
 
-            while (
-              parent &&
-              parent !== sandbox &&
-              parent.childNodes.length === 0
-            ) {
-              const p = parent.parentNode;
-              parent.parentNode?.removeChild(parent);
-              parent = p;
+            // if text removal resulted in an empty block, we have to remove it
+            while (parent && parent !== sandbox) {
+              const el = parent as HTMLElement;
+              const textEmpty = !el.textContent?.trim();
+              const hasImg = !!el.querySelector('img');
+              const hasBr = !!el.querySelector('br');
+
+              if (
+                parent.childNodes.length === 0 ||
+                (textEmpty && !hasImg && !hasBr)
+              ) {
+                const p = parent.parentNode;
+                parent.parentNode?.removeChild(parent);
+                parent = p;
+              } else {
+                break;
+              }
             }
             continue;
           }

@@ -14,7 +14,7 @@ import { prepareHtmlForWeb } from './normalization/prepareHtmlForWeb';
 import { INLINE_IMAGE_CSS_VARIABLES } from './styleConversion/inlineImageCSSVariables';
 import { useImageErrorFallback } from './useImageErrorFallback';
 import { usePressInteractions } from './usePressInteractions';
-import { useTailEllipsize } from './ellipsizeMode/useTailEllipsize';
+import { useHeadEllipsize } from './ellipsizeMode/useHeadEllipsize';
 
 export const EnrichedText = memo(
   ({ children, htmlStyle, style, selectionColor }: EnrichedTextProps) => {
@@ -65,7 +65,8 @@ export const EnrichedText = memo(
       [textStyle, themingStyle, cssVars]
     );
 
-    useTailEllipsize(containerRef, finalHtml, setClampedHtml);
+    // useTailEllipsize(containerRef, finalHtml, setClampedHtml);
+    useHeadEllipsize(containerRef, finalHtml, setClampedHtml);
 
     usePressInteractions(containerRef);
     useImageErrorFallback(containerRef);
