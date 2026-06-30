@@ -14,6 +14,10 @@ declare module '@tiptap/core' {
 export const EnrichedUnorderedList = BulletList.extend({
   name: 'unorderedList',
 
+  addInputRules() {
+    return [];
+  },
+
   addKeyboardShortcuts() {
     return {};
   },

@@ -3,6 +3,10 @@ import { OrderedList } from '@tiptap/extension-list';
 import { applyWrappingListToSelection } from './applyWrappingListToSelection';
 
 export const EnrichedOrderedList = OrderedList.extend({
+  addInputRules() {
+    return [];
+  },
+
   addKeyboardShortcuts() {
     return {};
   },
