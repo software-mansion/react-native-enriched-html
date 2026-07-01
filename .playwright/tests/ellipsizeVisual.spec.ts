@@ -4,6 +4,8 @@ test.setTimeout(90_000);
 
 type EllipsizeMode = 'head' | 'middle' | 'tail' | 'clip';
 
+const LOREM_IPSUM = `<html><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur porta placerat nulla vitae tincidunt. In tellus neque, volutpat id molestie ut, dapibus sit amet justo. Sed nec lobortis orci. Vestibulum magna est, placerat vitae libero ut, viverra mollis purus. Curabitur lacinia a libero non congue. Vestibulum et velit lacinia, feugiat odio eget, faucibus sapien. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus eu erat commodo, condimentum augue eu, fringilla purus. Morbi at nisi eget felis dignissim fringilla. Pellentesque blandit porttitor libero. Donec accumsan, leo eget ultricies rutrum, lorem purus aliquet quam, sit amet pellentesque lectus nulla non nulla.</p></html>`;
+
 const sel = {
   root: '[data-testid="test-ellipsize-root"]',
   display: '[data-testid="test-ellipsize-display"]',
@@ -17,12 +19,6 @@ const sel = {
   modeOutput: '[data-testid="test-ellipsize-mode-output"]',
   valueOutput: '[data-testid="test-ellipsize-value-output"]',
 } as const;
-
-const LONG_PARAGRAPH =
-  '<html><p>This is a fairly long paragraph that should wrap across several lines so the truncation has something to chew on. Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p></html>';
-
-const MULTI_BLOCK =
-  '<html><h4>Title that is long enough to wrap onto more than one line in the box</h4><p>First paragraph with some content.</p><ul><li>Alpha item</li><li>Beta item</li><li>Gamma item</li></ul></html>';
 
 function displayLocator(page: Page): Locator {
   return page.locator(sel.display);
@@ -62,15 +58,11 @@ async function setMode(page: Page, mode: EllipsizeMode): Promise<void> {
     .toBe(mode);
 }
 
-// 'middle' is excluded - it is not implemented on web and falls back to 'tail',
-// so it would just duplicate the 'tail' snapshots
+// 'middle' is excluded - it is not implemented on web
 const MODES: EllipsizeMode[] = ['head', 'tail', 'clip'];
 
-// Cases run for every ellipsize mode. Add a new entry here to have it
-// exercised across all four modes (it.each-style table).
 type EllipsizeCase = {
   name: string;
-  // used to build the per-mode screenshot name: `ellipsize-<slug>-<mode>.png`
   slug: string;
   html: string;
   numberOfLines: number;
@@ -78,22 +70,138 @@ type EllipsizeCase = {
 
 const SHARED_CASES: EllipsizeCase[] = [
   {
-    name: 'long paragraph clamped to 2 lines',
-    slug: 'paragraph-2-lines',
-    html: LONG_PARAGRAPH,
+    name: 'paragraph that fits',
+    slug: 'paragraph-fit',
+    html: `<html<p>hello that is a paragraph that should fit an require no ellipsis</p></html>`,
     numberOfLines: 2,
   },
   {
-    name: 'long paragraph clamped to 1 line',
-    slug: 'paragraph-1-line',
-    html: LONG_PARAGRAPH,
-    numberOfLines: 1,
+    name: 'single word wrapping to multiple lines',
+    slug: 'single-word',
+    html:
+      `<html<p>Verylongpieceoftextfitintoonelinesowecancheckthiscasewherethereis` +
+      `averylongpieceoftextanditwrapsaroundsomenumberoflinesandthatwillbetruncated` +
+      `accordinglytothesetellipsizemodeintheenrichedtextcomponent</p></html>`,
+    numberOfLines: 2,
   },
   {
-    name: 'multi-block content clamped to 3 lines',
-    slug: 'multi-block-3-lines',
-    html: MULTI_BLOCK,
+    name: 'a long word that causes line wrapping',
+    slug: 'one-word-wrapping',
+    html:
+      `<html<p>Some paragraph with a long word that will not fit and wrap.` +
+      ` The long word: Konstantynopolitanczykowianeczka</p></html>`,
+    numberOfLines: 2,
+  },
+  {
+    name: 'paragraph with a number of lines much greater than the given limit',
+    slug: 'very-long-paragraph',
+    html: LOREM_IPSUM,
+    numberOfLines: 2,
+  },
+  {
+    name: 'a number of paragraphs much greater than the given limit',
+    slug: 'multiple-short-paragraphs',
+    html: `<html<p>first</p><p>second</p><p>third</p><p>fourth</p><p>fifth</p><p>sixth</p><p>seventh</p></html`,
+    numberOfLines: 4,
+  },
+  {
+    name: 'a number of paragraphs much greater than the given limit and the last one overflows',
+    slug: 'multiple-short-paragraphs-with-last-overflow',
+    html: `<html<p>first</p><p>second</p><p>third</p><p>fourth</p><p>fifth</p><p>sixth</p><p>seventh line that will be long enough that it overflows to the next 8th line</p></html`,
+    numberOfLines: 4,
+  },
+  {
+    name: 'some text between empty paragraphs',
+    slug: 'between-empty-paragraphs',
+    html: `<html<p></p><p>between empty paragraphs</p><p></p></html>`,
+    numberOfLines: 2,
+  },
+  {
+    name: 'some empty paragraphs in the middle',
+    slug: 'empty-in-the-middle',
+    html: `<html<p>first line</p><p></p><p></p><p></p><p>last line</p></html>`,
+    numberOfLines: 2,
+  },
+  {
+    name: 'unordered list',
+    slug: 'unordered-list',
+    html: `<html><ul><li>first</li><li>second</li><li>third</li></ul></html>`,
+    numberOfLines: 2,
+  },
+  {
+    name: 'unordered list with empty elements',
+    slug: 'unordered-list-with-empty',
+    html: `<html><ul><li></li><li>second</li><li></li><li>fourth</li></ul></html>`,
     numberOfLines: 3,
+  },
+  {
+    name: 'unordered list with only empty elements',
+    slug: 'unordered-list-only-empty',
+    html: `<html><ul><li></li><li></li><li></li></ul></html>`,
+    numberOfLines: 2,
+  },
+  {
+    name: 'ordered list',
+    slug: 'ordered-list',
+    html: `<html><ol><li>first</li><li>second</li><li>third</li></ol></html>`,
+    numberOfLines: 2,
+  },
+  {
+    name: 'ordered list with empty elements',
+    slug: 'ordered-list-with-empty',
+    html: `<html><ol><li></li><li>second</li><li></li><li>fourth</li></ol></html>`,
+    numberOfLines: 3,
+  },
+  {
+    name: 'ordered list with only empty elements',
+    slug: 'ordered-list-only-empty',
+    html: `<html><ol><li></li><li></li><li></li></ol></html>`,
+    numberOfLines: 2,
+  },
+  {
+    name: 'checkbox list',
+    slug: 'checkbox-list',
+    html: `<html><ul data-type="checkbox"><li checked>first</li><li>second</li><li>third</li></ul></html>`,
+    numberOfLines: 2,
+  },
+  {
+    name: 'checkbox list with empty elements',
+    slug: 'checkbox-list-with-empty',
+    html: `<html><ul data-type="checkbox"><li checked></li><li>second</li><li></li><li>fourth</li></ul></html>`,
+    numberOfLines: 3,
+  },
+  {
+    name: 'checkbox list with only empty elements',
+    slug: 'checkbox-list-only-empty',
+    html: `<html><ul data-type="checkbox"><li checked></li><li></li><li></li></ul></html>`,
+    numberOfLines: 2,
+  },
+  {
+    name: 'different paragraph style',
+    slug: 'different-paragraph-style',
+    html: `<html><blockquote><p>this is a pretty long blockquote - a different block style paragraph, long enough to overflow in the given number of lines.</p></blockquote></html>`,
+    numberOfLines: 2,
+  },
+  {
+    name: 'different paragraph style with an empty line',
+    slug: 'different-paragraph-style-with-empty-line',
+    html: `<html><blockquote><p>this is a pretty short blockquote.</p><br><p>This is a line after an empty line.</p></blockquote></html>`,
+    numberOfLines: 2,
+  },
+  {
+    name: 'mixing different paragraph styles',
+    slug: 'paragraph-styles-mix',
+    html: `<html><p>This is a normal paragraph.</p><codeblock><p>This is a codeblock that will be long enough to overflow.</p></codeblock></html>`,
+    numberOfLines: 2,
+  },
+  {
+    name: 'inline images',
+    slug: 'inline-images',
+    html:
+      `<html><p>This is a line with an inline <img src="asd" width="80" height="80"/>image.` +
+      `</p><p>This is a second line and the inline image <img src="asd" width="80" height="80"/> ` +
+      `will make it overflow to the next line.</p><p>This is the last line with an <img src="asd" width="80" height="80"/>inline image.</p></html>`,
+    numberOfLines: 2,
   },
 ];
 
@@ -113,16 +221,3 @@ for (const mode of MODES) {
     }
   });
 }
-
-// mode-independent: with no line limit the full content is rendered
-test.describe('EnrichedText ellipsize - no clamp', () => {
-  test('numberOfLines 0 renders the full content', async ({ page }) => {
-    await gotoTestEllipsize(page);
-    await setValue(page, LONG_PARAGRAPH);
-    await setNumberOfLines(page, 0);
-
-    await expect(displayLocator(page)).toHaveScreenshot(
-      'ellipsize-paragraph-no-clamp.png'
-    );
-  });
-});
