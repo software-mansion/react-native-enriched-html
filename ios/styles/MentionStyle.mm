@@ -168,8 +168,7 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
   if (nextCharIndex < self.host.textView.textStorage.string.length) {
     unichar nextChar =
         [self.host.textView.textStorage.string characterAtIndex:nextCharIndex];
-    if ([[NSCharacterSet whitespaceAndNewlineCharacterSet]
-            characterIsMember:nextChar]) {
+    if ([[NSCharacterSet whitespaceCharacterSet] characterIsMember:nextChar]) {
       hasSpaceAfter = YES;
     }
   }
@@ -182,6 +181,14 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
              additionalAttributes:nullptr
                              host:self.host
                     withSelection:YES];
+
+  // we always want the cursor to end up after the trailing space, so when we
+  // reused an existing space (and didn't insert our own) move it one to the
+  // right
+  if (hasSpaceAfter) {
+    NSRange selection = self.host.textView.selectedRange;
+    self.host.textView.selectedRange = NSMakeRange(selection.location + 1, 0);
+  }
 
   // THEN, add the attributes to not apply them on the space
   NSRange mentionRange = NSMakeRange(rangeToBeReplaced.location, text.length);
