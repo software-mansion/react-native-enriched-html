@@ -1,6 +1,7 @@
-import type { StateField } from '@tiptap/pm/state';
+import type { EditorState, StateField } from '@tiptap/pm/state';
 import { isCaretInBlockedContext } from './isCaretInBlockedContext';
 import type { MentionPluginOptions, TriggerState } from './types';
+import type { ResolvedPos } from '@tiptap/pm/model';
 
 export function makeMentionPluginState(
   getIndicators: MentionPluginOptions['getIndicators']
@@ -19,9 +20,11 @@ export function makeMentionPluginState(
         return { active: false };
 
       const blockStart = $from.start();
+      const wordEndPos = getCurrentWordEndPosition(newEditorState, $from);
+
       const text = newEditorState.doc.textBetween(
         blockStart,
-        $from.pos,
+        wordEndPos,
         '\n',
         '\n'
       );
@@ -45,7 +48,7 @@ export function makeMentionPluginState(
         active: true,
         indicator: found.indicator,
         from: blockStart + found.indexInText,
-        to: $from.pos,
+        to: wordEndPos,
         query,
       };
     },
@@ -65,11 +68,35 @@ function findLastValidMentionIndicator(
     const isAfterSpace = idx > 0 && text[idx - 1] === ' ';
     if (!isAtStart && !isAfterSpace) continue;
 
-    // Skip indicators inside a finalized mention
-    if (isIndicatorInsideFinalizedMention(idx)) continue;
+    // Stops inside a finalized mention
+    if (isIndicatorInsideFinalizedMention(idx)) return null;
 
     return { indexInText: idx, indicator: ch };
   }
 
   return null;
+}
+
+function getCurrentWordEndPosition(state: EditorState, $from: ResolvedPos) {
+  const blockEnd = $from.end();
+
+  let wordEndPos = $from.pos;
+
+  while (wordEndPos < blockEnd) {
+    const char = state.doc.textBetween(wordEndPos, wordEndPos + 1);
+
+    if (/\s/.test(char)) {
+      break;
+    }
+
+    // Break if advancing enters a blocked context
+    const $nextPos = state.doc.resolve(wordEndPos + 1);
+    if (isCaretInBlockedContext($nextPos, state.schema)) {
+      break;
+    }
+
+    wordEndPos++;
+  }
+
+  return wordEndPos;
 }

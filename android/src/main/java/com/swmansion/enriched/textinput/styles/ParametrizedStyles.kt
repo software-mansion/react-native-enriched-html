@@ -92,7 +92,23 @@ class ParametrizedStyles(
     endCursorPosition: Int,
   ) {
     afterTextChangedLinks(startCursorPosition, endCursorPosition)
-    afterTextChangedMentions(s, startCursorPosition)
+    detectActiveMention(s, startCursorPosition)
+  }
+
+  // Re-runs in-progress mention detection on a pure caret move (no text change),
+  fun afterSelectionChangedMentions(
+    start: Int,
+    end: Int,
+  ) {
+    val s = view.text ?: return
+
+    // A non-collapsed selection can't be editing a single mention.
+    if (start != end) {
+      view.mentionHandler?.endMention()
+      return
+    }
+
+    detectActiveMention(s, end)
   }
 
   fun onStyleToggled(
@@ -240,7 +256,7 @@ class ParametrizedStyles(
     detectLinksInRange(spannable, affectedRange.first, affectedRange.last)
   }
 
-  private fun afterTextChangedMentions(
+  private fun detectActiveMention(
     s: CharSequence,
     endCursorPosition: Int,
   ) {

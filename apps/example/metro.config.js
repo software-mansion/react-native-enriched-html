@@ -10,7 +10,21 @@ const root = path.resolve(__dirname, '../..');
  *
  * @type {import('metro-config').MetroConfig}
  */
-module.exports = withMetroConfig(getDefaultConfig(__dirname), {
+const config = withMetroConfig(getDefaultConfig(__dirname), {
   root,
   dirname: __dirname,
 });
+
+config.resolver = {
+  ...config.resolver,
+  blockList: [
+    ...(Array.isArray(config.resolver?.blockList)
+      ? config.resolver.blockList
+      : config.resolver?.blockList
+        ? [config.resolver.blockList]
+        : []),
+    /.*\/\.maestro\/.*/,
+  ],
+};
+
+module.exports = config;

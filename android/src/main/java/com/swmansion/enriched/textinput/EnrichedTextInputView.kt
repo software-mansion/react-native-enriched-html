@@ -92,6 +92,7 @@ class EnrichedTextInputView :
   val alignmentStyles: AlignmentStyles? = AlignmentStyles(this)
   var isDuringTransaction: Boolean = false
   var isRemovingMany: Boolean = false
+  var recentInputString: String = ""
   var scrollEnabled: Boolean = true
   var allowFontScaling: Boolean = EnrichedConstants.ALLOW_FONT_SCALING_DEFAULT
     set(value) {
