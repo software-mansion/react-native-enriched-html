@@ -1722,17 +1722,20 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   }
 
   if (![textView.textStorage.string isEqualToString:_recentInputString]) {
-    _recentInputString = [textView.textStorage.string copy];
 
     // emit onChangeText event
     auto emitter = [self getEventEmitter];
-    if (emitter != nullptr && _emitTextChange) {
-      // emit string without zero width spaces
-      NSString *stringToBeEmitted = [[textView.textStorage.string
-          stringByReplacingOccurrencesOfString:@"\u200B"
-                                    withString:@""] copy];
+    if (emitter != nullptr) {
+      _recentInputString = [textView.textStorage.string copy];
 
-      emitter->onChangeText({.value = [stringToBeEmitted toCppString]});
+      if (_emitTextChange) {
+        // emit string without zero width spaces
+        NSString *stringToBeEmitted = [[textView.textStorage.string
+            stringByReplacingOccurrencesOfString:@"\u200B"
+                                      withString:@""] copy];
+
+        emitter->onChangeText({.value = [stringToBeEmitted toCppString]});
+      }
     }
   }
   // all the visible (not meta) attributes handling in the ranges that could
