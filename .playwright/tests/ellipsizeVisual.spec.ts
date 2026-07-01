@@ -72,14 +72,14 @@ const SHARED_CASES: EllipsizeCase[] = [
   {
     name: 'paragraph that fits',
     slug: 'paragraph-fit',
-    html: `<html<p>hello that is a paragraph that should fit an require no ellipsis</p></html>`,
+    html: `<html><p>hello that is a paragraph that should fit an require no ellipsis</p></html>`,
     numberOfLines: 2,
   },
   {
     name: 'single word wrapping to multiple lines',
     slug: 'single-word',
     html:
-      `<html<p>Verylongpieceoftextfitintoonelinesowecancheckthiscasewherethereis` +
+      `<html><p>Verylongpieceoftextfitintoonelinesowecancheckthiscasewherethereis` +
       `averylongpieceoftextanditwrapsaroundsomenumberoflinesandthatwillbetruncated` +
       `accordinglytothesetellipsizemodeintheenrichedtextcomponent</p></html>`,
     numberOfLines: 2,
@@ -88,7 +88,7 @@ const SHARED_CASES: EllipsizeCase[] = [
     name: 'a long word that causes line wrapping',
     slug: 'one-word-wrapping',
     html:
-      `<html<p>Some paragraph with a long word that will not fit and wrap.` +
+      `<html><p>Some paragraph with a long word that will not fit and wrap.` +
       ` The long word: Konstantynopolitanczykowianeczka</p></html>`,
     numberOfLines: 2,
   },
@@ -101,25 +101,31 @@ const SHARED_CASES: EllipsizeCase[] = [
   {
     name: 'a number of paragraphs much greater than the given limit',
     slug: 'multiple-short-paragraphs',
-    html: `<html<p>first</p><p>second</p><p>third</p><p>fourth</p><p>fifth</p><p>sixth</p><p>seventh</p></html`,
+    html: `<html><p>first</p><p>second</p><p>third</p><p>fourth</p><p>fifth</p><p>sixth</p><p>seventh</p></html`,
     numberOfLines: 4,
   },
   {
     name: 'a number of paragraphs much greater than the given limit and the last one overflows',
     slug: 'multiple-short-paragraphs-with-last-overflow',
-    html: `<html<p>first</p><p>second</p><p>third</p><p>fourth</p><p>fifth</p><p>sixth</p><p>seventh line that will be long enough that it overflows to the next 8th line</p></html`,
+    html: `<html><p>first</p><p>second</p><p>third</p><p>fourth</p><p>fifth</p><p>sixth</p><p>seventh line that will be long enough that it overflows to the next 8th line</p></html`,
     numberOfLines: 4,
   },
   {
     name: 'some text between empty paragraphs',
     slug: 'between-empty-paragraphs',
-    html: `<html<p></p><p>between empty paragraphs</p><p></p></html>`,
+    html: `<html><p></p><p>between empty paragraphs</p><p></p></html>`,
+    numberOfLines: 2,
+  },
+  {
+    name: 'some text between multiple empty lines',
+    slug: 'between-multiple-empty-lines',
+    html: `<html><p></p><p></p><p>between empty paragraphs</p><p></p></html>`,
     numberOfLines: 2,
   },
   {
     name: 'some empty paragraphs in the middle',
     slug: 'empty-in-the-middle',
-    html: `<html<p>first line</p><p></p><p></p><p></p><p>last line</p></html>`,
+    html: `<html><p>first line</p><p></p><p></p><p></p><p>last line</p></html>`,
     numberOfLines: 2,
   },
   {

@@ -175,6 +175,25 @@ export function tailEllipsize(
           isOverflowing = false;
         }
       }
+      // handle <br> separately
+      else if (lastNode.nodeName === 'BR') {
+        const ellipsisNode = document.createTextNode('...');
+
+        // Replace the <br> directly with the ellipsis
+        lastNode.parentNode?.insertBefore(ellipsisNode, lastNode);
+        lastNode.parentNode?.removeChild(lastNode);
+
+        range.selectNodeContents(ellipsisNode);
+        const rect = range.getBoundingClientRect();
+
+        if (lastBottom !== null && rect.bottom > lastBottom + 4) {
+          // If it still overflows, delete the ellipsis so the loop continues backwards
+          ellipsisNode.parentNode?.removeChild(ellipsisNode);
+        } else {
+          // It fits perfectly!
+          isOverflowing = false;
+        }
+      }
       // handle empty blocks (like an empty <li>)
       else if (
         lastNode.nodeType === Node.ELEMENT_NODE &&

@@ -155,12 +155,12 @@ export function clip(
 
       if (!lastNode) break;
 
-      // we have to handle inline images separately
-      if (lastNode.nodeName === 'IMG') {
+      // we have to handle inline images and <br> separately
+      if (lastNode.nodeName === 'IMG' || lastNode.nodeName === 'BR') {
         range.selectNodeContents(lastNode);
         const rect = range.getBoundingClientRect();
 
-        // check if the image pushed us onto the forbidden line
+        // check if the image or <br> pushed us onto the forbidden line
         if (lastBottom !== null && rect.bottom > lastBottom + 4) {
           // it overflowed
           lastNode.parentNode?.removeChild(lastNode);
