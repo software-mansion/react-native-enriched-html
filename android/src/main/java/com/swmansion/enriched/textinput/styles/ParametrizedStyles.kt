@@ -280,12 +280,16 @@ class ParametrizedStyles(
 
       // No previous word -> no mention to be detected
       if (previousWord == null) {
+        mentionStart = null
+        mentionEnd = null
         mentionHandler.endMention()
         return
       }
 
       // Previous word is not a mention -> end mention
       if (!mentionRegex.matches(previousWord.text)) {
+        mentionStart = null
+        mentionEnd = null
         mentionHandler.endMention()
         return
       }
@@ -314,6 +318,8 @@ class ParametrizedStyles(
       val spanEnd = spannable.getSpanEnd(span)
       val currentSpanText = spannable.subSequence(spanStart, spanEnd).toString()
       if (currentSpanText == span.getText()) {
+        mentionStart = null
+        mentionEnd = null
         mentionHandler.endMention()
         return
       }
@@ -393,8 +399,6 @@ class ParametrizedStyles(
     val end = mentionEnd ?: selectionEnd
 
     view.runAsATransaction {
-      Selection.setSelection(spannable, end)
-
       spannable.replace(start, end, text)
 
       val span = EnrichedInputMentionSpan(text, indicator, attributes, view.htmlStyle)
@@ -405,9 +409,8 @@ class ParametrizedStyles(
       val hasSpaceAtTheEnd = spannable.length > safeEnd && spannable[safeEnd] == ' '
       if (!hasSpaceAtTheEnd) {
         spannable.insert(safeEnd, " ")
-      } else {
-        Selection.setSelection(spannable, safeEnd + 1)
       }
+      Selection.setSelection(spannable, (safeEnd + 1).coerceAtMost(spannable.length))
     }
 
     view.mentionHandler?.reset()
