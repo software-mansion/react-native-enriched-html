@@ -7,6 +7,7 @@ import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.ParagraphStyle;
 import com.swmansion.enriched.common.EnrichedConstants;
+import com.swmansion.enriched.common.EnrichedSpanFlags;
 import com.swmansion.enriched.common.spans.EnrichedAlignmentSpan;
 import com.swmansion.enriched.common.spans.EnrichedBoldSpan;
 import com.swmansion.enriched.common.spans.EnrichedCheckboxListSpan;
@@ -478,10 +479,7 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
       if (end == start) {
         mSpannableStringBuilder.removeSpan(obj[i]);
       } else {
-        // TODO: verify if Spannable.SPAN_EXCLUSIVE_EXCLUSIVE does not break anything.
-        // Previously it was SPAN_PARAGRAPH. I've changed that in order to fix ranges for list
-        // items.
-        mSpannableStringBuilder.setSpan(obj[i], start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        mSpannableStringBuilder.setSpan(obj[i], start, end, EnrichedSpanFlags.forSpan(obj[i]));
       }
     }
 
@@ -516,7 +514,7 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
 
       mSpannableStringBuilder.removeSpan(zeroWidthSpaceSpan);
       mSpannableStringBuilder.setSpan(
-          zeroWidthSpaceSpan, start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+          zeroWidthSpaceSpan, start, end, EnrichedSpanFlags.forSpan(zeroWidthSpaceSpan));
     }
 
     return mSpannableStringBuilder;
@@ -813,7 +811,7 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
     int len = text.length();
     if (where != len) {
       for (Object span : spans) {
-        text.setSpan(span, where, len, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        text.setSpan(span, where, len, EnrichedSpanFlags.forSpan(span));
       }
     }
   }
@@ -836,7 +834,7 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
 
     if (where != len) {
       for (Object span : spans) {
-        text.setSpan(span, where, len, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        text.setSpan(span, where, len, EnrichedSpanFlags.forSpan(span));
       }
     }
   }
@@ -861,11 +859,9 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
 
     int len = text.length();
     text.append("￼");
-    text.setSpan(
-        spanFactory.createImageSpan(src, Integer.parseInt(width), Integer.parseInt(height)),
-        len,
-        text.length(),
-        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+    Object imageSpan =
+        spanFactory.createImageSpan(src, Integer.parseInt(width), Integer.parseInt(height));
+    text.setSpan(imageSpan, len, text.length(), EnrichedSpanFlags.forSpan(imageSpan));
   }
 
   private static void startA(Editable text, Attributes attributes) {

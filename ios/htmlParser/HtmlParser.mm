@@ -648,6 +648,10 @@
 
   // process tags into proper StyleType + StylePair values
   NSMutableArray *processedStyles = [[NSMutableArray alloc] init];
+  // Tracks the number of processed images to remove their pre-generated
+  // placeholder offsets from tag ranges when reading from plainText
+  // (which does not contain those placeholders).
+  NSInteger secondPassImageCount = 0;
 
   for (NSArray *arr in initiallyProcessedTags) {
     NSString *tagName = (NSString *)arr[0];
@@ -718,6 +722,7 @@
       }
 
       stylePair.styleValue = imageData;
+      secondPassImageCount++;
     } else if ([tagName isEqualToString:@"u"]) {
       [styleArr addObject:@([UnderlineStyle getType])];
     } else if ([tagName isEqualToString:@"s"]) {
@@ -745,7 +750,14 @@
       NSString *url =
           [params substringWithRange:NSMakeRange(hrefRange.location + 6,
                                                  hrefRange.length - 7)];
-      NSString *text = [plainText substringWithRange:tagRangeValue.rangeValue];
+
+      // tagRange location includes one extra offset per preceding image
+      // placeholder, which don't exist in plainText. Subtract them to map
+      // back to the correct plainText index.
+      NSRange adjustedRange = tagRangeValue.rangeValue;
+      NSRange plainTextRange = NSMakeRange(
+          adjustedRange.location - secondPassImageCount, adjustedRange.length);
+      NSString *text = [plainText substringWithRange:plainTextRange];
 
       LinkData *linkData = [[LinkData alloc] init];
       linkData.url = url;
