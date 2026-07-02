@@ -251,10 +251,15 @@ function emitAttributes(el: Element, name: string): string {
       );
     case 'ul': {
       const val = el.getAttribute('data-type');
-      return val === 'checkbox' ? ' data-type="checkbox"' : '';
+      return val === 'checkbox' || val === 'checkboxList'
+        ? ' data-type="checkbox"'
+        : '';
     }
     case 'li':
-      return el.hasAttribute('checked') ? ' checked' : '';
+      const isChecked =
+        el.hasAttribute('checked') ||
+        el.getAttribute('data-checked') === 'true';
+      return isChecked ? ' checked' : '';
     case 'mention':
       return (
         emitOneAttr(el, 'id') +

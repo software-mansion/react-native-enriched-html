@@ -417,6 +417,20 @@ describe('htmlNormalizer', () => {
     });
   });
 
+  describe('TiptapCheckboxList', () => {
+    test("tiptap's internal checkbox list structure gets correctly parsed", () => {
+      expect(
+        normalizeHtml(
+          `<ul data-type="checkboxList"><li data-checked="true" data-type="checkboxItem"><label>` +
+            `<input type="checkbox" checked="checked"><span></span></label><div><p>first</p></div></li>` +
+            `<li data-checked="false" data-type="checkboxItem"><label><input type="checkbox"><span></span></label><div><p>second</p></div></li></ul>`
+        )
+      ).toBe(
+        '<ul data-type="checkbox"><li checked>first</li><li>second</li></ul>'
+      );
+    });
+  });
+
   describe('BrRemappings', () => {
     test('inline collapses around <br> stay flat', () => {
       expect(
