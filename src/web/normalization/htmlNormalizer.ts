@@ -252,7 +252,7 @@ function emitAttributes(el: Element, name: string): string {
     case 'ul':
       return isCheckboxList(el) ? ' data-type="checkbox"' : '';
     case 'li':
-      // "" is the UTF-8 hex encoding for U+F0FE (MS Word Checked Box)
+      // "" is U+F0FE (MS Word checked box); often encoded as "\xEF\x83\xBE" in UTF-8.
       const isChecked =
         el.hasAttribute('checked') ||
         el.getAttribute('data-checked') === 'true' ||
