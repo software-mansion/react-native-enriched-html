@@ -405,6 +405,8 @@ class ParametrizedStyles(
       val hasSpaceAtTheEnd = spannable.length > safeEnd && spannable[safeEnd] == ' '
       if (!hasSpaceAtTheEnd) {
         spannable.insert(safeEnd, " ")
+      } else {
+        Selection.setSelection(spannable, safeEnd + 1)
       }
     }
 
