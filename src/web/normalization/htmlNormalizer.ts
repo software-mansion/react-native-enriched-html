@@ -250,15 +250,33 @@ function emitAttributes(el: Element, name: string): string {
         emitOneAttr(el, 'height')
       );
     case 'ul': {
-      const val = el.getAttribute('data-type');
-      return val === 'checkbox' || val === 'checkboxList'
-        ? ' data-type="checkbox"'
-        : '';
+      let isCheckbox =
+        el.getAttribute('data-type') === 'checkbox' ||
+        el.getAttribute('data-type') === 'checkboxList';
+
+      if (!isCheckbox) {
+        const firstLi = Array.from(el.children).find(
+          (c) => c.tagName.toLowerCase() === 'li'
+        );
+        if (firstLi) {
+          const role = firstLi.getAttribute('role');
+          const className = firstLi.getAttribute('class') || '';
+
+          // Matches Google Docs (role="checkbox") OR MS Word (class includes "checklist")
+          if (role === 'checkbox' || className.includes('checklist')) {
+            isCheckbox = true;
+          }
+        }
+      }
+
+      return isCheckbox ? ' data-type="checkbox"' : '';
     }
     case 'li':
       const isChecked =
         el.hasAttribute('checked') ||
-        el.getAttribute('data-checked') === 'true';
+        el.getAttribute('data-checked') === 'true' ||
+        el.getAttribute('aria-checked') === 'true' ||
+        el.getAttribute('data-leveltext') === ''; // MS Word checked box
       return isChecked ? ' checked' : '';
     case 'mention':
       return (
@@ -383,6 +401,15 @@ function flattenLiNode(
     return;
   }
   if (!isElement(node)) return;
+
+  if (tagName(node) === 'img') {
+    const role = ctx.el.getAttribute('role');
+    // strip the <img> that Google Docs uses for the display of a checkbox icon
+    if (role === 'checkbox') {
+      return;
+    }
+  }
+
   if (isListNode(node)) {
     ctx.nestedLists.push(node);
     return;
