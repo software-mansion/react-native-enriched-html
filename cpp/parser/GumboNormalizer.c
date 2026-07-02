@@ -595,10 +595,8 @@ static void flatten_li_node(GumboNode *node, buffer_t *ib, buffer_t *out,
   const char *tag = get_tag_name(node, buf, sizeof(buf));
   if (tag && strcmp(tag, "img") == 0) {
     const char *role = get_attr(ctx->el, "role");
-    const char *cls = get_attr(ctx->el, "class");
     // strip the <img> that Google Docs uses for the display of a checkbox icon
-    if ((role && strcmp(role, "checkbox") == 0) ||
-        (cls && strstr(cls, "checklist") != NULL)) {
+    if (role && strcmp(role, "checkbox") == 0) {
       return;
     }
   }
