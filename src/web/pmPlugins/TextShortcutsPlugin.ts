@@ -150,6 +150,8 @@ function tryParagraphShortcut(
 
     if (isFormatBlocked(style, editor, htmlStyle)) continue;
 
+    const marksToPreserve = view.state.selection.$from.marks();
+
     // Delete the prefix that is already in the doc (the last char - text -
     // hasn't been inserted yet, so we only remove the prefix portion).
     const { tr } = view.state;
@@ -157,6 +159,10 @@ function tryParagraphShortcut(
       tr.delete(blockStart, from);
     }
     view.dispatch(tr);
+
+    if (marksToPreserve.length > 0) {
+      view.dispatch(view.state.tr.setStoredMarks(marksToPreserve));
+    }
 
     applyParagraphCommand(style, editor);
     return true;
@@ -258,7 +264,7 @@ function tryInlineShortcut(
     tr.setSelection(TextSelection.create(tr.doc, finalEnd));
 
     view.dispatch(tr);
-    view.dispatch(view.state.tr.setStoredMarks([]));
+    view.dispatch(view.state.tr.removeStoredMark(markType));
     return true;
   }
 
