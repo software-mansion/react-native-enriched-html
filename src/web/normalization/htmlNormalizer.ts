@@ -363,6 +363,7 @@ type LiCtx = {
   el: Element;
   styles: CssStyles;
   nestedLists: Element[];
+  hasEmitted: boolean;
 };
 
 function flushLiBuffer(
@@ -377,6 +378,7 @@ function flushLiBuffer(
   out.buf += emitStylesClose(ctx.styles);
   out.buf += '</li>';
   ib.buf = '';
+  ctx.hasEmitted = true;
 }
 
 function flattenLiChildren(
@@ -605,9 +607,15 @@ function walkNode(node: Node, out: { buf: string }): void {
   if (outName === 'li') {
     const nestedLists: Element[] = [];
     const liIb = { buf: '' };
-    const ctx: LiCtx = { el: node, styles: es, nestedLists };
+    const ctx: LiCtx = { el: node, styles: es, nestedLists, hasEmitted: false };
     flattenLiChildren(node, liIb, out, ctx);
     flushLiBuffer(liIb, out, ctx);
+
+    // if nothing emitted - the <li> is empty, we add it manually
+    if (!ctx.hasEmitted) {
+      out.buf += `<li${emitAttributes(ctx.el, 'li')}></li>`;
+    }
+
     for (const nl of nestedLists) walkChildren(nl, out);
     return;
   }

@@ -546,6 +546,7 @@ typedef struct {
   GumboNode **nested_lists;
   int *nested_count;
   int max_nested;
+  bool has_emitted;
 } li_ctx_t;
 
 static void flatten_li_node(GumboNode *node, buffer_t *ib, buffer_t *out,
@@ -562,6 +563,7 @@ static void flush_li_buffer(buffer_t *ib, buffer_t *out, li_ctx_t *ctx) {
   emit_styles_close(out, ctx->styles);
   buffer_append_str(out, "</li>");
   buffer_clear(ib);
+  ctx->has_emitted = true;
 }
 
 static void flatten_li_children(GumboNode *node, buffer_t *ib, buffer_t *out,
@@ -885,6 +887,14 @@ static void walk_node(GumboNode *node, buffer_t *out) {
       li_ctx_t ctx = {el, es, nested_lists, &nested_count, 16};
       flatten_li_children(node, &li_ib, out, &ctx);
       flush_li_buffer(&li_ib, out, &ctx);
+
+      /* if nothing emitted - the <li> is empty, we add it manually */
+      if (!ctx.has_emitted) {
+        buffer_append_str(out, "<li");
+        emit_attributes(el, "li", out);
+        buffer_append_str(out, "></li>");
+      }
+
       free(li_ib.data);
       for (int k = 0; k < nested_count; k++)
         walk_children(nested_lists[k], out);

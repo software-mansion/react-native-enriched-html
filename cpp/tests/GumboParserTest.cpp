@@ -484,19 +484,22 @@ TEST(GumboParserTest, MSWordCheckboxList) {
 }
 
 TEST(GumboParserTest, EmptyListItems) {
-  EXPECT_EQ(GumboParser::normalizeHtml(
-                "<ul><li></li><li>first</li><li></li><li>second</li><li></li>"
-                "</ul>"),
-            "<ul><li>first</li><li>second</li></ul>");
-  EXPECT_EQ(GumboParser::normalizeHtml(
-                "<ol><li></li><li>first</li><li></li><li>second</li><li></li>"
-                "</ol>"),
-            "<ol><li>first</li><li>second</li></ol>");
-  EXPECT_EQ(GumboParser::normalizeHtml(
-                "<ul data-type=\"checkbox\"><li checked></li><li>first</li><li>"
-                "</li><li checked>second</li><li></li><li></li></ul>"),
-            "<ul data-type=\"checkbox\"><li>first</li><li "
-            "checked>second</li></ul>");
+  EXPECT_EQ(GumboParser::normalizeHtml("<ul><li></li><li>first</li><li></"
+                                       "li><li>second</li><li></li><li></li>"
+                                       "</ul>"),
+            "<ul><li></li><li>first</li><li></li><li>second</li><li></li><li></"
+            "li></ul>");
+  EXPECT_EQ(GumboParser::normalizeHtml("<ol><li></li><li>first</li><li></"
+                                       "li><li>second</li><li></li><li></li>"
+                                       "</ol>"),
+            "<ol><li></li><li>first</li><li></li><li>second</li><li></li><li></"
+            "li></ol>");
+  EXPECT_EQ(
+      GumboParser::normalizeHtml(
+          "<ul data-type=\"checkbox\"><li checked></li><li>first</li><li>"
+          "</li><li checked>second</li><li></li><li></li></ul>"),
+      "<ul data-type=\"checkbox\"><li checked></li><li>first</li><li></li><li "
+      "checked>second</li><li></li><li></li></ul>");
 }
 
 TEST(GumboParserTest, BrRemappings) {

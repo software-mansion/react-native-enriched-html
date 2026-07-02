@@ -420,16 +420,16 @@ describe('htmlNormalizer', () => {
   describe('EmptyListItems', () => {
     test.each([
       [
-        '<ul><li></li><li>first</li><li></li><li>second</li><li></li></ul>',
-        '<ul><li>first</li><li>second</li></ul>',
+        '<ul><li></li><li>first</li><li></li><li>second</li><li></li><li></li></ul>',
+        '<ul><li></li><li>first</li><li></li><li>second</li><li></li><li></li></ul>',
       ],
       [
-        '<ol><li></li><li>first</li><li></li><li>second</li><li></li></ol>',
-        '<ol><li>first</li><li>second</li></ol>',
+        '<ol><li></li><li>first</li><li></li><li>second</li><li></li><li></li></ol>',
+        '<ol><li></li><li>first</li><li></li><li>second</li><li></li><li></li></ol>',
       ],
       [
         '<ul data-type="checkbox"><li checked></li><li>first</li><li></li><li checked>second</li><li></li><li></li></ul>',
-        '<ul data-type="checkbox"><li>first</li><li checked>second</li></ul>',
+        '<ul data-type="checkbox"><li checked></li><li>first</li><li></li><li checked>second</li><li></li><li></li></ul>',
       ],
     ])('%s → %s', (input, expected) => {
       expect(normalizeHtml(input)).toBe(expected);
