@@ -249,29 +249,10 @@ function emitAttributes(el: Element, name: string): string {
         emitOneAttr(el, 'width') +
         emitOneAttr(el, 'height')
       );
-    case 'ul': {
-      let isCheckbox =
-        el.getAttribute('data-type') === 'checkbox' ||
-        el.getAttribute('data-type') === 'checkboxList';
-
-      if (!isCheckbox) {
-        const firstLi = Array.from(el.children).find(
-          (c) => c.tagName.toLowerCase() === 'li'
-        );
-        if (firstLi) {
-          const role = firstLi.getAttribute('role');
-          const className = firstLi.getAttribute('class') || '';
-
-          // Matches Google Docs (role="checkbox") OR MS Word (class includes "checklist")
-          if (role === 'checkbox' || className.includes('checklist')) {
-            isCheckbox = true;
-          }
-        }
-      }
-
-      return isCheckbox ? ' data-type="checkbox"' : '';
-    }
+    case 'ul':
+      return isCheckboxList(el) ? ' data-type="checkbox"' : '';
     case 'li':
+      // "" is the UTF-8 hex encoding for U+F0FE (MS Word Checked Box)
       const isChecked =
         el.hasAttribute('checked') ||
         el.getAttribute('data-checked') === 'true' ||
@@ -287,6 +268,32 @@ function emitAttributes(el: Element, name: string): string {
     default:
       return '';
   }
+}
+
+function isCheckboxList(el: Element): boolean {
+  if (
+    el.getAttribute('data-type') === 'checkbox' ||
+    el.getAttribute('data-type') === 'checkboxList'
+  ) {
+    return true;
+  }
+
+  // In Google Docs and MS Word the <li> elements define if it is a checkbox
+  // list. We only need to check the first <li>.
+  const firstLi = Array.from(el.children).find(
+    (c) => c.tagName.toLowerCase() === 'li'
+  );
+  if (firstLi) {
+    const role = firstLi.getAttribute('role');
+    const className = firstLi.getAttribute('class') || '';
+
+    // Matches Google Docs (role="checkbox") OR MS Word (class includes "checklist")
+    if (role === 'checkbox' || className.includes('checklist')) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 function isGoogleDocsWrapper(el: Element, tag: string): boolean {

@@ -411,6 +411,34 @@ static void emit_one_attr(buffer_t *out, GumboElement *el,
   }
 }
 
+static bool is_checkbox_list(GumboElement *el) {
+  const char *val = get_attr(el, "data-type");
+  if (val && (strcmp(val, "checkbox") == 0 || strcmp(val, "checkboxList") == 0)) {
+    return true;
+  }
+
+  // In Google Docs and MS Word the <li> elements define if it is a checkbox
+  // list. We only need to check the first <li>.
+  GumboVector *children = &el->children;
+  for (unsigned int i = 0; i < children->length; i++) {
+    GumboNode *child = children->data[i];
+    if (is_element(child)) {
+      char child_tag[64];
+      if (get_tag_name(child, child_tag, sizeof(child_tag)) && strcmp(child_tag, "li") == 0) {
+        GumboElement *child_el = &child->v.element;
+        const char *role = get_attr(child_el, "role");
+        const char *cls = get_attr(child_el, "class");
+
+        // Matches Google Docs (role="checkbox") OR MS Word (class includes "checklist")
+        return (role && strcmp(role, "checkbox") == 0) ||
+               (cls && strstr(cls, "checklist") != NULL);
+      }
+    }
+  }
+
+  return false;
+}
+
 static void emit_attributes(GumboElement *el, const char *tag_name,
                             buffer_t *out) {
   if (strcmp(tag_name, "a") == 0) {
@@ -421,33 +449,7 @@ static void emit_attributes(GumboElement *el, const char *tag_name,
     emit_one_attr(out, el, "width");
     emit_one_attr(out, el, "height");
   } else if (strcmp(tag_name, "ul") == 0) {
-
-    const char *val = get_attr(el, "data-type");
-    bool is_checkbox = (val && (strcmp(val, "checkbox") == 0 || strcmp(val, "checkboxList") == 0));
-
-    // In Google Docs and MS Word the <li> elements define if it is a checkbox list
-    if (!is_checkbox) {
-      GumboVector *children = &el->children;
-      for (unsigned int i = 0; i < children->length; i++) {
-        GumboNode *child = children->data[i];
-        if (is_element(child)) {
-          char child_tag[64];
-          if (get_tag_name(child, child_tag, sizeof(child_tag)) && strcmp(child_tag, "li") == 0) {
-            GumboElement *child_el = &child->v.element;
-            const char *role = get_attr(child_el, "role");
-            const char *cls = get_attr(child_el, "class");
-
-            if ((role && strcmp(role, "checkbox") == 0) ||
-                (cls && strstr(cls, "checklist") != NULL)) {
-              is_checkbox = true;
-            }
-            break; // We only need to check the first <li>
-          }
-        }
-      }
-    }
-
-    if (is_checkbox) {
+    if (is_checkbox_list(el)) {
       buffer_append_str(out, " data-type=\"checkbox\"");
     }
   } else if (strcmp(tag_name, "li") == 0) {
