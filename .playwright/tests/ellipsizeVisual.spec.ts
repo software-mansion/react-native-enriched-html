@@ -58,8 +58,7 @@ async function setMode(page: Page, mode: EllipsizeMode): Promise<void> {
     .toBe(mode);
 }
 
-// 'middle' is excluded - it is not implemented on web
-const MODES: EllipsizeMode[] = ['head', 'tail', 'clip'];
+const SHARED_MODES: EllipsizeMode[] = ['tail', 'head', 'clip'];
 
 type EllipsizeCase = {
   name: string;
@@ -211,7 +210,7 @@ const SHARED_CASES: EllipsizeCase[] = [
   },
 ];
 
-for (const mode of MODES) {
+for (const mode of SHARED_MODES) {
   test.describe(`EnrichedText ellipsize - ${mode}`, () => {
     for (const c of SHARED_CASES) {
       test(c.name, async ({ page }) => {
@@ -227,3 +226,88 @@ for (const mode of MODES) {
     }
   });
 }
+
+test.describe('EnrichedText ellipsize - middle', () => {
+  const middleEllipsizeCases: EllipsizeCase[] = [
+    {
+      name: 'all text within one paragraph, with one line exceeding the limit',
+      slug: 'one-paragraph-one-line-overflowing',
+      html:
+        `<html><p>This is a fairly long paragraph that should wrap` +
+        ` across three lines so the truncation has something to chew on.</p></html>`,
+      numberOfLines: 2,
+    },
+    {
+      name: 'all text within one paragraph, but with at least two lines exceeding the limit',
+      slug: 'one-paragraph-many-lines-overflowing',
+      html:
+        `<html><p>This is a fairly long paragraph that should wrap across four lines so the` +
+        ` truncation has something to chew on. Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p></html>`,
+      numberOfLines: 2,
+    },
+    {
+      name: 'all text within one paragraph but with multiple inline images',
+      slug: 'one-paragraph-many-inline-images',
+      html:
+        `<html><p>Some paragraph text overflowing but with so<img src="w" width="20" ` +
+        `height="20"/>me inline images <img src="w" width="20" height="20"/><img src="w" ` +
+        `width="20" height="20"/><img src="w" width="20" height="20"/>insi<img src="w" width="20" ` +
+        `height="20"/>de the eaten text and before, after dummytext the rendered <img src="w" width="20" height="20"/>ellipsis</p></html>`,
+      numberOfLines: 2,
+    },
+    {
+      name: 'different paragraphs will be truncated with the middle ellipsis if the needed last lines belong to a single paragraph',
+      slug: 'different-paragraph-style',
+      html: `<html><p>first paragraph.</p><h6>Different paragraph style that will overflow to the next line</h6></html>`,
+      numberOfLines: 2,
+    },
+    {
+      name: 'different paragraph style with many lines',
+      slug: 'different-paragraph-style-multiple-lines',
+      html:
+        `<html><p>first paragraph.</p><codeblock><p>Different paragraph style and the text ` +
+        `that will overflow to the next lines of that block verylongwordthatwillnotfitinthelineandwilloverflow</p></codeblock></html>`,
+      numberOfLines: 2,
+    },
+    {
+      name: 'ellipsis on the last paragraph with leading other paragraphs and break lines',
+      slug: 'other-paragraphs-and-break-lines-inside-block-style',
+      html:
+        `<html><p>Normal style.</p><blockquote><p>First line before empty ones.</p><br><br><p>Last ` +
+        `paragraph inside a block style that will overflow to three different lines, so we can check this case.</p></blockquote></html>`,
+      numberOfLines: 5,
+    },
+    {
+      name: 'empty lines are preserved',
+      slug: 'empty-lines',
+      html: `<html><br><p>first line</p><br><p>last line that will overflow and will have an ellipsis</p></html>`,
+      numberOfLines: 4,
+    },
+    // tests checking a proper fallback to the head ellipsis
+    {
+      name: 'when the overflowing lines are different blocks, it fallbacks to head ellipsis',
+      slug: 'different-blocks-head-fallback',
+      html: `<html><p>first line</p><p>second line</p><p>third line</p></html>`,
+      numberOfLines: 2,
+    },
+    {
+      name: 'breaklines inside a block style are considered as different paragraphs',
+      slug: 'breaklines-head-fallback',
+      html: `<html><blockquote><p>first line</p><br><br></blockquote></html>`,
+      numberOfLines: 2,
+    },
+  ];
+
+  for (const c of middleEllipsizeCases) {
+    test(c.name, async ({ page }) => {
+      await gotoTestEllipsize(page);
+      await setValue(page, c.html);
+      await setNumberOfLines(page, c.numberOfLines);
+      await setMode(page, 'middle');
+
+      await expect(displayLocator(page)).toHaveScreenshot(
+        `ellipsize-middle-${c.slug}.png`
+      );
+    });
+  }
+});

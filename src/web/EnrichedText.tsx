@@ -24,6 +24,7 @@ import { usePressInteractions } from './usePressInteractions';
 import { headEllipsize } from './ellipsizeMode/headEllipsize';
 import { tailEllipsize } from './ellipsizeMode/tailEllipsize';
 import { clip } from './ellipsizeMode/clip';
+import { middleEllipsize } from './ellipsizeMode/middleEllipsize';
 
 export const EnrichedText = memo(
   ({
@@ -100,10 +101,11 @@ export const EnrichedText = memo(
         case 'clip':
           clip(container, finalHtml, numberOfLines, setClampedHtml);
           break;
-        // 'middle' is not implemented on web - it falls back to the default 'tail'
         case 'tail':
-        default:
           tailEllipsize(container, finalHtml, numberOfLines, setClampedHtml);
+          break;
+        case 'middle':
+          middleEllipsize(container, finalHtml, numberOfLines, setClampedHtml);
           break;
       }
     }, [containerRef, finalHtml, ellipsizeMode, numberOfLines]);
