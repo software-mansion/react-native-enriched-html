@@ -5,7 +5,7 @@ import {
   useRef,
   type CSSProperties,
 } from 'react';
-import './EnrichedTextInput.css';
+import './EnrichedText.css';
 import type { Node } from '@tiptap/pm/model';
 import type {
   EnrichedTextInputInstance,
@@ -39,7 +39,7 @@ import {
 } from './normalization/tiptapHtmlNormalizer';
 import { ENRICHED_TEXT_INPUT_DEFAULT_PROPS } from '../utils/EnrichedTextInputDefaultProps';
 import { enrichedInputStyleToCSSProperties } from './styleConversion/enrichedInputStyleToCSSProperties';
-import { enrichedInputThemingToCSSProperties } from './styleConversion/enrichedInputThemingToCSSProperties';
+import { enrichedInputThemingToCSSProperties } from './styleConversion/enrichedThemingToCSSProperties';
 import { buildMentionRulesCSS } from './styleConversion/buildMentionRulesCSS';
 import {
   htmlStyleToCSSVariables,
@@ -75,6 +75,7 @@ import {
 import { StripMarksOnImagePlugin } from './pmPlugins/StripMarksOnImagePlugin';
 import { ShortcutPlugin } from './pmPlugins/ShortcutPlugin';
 import { returnKeyTypeToEnterKeyHint } from './returnKeyTypeToEnterKeyHint';
+import { ENRICHED_TEXT_INPUT_CLASSNAME } from './constants/classNames';
 import { AutolinkPlugin } from './pmPlugins/AutolinkPlugin';
 import { useStableRef } from './useStableRef';
 
@@ -397,7 +398,7 @@ export const EnrichedTextInput = ({
       {mentionRulesCSS ? <style>{mentionRulesCSS}</style> : null}
       <EditorContent
         editor={editor}
-        className="eti-editor"
+        className={ENRICHED_TEXT_INPUT_CLASSNAME}
         style={finalStyle}
         data-placeholder={placeholder}
       />
