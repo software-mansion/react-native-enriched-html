@@ -1,3 +1,4 @@
+import { sanitizeHtml } from '../sanitization/htmlSanitizer';
 import {
   checkboxHtmlForTiptap,
   checkboxHtmlFromTiptap,
@@ -8,6 +9,7 @@ export function prepareHtmlForTiptap(
   html: string,
   useHtmlNormalizer: boolean | undefined
 ): string {
+  html = sanitizeHtml(html);
   if (useHtmlNormalizer) {
     html = normalizeHtml(html);
   }
@@ -17,6 +19,7 @@ export function prepareHtmlForTiptap(
 }
 
 export function normalizeHtmlFromTiptap(html: string): string {
+  html = sanitizeHtml(html);
   html = checkboxHtmlFromTiptap(html);
 
   // Strip <p> wrappers inside <li> elements.

@@ -49,4 +49,11 @@ See [Web Keyboard Shortcuts](./INPUT_API_REFERENCE.md#web-keyboard-shortcuts) fo
 
 ## HTML sanitization
 
-You are responsible for sanitizing HTML on both input and output. The library does not guarantee safe or clean HTML output. This applies to any HTML you persist, render elsewhere, or accept from untrusted sources (XSS, paste attacks, etc.).
+On web, HTML is sanitized automatically with [DOMPurify](https://github.com/cure53/DOMPurify) on both input and output:
+
+- **`EnrichedText`** sanitizes its `children` before rendering.
+- **`EnrichedTextInput`** sanitizes every HTML entry point — `defaultValue`, the `setValue` ref method, and pasted HTML — as well as its output from `getHTML` and the `onChangeHtml` callback.
+
+### Custom mention attributes
+
+To attach custom data to a mention, use the `data-` prefix (e.g. `data-user-id`) to make sure they survive sanitization. Attributes passed to the `setMention` ref method are properly sanitized.
