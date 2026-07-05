@@ -274,69 +274,77 @@ static void const *kInputKey = &kInputKey;
           [self glyphRangeForCharacterRange:[paragraph rangeValue]
                        actualCharacterRange:nullptr];
 
-      [self enumerateLineFragmentsForGlyphRange:paragraphGlyphRange
-                                     usingBlock:^(CGRect rect, CGRect usedRect,
-                                                  NSTextContainer *container,
-                                                  NSRange lineGlyphRange,
-                                                  BOOL *stop) {
-                                       NSUInteger charIdx =
-                                           [self characterIndexForGlyphAtIndex:
-                                                     lineGlyphRange.location];
-                                       UIFont *font = [host.textView.textStorage
-                                                attribute:NSFontAttributeName
-                                                  atIndex:charIdx
-                                           effectiveRange:nil];
-                                       CGRect textUsedRect =
-                                           [self getTextAlignedUsedRect:usedRect
-                                                                   font:font];
+      [self
+          enumerateLineFragmentsForGlyphRange:paragraphGlyphRange
+                                   usingBlock:^(CGRect rect, CGRect usedRect,
+                                                NSTextContainer *container,
+                                                NSRange lineGlyphRange,
+                                                BOOL *stop) {
+                                     NSUInteger charIdx =
+                                         [self characterIndexForGlyphAtIndex:
+                                                   lineGlyphRange.location];
+                                     UIFont *font = [host.textView.textStorage
+                                              attribute:NSFontAttributeName
+                                                atIndex:charIdx
+                                         effectiveRange:nil];
+                                     CGRect textUsedRect =
+                                         [self getTextAlignedUsedRect:usedRect
+                                                                 font:font];
 
-                                       for (NSTextList *list in pStyle
-                                                .textLists) {
-                                         NSString *markerFormat =
-                                             list.markerFormat;
+                                     for (NSTextList *list in pStyle
+                                              .textLists) {
+                                       NSString *markerFormat =
+                                           list.markerFormat;
 
-                                         if ([markerFormat
-                                                 hasPrefix:
-                                                     @"EnrichedAlignment"]) {
-                                           continue;
-                                         }
+                                       if ([markerFormat
+                                               hasPrefix:
+                                                   @"EnrichedAlignment"]) {
+                                         continue;
+                                       }
 
-                                         if ([markerFormat
-                                                 isEqualToString:
-                                                     @"EnrichedOrderedList"]) {
-                                           NSString *marker = [self
-                                               getDecimalMarkerForList:host
-                                                             charIndex:charIdx];
-                                           [self drawDecimal:host
-                                                         marker:marker
-                                               markerAttributes:markerAttributes
-                                                         origin:origin
-                                                       usedRect:usedRect
-                                                         indent:indent];
-                                         } else if ([markerFormat
-                                                        isEqualToString:
-                                                            @"EnrichedUnordered"
-                                                            @"Lis"
-                                                            @"t"]) {
-                                           [self drawBullet:host
+                                       if ([markerFormat
+                                               isEqualToString:
+                                                   @"EnrichedOrderedList"]) {
+                                         CGPoint glyphLocation =
+                                             [self locationForGlyphAtIndex:
+                                                       lineGlyphRange.location];
+                                         CGFloat absoluteBaselineY =
+                                             origin.y + rect.origin.y +
+                                             glyphLocation.y;
+                                         NSString *marker = [self
+                                             getDecimalMarkerForList:host
+                                                           charIndex:charIdx];
+
+                                         [self drawDecimal:host
+                                                       marker:marker
+                                             markerAttributes:markerAttributes
+                                                       origin:origin
+                                                    baselineY:absoluteBaselineY
+                                                       indent:indent];
+                                       } else if ([markerFormat
+                                                      isEqualToString:
+                                                          @"EnrichedUnordered"
+                                                          @"Lis"
+                                                          @"t"]) {
+                                         [self drawBullet:host
+                                                   origin:origin
+                                                 usedRect:textUsedRect
+                                                   indent:indent];
+
+                                       } else if ([markerFormat
+                                                      hasPrefix:@"EnrichedChe"
+                                                                @"ckbox"]) {
+                                         [self drawCheckbox:host
+                                               markerFormat:markerFormat
                                                      origin:origin
                                                    usedRect:textUsedRect
                                                      indent:indent];
-
-                                         } else if ([markerFormat
-                                                        hasPrefix:@"EnrichedChe"
-                                                                  @"ckbox"]) {
-                                           [self drawCheckbox:host
-                                                 markerFormat:markerFormat
-                                                       origin:origin
-                                                     usedRect:textUsedRect
-                                                       indent:indent];
-                                         }
                                        }
-                                       // only first line of a list gets its
-                                       // marker drawn
-                                       *stop = YES;
-                                     }];
+                                     }
+                                     // only first line of a list gets its
+                                     // marker drawn
+                                     *stop = YES;
+                                   }];
     }
   }
 }
@@ -439,13 +447,16 @@ static void const *kInputKey = &kInputKey;
               marker:(NSString *)marker
     markerAttributes:(NSDictionary *)markerAttributes
               origin:(CGPoint)origin
-            usedRect:(CGRect)usedRect
+           baselineY:(CGFloat)baselineY
               indent:(CGFloat)indent {
   CGFloat gapWidth = [host.config orderedListGapWidth];
   CGSize markerSize = [marker sizeWithAttributes:markerAttributes];
   CGFloat markerX = origin.x + indent - gapWidth - markerSize.width / 2;
-  CGFloat centerY = CGRectGetMidY(usedRect) + origin.y;
-  CGFloat markerY = centerY - markerSize.height / 2.0;
+  UIFont *markerFont = markerAttributes[NSFontAttributeName];
+
+  // drawAtPoint draws from the top-left bounding box of the string.
+  // (baselineY - ascender) exactly pinpoints the top edge of the text
+  CGFloat markerY = baselineY - markerFont.ascender;
 
   [marker drawAtPoint:CGPointMake(markerX, markerY)
        withAttributes:markerAttributes];

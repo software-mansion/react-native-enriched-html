@@ -1748,7 +1748,6 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   [self tryUpdatingHeight];
   // update active styles as well
   [self tryUpdatingActiveStyles];
-  [self layoutAttachments];
   // update drawing - schedule debounced relayout
   [self scheduleRelayoutIfNeeded];
 }
@@ -1788,6 +1787,9 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
     // measureSize may not be up-to date at that point
     CGSize measuredSize = [self measureSize:self->textView.frame.size.width];
     self->textView.contentSize = measuredSize;
+
+    // Re-position attachment image views after the forced full re-layout
+    [self layoutAttachments];
   });
 }
 
