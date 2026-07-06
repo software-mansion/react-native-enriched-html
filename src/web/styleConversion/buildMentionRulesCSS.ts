@@ -62,6 +62,12 @@ ${textSelector} {
   }
 
   // Press-state styling - only the read-only EnrichedText handles presses.
+  lines.push(
+    `${mentionSelector(ENRICHED_TEXT_CLASSNAME, MENTION_STYLE_DEFAULT_KEY)} {
+  cursor: pointer;
+}`.trim()
+  );
+
   for (const indicator of keys) {
     const textSelector = mentionSelector(ENRICHED_TEXT_CLASSNAME, indicator);
 

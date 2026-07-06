@@ -176,11 +176,11 @@ function App() {
   };
 
   const handleLinkPress = (e: OnLinkPressEvent) => {
-    console.log('[EnrichedTextInput] link press event', e);
+    console.log('[EnrichedText] link press event', e);
   };
 
   const handleMentionPress = (e: OnMentionPressEvent) => {
-    console.log('[EnrichedTextInput] link mention event', e);
+    console.log('[EnrichedText] mention press event', e);
   };
 
   const openLinkModal = () => {
