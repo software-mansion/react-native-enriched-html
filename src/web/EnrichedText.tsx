@@ -1,4 +1,10 @@
-import { memo, useMemo, useRef, type CSSProperties } from 'react';
+import {
+  memo,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  type CSSProperties,
+} from 'react';
 import type { EnrichedTextProps } from '../types';
 import './EnrichedText.css';
 import { enrichedTextStyleToCSSProperties } from './styleConversion/enrichedTextStyleToCSSProperties';
@@ -17,6 +23,7 @@ import { usePressInteractions } from './usePressInteractions';
 
 export const EnrichedText = memo(
   ({
+    ref,
     children,
     htmlStyle,
     style,
@@ -25,6 +32,19 @@ export const EnrichedText = memo(
     useHtmlNormalizer = false,
   }: EnrichedTextProps) => {
     const containerRef = useRef<HTMLDivElement>(null);
+
+    useImperativeHandle(ref, () => ({
+      measureInWindow: () => {},
+      measure: () => {},
+      measureLayout: () => {},
+      setNativeProps: () => {},
+      focus: () => {
+        containerRef.current?.focus();
+      },
+      blur: () => {
+        containerRef.current?.blur();
+      },
+    }));
 
     const sanitizedHtml = useMemo(() => sanitizeHtml(children), [children]);
 
@@ -79,6 +99,7 @@ export const EnrichedText = memo(
         {mentionRulesCSS ? <style>{mentionRulesCSS}</style> : null}
         <div
           ref={containerRef}
+          tabIndex={-1}
           style={finalStyle}
           className={ENRICHED_TEXT_CLASSNAME}
           dangerouslySetInnerHTML={{ __html: finalHtml }}
