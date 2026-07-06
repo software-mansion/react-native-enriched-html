@@ -1,4 +1,5 @@
 export { EnrichedTextInput } from './web/EnrichedTextInput';
+export { EnrichedText } from './web/EnrichedText';
 export type {
   EnrichedInputStyle,
   EnrichedTextInputProps,

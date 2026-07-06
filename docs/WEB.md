@@ -2,7 +2,9 @@
 
 Web support is still experimental. APIs and behavior can change in future releases without a major version bump. Expect breaking changes until the web path is stabilized.
 
-## What works
+## Enriched Text Input
+
+### What works
 
 - Inline marks: bold, italic, underline, strikethrough, inline code
 - Headings (h1-h6)
@@ -18,19 +20,33 @@ Web support is still experimental. APIs and behavior can change in future releas
 - Input theming via `placeholderTextColor`, `cursorColor` and `selectionColor` props
 - Keyboard shortcuts for formatting
 - `useHtmlNormalizer`
+- Setting text alignment via `setTextAlignment()`
 
-## Keyboard shortcuts
+### Keyboard shortcuts
 
 See [Web Keyboard Shortcuts](./INPUT_API_REFERENCE.md#web-keyboard-shortcuts) for the up-to-date list of Web keyboard shortcuts.
 
-## Unsupported
+### Unsupported
 
 - **`returnKeyLabel`**: ignored on web, it's not possible to set it inside a browser.
 - **Context menu**: `contextMenuItems` is ignored.
 - **RN layout ref methods**: `measure`, `measureInWindow`, `measureLayout`, and `setNativeProps` are no-ops.
-- **`EnrichedText`**: The read-only component is not exported on web.
 - **`ViewProps`**: Props inherited from `View` beyond the implemented subset are not forwarded.
 - **`textShortcuts`**: ignored on web.
+
+## Enriched Text
+
+### What works
+
+- Customizing the styling using props: `style`, `htmlStyle`, `selectionColor`.
+
+### Unsupported
+
+- **`selectable`**: ignored on web.
+- **`useHtmlNormalizer`**: ignored on web.
+- **`ellipsizeMode`**: ignored on web.
+- **`numberOfLines`**: ignored on web.
+- **Press events**: `onLinkPress` and `onMentionPress` callbacks are ignored on web.
 
 ## HTML sanitization
 

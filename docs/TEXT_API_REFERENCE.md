@@ -1,6 +1,6 @@
 # EnrichedText API Reference
 
-> **Web is not yet supported.** `EnrichedText` is only available on iOS and Android.
+> **Web support is experimental.** Behavior may change without a major version bump.
 
 ## Props
 
@@ -16,25 +16,25 @@ If `true`, the text respects the system's accessibility font scaling settings.
 
 The HTML string to render. Accepts the HTML format produced by `EnrichedTextInput`.
 
-| Type     | Default Value | Platform     |
-| -------- | ------------- | ------------ |
-| `string` | -             | iOS, Android |
+| Type     | Default Value | Platform          |
+| -------- | ------------- | ----------------- |
+| `string` | -             | iOS, Android, Web |
 
 ### `style`
 
 Standard React Native `TextStyle` applied to the text.
 
-| Type        | Default Value | Platform     |
-| ----------- | ------------- | ------------ |
-| `TextStyle` | -             | iOS, Android |
+| Type        | Default Value | Platform          |
+| ----------- | ------------- | ----------------- |
+| `TextStyle` | -             | iOS, Android, Web |
 
 ### `htmlStyle`
 
 A prop for customizing styles of HTML elements, including press colors for interactive elements.
 
-| Type                                                   | Default Value | Platform     |
-| ------------------------------------------------------ | ------------- | ------------ |
-| [`EnrichedTextHtmlStyle`](#enrichedtexthtmlstyle-type) | -             | iOS, Android |
+| Type                                                   | Default Value | Platform          |
+| ------------------------------------------------------ | ------------- | ----------------- |
+| [`EnrichedTextHtmlStyle`](#enrichedtexthtmlstyle-type) | -             | iOS, Android, Web |
 
 ### `useHtmlNormalizer`
 
@@ -80,9 +80,9 @@ If `true`, the text can be selected by the user (e.g. for copy/paste).
 
 The color of the text selection highlight.
 
-| Type                                           | Default Value  | Platform     |
-| ---------------------------------------------- | -------------- | ------------ |
-| [`color`](https://reactnative.dev/docs/colors) | system default | iOS, Android |
+| Type                                           | Default Value  | Platform          |
+| ---------------------------------------------- | -------------- | ----------------- |
+| [`color`](https://reactnative.dev/docs/colors) | system default | iOS, Android, Web |
 
 ### `onLinkPress`
 
