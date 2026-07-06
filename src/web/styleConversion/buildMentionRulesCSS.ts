@@ -1,6 +1,14 @@
-import type { HtmlStyle, MentionStyleProperties } from '../../types';
+import type {
+  EnrichedTextHtmlStyle,
+  HtmlStyle,
+  MentionStyleProperties,
+} from '../../types';
 import { isMentionStyleRecord } from '../../utils/isMentionStyleRecord';
-import { ETI_MENTION_CSS_VARS } from './htmlStyleToCSSVariables';
+import {
+  ENRICHED_TEXT_CLASSNAME,
+  ENRICHED_TEXT_INPUT_CLASSNAME,
+} from '../constants/classNames';
+import { ET_MENTION_CSS_VARS } from './htmlStyleToCSSVariables';
 import { MENTION_STYLE_DEFAULT_KEY } from './mentionIndicatorCssKey';
 
 function escapeIndicatorForCssAttributeSelector(indicator: string): string {
@@ -10,7 +18,15 @@ function escapeIndicatorForCssAttributeSelector(indicator: string): string {
   return indicator.replace(/["\\]/g, '\\$&');
 }
 
-export function buildMentionRulesCSS(htmlStyle?: HtmlStyle): string {
+function mentionSelector(className: string, indicator: string): string {
+  return indicator === MENTION_STYLE_DEFAULT_KEY
+    ? `.${className} mention`
+    : `.${className} mention[indicator="${escapeIndicatorForCssAttributeSelector(indicator)}"]`;
+}
+
+export function buildMentionRulesCSS(
+  htmlStyle?: HtmlStyle | EnrichedTextHtmlStyle
+): string {
   const mapRaw = htmlStyle?.mention;
   if (!mapRaw || typeof mapRaw !== 'object' || !isMentionStyleRecord(mapRaw)) {
     return '';
@@ -23,17 +39,20 @@ export function buildMentionRulesCSS(htmlStyle?: HtmlStyle): string {
   }
 
   const lines: string[] = [];
+
   for (const indicator of keys) {
-    const selector =
-      indicator === MENTION_STYLE_DEFAULT_KEY
-        ? '.eti-editor mention'
-        : `.eti-editor mention[indicator="${escapeIndicatorForCssAttributeSelector(indicator)}"]`;
+    const inputSelector = mentionSelector(
+      ENRICHED_TEXT_INPUT_CLASSNAME,
+      indicator
+    );
+    const textSelector = mentionSelector(ENRICHED_TEXT_CLASSNAME, indicator);
 
     lines.push(
-      `${selector} {
-  color: var(${ETI_MENTION_CSS_VARS.color(indicator)});
-  background-color: var(${ETI_MENTION_CSS_VARS.backgroundColor(indicator)});
-  text-decoration-line: var(${ETI_MENTION_CSS_VARS.textDecorationLine(indicator)});
+      `${inputSelector},
+${textSelector} {
+  color: var(${ET_MENTION_CSS_VARS.color(indicator)});
+  background-color: var(${ET_MENTION_CSS_VARS.backgroundColor(indicator)});
+  text-decoration-line: var(${ET_MENTION_CSS_VARS.textDecorationLine(indicator)});
 }`.trim()
     );
   }

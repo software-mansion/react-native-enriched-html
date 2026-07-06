@@ -4,6 +4,7 @@ import type { OnChangeStateEvent } from '../types';
 import type { NativeSyntheticEvent } from 'react-native';
 import { adaptWebToNativeEvent } from './adaptWebToNativeEvent';
 import {
+  getCurrentAlignment,
   isAnyParagraphFormatActive,
   isFormatBlocked,
 } from './formats/formatRules';
@@ -97,21 +98,22 @@ function buildState(
       isConflicting: editor.isActive('link'),
       isBlocking: isFormatBlocked('image', editor, htmlStyle),
     },
-    alignment: 'left',
+    alignment: getCurrentAlignment(editor) ?? 'auto',
   };
 }
 
 function hashState(state: OnChangeStateEvent): string {
   return Object.values(state)
-    .map((formatState) =>
-      String(
+    .map((formatState) => {
+      if (typeof formatState === 'string') return formatState;
+      return String(
         getFormatHash(
           formatState.isActive,
           formatState.isConflicting,
           formatState.isBlocking
         )
-      )
-    )
+      );
+    })
     .join('');
 }
 

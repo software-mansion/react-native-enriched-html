@@ -3922,6 +3922,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tiptap/extension-text-align@npm:3.27.1":
+  version: 3.27.1
+  resolution: "@tiptap/extension-text-align@npm:3.27.1"
+  peerDependencies:
+    "@tiptap/core": 3.27.1
+  checksum: 10c0/9d020a2dfde9dc26c2df59a6912e3f7bbf5247ff6a911aef0fb9cef809caf2a0fa2c03086c38c1a1ffb4e9fb3b447f43018954d98262636ab03732d3deebedf8
+  languageName: node
+  linkType: hard
+
 "@tiptap/extension-text@npm:3.27.1":
   version: 3.27.1
   resolution: "@tiptap/extension-text@npm:3.27.1"
@@ -4197,6 +4206,13 @@ __metadata:
   version: 4.0.5
   resolution: "@types/tough-cookie@npm:4.0.5"
   checksum: 10c0/68c6921721a3dcb40451543db2174a145ef915bc8bcbe7ad4e59194a0238e776e782b896c7a59f4b93ac6acefca9161fccb31d1ce3b3445cb6faa467297fb473
+  languageName: node
+  linkType: hard
+
+"@types/trusted-types@npm:^2.0.7":
+  version: 2.0.7
+  resolution: "@types/trusted-types@npm:2.0.7"
+  checksum: 10c0/4c4855f10de7c6c135e0d32ce462419d8abbbc33713b31d294596c0cc34ae1fa6112a2f9da729c8f7a20707782b0d69da3b1f8df6645b0366d08825ca1522e0c
   languageName: node
   linkType: hard
 
@@ -6554,6 +6570,18 @@ __metadata:
   dependencies:
     webidl-conversions: "npm:^7.0.0"
   checksum: 10c0/774277cd9d4df033f852196e3c0077a34dbd15a96baa4d166e0e47138a80f4c0bdf0d94e4703e6ff5883cec56bb821a6fff84402d8a498e31de7c87eb932a294
+  languageName: node
+  linkType: hard
+
+"dompurify@npm:3.4.11":
+  version: 3.4.11
+  resolution: "dompurify@npm:3.4.11"
+  dependencies:
+    "@types/trusted-types": "npm:^2.0.7"
+  dependenciesMeta:
+    "@types/trusted-types":
+      optional: true
+  checksum: 10c0/31439481c7e8fc3805d40c376936fd66936620fb1b1a31a2ec097f6165412c37f2d868e082c9ceba62bb37661c1ea132a5db4d5213434317e30df68d4aca9cc9
   languageName: node
   linkType: hard
 
@@ -12266,6 +12294,7 @@ __metadata:
     "@tiptap/extension-paragraph": "npm:3.27.1"
     "@tiptap/extension-strike": "npm:3.27.1"
     "@tiptap/extension-text": "npm:3.27.1"
+    "@tiptap/extension-text-align": "npm:3.27.1"
     "@tiptap/extension-underline": "npm:3.27.1"
     "@tiptap/extensions": "npm:3.27.1"
     "@tiptap/pm": "npm:3.27.1"
@@ -12276,6 +12305,7 @@ __metadata:
     clang-format: "npm:^1.8.0"
     commitlint: "npm:^19.6.1"
     del-cli: "npm:^5.1.0"
+    dompurify: "npm:3.4.11"
     eslint: "npm:^9.22.0"
     eslint-config-prettier: "npm:^10.1.1"
     eslint-plugin-prettier: "npm:^5.2.3"
