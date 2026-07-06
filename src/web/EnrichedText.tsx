@@ -12,6 +12,7 @@ import { prepareHtmlForWeb } from './normalization/prepareHtmlForWeb';
 import { INLINE_IMAGE_CSS_VARIABLES } from './styleConversion/inlineImageCSSVariables';
 import { useImageErrorFallback } from './useImageErrorFallback';
 import { usePressInteractions } from './usePressInteractions';
+import { useStableRef } from './useStableRef';
 
 export const EnrichedText = memo(
   ({
@@ -69,8 +70,11 @@ export const EnrichedText = memo(
       [textStyle, themingStyle, cssVars]
     );
 
+    const onLinkPressRef = useStableRef(onLinkPress);
+    const onMentionPressRef = useStableRef(onMentionPress);
+
     useImageErrorFallback(containerRef);
-    usePressInteractions(containerRef, onLinkPress, onMentionPress);
+    usePressInteractions(containerRef, onLinkPressRef, onMentionPressRef);
 
     return (
       <>

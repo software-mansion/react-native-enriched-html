@@ -1,19 +1,19 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, type RefObject } from 'react';
 import type { OnLinkPressEvent, OnMentionPressEvent } from '../types';
+
+type OnLinkPressEventRef = RefObject<
+  ((event: OnLinkPressEvent) => void) | undefined
+>;
+
+type OnMentionPressEventRef = RefObject<
+  ((event: OnMentionPressEvent) => void) | undefined
+>;
 
 export function usePressInteractions(
   containerRef: React.RefObject<HTMLDivElement | null>,
-  onLinkPress?: (event: OnLinkPressEvent) => void,
-  onMentionPress?: (event: OnMentionPressEvent) => void
+  onLinkPressRef: OnLinkPressEventRef,
+  onMentionPressRef: OnMentionPressEventRef
 ) {
-  const linkPressRef = useRef(onLinkPress);
-  const mentionPressRef = useRef(onMentionPress);
-
-  useEffect(() => {
-    linkPressRef.current = onLinkPress;
-    mentionPressRef.current = onMentionPress;
-  }, [onLinkPress, onMentionPress]);
-
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -29,15 +29,15 @@ export function usePressInteractions(
       const anchor = target.closest('a');
       if (anchor && container.contains(anchor)) {
         const url = anchor.getAttribute('href');
-        if (url && linkPressRef.current) {
+        if (url && onLinkPressRef.current) {
           e.preventDefault();
-          linkPressRef.current({ url });
+          onLinkPressRef.current({ url });
         }
       }
 
       const mention = target.closest('mention');
       if (mention && container.contains(mention)) {
-        if (mentionPressRef.current) {
+        if (onMentionPressRef.current) {
           e.preventDefault();
 
           const customAttributes: Record<string, string> = {};
@@ -47,7 +47,7 @@ export function usePressInteractions(
             }
           }
 
-          mentionPressRef.current({
+          onMentionPressRef.current({
             text: mention.getAttribute('text') ?? '',
             indicator: mention.getAttribute('indicator') ?? '',
             attributes: customAttributes,
@@ -58,5 +58,5 @@ export function usePressInteractions(
 
     container.addEventListener('click', handleInteraction);
     return () => container.removeEventListener('click', handleInteraction);
-  }, [containerRef]);
+  }, [containerRef, onLinkPressRef, onMentionPressRef]);
 }
