@@ -1662,7 +1662,7 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
 }
 
 - (void)anyTextMayHaveBeenModified {
-  // we don't do no text changes when working with iOS marked text
+  // we don't do text changes when working with iOS marked text
   if (textView.markedTextRange != nullptr) {
     [self handlePlaceholderVisibility];
     return;
