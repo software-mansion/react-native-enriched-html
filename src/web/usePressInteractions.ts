@@ -10,7 +10,7 @@ type OnMentionPressEventRef = RefObject<
 >;
 
 export function usePressInteractions(
-  containerRef: React.RefObject<HTMLDivElement | null>,
+  containerRef: RefObject<HTMLDivElement | null>,
   onLinkPressRef: OnLinkPressEventRef,
   onMentionPressRef: OnMentionPressEventRef
 ) {
@@ -28,9 +28,9 @@ export function usePressInteractions(
 
       const anchor = target.closest('a');
       if (anchor && container.contains(anchor)) {
+        e.preventDefault();
         const url = anchor.getAttribute('href');
         if (url && onLinkPressRef.current) {
-          e.preventDefault();
           onLinkPressRef.current({ url });
         }
       }
