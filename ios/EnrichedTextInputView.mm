@@ -1664,6 +1664,7 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
 - (void)anyTextMayHaveBeenModified {
   // we don't do no text changes when working with iOS marked text
   if (textView.markedTextRange != nullptr) {
+    [self handlePlaceholderVisibility];
     return;
   }
 
@@ -1685,13 +1686,7 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
     [mentionStyleClass manageMentionEditing];
   }
 
-  // placholder management
-  if (!_placeholderLabel.hidden && textView.textStorage.string.length > 0) {
-    [self setPlaceholderLabelShown:NO];
-  } else if (textView.textStorage.string.length == 0 &&
-             _placeholderLabel.hidden) {
-    [self setPlaceholderLabelShown:YES];
-  }
+  [self handlePlaceholderVisibility];
 
   // modified words handling
   NSArray *currentDirtyRanges = [attributesManager getDirtyRanges];
@@ -1745,6 +1740,16 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   [self tryUpdatingActiveStyles];
   // update drawing - schedule debounced relayout
   [self scheduleRelayoutIfNeeded];
+}
+
+- (void)handlePlaceholderVisibility {
+  // placholder management
+  if (!_placeholderLabel.hidden && textView.textStorage.string.length > 0) {
+    [self setPlaceholderLabelShown:NO];
+  } else if (textView.textStorage.string.length == 0 &&
+             _placeholderLabel.hidden) {
+    [self setPlaceholderLabelShown:YES];
+  }
 }
 
 // Debounced relayout helper - coalesces multiple requests into one per runloop
