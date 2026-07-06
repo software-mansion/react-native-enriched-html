@@ -192,7 +192,7 @@ jobs:
   build-ios:
     needs: [changes]
     if: needs.changes.outputs.ios == 'true'
-    runs-on: macos-latest
+    runs-on: macos-26
     env:
       TURBO_CACHE_DIR: .turbo/ios
     steps:
@@ -205,7 +205,7 @@ jobs:
       - name: Set up Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: '16.4'
+          xcode-version: '26.0'
 
       - name: Reset build folder and pods
         run: rm -rf apps/example/build apps/example/ios/Pods apps/example/ios/Podfile.lock
