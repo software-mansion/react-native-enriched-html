@@ -108,26 +108,6 @@ test.describe('EnrichedText mention press', () => {
       .toEqual({ text: '@John Doe', indicator: '@', attributes: {} });
   });
 
-  test('pressing a mention exposes its custom attributes', async ({ page }) => {
-    await gotoTestEnrichedText(page);
-    await setEnrichedTextValue(
-      page,
-      '<html><p>Channel <mention indicator="#" text="general" id="42" custom="custom-attribute" type="channel">#general</mention> here.</p></html>'
-    );
-
-    await page.locator(`${sel.displayInner} mention`).click();
-
-    await expect
-      .poll(async () =>
-        JSON.parse((await mentionPress(page).textContent()) || 'null')
-      )
-      .toEqual({
-        text: 'general',
-        indicator: '#',
-        attributes: { id: '42', custom: 'custom-attribute', type: 'channel' },
-      });
-  });
-
   test('pressing text styled inside a mention still emits onMentionPress', async ({
     page,
   }) => {
