@@ -288,6 +288,10 @@
   height: var(--et-checkbox-box-size, 24px);
   flex-shrink: 0;
   accent-color: var(--et-checkbox-box-color, #0000ff);
+
+  /* disable checkbox press style as it's read-only */
+  pointer-events: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .et-view ul[data-type="checkbox"] > li > label {
