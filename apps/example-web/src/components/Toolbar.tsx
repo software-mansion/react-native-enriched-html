@@ -17,7 +17,7 @@ interface ToolbarButtonProps {
   label: string;
   testId: string;
   isActive: boolean;
-  isDisabled: boolean;
+  isDisabled?: boolean;
   variant?: string;
   onPress: () => void;
 }
@@ -234,7 +234,6 @@ export function Toolbar({
             label={item.label}
             testId={`toolbar-button-alignment-${item.value}`}
             isActive={s?.alignment === item.value}
-            isDisabled={false}
             onPress={() => {
               editorRef.current?.setTextAlignment(item.value);
             }}
