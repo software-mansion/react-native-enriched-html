@@ -49,7 +49,7 @@ See [Web Keyboard Shortcuts](./INPUT_API_REFERENCE.md#web-keyboard-shortcuts) fo
 
 ## HTML sanitization
 
-On web, HTML is sanitized automatically with [DOMPurify](https://github.com/cure53/DOMPurify) on both input and output:
+On web, HTML is sanitized automatically with [DOMPurify](https://github.com/cure53/DOMPurify) on both input and output. This reduces XSS risk, but you should still treat untrusted HTML with caution and apply your own server-side sanitization.
 
 - **`EnrichedText`** sanitizes its `children` before rendering.
 - **`EnrichedTextInput`** sanitizes every HTML entry point — `defaultValue`, the `setValue` ref method, and pasted HTML — as well as its output from `getHTML` and the `onChangeHtml` callback.

@@ -1043,7 +1043,7 @@ interface MentionStyleProperties {
 
 ### mention
 
-If only a single config is given, the style applies to all mention types. You can also set a different config for each mentionIndicator that has been defined, then the prop should be a record with indicators as a keys and configs as their values. You can also define a style using the `'default'` key, which will act as a base that the rest of your defined styles will fallback on.
+If only a single config is given, the style applies to all mention types. You can also set a different config for each mentionIndicator that has been defined, then the prop should be a record with indicators as keys and configs as their values. Additionally, you can define a style using the `'default'` key, which will act as a base that the rest of your defined styles will fallback on.
 
 - `color` defines the color of mention's text, takes [color](https://reactnative.dev/docs/colors) value and defaults to `blue`.
 - `backgroundColor` is the mention's background color, takes [color](https://reactnative.dev/docs/colors) value and defaults to `yellow`.
