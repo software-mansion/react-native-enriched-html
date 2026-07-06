@@ -20,6 +20,7 @@ import { prepareHtmlForWeb } from './normalization/prepareHtmlForWeb';
 import { INLINE_IMAGE_CSS_VARIABLES } from './styleConversion/inlineImageCSSVariables';
 import { useImageErrorFallback } from './useImageErrorFallback';
 import { usePressInteractions } from './usePressInteractions';
+import { adaptWebToNativeEvent } from './adaptWebToNativeEvent';
 
 export const EnrichedText = memo(
   ({
@@ -30,6 +31,8 @@ export const EnrichedText = memo(
     selectionColor,
     selectable = false,
     useHtmlNormalizer = false,
+    onFocus,
+    onBlur,
   }: EnrichedTextProps) => {
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -102,6 +105,16 @@ export const EnrichedText = memo(
           tabIndex={-1}
           style={finalStyle}
           className={ENRICHED_TEXT_CLASSNAME}
+          onFocus={
+            onFocus
+              ? (event) => onFocus(adaptWebToNativeEvent(event, { target: -1 }))
+              : undefined
+          }
+          onBlur={
+            onBlur
+              ? (event) => onBlur(adaptWebToNativeEvent(event, { target: -1 }))
+              : undefined
+          }
           dangerouslySetInnerHTML={{ __html: finalHtml }}
         />
       </>
