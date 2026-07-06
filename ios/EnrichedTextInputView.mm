@@ -1743,7 +1743,7 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
 }
 
 - (void)handlePlaceholderVisibility {
-  // placholder management
+  // placeholder management
   if (!_placeholderLabel.hidden && textView.textStorage.string.length > 0) {
     [self setPlaceholderLabelShown:NO];
   } else if (textView.textStorage.string.length == 0 &&
