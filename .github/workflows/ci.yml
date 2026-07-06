@@ -205,6 +205,9 @@ jobs:
         with:
           xcode-version: '26.0'
 
+      - name: Install iOS 26.0 platform
+        run: xcodebuild -downloadPlatform iOS
+
       - name: Reset build folder and pods
         run: rm -rf apps/example/build apps/example/ios/Pods apps/example/ios/Podfile.lock
 
