@@ -56,7 +56,7 @@ export function checkMentionAttributes(attributes?: Record<string, string>) {
     }
     console.warn(
       `[EnrichedMention] Attribute "${attrName}" on the <mention> tag may be removed during sanitization. ` +
-        `Consider using the "data-" prefix for custom data attributes (e.g., "data-${attrName}").`
+        `Consider using the "data-" prefix for custom data attributes.`
     );
   });
 }
