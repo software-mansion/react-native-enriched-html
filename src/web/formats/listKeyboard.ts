@@ -1,6 +1,7 @@
 import { isTextSelection, type Editor, type JSONContent } from '@tiptap/core';
 
 import { lineStartBackspace } from './wrappedBlockKeyboard';
+import { withPreservedAlignment } from './formatRules';
 
 function emptyListItemContent(itemName: string): JSONContent {
   return {
@@ -51,7 +52,11 @@ export function listBackspace(
 ): boolean {
   return lineStartBackspace(editor, {
     isActive: () => editor.isActive(itemName),
-    lift: () => editor.chain().focus().liftListItem(itemName).run(),
+    lift: () => {
+      return withPreservedAlignment(editor, editor.chain(), (c) =>
+        c.focus().liftListItem(itemName)
+      );
+    },
     shouldJoinBefore: (beforeName) =>
       beforeName != null && wrapperNames.includes(beforeName),
   });
