@@ -82,7 +82,7 @@ describe('checkMentionAttributes', () => {
   });
 });
 
-describe('sanitizeHtml', () => {
+describe('sanitizeHtmlMention', () => {
   it('keeps <mention> tags with text/indicator/data-* attributes', () => {
     const out = sanitizeHtml(
       '<mention text="Joe" indicator="@" data-user-id="42">@Joe</mention>'
@@ -96,5 +96,18 @@ describe('sanitizeHtml', () => {
     expect(
       sanitizeHtml('<mention onclick="alert(1)">x</mention>')
     ).not.toContain('onclick');
+  });
+});
+
+describe('sanitizeLinkAttributes', () => {
+  it('strips javascript: URLs from links', () => {
+    const out = sanitizeHtml('<a href="javascript:alert(1)">x</a>');
+    // eslint-disable-next-line no-script-url
+    expect(out).not.toContain('javascript:');
+  });
+
+  it('strips unknown protocol URLs from links', () => {
+    const out = sanitizeHtml('<a href="custom://link">x</a>');
+    expect(out).not.toContain('custom');
   });
 });
