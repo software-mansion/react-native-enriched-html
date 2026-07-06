@@ -203,10 +203,7 @@ jobs:
       - name: Set up Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: '26.0'
-
-      - name: Install iOS 26.0 platform
-        run: xcodebuild -downloadPlatform iOS
+          xcode-version: '26.3'
 
       - name: Reset build folder and pods
         run: rm -rf apps/example/build apps/example/ios/Pods apps/example/ios/Podfile.lock
