@@ -105,15 +105,11 @@ export const EnrichedText = memo(
           tabIndex={-1}
           style={finalStyle}
           className={ENRICHED_TEXT_CLASSNAME}
-          onFocus={
-            onFocus
-              ? (event) => onFocus(adaptWebToNativeEvent(event, { target: -1 }))
-              : undefined
+          onFocus={(event) =>
+            onFocus?.(adaptWebToNativeEvent(event, { target: -1 }))
           }
-          onBlur={
-            onBlur
-              ? (event) => onBlur(adaptWebToNativeEvent(event, { target: -1 }))
-              : undefined
+          onBlur={(event) =>
+            onBlur?.(adaptWebToNativeEvent(event, { target: -1 }))
           }
           dangerouslySetInnerHTML={{ __html: finalHtml }}
         />
