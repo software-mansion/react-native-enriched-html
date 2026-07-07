@@ -110,7 +110,7 @@ jobs:
         run: yarn playwright install --with-deps chromium
 
       - name: Run web e2e tests
-        run: yarn playwright test --config .playwright/playwright.config.ts
+        run: yarn test:e2e:web
 
       - name: Upload Playwright report
         if: failure()
