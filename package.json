@@ -118,6 +118,7 @@
     "@playwright/test": "1.58.2",
     "@react-native-community/cli": "20.1.0",
     "@react-native/eslint-config": "^0.86.0",
+    "@react-native/jest-preset": "^0.86.0",
     "@release-it/conventional-changelog": "^9.0.2",
     "@types/jest": "^29.5.5",
     "@types/react": "^19.2.0",
