@@ -38,8 +38,6 @@ export function usePressInteractions(
       const mention = target.closest('mention');
       if (mention && container.contains(mention)) {
         if (onMentionPressRef.current) {
-          e.preventDefault();
-
           const customAttributes: Record<string, string> = {};
           for (const attr of Array.from(mention.attributes)) {
             if (attr.name !== 'text' && attr.name !== 'indicator') {

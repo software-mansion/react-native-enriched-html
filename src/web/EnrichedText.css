@@ -116,6 +116,7 @@
 .et-view a {
   color: var(--et-link-color);
   text-decoration-line: var(--et-link-text-decoration-line);
+  transition: none;
 }
 
 .et-view a:active {

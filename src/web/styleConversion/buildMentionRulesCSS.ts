@@ -28,7 +28,8 @@ function mentionSelector(className: string, indicator: string): string {
 }
 
 export function buildMentionRulesCSS(
-  htmlStyle?: HtmlStyle | EnrichedTextHtmlStyle
+  htmlStyle?: HtmlStyle | EnrichedTextHtmlStyle,
+  isInteractible?: boolean
 ): string {
   const mapRaw = htmlStyle?.mention;
   if (!mapRaw || typeof mapRaw !== 'object' || !isMentionStyleRecord(mapRaw)) {
@@ -57,16 +58,20 @@ ${textSelector} {
   color: var(${ET_MENTION_CSS_VARS.color(indicator)}, var(${ET_MENTION_CSS_VARS.color(MENTION_STYLE_DEFAULT_KEY)}));
   background-color: var(${ET_MENTION_CSS_VARS.backgroundColor(indicator)}, var(${ET_MENTION_CSS_VARS.backgroundColor(MENTION_STYLE_DEFAULT_KEY)}));
   text-decoration-line: var(${ET_MENTION_CSS_VARS.textDecorationLine(indicator)}, var(${ET_MENTION_CSS_VARS.textDecorationLine(MENTION_STYLE_DEFAULT_KEY)}));
+  transition: none;
 }`.trim()
     );
   }
 
   // Press-state styling - only the read-only EnrichedText handles presses.
-  lines.push(
-    `${mentionSelector(ENRICHED_TEXT_CLASSNAME, MENTION_STYLE_DEFAULT_KEY)} {
+
+  if (isInteractible) {
+    lines.push(
+      `${mentionSelector(ENRICHED_TEXT_CLASSNAME, MENTION_STYLE_DEFAULT_KEY)} {
   cursor: pointer;
 }`.trim()
-  );
+    );
+  }
 
   for (const indicator of keys) {
     const textSelector = mentionSelector(ENRICHED_TEXT_CLASSNAME, indicator);

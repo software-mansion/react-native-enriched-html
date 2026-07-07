@@ -305,34 +305,28 @@ function expandVarsWithEnrichedTextMention(
   vars: Record<string, string>,
   mention?: EnrichedTextHtmlStyle['mention']
 ): void {
-  const mentionIndicators = isMentionStyleRecord(mention)
-    ? Object.keys(mention)
-    : [];
+  const isStyleRecord = isMentionStyleRecord(mention);
+
+  const mentionIndicators = isStyleRecord ? Object.keys(mention) : [];
 
   if (!mentionIndicators.includes(MENTION_STYLE_DEFAULT_KEY))
     mentionIndicators.push(MENTION_STYLE_DEFAULT_KEY);
 
   for (const indicator of mentionIndicators) {
-    const style = isMentionStyleRecord(mention)
-      ? mention?.[indicator]
-      : mention;
+    const style = isStyleRecord ? mention?.[indicator] : mention;
 
     setColorVar(
       vars,
       ET_MENTION_PRESS_CSS_VARS.pressColor(indicator),
       style?.pressColor ??
-        (isMentionStyleRecord(mention)
-          ? mention.default?.pressColor
-          : undefined) ??
+        (isStyleRecord ? mention.default?.pressColor : undefined) ??
         DEFAULT_MENTION_PRESS.pressColor
     );
     setColorVar(
       vars,
       ET_MENTION_PRESS_CSS_VARS.pressBackgroundColor(indicator),
       style?.pressBackgroundColor ??
-        (isMentionStyleRecord(mention)
-          ? mention.default?.pressBackgroundColor
-          : undefined) ??
+        (isStyleRecord ? mention.default?.pressBackgroundColor : undefined) ??
         DEFAULT_MENTION_PRESS.pressBackgroundColor
     );
   }

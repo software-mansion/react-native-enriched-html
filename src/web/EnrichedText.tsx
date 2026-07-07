@@ -56,8 +56,8 @@ export const EnrichedText = memo(
     );
 
     const mentionRulesCSS = useMemo(
-      () => buildMentionRulesCSS(resolvedHtmlStyle),
-      [resolvedHtmlStyle]
+      () => buildMentionRulesCSS(resolvedHtmlStyle, !!onMentionPress),
+      [resolvedHtmlStyle, onMentionPress]
     );
 
     const finalStyle = useMemo(
