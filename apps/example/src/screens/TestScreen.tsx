@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
-import { EnrichedTextInput } from 'react-native-enriched';
+import { EnrichedTextInput } from 'react-native-enriched-html';
 import { Button } from '../components/Button';
 import { Toolbar } from '../components/Toolbar';
 import { LinkModal } from '../components/LinkModal';
@@ -16,9 +16,13 @@ import {
 
 interface TestScreenProps {
   onSwitch: () => void;
+  onSwitchEnrichedText: () => void;
 }
 
-export function TestScreen({ onSwitch }: TestScreenProps) {
+export function TestScreen({
+  onSwitch,
+  onSwitchEnrichedText,
+}: TestScreenProps) {
   const editor = useEditorState();
   const [sizeMode, setSizeMode] = useState<'base' | 'max'>('base');
 
@@ -114,6 +118,14 @@ export function TestScreen({ onSwitch }: TestScreenProps) {
             onPress={onSwitch}
             style={styles.rowButton}
             testID="toggle-screen-button"
+          />
+        </View>
+        <View style={styles.buttonRow}>
+          <Button
+            title="Enriched Text Screen"
+            onPress={onSwitchEnrichedText}
+            style={styles.rowButton}
+            testID="toggle-enriched-text-screen-button"
           />
         </View>
       </ScrollView>

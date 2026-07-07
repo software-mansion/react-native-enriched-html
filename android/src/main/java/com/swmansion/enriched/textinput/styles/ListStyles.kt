@@ -5,6 +5,7 @@ import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.Spanned
 import com.swmansion.enriched.common.EnrichedConstants
+import com.swmansion.enriched.common.EnrichedSpanFlags
 import com.swmansion.enriched.textinput.EnrichedTextInputView
 import com.swmansion.enriched.textinput.spans.EnrichedInputCheckboxListSpan
 import com.swmansion.enriched.textinput.spans.EnrichedInputOrderedListSpan
@@ -12,7 +13,8 @@ import com.swmansion.enriched.textinput.spans.EnrichedInputUnorderedListSpan
 import com.swmansion.enriched.textinput.spans.EnrichedSpans
 import com.swmansion.enriched.textinput.utils.getParagraphBounds
 import com.swmansion.enriched.textinput.utils.getSafeSpanBoundaries
-import com.swmansion.enriched.textinput.utils.removeZWS
+import com.swmansion.enriched.textinput.utils.safelyInsertZWS
+import com.swmansion.enriched.textinput.utils.safelyRemoveZWS
 
 class ListStyles(
   private val view: EnrichedTextInputView,
@@ -65,18 +67,18 @@ class ListStyles(
     when (name) {
       EnrichedSpans.UNORDERED_LIST -> {
         val span = EnrichedInputUnorderedListSpan(view.htmlStyle)
-        spannable.setSpan(span, safeStart, safeEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        spannable.setSpan(span, safeStart, safeEnd, EnrichedSpanFlags.forSpan(span))
       }
 
       EnrichedSpans.ORDERED_LIST -> {
         val index = getOrderedListIndex(spannable, safeStart)
         val span = EnrichedInputOrderedListSpan(index, view.htmlStyle)
-        spannable.setSpan(span, safeStart, safeEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        spannable.setSpan(span, safeStart, safeEnd, EnrichedSpanFlags.forSpan(span))
       }
 
       EnrichedSpans.CHECKBOX_LIST -> {
         val span = EnrichedInputCheckboxListSpan(isChecked ?: false, view.htmlStyle)
-        spannable.setSpan(span, safeStart, safeEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        spannable.setSpan(span, safeStart, safeEnd, EnrichedSpanFlags.forSpan(span))
 
         // Invalidate layout to update checkbox drawing in case checkbox is bigger than line height
         view.layoutManager.invalidateLayout()
@@ -98,7 +100,7 @@ class ListStyles(
       ssb.removeSpan(span)
     }
 
-    ssb.removeZWS(start, end)
+    ssb.safelyRemoveZWS(start, end)
     return true
   }
 
@@ -134,10 +136,12 @@ class ListStyles(
     }
 
     if (start == end) {
-      spannable.insert(start, EnrichedConstants.ZWS_STRING)
-      view.spanState?.setStart(name, start + 1)
+      val wasInserted = spannable.safelyInsertZWS(start)
+      val shift = if (wasInserted) 1 else 0
+
+      view.spanState?.setStart(name, start + shift)
       removeSpansForRange(spannable, start, end, config.clazz)
-      setSpan(spannable, name, start, end + 1, checkboxState)
+      setSpan(spannable, name, start, end + shift, checkboxState)
 
       return
     }
@@ -147,10 +151,12 @@ class ListStyles(
     removeSpansForRange(spannable, start, end, config.clazz)
 
     for (paragraph in paragraphs) {
-      spannable.insert(currentStart, EnrichedConstants.ZWS_STRING)
-      val currentEnd = currentStart + paragraph.length + 1
+      val wasInserted = spannable.safelyInsertZWS(currentStart)
+      val shift = if (wasInserted) 1 else 0
+      val currentEnd = currentStart + paragraph.length + shift
       setSpan(spannable, name, currentStart, currentEnd, checkboxState)
 
+      // Safely jump exactly 1 character over the '\n' to the next line
       currentStart = currentEnd + 1
     }
 
@@ -177,20 +183,11 @@ class ListStyles(
 
     val isBackspace = previousTextLength > s.length
     val isNewLine = cursorPosition > 0 && s[cursorPosition - 1] == '\n'
-    val isShortcut = config.shortcut?.let { s.substring(start, end).startsWith(it) } ?: false
     val spans = s.getSpans(start, end, config.clazz)
 
     // Remove spans if cursor is at the start of the paragraph and spans exist
     if (isBackspace && start == cursorPosition && spans.isNotEmpty()) {
       removeSpansForRange(s, start, end, config.clazz)
-      return
-    }
-
-    if (!isBackspace && isShortcut) {
-      s.replace(start, cursorPosition, EnrichedConstants.ZWS_STRING)
-      setSpan(s, name, start, start + 1)
-      // Inform that new span has been added
-      view.selection?.validateStyles()
       return
     }
 
@@ -208,8 +205,9 @@ class ListStyles(
         }
       }
 
-      s.insert(cursorPosition, EnrichedConstants.ZWS_STRING)
-      setSpan(s, name, start, end + 1)
+      val wasInserted = (s as SpannableStringBuilder).safelyInsertZWS(cursorPosition)
+      val shift = if (wasInserted) 1 else 0
+      setSpan(s, name, start, end + shift)
       // Inform that new span has been added
       view.selection?.validateStyles()
       return

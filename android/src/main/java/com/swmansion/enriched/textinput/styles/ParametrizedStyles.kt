@@ -5,13 +5,14 @@ import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.Spanned
 import com.swmansion.enriched.common.EnrichedConstants
+import com.swmansion.enriched.common.EnrichedSpanFlags
 import com.swmansion.enriched.textinput.EnrichedTextInputView
 import com.swmansion.enriched.textinput.spans.EnrichedInputImageSpan
 import com.swmansion.enriched.textinput.spans.EnrichedInputLinkSpan
 import com.swmansion.enriched.textinput.spans.EnrichedInputMentionSpan
 import com.swmansion.enriched.textinput.spans.EnrichedSpans
 import com.swmansion.enriched.textinput.utils.getSafeSpanBoundaries
-import com.swmansion.enriched.textinput.utils.removeZWS
+import com.swmansion.enriched.textinput.utils.safelyRemoveZWS
 
 class ParametrizedStyles(
   private val view: EnrichedTextInputView,
@@ -31,7 +32,7 @@ class ParametrizedStyles(
     val spans = ssb.getSpans(start, end, clazz)
     if (spans.isEmpty()) return false
 
-    ssb.removeZWS(start, end)
+    ssb.safelyRemoveZWS(start, end)
 
     for (span in spans) {
       ssb.removeSpan(span)
@@ -63,7 +64,7 @@ class ParametrizedStyles(
     val spanEnd = start + text.length
     val span = EnrichedInputLinkSpan(url, view.htmlStyle, true)
     val (safeStart, safeEnd) = spannable.getSafeSpanBoundaries(start, spanEnd)
-    spannable.setSpan(span, safeStart, safeEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+    spannable.setSpan(span, safeStart, safeEnd, EnrichedSpanFlags.forSpan(span))
 
     view.selection?.validateStyles()
     isSettingLinkSpan = false
@@ -92,6 +93,19 @@ class ParametrizedStyles(
   ) {
     afterTextChangedLinks(startCursorPosition, endCursorPosition)
     afterTextChangedMentions(s, startCursorPosition)
+  }
+
+  fun onStyleToggled(
+    name: String,
+    start: Int,
+    end: Int,
+  ) {
+    // Run afterTextChangedLinks on the range affected by the style toggle to re-detect links.
+    // For example, toggling a code block on and off will restore automatically detected links.
+    val linkConfig = EnrichedSpans.getMergingConfigForStyle(EnrichedSpans.LINK, view.htmlStyle) ?: return
+    if (name in linkConfig.blockingStyles || name in linkConfig.conflictingStyles) {
+      afterTextChangedLinks(start, end)
+    }
   }
 
   fun detectLinksInRange(
@@ -147,7 +161,7 @@ class ParametrizedStyles(
           span,
           safeStart,
           safeEnd,
-          Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
+          EnrichedSpanFlags.forSpan(span),
         )
       }
     }
@@ -220,8 +234,8 @@ class ParametrizedStyles(
   ) {
     // Do not detect link if it's applied manually
     if (isSettingLinkSpan || !canLinkBeApplied()) return
-
     val spannable = view.text as? Spannable ?: return
+
     val affectedRange = getLinksAffectedRange(spannable, editStart, editEnd)
     detectLinksInRange(spannable, affectedRange.first, affectedRange.last)
   }
@@ -236,7 +250,7 @@ class ParametrizedStyles(
 
     val indicatorsPattern = mentionIndicators.joinToString("|") { Regex.escape(it) }
     val mentionIndicatorRegex = Regex("^($indicatorsPattern)")
-    val mentionRegex = Regex("^($indicatorsPattern)\\w*")
+    val mentionRegex = Regex("^($indicatorsPattern)\\S*")
 
     var indicator: String
     var finalStart: Int
@@ -352,7 +366,7 @@ class ParametrizedStyles(
       spannable.removeSpan(span)
     }
 
-    val start = mentionStart ?: return
+    val start = mentionStart ?: selectionStart
 
     view.runAsATransaction {
       spannable.replace(start, selectionEnd, text)
@@ -360,7 +374,7 @@ class ParametrizedStyles(
       val span = EnrichedInputMentionSpan(text, indicator, attributes, view.htmlStyle)
       val spanEnd = start + text.length
       val (safeStart, safeEnd) = spannable.getSafeSpanBoundaries(start, spanEnd)
-      spannable.setSpan(span, safeStart, safeEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+      spannable.setSpan(span, safeStart, safeEnd, EnrichedSpanFlags.forSpan(span))
 
       val hasSpaceAtTheEnd = spannable.length > safeEnd && spannable[safeEnd] == ' '
       if (!hasSpaceAtTheEnd) {
@@ -370,6 +384,7 @@ class ParametrizedStyles(
 
     view.mentionHandler?.reset()
     view.selection.validateStyles()
+    mentionStart = null
   }
 
   fun getStyleRange(): Pair<Int, Int> = view.selection?.getInlineSelection() ?: Pair(0, 0)

@@ -123,6 +123,7 @@ export interface OnChangeStateEvent {
     isConflicting: boolean;
     isBlocking: boolean;
   };
+  alignment: string;
 }
 
 export interface OnLinkDetected {
@@ -170,6 +171,11 @@ export interface OnKeyPressEvent {
 
 export interface ContextMenuItemConfig {
   text: string;
+}
+
+export interface TextShortcut {
+  trigger: string;
+  style: string;
 }
 
 export interface OnContextMenuItemPressEvent {
@@ -273,6 +279,7 @@ export interface OnContextMenuItemPressEvent {
       isConflicting: boolean;
       isBlocking: boolean;
     };
+    alignment: string;
   };
 }
 
@@ -365,9 +372,11 @@ export interface NativeProps extends ViewProps {
   scrollEnabled?: boolean;
   linkRegex?: LinkNativeRegex;
   contextMenuItems?: ReadonlyArray<Readonly<ContextMenuItemConfig>>;
+  textShortcuts: ReadonlyArray<Readonly<TextShortcut>>;
   returnKeyType?: string;
   returnKeyLabel?: string;
   submitBehavior?: string;
+  allowFontScaling?: boolean;
 
   // event callbacks
   onInputFocus?: DirectEventHandler<TargetedEvent>;
@@ -469,6 +478,10 @@ interface NativeCommands {
     viewRef: React.ElementRef<ComponentType>,
     requestId: Int32
   ) => void;
+  setTextAlignment: (
+    viewRef: React.ElementRef<ComponentType>,
+    alignment: string
+  ) => void;
 }
 
 export const Commands: NativeCommands = codegenNativeCommands<NativeCommands>({
@@ -502,6 +515,7 @@ export const Commands: NativeCommands = codegenNativeCommands<NativeCommands>({
     'startMention',
     'addMention',
     'requestHTML',
+    'setTextAlignment',
   ],
 });
 
