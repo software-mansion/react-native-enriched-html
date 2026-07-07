@@ -1,16 +1,15 @@
-import {
-  type Component,
+import React, {
   useCallback,
   useImperativeHandle,
   useMemo,
   useRef,
 } from 'react';
 import type {
+  HostComponent,
   HostInstance,
   MeasureInWindowOnSuccessCallback,
   MeasureLayoutOnSuccessCallback,
   MeasureOnSuccessCallback,
-  NativeMethods,
 } from 'react-native';
 import EnrichedTextNativeComponent, {
   type NativeProps,
@@ -22,7 +21,7 @@ import { normalizeEnrichedTextHtmlStyle } from '../utils/normalizeHtmlStyle';
 import type { EnrichedTextProps } from '../types';
 import type { DirectEventHandler } from 'react-native/Libraries/Types/CodegenTypes';
 
-type ComponentType = (Component<NativeProps, {}, any> & NativeMethods) | null;
+type ComponentType = React.ElementRef<HostComponent<NativeProps>>;
 
 export const EnrichedText = ({
   ref,
