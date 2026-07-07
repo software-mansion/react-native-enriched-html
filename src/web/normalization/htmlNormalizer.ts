@@ -255,12 +255,13 @@ function emitAttributes(el: Element, name: string): string {
     }
     case 'li':
       return el.hasAttribute('checked') ? ' checked' : '';
-    case 'mention':
-      return (
-        emitOneAttr(el, 'id') +
-        emitOneAttr(el, 'text') +
-        emitOneAttr(el, 'indicator')
-      );
+    case 'mention': {
+      let out = '';
+      for (const attr of Array.from(el.attributes)) {
+        out += emitOneAttr(el, attr.name);
+      }
+      return out;
+    }
     default:
       return '';
   }
