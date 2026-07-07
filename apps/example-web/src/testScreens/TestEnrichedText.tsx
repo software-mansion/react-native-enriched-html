@@ -27,12 +27,8 @@ export function TestEnrichedText() {
         <EnrichedText
           style={enrichedTextStyle}
           htmlStyle={WEB_DEFAULT_HTML_STYLE}
-          onLinkPress={(event) => {
-            setLastLinkPress(event);
-          }}
-          onMentionPress={(event) => {
-            setLastMentionPress(event);
-          }}
+          onLinkPress={setLastLinkPress}
+          onMentionPress={setLastMentionPress}
         >
           {value}
         </EnrichedText>
