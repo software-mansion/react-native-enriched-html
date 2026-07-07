@@ -54,7 +54,7 @@ test.describe('images', () => {
       '<html><p><img src="/pw-e2e-broken.png" width="40" height="40" /></p></html>'
     );
 
-    await expect(page.locator('[data-eti-image-placeholder]')).not.toBeVisible({
+    await expect(page.locator('[data-eti-image-placeholder]')).toBeVisible({
       timeout: VISIBILITY_TIMEOUT_MS,
     });
     await expect(page.locator('.eti-inline-image-img')).toHaveCount(0);
