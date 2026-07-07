@@ -1,11 +1,10 @@
-import {
-  type Component,
+import React, {
+  useCallback,
   useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
 } from 'react';
-import { useCallback } from 'react';
 import EnrichedTextInputNativeComponent, {
   Commands,
   type NativeProps,
@@ -15,11 +14,11 @@ import EnrichedTextInputNativeComponent, {
   type OnRequestHtmlResultEvent,
 } from '../spec/EnrichedTextInputNativeComponent';
 import type {
+  HostComponent,
   HostInstance,
   MeasureInWindowOnSuccessCallback,
   MeasureLayoutOnSuccessCallback,
   MeasureOnSuccessCallback,
-  NativeMethods,
   NativeSyntheticEvent,
 } from 'react-native';
 import { normalizeHtmlStyle } from '../utils/normalizeHtmlStyle';
@@ -39,7 +38,7 @@ const warnMentionIndicators = (indicator: string) => {
   );
 };
 
-type ComponentType = (Component<NativeProps, {}, any> & NativeMethods) | null;
+type ComponentType = React.ElementRef<HostComponent<NativeProps>>;
 
 type HtmlRequest = {
   resolve: (html: string) => void;

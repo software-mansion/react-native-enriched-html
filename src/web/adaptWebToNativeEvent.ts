@@ -1,4 +1,4 @@
-import type { NativeMethods, NativeSyntheticEvent } from 'react-native';
+import type { HostInstance, NativeSyntheticEvent } from 'react-native';
 
 // When TipTap events are based on DOM events (e.g., FocusEvent), we adapt them
 // to NativeSyntheticEvent where possible.  However, not all TipTap events
@@ -15,11 +15,11 @@ export function adaptWebToNativeEvent<T>(
     nativeEvent: nativeEventPayload,
     bubbles: webEvent?.bubbles ?? false,
     cancelable: webEvent?.cancelable ?? false,
-    currentTarget: (webEvent?.currentTarget ?? {}) as unknown as NativeMethods,
+    currentTarget: (webEvent?.currentTarget ?? {}) as unknown as HostInstance,
     defaultPrevented: isDefaultPrevented,
     eventPhase: webEvent?.eventPhase ?? 0,
     isTrusted: webEvent?.isTrusted ?? true,
-    target: (webEvent?.target ?? {}) as unknown as NativeMethods,
+    target: (webEvent?.target ?? {}) as unknown as HostInstance,
     timeStamp: webEvent?.timeStamp ?? Date.now(),
     type: webEvent?.type ?? 'customEvent',
     preventDefault: () => {
