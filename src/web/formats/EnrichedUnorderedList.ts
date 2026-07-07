@@ -2,6 +2,7 @@ import { type CommandProps } from '@tiptap/core';
 import { BulletList } from '@tiptap/extension-list';
 
 import { applyWrappingListToSelection } from './applyWrappingListToSelection';
+import { withPreservedAlignment } from './formatRules';
 
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
@@ -26,9 +27,11 @@ export const EnrichedUnorderedList = BulletList.extend({
     return {
       toggleUnorderedList:
         () =>
-        ({ editor, commands, chain }: CommandProps) => {
+        ({ editor, chain }: CommandProps) => {
           if (editor.isActive('unorderedList')) {
-            return commands.setParagraph();
+            return withPreservedAlignment(editor, chain(), (c) =>
+              c.clearNodes().setParagraph()
+            );
           }
 
           return applyWrappingListToSelection(
