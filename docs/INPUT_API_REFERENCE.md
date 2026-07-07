@@ -597,7 +597,7 @@ type TextShortcutStyle =
 - `trigger` is the typed pattern that activates the shortcut.
 - `style` is the style to apply when the trigger completes.
 
-**[Paragraph styles](../README.md#paragraph-tags)** fire at the start of a paragraph (e.g. `#` → H1, `-` → unordered list). Supported styles: `h1`–`h6`, `blockquote`, `codeblock`, `unordered_list`, `ordered_list`, `checkbox_list`.
+**[Paragraph styles](../README.md#paragraph-tags)** fire at the start of a paragraph (e.g. `# ` → H1, `- ` → unordered list). Supported styles: `h1`–`h6`, `blockquote`, `codeblock`, `unordered_list`, `ordered_list`, `checkbox_list`.
 
 > [!NOTE]
 > Paragraph shortcuts are only effective on plain paragraphs. If the paragraph already has an active paragraph style (e.g. it is already a heading or a list item), typing the trigger pattern has no effect.
