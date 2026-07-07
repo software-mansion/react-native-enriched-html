@@ -29,6 +29,10 @@ body {
   align-items: center;
 }
 
+.enriched-text-container {
+  width: 100%;
+}
+
 .app-title {
   font-size: 24px;
   font-weight: bold;
