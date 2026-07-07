@@ -39,7 +39,7 @@ See [Web Keyboard Shortcuts](./INPUT_API_REFERENCE.md#web-keyboard-shortcuts) fo
 ### What works
 
 - Customizing the styling using props: `style`, `htmlStyle`, `selectionColor`.
-- Truncation via `numberOfLines` and `ellipsizeMode` (`head`, `tail`, `clip`). The mode `middle` is not implemented and falls back to `tail`.
+- Truncation via `numberOfLines` and `ellipsizeMode` (`head`, `middle`, `tail`, `clip`).
 
 ### Unsupported
 

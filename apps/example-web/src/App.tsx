@@ -236,6 +236,7 @@ function App() {
       ?.getHTML()
       .then((html) => {
         setEnrichedTextValue(html);
+        // temporary for making the testing easier
         // ref.current?.setValue('');
       })
       .catch((error: unknown) => {
@@ -334,6 +335,15 @@ function App() {
 
       <div className="container enriched-text-container">
         <h1 className="app-title">Enriched Text</h1>
+        <EnrichedText
+          style={enrichedTextStyle}
+          htmlStyle={WEB_DEFAULT_HTML_STYLE}
+          numberOfLines={2}
+          ellipsizeMode="middle"
+        >
+          {enrichedTextValue}
+        </EnrichedText>
+        {/*temporary code to make testing easier*/}
         <EnrichedText
           style={enrichedTextStyle}
           htmlStyle={WEB_DEFAULT_HTML_STYLE}

@@ -10,12 +10,9 @@ type EllipsizeMode = NonNullable<EnrichedTextProps['ellipsizeMode']>;
 
 const ELLIPSIZE_MODES: EllipsizeMode[] = ['head', 'middle', 'tail', 'clip'];
 
-const INITIAL_VALUE =
-  '<html><p>This is a fairly long paragraph that should wrap across several lines so the truncation has something to chew on. Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p></html>';
-
 export function TestEllipsize() {
-  const [htmlInput, setHtmlInput] = useState(INITIAL_VALUE);
-  const [value, setValue] = useState(INITIAL_VALUE);
+  const [htmlInput, setHtmlInput] = useState('');
+  const [value, setValue] = useState('');
   const [numberOfLines, setNumberOfLines] = useState(2);
   const [ellipsizeMode, setEllipsizeMode] = useState<EllipsizeMode>('tail');
 
@@ -94,8 +91,6 @@ export function TestEllipsize() {
 }
 
 const enrichedTextStyle: TextStyle = {
-  // a definite width is required so the clamp can measure line breaks even
-  // before any content is rendered (otherwise the box collapses to 0 width)
   width: 360,
   paddingVertical: 8,
   paddingHorizontal: 8,

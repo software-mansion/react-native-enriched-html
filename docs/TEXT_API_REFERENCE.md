@@ -60,9 +60,6 @@ How the text should be truncated when `numberOfLines` is set and the text overfl
 > [!NOTE]
 > On Android, when numberOfLines is set to a value higher than 1, only tail value will work correctly.
 
-> [!NOTE]
-> On Web, `middle` is not implemented and falls back to the default `tail`. The natively supported modes are `head`, `tail` and `clip`.
-
 ### `numberOfLines`
 
 Limits the number of displayed lines. Set to `0` for unlimited lines.

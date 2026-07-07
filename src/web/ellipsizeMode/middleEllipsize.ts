@@ -1,202 +1,92 @@
-import { ENRICHED_TEXT_CLASSNAME } from '../constants/classNames';
 import { headEllipsize } from './headEllipsize';
+import {
+  createSandbox,
+  eatForwardUntilFits,
+  fitsWithin,
+  getBlockParent,
+  removeAndCleanUp,
+  scanLines,
+  splitTextNode,
+  walkerFilter,
+  type LineMark,
+} from './utils';
 
-const BLOCK_TAGS = new Set([
-  'P',
-  'H1',
-  'H2',
-  'H3',
-  'H4',
-  'H5',
-  'H6',
-  'LI',
-  'BLOCKQUOTE',
-  'CODEBLOCK',
-]);
-
+// Keep the head and the tail of the content, collapsing the middle into a single
+// "..." that lands near the horizontal centre of line N. We render the full HTML
+// into a hidden sandbox, compute the container's physical mid-X, then forward-scan
+// the lines - on line N we record the first mark that reaches past the centre and
+// this is where the ellipsis goes.
+// If it fits, we keep it as it is. Otherwise:
+//   - A true inline middle only works when the front (line N) and the tail (last
+//     line) live in the same block with no <br> between them. If not (different
+//     blocks, or a <br> in the way), we bail and delegate to headEllipsize, which
+//     handles block-structured truncation.
+//   - Otherwise we split the front line at the centre mark, and - when more than
+//     one line overflows - also split at the second-to-last line and safely delete
+//     every node between the two split points. We insert "..." at the join, then eat
+//     forward one unit at a time until the surviving tail fits back onto line N.
 export function middleEllipsize(
   container: HTMLDivElement,
   finalHtml: string,
   numberOfLines: number,
   setClampedHtml: (clampedHtml: string) => void
 ) {
-  const NUMBER_OF_LINES = numberOfLines;
+  const { sandbox, computedStyle, lineTolerance } = createSandbox(
+    container,
+    finalHtml
+  );
 
-  // --- PHASE 1: THE DISCOVERY SCAN ---
-  const sandbox = document.createElement('div');
-  const computedStyle = window.getComputedStyle(container);
-
-  sandbox.style.position = 'absolute';
-  sandbox.style.visibility = 'hidden';
-  sandbox.style.top = '-9999px';
-
-  sandbox.style.cssText = container.style.cssText;
-  sandbox.style.width = computedStyle.width;
-  sandbox.style.boxSizing = computedStyle.boxSizing;
-  sandbox.style.fontFamily = computedStyle.fontFamily;
-  sandbox.style.fontSize = computedStyle.fontSize;
-  sandbox.style.lineHeight = computedStyle.lineHeight;
-  sandbox.style.letterSpacing = computedStyle.letterSpacing;
-  sandbox.style.padding = computedStyle.padding;
-  sandbox.style.wordBreak = computedStyle.wordBreak;
-  sandbox.style.overflowWrap = computedStyle.overflowWrap;
-
-  sandbox.className = ENRICHED_TEXT_CLASSNAME;
-  sandbox.innerHTML = finalHtml;
-
-  container.appendChild(sandbox);
-
-  // --- GEOMETRIC MATH: Find the exact physical center of the container ---
+  // find the exact physical center of the container
   const sandboxRect = sandbox.getBoundingClientRect();
   const pl = parseFloat(computedStyle.paddingLeft) || 0;
   const pr = parseFloat(computedStyle.paddingRight) || 0;
   const innerWidth = sandboxRect.width - pl - pr;
   const midX = sandboxRect.left + pl + innerWidth / 2;
-  console.log(
-    `[DEBUG] Container Inner Width: ${innerWidth}px, Physical Midpoint X: ${midX}px`
-  );
 
-  const walkerFilter = {
-    acceptNode: (n: Node) => {
-      if (n.nodeType === Node.TEXT_NODE) return NodeFilter.FILTER_ACCEPT;
-      if (n.nodeName === 'IMG' || n.nodeName === 'BR')
-        return NodeFilter.FILTER_ACCEPT;
-
-      if (n.nodeType === Node.ELEMENT_NODE && BLOCK_TAGS.has(n.nodeName)) {
-        const el = n as HTMLElement;
-        const textEmpty = !el.textContent?.trim();
-        const hasImg = !!el.querySelector('img');
-        const hasBr = !!el.querySelector('br');
-        if (textEmpty && !hasImg && !hasBr) return NodeFilter.FILTER_ACCEPT;
-      }
-      return NodeFilter.FILTER_SKIP;
-    },
-  };
-
-  const getBlockParent = (node: Node | null): Element | null => {
-    let current = node?.parentElement;
-    while (current && current !== sandbox) {
-      if (BLOCK_TAGS.has(current.tagName)) return current;
-      current = current.parentElement;
-    }
-    return sandbox;
-  };
-
-  const removeAndCleanUp = (nd: Node) => {
-    let parent: ParentNode | null = nd.parentNode;
-    if (parent) {
-      parent.removeChild(nd);
-      while (parent && parent !== sandbox && parent.childNodes.length === 0) {
-        const p: ParentNode | null = parent.parentNode;
-        p?.removeChild(parent);
-        parent = p;
-      }
-    }
-  };
-
-  const walker = document.createTreeWalker(
-    sandbox,
-    NodeFilter.SHOW_ALL,
-    walkerFilter
-  );
   const range = document.createRange();
 
-  const lineStarts: Array<{ node: Node; index: number }> = [];
-  let currentLine = 0;
-  let lastBottom: number | null = null;
-
-  let middleMark: { node: Node; index: number } | null = null;
-  let fallbackMiddleMark: { node: Node; index: number } | null = null;
-
-  let node: Node | null;
-  while ((node = walker.nextNode())) {
-    if (node.nodeType === Node.TEXT_NODE) {
-      const textNode = node as Text;
-      const text = textNode.nodeValue || '';
-
-      for (let i = 0; i < text.length; i++) {
-        range.setStart(textNode, i);
-        range.setEnd(textNode, i + 1);
-        const rect = range.getBoundingClientRect();
-
-        if (rect.height === 0) continue;
-
-        if (lastBottom === null || rect.bottom > lastBottom + 4) {
-          currentLine++;
-          lineStarts[currentLine] = { node: textNode, index: i };
-        }
-
-        if (currentLine === NUMBER_OF_LINES) {
-          fallbackMiddleMark = { node: textNode, index: i };
-          if (!middleMark && rect.right >= midX) {
-            middleMark = { node: textNode, index: i };
-            console.log(
-              `[DEBUG] Found text MiddleMark at index ${i} ('${text[i]}')`
-            );
-          }
-        }
-
-        lastBottom = rect.bottom;
-      }
-    } else if (
-      node.nodeName === 'IMG' ||
-      node.nodeName === 'BR' ||
-      BLOCK_TAGS.has(node.nodeName)
-    ) {
-      const el = node as HTMLElement;
-      const rect = el.getBoundingClientRect();
-
-      if (rect.height === 0 && node.nodeName !== 'BR') continue;
-
-      if (lastBottom === null || rect.bottom > lastBottom + 4) {
-        currentLine++;
-        lineStarts[currentLine] = { node: el, index: 0 };
-      }
-
-      if (currentLine === NUMBER_OF_LINES) {
-        fallbackMiddleMark = { node: el, index: 0 };
-        if (!middleMark && rect.right >= midX) {
-          middleMark = { node: el, index: 0 };
-          console.log(`[DEBUG] Found element MiddleMark on node:`, el.nodeName);
+  // as we scan, we track the mark closest to the container's horizontal centre
+  // on the Nth line (`centre`) and the last mark on that line (`fallback`) -
+  // that's where the middle ellipsis will land.
+  const marks: { centre: LineMark | null; fallback: LineMark | null } = {
+    centre: null,
+    fallback: null,
+  };
+  const { lineStarts, lastLine: originalLastLine } = scanLines(
+    sandbox,
+    lineTolerance,
+    ({ currentLine, node, index, rect }) => {
+      if (currentLine === numberOfLines) {
+        marks.fallback = { node, index };
+        if (!marks.centre && rect.right >= midX) {
+          marks.centre = { node, index };
         }
       }
-      lastBottom = rect.bottom;
     }
-  }
-
-  if (!middleMark) {
-    middleMark = fallbackMiddleMark;
-    console.log(`[DEBUG] MiddleMark fell back to end of line:`, middleMark);
-  }
-
-  const originalLastLine = currentLine;
-  console.log(
-    `[DEBUG] Total lines detected: ${originalLastLine}. Target limit: ${NUMBER_OF_LINES}`
   );
 
-  if (originalLastLine <= NUMBER_OF_LINES) {
-    console.log(`[DEBUG] Document perfectly fits! No truncation required.`);
+  // fall back to the last mark on the Nth line if nothing reached the centre
+  const middleMark: LineMark | null = marks.centre ?? marks.fallback;
+
+  // everything fits in the given N lines
+  if (originalLastLine <= numberOfLines) {
     setClampedHtml(finalHtml);
     container.removeChild(sandbox);
     return;
   }
 
-  // --- PHASE 2: SMART ROUTER ---
+  // a true inline middle only works within a single block with no <br> between
+  // the front and the tail - otherwise we delegate to headEllipsize below
   let canDoMiddle = false;
-  const frontMark = lineStarts[NUMBER_OF_LINES];
+  const frontMark = lineStarts[numberOfLines];
   const tailMark = lineStarts[originalLastLine];
 
   if (frontMark && tailMark && middleMark) {
-    console.log(`[DEBUG] Router checking block parents...`);
-    const frontParent = getBlockParent(frontMark.node);
-    const tailParent = getBlockParent(tailMark.node);
+    const frontParent = getBlockParent(frontMark.node, sandbox);
+    const tailParent = getBlockParent(tailMark.node, sandbox);
 
     if (frontParent === tailParent) {
       canDoMiddle = true;
-      console.log(
-        `[DEBUG] Front and Tail share the same block parent:`,
-        frontParent?.nodeName
-      );
 
       if (
         frontMark.node.nodeName === 'BR' ||
@@ -204,7 +94,6 @@ export function middleEllipsize(
         middleMark.node.nodeName === 'BR'
       ) {
         canDoMiddle = false;
-        console.log(`[DEBUG] Router rejected: Direct anchor is a <BR>`);
       } else {
         const brWalker = document.createTreeWalker(
           sandbox,
@@ -218,97 +107,60 @@ export function middleEllipsize(
 
           if (brWalker.currentNode.nodeName === 'BR') {
             canDoMiddle = false;
-            console.log(
-              `[DEBUG] Router rejected: Found <BR> in the truncation gap`
-            );
             break;
           }
         }
       }
-    } else {
-      console.log(
-        `[DEBUG] Router rejected: Block parent mismatch. Front:`,
-        frontParent?.nodeName,
-        `Tail:`,
-        tailParent?.nodeName
-      );
     }
   }
 
   if (!canDoMiddle) {
-    console.log(
-      '[DEBUG] Complex DOM or <br> detected. Routing to Head Ellipsize.'
-    );
     container.removeChild(sandbox);
     return headEllipsize(container, finalHtml, numberOfLines, setClampedHtml);
   }
 
-  console.log('[DEBUG] Proceeding with TRUE INLINE MIDDLE truncation.');
-
-  // --- PHASE 3: TRUE INLINE MIDDLE (UNIFIED LOGIC) ---
+  // split the front line at the centre mark to carve out where the ellipsis lands
   let frontRightSplit: Node;
 
   if (middleMark!.node.nodeType === Node.TEXT_NODE) {
-    const frontTextNode = middleMark!.node as Text;
-    const frontMidIndex = middleMark!.index;
-
-    frontRightSplit = document.createTextNode(
-      frontTextNode.nodeValue!.slice(frontMidIndex)
+    frontRightSplit = splitTextNode(
+      middleMark!.node as Text,
+      middleMark!.index
     );
-    frontTextNode.nodeValue = frontTextNode.nodeValue!.slice(0, frontMidIndex);
-    frontTextNode.parentNode?.insertBefore(
-      frontRightSplit,
-      frontTextNode.nextSibling
-    );
-    console.log(`[DEBUG] Split front text node at index ${frontMidIndex}.`);
   } else {
+    // front split landed on an element - inject an invisible text boundary
     frontRightSplit = document.createTextNode('');
     middleMark!.node.parentNode?.insertBefore(
       frontRightSplit,
       middleMark!.node.nextSibling
     );
-    console.log(
-      `[DEBUG] Front split landed on element. Injected invisible boundary.`
-    );
   }
 
   let targetNode: Node = frontRightSplit;
 
-  if (originalLastLine > NUMBER_OF_LINES + 1) {
-    console.log(
-      `[DEBUG] Triggering bulk deletion. Deleting lines between ${NUMBER_OF_LINES} and ${originalLastLine - 1}`
-    );
+  // more than one line overflows - we can safely delete the middle lines
+  if (originalLastLine > numberOfLines + 1) {
     const backMark = lineStarts[originalLastLine - 1]!;
 
     let backRightSplit: Node;
 
     if (backMark.node.nodeType === Node.TEXT_NODE) {
+      // if the front split already carved up the same node, the initially
+      // computed back mark is stale and has to be rebased onto the right half of that split
       if (
         middleMark!.node.nodeType === Node.TEXT_NODE &&
         backMark.node === middleMark!.node
       ) {
-        console.log(
-          `[DEBUG] Safety patch: Back mark shifted due to same-node split.`
-        );
         backMark.node = frontRightSplit;
         backMark.index -= middleMark!.index;
       }
 
-      const backTextNode = backMark.node as Text;
-      const backIndex = backMark.index;
-
-      backRightSplit = document.createTextNode(
-        backTextNode.nodeValue!.slice(backIndex)
-      );
-      backTextNode.nodeValue = backTextNode.nodeValue!.slice(0, backIndex);
-      backTextNode.parentNode?.insertBefore(
-        backRightSplit,
-        backTextNode.nextSibling
-      );
+      backRightSplit = splitTextNode(backMark.node as Text, backMark.index);
     } else {
       backRightSplit = backMark.node;
     }
 
+    // we safely bulk-delete those middle lines
     const rmWalker = document.createTreeWalker(
       sandbox,
       NodeFilter.SHOW_ALL,
@@ -323,8 +175,7 @@ export function middleEllipsize(
       if (past) toRm.push(rmWalker.currentNode);
     }
 
-    console.log(`[DEBUG] Bulk deletion vaporizing ${toRm.length} nodes.`);
-    toRm.forEach(removeAndCleanUp);
+    toRm.forEach((n) => removeAndCleanUp(n, sandbox));
 
     targetNode = backRightSplit;
   }
@@ -332,14 +183,13 @@ export function middleEllipsize(
   const ellipsisNode = document.createTextNode('...');
   targetNode.parentNode?.insertBefore(ellipsisNode, targetNode);
 
-  // --- THE INNER-EATING LOOP ---
+  // everything after the ellipsis has to fit on the front line (the Nth line)
   const checkFits = () => {
     let targetBottom: number;
     if (frontMark!.node.nodeType === Node.TEXT_NODE) {
       const tNode = frontMark!.node as Text;
 
-      // We grab the exact character index that started the Nth line
-      // Math.min is a tiny safety net just in case the node was heavily truncated
+      // we grab the exact character index that started the Nth line
       const safeIndex = Math.min(
         frontMark!.index,
         Math.max(0, tNode.length - 1)
@@ -353,82 +203,11 @@ export function middleEllipsize(
         .bottom;
     }
 
-    let lastNode: Node | null = null;
-    const w = document.createTreeWalker(
-      sandbox,
-      NodeFilter.SHOW_ALL,
-      walkerFilter
-    );
-    w.currentNode = ellipsisNode;
-    while (w.nextNode()) lastNode = w.currentNode;
-
-    if (!lastNode) return true;
-
-    if (lastNode.nodeType === Node.TEXT_NODE) {
-      if ((lastNode as Text).length === 0) return true;
-      range.selectNodeContents(lastNode);
-      return range.getBoundingClientRect().bottom <= targetBottom + 4;
-    } else {
-      return (
-        (lastNode as HTMLElement).getBoundingClientRect().bottom <=
-        targetBottom + 4
-      );
-    }
+    return fitsWithin(sandbox, ellipsisNode, targetBottom, lineTolerance);
   };
 
-  console.log('[DEBUG] INITIAL DOM BEFORE EATING:', sandbox.innerHTML);
-  let stepCount = 0;
+  eatForwardUntilFits(sandbox, ellipsisNode, checkFits);
 
-  while (true) {
-    if (checkFits()) {
-      console.log(`[DEBUG] FITS! Loop finished after ${stepCount} steps.`);
-      break;
-    }
-
-    stepCount++;
-    const tw = document.createTreeWalker(
-      sandbox,
-      NodeFilter.SHOW_ALL,
-      walkerFilter
-    );
-    tw.currentNode = ellipsisNode;
-    const nextNode = tw.nextNode();
-
-    if (!nextNode) {
-      console.log(`[DEBUG] NO NEXT NODE! Aborting loop early.`);
-      break;
-    }
-
-    if (
-      nextNode.nodeName === 'IMG' ||
-      nextNode.nodeName === 'BR' ||
-      BLOCK_TAGS.has(nextNode.nodeName)
-    ) {
-      removeAndCleanUp(nextNode);
-      console.log(
-        `[DEBUG - Step ${stepCount}] Removed Element Node:`,
-        nextNode.nodeName
-      );
-    } else {
-      const t = nextNode as Text;
-      if (t.length > 1) {
-        const deletedChar = t.nodeValue!.slice(0, 1);
-        t.nodeValue = t.nodeValue!.slice(1);
-        console.log(
-          `[DEBUG - Step ${stepCount}] Ate character: "${deletedChar}"`
-        );
-      } else {
-        removeAndCleanUp(t);
-        console.log(
-          `[DEBUG - Step ${stepCount}] Removed empty/single-char text node.`
-        );
-      }
-    }
-
-    console.log(`[DEBUG - Step ${stepCount}] CURRENT DOM:`, sandbox.innerHTML);
-  }
-
-  console.log(`[DEBUG] Final clamped output set!`);
   setClampedHtml(sandbox.innerHTML);
   container.removeChild(sandbox);
 }
