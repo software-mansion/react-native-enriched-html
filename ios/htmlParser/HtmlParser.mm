@@ -762,7 +762,9 @@
       LinkData *linkData = [[LinkData alloc] init];
       linkData.url = url;
       linkData.text = text;
-      linkData.isManual = ![text isEqualToString:url] || ![LinkStyle matchesLinkRegexWithConfig:url config:config]);
+      linkData.isManual = ![text isEqualToString:url] ||
+                          ![LinkStyle matchesLinkRegexWithConfig:url
+                                                          config:config];
 
       stylePair.styleValue = linkData;
     } else if ([tagName isEqualToString:@"mention"]) {
