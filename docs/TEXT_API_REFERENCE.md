@@ -42,7 +42,7 @@ If `true`, external HTML (e.g. from Google Docs, Word, web pages) will be normal
 
 | Type   | Default Value | Platform          |
 | ------ | ------------- | ----------------- |
-| `bool` | `false`       | iOS, Android, Web |
+| `bool` | `true`        | iOS, Android, Web |
 
 ### `ellipsizeMode`
 
