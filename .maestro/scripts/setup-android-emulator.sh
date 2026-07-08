@@ -11,6 +11,10 @@
 set -euo pipefail
 
 NUM_DEVICES="${1:-1}"
+if ! [[ "$NUM_DEVICES" =~ ^[0-9]+$ ]] || [ "$NUM_DEVICES" -lt 1 ]; then
+  echo "Error: num_devices must be a positive integer (got '$NUM_DEVICES')" >&2
+  exit 1
+fi
 
 API_LEVEL="36"
 DEVICE_ID="pixel_9"

@@ -59,6 +59,11 @@ while [ $# -gt 0 ]; do
   esac
 done
 
+if ! [[ "$SHARDS" =~ ^[0-9]+$ ]]; then
+  echo "Error: --shards requires a numeric integer. Received: '$SHARDS'" >&2
+  exit 1
+fi
+
 [ -z "$FLOWS" ] && FLOWS=".maestro/enrichedInput/flows .maestro/enrichedText/flows"
 
 case "$PLATFORM" in
@@ -91,6 +96,10 @@ TTY_OUT=/dev/tty
 ( : > /dev/tty ) 2>/dev/null || TTY_OUT=/dev/stderr
 
 DEVICE_IDS_CSV=$("$SETUP" "$SHARDS" | tee "$TTY_OUT" | grep "^DEVICE_IDS=" | cut -d= -f2)
+if [ -z "$DEVICE_IDS_CSV" ]; then
+  echo "Error: setup script did not return any DEVICE_IDS" >&2
+  exit 1
+fi
 IFS=',' read -r -a DEVICES <<< "$DEVICE_IDS_CSV"
 DEVICE_ID="${DEVICES[0]}"
 
