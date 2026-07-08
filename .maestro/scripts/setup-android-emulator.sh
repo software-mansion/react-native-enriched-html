@@ -69,7 +69,11 @@ AVD_NAMES=()
 i=0
 while [ "$i" -lt "$NUM_DEVICES" ]; do
   # Each shard gets its own numbered AVD so they boot fully independently.
-  AVD_NAME="${AVD_BASE}-$((i + 1))"
+  if [ "$i" -eq 0 ]; then
+    AVD_NAME="$AVD_BASE"
+  else
+    AVD_NAME="${AVD_BASE}-$((i + 1))"
+  fi
   PORT=$((BASE_PORT + 2 * i))
   SERIAL="emulator-${PORT}"
   SERIALS+=("$SERIAL")
