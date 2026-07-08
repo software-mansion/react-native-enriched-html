@@ -2,7 +2,7 @@
 # run-tests.sh - set up devices, build the example app, and run Maestro flows.
 #
 # Usage:
-#   ./run-tests.sh --platform <ios|android> [--update-screenshots] [--rebuild] [--shards N] [--release] [flow ...]
+#   ./run-tests.sh --platform <ios|android> [--update-screenshots] [--rebuild] [--shards N] [flow ...]
 #
 # Options:
 #   --platform            Required. Target platform: ios or android.
@@ -12,8 +12,6 @@
 #   --shards N            Number of devices to boot and split flows across
 #                         (default 1). Automatically clamped to the number of
 #                         flows being run.
-#   --release             Build the example app in Release mode. Faster app
-#                         launches (no Metro), at the cost of a slower build.
 #   flow ...              One or more Maestro flow files or directories to run.
 #                         Defaults to all component suites if omitted.
 #
@@ -48,7 +46,6 @@ EXAMPLE_DIR="$REPO_ROOT/apps/example"
 PLATFORM=""
 UPDATE_SCREENSHOTS=""
 REBUILD=""
-RELEASE=""
 SHARDS=1
 FLOWS=""
 
@@ -57,7 +54,6 @@ while [ $# -gt 0 ]; do
     --platform)           PLATFORM="$2"; shift 2 ;;
     --update-screenshots) UPDATE_SCREENSHOTS="true"; shift ;;
     --rebuild)            REBUILD="true"; shift ;;
-    --release)            RELEASE="true"; shift ;;
     --shards)             SHARDS="$2"; shift 2 ;;
     *)                    FLOWS="${FLOWS:+$FLOWS }$1"; shift ;;
   esac
@@ -129,21 +125,13 @@ set_font_scale() {
 # in a scaled-up state.
 trap 'set_font_scale default' EXIT
 
-if [ -n "$RELEASE" ]; then
-  IOS_MODE="Release"
-  ANDROID_MODE="release"
-else
-  IOS_MODE="Debug"
-  ANDROID_MODE="debug"
-fi
-
 # Builds and installs on the given device via the react-native CLI.
 build_and_install() {
   local dev="$1"
   if [ "$PLATFORM" = ios ]; then
-    yarn example ios --udid "$dev" --mode "$IOS_MODE"
+    yarn example ios --udid "$dev"
   else
-    yarn example android --device "$dev" --mode "$ANDROID_MODE"
+    yarn example android --device "$dev"
   fi
 }
 
@@ -153,7 +141,7 @@ build_and_install() {
 install_prebuilt() {
   local dev="$1" app_path apk_path
   if [ "$PLATFORM" = ios ]; then
-    app_path=$(ls -td "$EXAMPLE_DIR/ios/build/Build/Products/${IOS_MODE}-iphonesimulator"/*.app 2>/dev/null | head -1 || true)
+    app_path=$(ls -td "$EXAMPLE_DIR/ios/build/Build/Products/Debug-iphonesimulator"/*.app 2>/dev/null | head -1 || true)
     if [ -z "$app_path" ]; then
       app_path=$(xcrun simctl get_app_container "$DEVICE_ID" "$BUNDLE_ID" app 2>/dev/null || true)
     fi
@@ -165,7 +153,7 @@ install_prebuilt() {
       build_and_install "$dev"
     fi
   else
-    apk_path=$(ls -t "$EXAMPLE_DIR/android/app/build/outputs/apk/${ANDROID_MODE}"/*.apk 2>/dev/null | head -1 || true)
+    apk_path=$(ls -t "$EXAMPLE_DIR/android/app/build/outputs/apk/debug"/*.apk 2>/dev/null | head -1 || true)
     if [ -z "$apk_path" ]; then
       local device_apk
       device_apk=$(adb -s "$DEVICE_ID" shell pm path "$BUNDLE_ID" 2>/dev/null | head -1 | cut -d: -f2 | tr -d '\r' || true)
