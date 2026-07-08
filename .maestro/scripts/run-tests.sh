@@ -10,7 +10,7 @@
 #   --rebuild             Force a rebuild and install, even if the app is
 #                         already installed on the device.
 #   --shards N            Number of devices to boot and split flows across
-#                         (default 3). Automatically clamped to the number of
+#                         (default 1). Automatically clamped to the number of
 #                         flows being run.
 #   --release             Build the example app in Release mode. Faster app
 #                         launches (no Metro), at the cost of a slower build.
@@ -49,7 +49,7 @@ PLATFORM=""
 UPDATE_SCREENSHOTS=""
 REBUILD=""
 RELEASE=""
-SHARDS=3
+SHARDS=1
 FLOWS=""
 
 while [ $# -gt 0 ]; do
