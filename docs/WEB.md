@@ -41,6 +41,9 @@ See [Web Keyboard Shortcuts](./INPUT_API_REFERENCE.md#web-keyboard-shortcuts) fo
 - Customizing the styling using props: `style`, `htmlStyle`, `selectionColor`.
 - Truncation via `numberOfLines` and `ellipsizeMode` (`head`, `middle`, `tail`, `clip`).
 
+> [!NOTE]
+> Truncation measures the rendered DOM in a layout effect, so it only runs on the client. Under SSR the server renders no text and the clamped content appears after hydration - expect a flash / layout shift on first paint when combining `numberOfLines` with `ellipsizeMode`.
+
 ### Unsupported
 
 - **`selectable`**: ignored on web.
