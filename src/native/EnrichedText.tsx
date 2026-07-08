@@ -1,8 +1,9 @@
-import React, {
+import {
   useCallback,
   useImperativeHandle,
   useMemo,
   useRef,
+  type ComponentRef,
 } from 'react';
 import type {
   HostComponent,
@@ -21,7 +22,7 @@ import { normalizeEnrichedTextHtmlStyle } from '../utils/normalizeHtmlStyle';
 import type { EnrichedTextProps } from '../types';
 import type { DirectEventHandler } from 'react-native/Libraries/Types/CodegenTypes';
 
-type ComponentType = React.ElementRef<HostComponent<NativeProps>>;
+type ComponentType = ComponentRef<HostComponent<NativeProps>>;
 
 export const EnrichedText = ({
   ref,

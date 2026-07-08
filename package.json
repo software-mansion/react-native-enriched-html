@@ -136,7 +136,7 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-native": "0.86.0",
-    "react-native-builder-bob": "^0.41.0",
+    "react-native-builder-bob": "^0.43.0",
     "release-it": "^17.10.0",
     "turbo": "^1.10.7",
     "typescript": "^5.8.3"

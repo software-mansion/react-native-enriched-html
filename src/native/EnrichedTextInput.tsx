@@ -1,9 +1,10 @@
-import React, {
+import {
   useCallback,
   useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
+  type ComponentRef,
 } from 'react';
 import EnrichedTextInputNativeComponent, {
   Commands,
@@ -38,7 +39,7 @@ const warnMentionIndicators = (indicator: string) => {
   );
 };
 
-type ComponentType = React.ElementRef<HostComponent<NativeProps>>;
+type ComponentType = ComponentRef<HostComponent<NativeProps>>;
 
 type HtmlRequest = {
   resolve: (html: string) => void;
