@@ -1327,8 +1327,9 @@
         ImageData *data = [imageStyle getImageDataAt:location];
         if (data != nullptr && data.uri != nullptr) {
           return [NSString
-              stringWithFormat:@"img src=\"%@\" width=\"%f\" height=\"%f\"",
-                               data.uri, data.width, data.height];
+              stringWithFormat:@"img src=\"%@\" width=\"%d\" height=\"%d\"",
+                               data.uri, (int)floor(data.width),
+                               (int)floor(data.height)];
         }
       }
       return @"img";
