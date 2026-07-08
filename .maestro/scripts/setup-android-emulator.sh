@@ -4,8 +4,8 @@
 # Usage:
 #   ./setup-android-emulator.sh [num_devices]
 #
-# Boots `num_devices` (default 1) emulator instances backed by the same AVD
-# (extra instances start with -read-only). Prints:
+# Boots `num_devices` (default 1) independent emulators.
+# Prints:
 #   DEVICE_ID=<first serial>
 #   DEVICE_IDS=<comma-separated serials>
 set -euo pipefail
@@ -22,7 +22,7 @@ else
 fi
 TAG="google_apis_playstore"
 SYSTEM_IMAGE="system-images;android-${API_LEVEL};${TAG};${ABI}"
-AVD_NAME="Pixel9-API${API_LEVEL}-Enriched"
+AVD_BASE="Pixel9-API${API_LEVEL}-Enriched"
 BASE_PORT=5570
 
 if [ -z "${ANDROID_HOME:-}" ]; then
@@ -49,44 +49,51 @@ if ! avdmanager list device -c | grep -qx "$DEVICE_ID"; then
   exit 1
 fi
 
-if ! avdmanager list avd -c | grep -qx "${AVD_NAME}"; then
-  echo "Creating AVD '$AVD_NAME'..."
-  echo "no" | avdmanager create avd \
-    --name "$AVD_NAME" \
-    --device "$DEVICE_ID" \
-    --package "$SYSTEM_IMAGE" \
-    --skin "$DEVICE_ID"
-fi
-
-AVD_CONFIG="$HOME/.android/avd/${AVD_NAME}.avd/config.ini"
-if [ -f "$AVD_CONFIG" ]; then
-  sed -i '' 's/^hw\.keyboard=.*/hw.keyboard=yes/' "$AVD_CONFIG"
-  grep -q "^hw.keyboard=" "$AVD_CONFIG" || echo "hw.keyboard=yes" >> "$AVD_CONFIG"
-  sed -i '' 's/^hw\.mainKeys=.*/hw.mainKeys=yes/' "$AVD_CONFIG"
-  grep -q "^hw.mainKeys=" "$AVD_CONFIG" || echo "hw.mainKeys=yes" >> "$AVD_CONFIG"
-fi
+configure_avd() {
+  local avd_name="$1"
+  local avd_config="$HOME/.android/avd/${avd_name}.avd/config.ini"
+  if [ -f "$avd_config" ]; then
+    sed -i '' 's/^hw\.keyboard=.*/hw.keyboard=yes/' "$avd_config"
+    grep -q "^hw.keyboard=" "$avd_config" || echo "hw.keyboard=yes" >> "$avd_config"
+    sed -i '' 's/^hw\.mainKeys=.*/hw.mainKeys=yes/' "$avd_config"
+    grep -q "^hw.mainKeys=" "$avd_config" || echo "hw.mainKeys=yes" >> "$avd_config"
+  fi
+}
 
 SERIALS=()
+AVD_NAMES=()
 i=0
 while [ "$i" -lt "$NUM_DEVICES" ]; do
+  # Each shard gets its own numbered AVD so they boot fully independently.
+  AVD_NAME="${AVD_BASE}-$((i + 1))"
   PORT=$((BASE_PORT + 2 * i))
   SERIAL="emulator-${PORT}"
   SERIALS+=("$SERIAL")
+  AVD_NAMES+=("$AVD_NAME")
+
+  if ! avdmanager list avd -c | grep -qx "$AVD_NAME"; then
+    echo "Creating AVD '$AVD_NAME'..."
+    echo "no" | avdmanager create avd \
+      --name "$AVD_NAME" \
+      --device "$DEVICE_ID" \
+      --package "$SYSTEM_IMAGE" \
+      --skin "$DEVICE_ID"
+  fi
+  configure_avd "$AVD_NAME"
 
   if adb -s "$SERIAL" get-state >/dev/null 2>&1; then
     echo "Emulator already running: $AVD_NAME ($SERIAL)"
   else
     echo "Starting emulator '$AVD_NAME' ($SERIAL)..."
-    # Extra instances share the same AVD, which requires -read-only.
-    READ_ONLY=""
-    [ "$i" -gt 0 ] && READ_ONLY="-read-only"
-    # shellcheck disable=SC2086
-    emulator "@${AVD_NAME}" -port "$PORT" -no-boot-anim -no-snapshot-save $READ_ONLY > /dev/null 2>&1 &
+    emulator "@${AVD_NAME}" -port "$PORT" -no-boot-anim -no-snapshot-save > /dev/null 2>&1 &
   fi
   i=$((i + 1))
 done
 
-for SERIAL in "${SERIALS[@]}"; do
+for idx in "${!SERIALS[@]}"; do
+  SERIAL="${SERIALS[$idx]}"
+  AVD_NAME="${AVD_NAMES[$idx]}"
+
   echo "Waiting for emulator ($SERIAL) to connect to ADB..."
   if ! timeout 120 adb -s "$SERIAL" wait-for-device; then
     echo "Error: Emulator $SERIAL did not connect to ADB after 120s."

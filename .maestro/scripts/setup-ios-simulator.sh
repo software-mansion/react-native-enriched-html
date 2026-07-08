@@ -4,8 +4,7 @@
 # Usage:
 #   ./setup-ios-simulator.sh [num_devices]
 #
-# Boots `num_devices` (default 1) simulators. The first keeps the historical
-# name so an already-installed app is reused; extras get a -2, -3, ... suffix.
+# Boots `num_devices` (default 1) simulators.
 # Prints:
 #   DEVICE_ID=<first udid>
 #   DEVICE_IDS=<comma-separated udids>
