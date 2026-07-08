@@ -1,5 +1,16 @@
 #!/bin/bash
+# setup-android-emulator.sh - boot one or more Android emulator instances.
+#
+# Usage:
+#   ./setup-android-emulator.sh [num_devices]
+#
+# Boots `num_devices` (default 1) emulator instances backed by the same AVD
+# (extra instances start with -read-only). Prints:
+#   DEVICE_ID=<first serial>
+#   DEVICE_IDS=<comma-separated serials>
 set -euo pipefail
+
+NUM_DEVICES="${1:-1}"
 
 API_LEVEL="36"
 DEVICE_ID="pixel_9"
@@ -12,10 +23,9 @@ fi
 TAG="google_apis_playstore"
 SYSTEM_IMAGE="system-images;android-${API_LEVEL};${TAG};${ABI}"
 AVD_NAME="Pixel9-API${API_LEVEL}-Enriched"
-PORT=5570
-SERIAL="emulator-${PORT}"
+BASE_PORT=5570
 
-if [ -z "$ANDROID_HOME" ]; then
+if [ -z "${ANDROID_HOME:-}" ]; then
   echo "Error: ANDROID_HOME is not set. Set it to your Android SDK directory."
   exit 1
 fi
@@ -56,28 +66,50 @@ if [ -f "$AVD_CONFIG" ]; then
   grep -q "^hw.mainKeys=" "$AVD_CONFIG" || echo "hw.mainKeys=yes" >> "$AVD_CONFIG"
 fi
 
-if pgrep -f "emulator.*${AVD_NAME}" > /dev/null 2>&1; then
-  echo "Emulator already running: $AVD_NAME ($SERIAL)"
-  echo "DEVICE_ID=$SERIAL"
-  exit 0
-fi
+SERIALS=()
+i=0
+while [ "$i" -lt "$NUM_DEVICES" ]; do
+  PORT=$((BASE_PORT + 2 * i))
+  SERIAL="emulator-${PORT}"
+  SERIALS+=("$SERIAL")
 
-echo "Starting emulator '$AVD_NAME'..."
-emulator "@${AVD_NAME}" -port "$PORT" > /dev/null 2>&1 &
-
-echo "Waiting for emulator ($SERIAL) to connect to ADB..."
-if ! timeout 120 adb -s "$SERIAL" wait-for-device; then
-  echo "Error: Emulator did not connect to ADB after 120s."
-  exit 1
-fi
-
-echo "Waiting for emulator to finish booting..."
-until adb -s "$SERIAL" shell getprop sys.boot_completed 2>/dev/null | grep -q "^1$"; do
-  sleep 2
+  if adb -s "$SERIAL" get-state >/dev/null 2>&1; then
+    echo "Emulator already running: $AVD_NAME ($SERIAL)"
+  else
+    echo "Starting emulator '$AVD_NAME' ($SERIAL)..."
+    # Extra instances share the same AVD, which requires -read-only.
+    READ_ONLY=""
+    [ "$i" -gt 0 ] && READ_ONLY="-read-only"
+    # shellcheck disable=SC2086
+    emulator "@${AVD_NAME}" -port "$PORT" -no-boot-anim -no-snapshot-save $READ_ONLY > /dev/null 2>&1 &
+  fi
+  i=$((i + 1))
 done
 
-adb -s "$SERIAL" shell pm disable-user --user 0 com.google.android.inputmethod.latin
-adb -s "$SERIAL" shell settings put secure spell_checker_enabled 0
+for SERIAL in "${SERIALS[@]}"; do
+  echo "Waiting for emulator ($SERIAL) to connect to ADB..."
+  if ! timeout 120 adb -s "$SERIAL" wait-for-device; then
+    echo "Error: Emulator $SERIAL did not connect to ADB after 120s."
+    exit 1
+  fi
 
-echo "Emulator ready: $AVD_NAME ($SERIAL)"
-echo "DEVICE_ID=$SERIAL"
+  echo "Waiting for emulator ($SERIAL) to finish booting..."
+  until adb -s "$SERIAL" shell getprop sys.boot_completed 2>/dev/null | grep -q "^1$"; do
+    sleep 2
+  done
+
+  adb -s "$SERIAL" shell pm disable-user --user 0 com.google.android.inputmethod.latin
+  adb -s "$SERIAL" shell settings put secure spell_checker_enabled 0
+
+  # Disable system animations so taps/transitions settle instantly and
+  # waitForAnimationToEnd doesn't pay real animation time.
+  adb -s "$SERIAL" shell settings put global window_animation_scale 0
+  adb -s "$SERIAL" shell settings put global transition_animation_scale 0
+  adb -s "$SERIAL" shell settings put global animator_duration_scale 0
+
+  echo "Emulator ready: $AVD_NAME ($SERIAL)"
+done
+
+DEVICE_IDS=$(IFS=,; echo "${SERIALS[*]}")
+echo "DEVICE_ID=${SERIALS[0]}"
+echo "DEVICE_IDS=$DEVICE_IDS"
