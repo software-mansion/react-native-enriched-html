@@ -48,12 +48,14 @@ export function createSandbox(
   const sandbox = document.createElement('div');
   const computedStyle = window.getComputedStyle(container);
 
+  sandbox.style.cssText = container.style.cssText;
+
   sandbox.style.position = 'absolute';
   sandbox.style.visibility = 'hidden';
   sandbox.style.top = '-9999px';
+  sandbox.style.pointerEvents = 'none';
 
   // copy exact CSS properties that affect text wrapping
-  sandbox.style.cssText = container.style.cssText;
   sandbox.style.width = computedStyle.width;
   sandbox.style.boxSizing = computedStyle.boxSizing;
   sandbox.style.fontFamily = computedStyle.fontFamily;
