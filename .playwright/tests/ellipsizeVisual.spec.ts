@@ -71,7 +71,7 @@ const SHARED_CASES: EllipsizeCase[] = [
   {
     name: 'paragraph that fits',
     slug: 'paragraph-fit',
-    html: `<html><p>hello that is a paragraph that should fit an require no ellipsis</p></html>`,
+    html: `<html><p>hello that is a paragraph that should fit and require no ellipsis</p></html>`,
     numberOfLines: 2,
   },
   {
@@ -100,13 +100,13 @@ const SHARED_CASES: EllipsizeCase[] = [
   {
     name: 'a number of paragraphs much greater than the given limit',
     slug: 'multiple-short-paragraphs',
-    html: `<html><p>first</p><p>second</p><p>third</p><p>fourth</p><p>fifth</p><p>sixth</p><p>seventh</p></html`,
+    html: `<html><p>first</p><p>second</p><p>third</p><p>fourth</p><p>fifth</p><p>sixth</p><p>seventh</p></html>`,
     numberOfLines: 4,
   },
   {
     name: 'a number of paragraphs much greater than the given limit and the last one overflows',
     slug: 'multiple-short-paragraphs-with-last-overflow',
-    html: `<html><p>first</p><p>second</p><p>third</p><p>fourth</p><p>fifth</p><p>sixth</p><p>seventh line that will be long enough that it overflows to the next 8th line</p></html`,
+    html: `<html><p>first</p><p>second</p><p>third</p><p>fourth</p><p>fifth</p><p>sixth</p><p>seventh line that will be long enough that it overflows to the next 8th line</p></html>`,
     numberOfLines: 4,
   },
   {
