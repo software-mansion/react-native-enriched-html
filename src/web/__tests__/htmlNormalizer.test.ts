@@ -417,6 +417,56 @@ describe('htmlNormalizer', () => {
     });
   });
 
+  describe('EmptyListItems', () => {
+    test.each([
+      [
+        '<ul><li></li><li>first</li><li></li><li>second</li><li></li><li></li></ul>',
+        '<ul><li></li><li>first</li><li></li><li>second</li><li></li><li></li></ul>',
+      ],
+      [
+        '<ol><li></li><li>first</li><li></li><li>second</li><li></li><li></li></ol>',
+        '<ol><li></li><li>first</li><li></li><li>second</li><li></li><li></li></ol>',
+      ],
+      [
+        '<ul data-type="checkbox"><li checked></li><li>first</li><li></li><li checked>second</li><li></li><li></li></ul>',
+        '<ul data-type="checkbox"><li checked></li><li>first</li><li></li><li checked>second</li><li></li><li></li></ul>',
+      ],
+    ])('%s → %s', (input, expected) => {
+      expect(normalizeHtml(input)).toBe(expected);
+    });
+  });
+
+  describe('TiptapCheckboxList', () => {
+    test("tiptap's internal checkbox list structure gets correctly parsed", () => {
+      expect(
+        normalizeHtml(
+          `<ul data-type="checkboxList"><li data-checked="true" data-type="checkboxItem"><label>` +
+            `<input type="checkbox" checked="checked"><span></span></label><div><p>first</p></div></li>` +
+            `<li data-checked="false" data-type="checkboxItem"><label><input type="checkbox"><span></span></label><div><p>second</p></div></li></ul>`
+        )
+      ).toBe(
+        '<ul data-type="checkbox"><li checked>first</li><li>second</li></ul>'
+      );
+    });
+  });
+
+  describe('Checkbox Lists (Google Docs & MS Word)', () => {
+    test.each([
+      // Google Docs format
+      [
+        '<ul><li role="checkbox" aria-checked="true"><img src="data:image/png;base64,..." /><p>Checked</p></li><li role="checkbox" aria-checked="false"><img src="data:image/png;base64,..." /><p>Unchecked</p></li></ul>',
+        '<ul data-type="checkbox"><li checked>Checked</li><li>Unchecked</li></ul>',
+      ],
+      // MS Word format
+      [
+        '<ul><li class="OutlineElement checklist" data-leveltext="\uF0FE">Checked</li><li class="OutlineElement checklist" data-leveltext="\uF0A8">Unchecked</li></ul>',
+        '<ul data-type="checkbox"><li checked>Checked</li><li>Unchecked</li></ul>',
+      ],
+    ])('%s → %s', (input, expected) => {
+      expect(normalizeHtml(input)).toBe(expected);
+    });
+  });
+
   describe('BrRemappings', () => {
     test('inline collapses around <br> stay flat', () => {
       expect(
