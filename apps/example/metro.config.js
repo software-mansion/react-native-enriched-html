@@ -18,11 +18,7 @@ const config = withMetroConfig(getDefaultConfig(__dirname), {
 config.resolver = {
   ...config.resolver,
   blockList: [
-    ...(Array.isArray(config.resolver?.blockList)
-      ? config.resolver.blockList
-      : config.resolver?.blockList
-        ? [config.resolver.blockList]
-        : []),
+    ...[].concat(config.resolver?.blockList || []),
     /.*\/\.maestro\/.*/,
   ],
 };
