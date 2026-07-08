@@ -856,7 +856,11 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
   private static int parseDimension(String value) {
     if (value == null) return 0;
     try {
-      return (int) Math.floor(Float.parseFloat(value));
+      int parsed = (int) Math.floor(Float.parseFloat(value));
+      if (parsed < 0) {
+        return 0;
+      }
+      return parsed;
     } catch (NumberFormatException e) {
       return 0;
     }
