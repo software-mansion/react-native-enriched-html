@@ -1,6 +1,6 @@
 #pragma once
-#import <UIKit/UIKit.h>
+#import "EnrichedPlatform.h"
 
-@interface EnrichedInputTextView : UITextView
+@interface EnrichedInputTextView : EnrichedBaseTextView
 @property(nonatomic, weak) id input;
 @end

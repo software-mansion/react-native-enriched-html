@@ -1,5 +1,5 @@
 #pragma once
-#import <UIKit/UIKit.h>
+#import "EnrichedPlatform.h"
 
 typedef NSString *TextDecorationLineEnum NS_TYPED_ENUM;
 extern TextDecorationLineEnum const DecorationUnderline;

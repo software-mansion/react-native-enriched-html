@@ -165,8 +165,7 @@
   if (!_allowFontScaling) {
     return [self primaryLineHeight];
   }
-  return [[UIFontMetrics defaultMetrics]
-      scaledValueForValue:[self primaryLineHeight]];
+  return EnrichedFontScaledValue([self primaryLineHeight]);
 }
 
 - (NSString *)primaryFontWeight {
@@ -238,7 +237,7 @@
   if (!_allowFontScaling) {
     return _h1FontSize;
   }
-  return [[UIFontMetrics defaultMetrics] scaledValueForValue:_h1FontSize];
+  return EnrichedFontScaledValue(_h1FontSize);
 }
 
 - (void)setH1FontSize:(CGFloat)newValue {
@@ -257,7 +256,7 @@
   if (!_allowFontScaling) {
     return _h2FontSize;
   }
-  return [[UIFontMetrics defaultMetrics] scaledValueForValue:_h2FontSize];
+  return EnrichedFontScaledValue(_h2FontSize);
 }
 
 - (void)setH2FontSize:(CGFloat)newValue {
@@ -276,7 +275,7 @@
   if (!_allowFontScaling) {
     return _h3FontSize;
   }
-  return [[UIFontMetrics defaultMetrics] scaledValueForValue:_h3FontSize];
+  return EnrichedFontScaledValue(_h3FontSize);
 }
 
 - (void)setH3FontSize:(CGFloat)newValue {
@@ -295,7 +294,7 @@
   if (!_allowFontScaling) {
     return _h4FontSize;
   }
-  return [[UIFontMetrics defaultMetrics] scaledValueForValue:_h4FontSize];
+  return EnrichedFontScaledValue(_h4FontSize);
 }
 
 - (void)setH4FontSize:(CGFloat)newValue {
@@ -314,7 +313,7 @@
   if (!_allowFontScaling) {
     return _h5FontSize;
   }
-  return [[UIFontMetrics defaultMetrics] scaledValueForValue:_h5FontSize];
+  return EnrichedFontScaledValue(_h5FontSize);
 }
 
 - (void)setH5FontSize:(CGFloat)newValue {
@@ -333,7 +332,7 @@
   if (!_allowFontScaling) {
     return _h6FontSize;
   }
-  return [[UIFontMetrics defaultMetrics] scaledValueForValue:_h6FontSize];
+  return EnrichedFontScaledValue(_h6FontSize);
 }
 
 - (void)setH6FontSize:(CGFloat)newValue {
@@ -564,8 +563,8 @@
   if (!_allowFontScaling) {
     return [self primaryFontSize];
   }
-  CGFloat scaledSize = [[UIFontMetrics defaultMetrics]
-      scaledValueForValue:[[self primaryFontSize] floatValue]];
+  CGFloat scaledSize =
+      EnrichedFontScaledValue([[self primaryFontSize] floatValue]);
   return @(scaledSize);
 }
 
@@ -629,6 +628,7 @@
   CGFloat boxSize = self.checkboxListBoxSize;
   UIColor *boxColor = self.checkboxListBoxColor ?: [UIColor blackColor];
 
+#if !TARGET_OS_OSX
   UIGraphicsBeginImageContextWithOptions(CGSizeMake(boxSize, boxSize), NO, 0.0);
   CGRect localRect = CGRectMake(0, 0, boxSize, boxSize);
   CGFloat cornerRadius = boxSize * 0.15f;
@@ -674,6 +674,59 @@
   UIGraphicsEndImageContext();
 
   return result;
+#else
+  // Same drawing as the UIKit branch, expressed with NSBezierPath selectors.
+  // The image is drawn checkmark-up in an unflipped context and rendered into
+  // the flipped text view context via EnrichedDrawImageInRect
+  // (respectFlipped:), which keeps its orientation correct.
+  return [NSImage
+       imageWithSize:NSMakeSize(boxSize, boxSize)
+             flipped:YES
+      drawingHandler:^BOOL(NSRect localRect) {
+        CGFloat cornerRadius = boxSize * 0.15f;
+        CGFloat strokeWidth = boxSize * 0.1f;
+        CGRect insetRect =
+            CGRectInset(localRect, strokeWidth / 2.0, strokeWidth / 2.0);
+
+        // Draw Box
+        NSBezierPath *boxPath =
+            [NSBezierPath bezierPathWithRoundedRect:insetRect
+                                            xRadius:cornerRadius
+                                            yRadius:cornerRadius];
+        [boxPath setLineWidth:strokeWidth];
+
+        if (isChecked) {
+          [[boxColor colorWithAlphaComponent:1.0] setFill];
+          [boxPath fill];
+          [[boxColor colorWithAlphaComponent:1.0] setStroke];
+          [boxPath stroke];
+
+          // Draw Checkmark
+          NSBezierPath *checkPath = [NSBezierPath bezierPath];
+          CGFloat startX = insetRect.origin.x + insetRect.size.width * 0.25;
+          CGFloat startY = insetRect.origin.y + insetRect.size.height * 0.5;
+          CGFloat midX = insetRect.origin.x + insetRect.size.width * 0.45;
+          CGFloat midY = insetRect.origin.y + insetRect.size.height * 0.65;
+          CGFloat endX = insetRect.origin.x + insetRect.size.width * 0.75;
+          CGFloat endY = insetRect.origin.y + insetRect.size.height * 0.35;
+
+          [checkPath moveToPoint:CGPointMake(startX, startY)];
+          [checkPath lineToPoint:CGPointMake(midX, midY)];
+          [checkPath lineToPoint:CGPointMake(endX, endY)];
+
+          [checkPath setLineWidth:strokeWidth * 1.5];
+          [[UIColor whiteColor] setStroke];
+          [checkPath setLineCapStyle:NSLineCapStyleRound];
+          [checkPath setLineJoinStyle:NSLineJoinStyleRound];
+          [checkPath stroke];
+        } else {
+          [[boxColor colorWithAlphaComponent:1.0] setStroke];
+          [boxPath stroke];
+        }
+
+        return YES;
+      }];
+#endif
 }
 
 // MARK: - Input only props

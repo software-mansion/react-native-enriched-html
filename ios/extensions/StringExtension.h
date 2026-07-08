@@ -1,5 +1,5 @@
+#import "EnrichedPlatform.h"
 #include "string"
-#import <UIKit/UIKit.h>
 #pragma once
 
 @interface NSString (StringExtension)

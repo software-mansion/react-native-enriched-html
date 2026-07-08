@@ -73,7 +73,7 @@
   }
 
   // fix the selection if needed
-  if ([host.textView isFirstResponder]) {
+  if (host.textView.enrichedIsFirstResponder) {
     host.textView.selectedRange =
         NSMakeRange(preRemoveSelection.location + postRemoveLocationOffset,
                     preRemoveSelection.length + postRemoveLengthOffset);
@@ -167,7 +167,7 @@
   }
 
   // fix the selection if needed
-  if ([host.textView isFirstResponder]) {
+  if (host.textView.enrichedIsFirstResponder) {
     host.textView.selectedRange =
         NSMakeRange(preAddSelection.location + postAddLocationOffset,
                     preAddSelection.length + postAddLengthOffset);

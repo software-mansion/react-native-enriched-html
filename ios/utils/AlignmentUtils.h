@@ -1,7 +1,7 @@
 #import "AlignmentEntry.h"
+#import "EnrichedPlatform.h"
 #import "EnrichedTextInputView.h"
 #import "StyleHeaders.h"
-#import <UIKit/UIKit.h>
 
 @interface AlignmentUtils : NSObject
 

@@ -1,5 +1,5 @@
+#import "EnrichedPlatform.h"
 #import "EnrichedViewHost.h"
-#import <UIKit/UIKit.h>
 
 @interface TextInsertionUtils : NSObject
 + (void)insertText:(NSString *)text

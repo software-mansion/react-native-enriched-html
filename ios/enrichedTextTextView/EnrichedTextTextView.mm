@@ -36,14 +36,29 @@
           }
                        error:nullptr];
 
+#if !TARGET_OS_OSX
   UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
   [pasteboard setItems:@[ @{
                 UTTypeUTF8PlainText.identifier : fixedPlainText,
                 UTTypeHTML.identifier : parsedHtml,
                 UTTypeRTF.identifier : rtfData
               } ]];
+#else
+  NSPasteboard *pasteboard = NSPasteboard.generalPasteboard;
+  [pasteboard clearContents];
+  [pasteboard declareTypes:@[
+    NSPasteboardTypeHTML, NSPasteboardTypeRTF, NSPasteboardTypeString
+  ]
+                     owner:nil];
+  [pasteboard setString:fixedPlainText forType:NSPasteboardTypeString];
+  [pasteboard setString:parsedHtml forType:NSPasteboardTypeHTML];
+  if (rtfData != nullptr) {
+    [pasteboard setData:rtfData forType:NSPasteboardTypeRTF];
+  }
+#endif
 }
 
+#if !TARGET_OS_OSX
 - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
   if (touches.count == 1) {
     UITouch *touch = touches.anyObject;
@@ -67,5 +82,27 @@
   [self.touchHandler handleTouchCancelled];
   [super touchesCancelled:touches withEvent:event];
 }
+#else
+// The touch handler runs before `super` so link/mention pressed styling is
+// not delayed (see header comment); the same ordering applies to mouseDown.
+- (void)mouseDown:(NSEvent *)event {
+  NSPoint point = [self convertPoint:event.locationInWindow fromView:nil];
+  [self.touchHandler handleTouchBeganAtPoint:point];
+  [super mouseDown:event];
+}
+
+- (void)mouseUp:(NSEvent *)event {
+  NSPoint point = [self convertPoint:event.locationInWindow fromView:nil];
+  [self.touchHandler handleTouchEndedAtPoint:point];
+  [super mouseUp:event];
+}
+
+- (void)mouseDragged:(NSEvent *)event {
+  // Dragging away from the pressed element cancels the press, mirroring
+  // touchesCancelled on iOS.
+  [self.touchHandler handleTouchCancelled];
+  [super mouseDragged:event];
+}
+#endif
 
 @end

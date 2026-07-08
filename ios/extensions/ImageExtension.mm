@@ -15,6 +15,8 @@
 // https://github.com/mayoff/uiimage-from-animated-gif/blob/master/uiimage-from-animated-gif/UIImage%2BanimatedGIF.m
 @implementation UIImage (ImageExtension)
 
+#if !TARGET_OS_OSX
+
 static int delayCentisecondsForImageAtIndex(CGImageSourceRef const source,
                                             size_t const i) {
   int delayCentiseconds = 1;
@@ -172,5 +174,15 @@ animatedImageWithReleasingSource(CGImageSourceRef CF_RELEASES_ARGUMENT source) {
 
   return animatedImageWithReleasingSource(source);
 }
+
+#else // TARGET_OS_OSX
+
++ (UIImage *)animatedImageWithData:(NSData *)data {
+  // NSImage keeps the animation frames internally; NSImageView plays them
+  // when its `animates` property is set (see AttachmentLayoutUtils).
+  return [[NSImage alloc] initWithData:data];
+}
+
+#endif
 
 @end

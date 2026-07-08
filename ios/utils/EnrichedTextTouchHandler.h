@@ -1,4 +1,4 @@
-#import <UIKit/UIKit.h>
+#import "EnrichedPlatform.h"
 
 @class EnrichedTextView;
 
