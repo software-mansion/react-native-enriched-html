@@ -66,6 +66,7 @@ Class<RCTComponentViewProtocol> EnrichedTextViewCls(void) {
 }
 
 - (void)setupTextView {
+#if !TARGET_OS_OSX
   EnrichedTextTextView *tv = [[EnrichedTextTextView alloc] init];
   _touchHandler = [[EnrichedTextTouchHandler alloc] initWithView:self];
   tv.touchHandler = _touchHandler;
@@ -79,6 +80,35 @@ Class<RCTComponentViewProtocol> EnrichedTextViewCls(void) {
   textView.scrollEnabled = NO;
   textView.adjustsFontForContentSizeCategory = YES;
   textView.layoutManager.input = self;
+#else
+  // Build an explicit TextKit 1 stack: a plain NSTextView init on macOS 13+
+  // creates a TextKit 2 view whose .layoutManager access triggers a lossy
+  // fallback mid-flight.
+  NSTextStorage *textStorage = [[NSTextStorage alloc] init];
+  NSLayoutManager *layoutManager = [[NSLayoutManager alloc] init];
+  [textStorage addLayoutManager:layoutManager];
+  NSTextContainer *textContainer =
+      [[NSTextContainer alloc] initWithSize:NSMakeSize(0, FLT_MAX)];
+  textContainer.widthTracksTextView = YES;
+  [layoutManager addTextContainer:textContainer];
+
+  EnrichedTextTextView *tv =
+      [[EnrichedTextTextView alloc] initWithFrame:CGRectZero
+                                    textContainer:textContainer];
+  _touchHandler = [[EnrichedTextTouchHandler alloc] initWithView:self];
+  tv.touchHandler = _touchHandler;
+  tv.host = self;
+  textView = tv;
+
+  textView.drawsBackground = NO;
+  textView.textContainerInset = NSMakeSize(0, 0);
+  textView.textContainer.lineFragmentPadding = 0;
+  textView.editable = NO;
+  textView.verticallyResizable = YES;
+  textView.horizontallyResizable = NO;
+  textView.autoresizingMask = NSViewWidthSizable;
+  textView.layoutManager.input = self;
+#endif
 }
 
 - (void)setupStyles {
@@ -89,7 +119,7 @@ Class<RCTComponentViewProtocol> EnrichedTextViewCls(void) {
 
 // MARK: - EnrichedViewHost protocol
 
-- (UITextView *)textView {
+- (EnrichedBaseTextView *)textView {
   return textView;
 }
 
@@ -574,8 +604,13 @@ Class<RCTComponentViewProtocol> EnrichedTextViewCls(void) {
   // selectionColor
   if (newViewProps.selectionColor != oldViewProps.selectionColor) {
     if (isColorMeaningful(newViewProps.selectionColor)) {
+#if !TARGET_OS_OSX
       textView.tintColor =
           RCTUIColorFromSharedColor(newViewProps.selectionColor);
+#else
+      [textView enrichedSetTintColor:RCTUIColorFromSharedColor(
+                                         newViewProps.selectionColor)];
+#endif
     }
   }
 
@@ -706,6 +741,7 @@ Class<RCTComponentViewProtocol> EnrichedTextViewCls(void) {
   _state->updateState(EnrichedTextViewState(selfRef));
 }
 
+#if !TARGET_OS_OSX
 /**
  * Handles iOS Dynamic Type changes (user changing font size in System
  * Settings).
@@ -732,6 +768,7 @@ Class<RCTComponentViewProtocol> EnrichedTextViewCls(void) {
   [self renderContent];
   [self tryUpdatingHeight];
 }
+#endif
 
 - (std::shared_ptr<EnrichedTextViewEventEmitter>)getEventEmitter {
   if (_eventEmitter != nullptr) {

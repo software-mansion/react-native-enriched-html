@@ -41,6 +41,22 @@
         "!apps/example/ios/Pods"
       ],
       "outputs": []
+    },
+    "build:macos": {
+      "env": ["RCT_NEW_ARCH_ENABLED"],
+      "inputs": [
+        "package.json",
+        "*.podspec",
+        "ios",
+        "cpp",
+        "src/*.ts",
+        "src/*.tsx",
+        "apps/example-macos/package.json",
+        "apps/example-macos/macos",
+        "!apps/example-macos/macos/build",
+        "!apps/example-macos/macos/Pods"
+      ],
+      "outputs": []
     }
   }
 }

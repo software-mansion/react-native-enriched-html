@@ -141,13 +141,10 @@ static void const *kInputKey = &kInputKey;
                                            UIRectCornerBottomRight;
                                      }
 
-                                     UIBezierPath *path = [UIBezierPath
-                                         bezierPathWithRoundedRect:lineBgRect
-                                                 byRoundingCorners:
-                                                     cornersForThisLine
-                                                       cornerRadii:CGSizeMake(
-                                                                       radius,
-                                                                       radius)];
+                                     UIBezierPath *path =
+                                         EnrichedRoundedRectPath(
+                                             lineBgRect, cornersForThisLine,
+                                             radius);
                                      [path fill];
 
                                      isFirstLineOfParagraph = NO;
@@ -232,7 +229,7 @@ static void const *kInputKey = &kInputKey;
                                        CGRectMake(x, y, width, height);
                                    [[host.config blockquoteBorderColor]
                                        setFill];
-                                   UIRectFill(lineRect);
+                                   EnrichedRectFill(lineRect);
                                  }];
   }
 }
@@ -395,10 +392,10 @@ static void const *kInputKey = &kInputKey;
 // and text stays at the bottom. This strips that padding so markers align with
 // the text, not the full line box.
 - (CGRect)getTextAlignedUsedRect:(CGRect)usedRect font:(UIFont *)font {
-  if (font && usedRect.size.height > font.lineHeight) {
-    CGFloat extraSpace = usedRect.size.height - font.lineHeight;
+  if (font && usedRect.size.height > EnrichedFontLineHeight(font)) {
+    CGFloat extraSpace = usedRect.size.height - EnrichedFontLineHeight(font);
     usedRect.origin.y += extraSpace;
-    usedRect.size.height = font.lineHeight;
+    usedRect.size.height = EnrichedFontLineHeight(font);
   }
   return usedRect;
 }
@@ -420,7 +417,7 @@ static void const *kInputKey = &kInputKey;
   CGFloat boxX = origin.x + indent - gapWidth - boxSize;
   CGFloat boxY = centerY - boxSize / 2.0;
 
-  [image drawInRect:CGRectMake(boxX, boxY, boxSize, boxSize)];
+  EnrichedDrawImageInRect(image, CGRectMake(boxX, boxY, boxSize, boxSize));
 }
 
 - (void)drawBullet:(id<EnrichedViewHost>)host

@@ -1,5 +1,5 @@
 #pragma once
-#import <UIKit/UIKit.h>
+#import "EnrichedPlatform.h"
 
 @interface MentionParams : NSObject
 @property NSString *text;

@@ -35,11 +35,19 @@
 
 using namespace facebook::react;
 
+#if !TARGET_OS_OSX
 @interface EnrichedTextInputView () <
     RCTEnrichedTextInputViewViewProtocol, UITextViewDelegate,
     UIGestureRecognizerDelegate, NSTextStorageDelegate, NSObject>
 
 @end
+#else
+@interface EnrichedTextInputView () <RCTEnrichedTextInputViewViewProtocol,
+                                     NSTextViewDelegate, NSTextStorageDelegate,
+                                     NSObject>
+
+@end
+#endif
 
 @implementation EnrichedTextInputView {
   EnrichedTextInputViewShadowNode::ConcreteState::Shared _state;
@@ -62,6 +70,9 @@ using namespace facebook::react;
   NSString *_submitBehavior;
   NSDictionary<NSAttributedStringKey, id> *_capturedAttributesBeforeChange;
   NSString *_recentlyEmittedAlignment;
+#if TARGET_OS_OSX
+  NSScrollView *_scrollView;
+#endif
 }
 
 @synthesize blockEmitting = blockEmitting;
@@ -83,7 +94,7 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
 
 // MARK: - EnrichedViewHost protocol
 
-- (UITextView *)textView {
+- (EnrichedBaseTextView *)textView {
   return textView;
 }
 
@@ -121,7 +132,11 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
     [self setDefaults];
     [self setupTextView];
     [self setupPlaceholderLabel];
+#if !TARGET_OS_OSX
     self.contentView = textView;
+#else
+    self.contentView = _scrollView;
+#endif
   }
   return self;
 }
@@ -154,6 +169,7 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
 }
 
 - (void)setupTextView {
+#if !TARGET_OS_OSX
   textView = [[EnrichedInputTextView alloc] init];
   textView.backgroundColor = UIColor.clearColor;
   textView.textContainerInset = UIEdgeInsetsMake(0, 0, 0, 0);
@@ -167,10 +183,54 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   [textView addGestureRecognizer:[[TextBlockTapGestureRecognizer alloc]
                                      initWithInput:self
                                             action:@selector(onTextBlockTap:)]];
+#else
+  // Build an explicit TextKit 1 stack: a plain NSTextView init on macOS 13+
+  // creates a TextKit 2 view whose .layoutManager access triggers a lossy
+  // fallback mid-flight.
+  NSTextStorage *textStorage = [[NSTextStorage alloc] init];
+  NSLayoutManager *layoutManager = [[NSLayoutManager alloc] init];
+  [textStorage addLayoutManager:layoutManager];
+  NSTextContainer *textContainer =
+      [[NSTextContainer alloc] initWithSize:NSMakeSize(0, FLT_MAX)];
+  textContainer.widthTracksTextView = YES;
+  [layoutManager addTextContainer:textContainer];
+
+  textView = [[EnrichedInputTextView alloc] initWithFrame:CGRectZero
+                                            textContainer:textContainer];
+  textView.drawsBackground = NO;
+  textView.textContainerInset = NSMakeSize(0, 0);
+  textView.textContainer.lineFragmentPadding = 0;
+  textView.delegate = self;
+  textView.input = self;
+  textView.layoutManager.input = self;
+  textView.textStorage.delegate = self;
+
+  textView.richText = YES;
+  textView.allowsUndo = YES;
+  textView.automaticQuoteSubstitutionEnabled = NO;
+  textView.automaticDashSubstitutionEnabled = NO;
+  textView.verticallyResizable = YES;
+  textView.horizontallyResizable = NO;
+  textView.autoresizingMask = NSViewWidthSizable;
+  textView.minSize = NSMakeSize(0, 0);
+  textView.maxSize = NSMakeSize(FLT_MAX, FLT_MAX);
+
+  _scrollView = [[NSScrollView alloc] initWithFrame:CGRectZero];
+  _scrollView.drawsBackground = NO;
+  _scrollView.hasHorizontalScroller = NO;
+  _scrollView.documentView = textView;
+#endif
 }
 
 - (void)setupPlaceholderLabel {
   _placeholderLabel = [[UILabel alloc] initWithFrame:CGRectZero];
+#if TARGET_OS_OSX
+  _placeholderLabel.bezeled = NO;
+  _placeholderLabel.drawsBackground = NO;
+  _placeholderLabel.editable = NO;
+  _placeholderLabel.selectable = NO;
+  _placeholderLabel.refusesFirstResponder = YES;
+#endif
   _placeholderLabel.translatesAutoresizingMaskIntoConstraints = NO;
   [textView addSubview:_placeholderLabel];
   [NSLayoutConstraint activateConstraints:@[
@@ -185,7 +245,9 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   _placeholderLabel.lineBreakMode = NSLineBreakByTruncatingTail;
   _placeholderLabel.text = @"";
   _placeholderLabel.hidden = YES;
+#if !TARGET_OS_OSX
   _placeholderLabel.adjustsFontForContentSizeCategory = YES;
+#endif
 }
 
 // MARK: - Props
@@ -786,25 +848,37 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
 
   // selection color sets both selection and cursor on iOS (just as in RN)
   if (newViewProps.selectionColor != oldViewProps.selectionColor) {
+#if !TARGET_OS_OSX
     if (isColorMeaningful(newViewProps.selectionColor)) {
       textView.tintColor =
           RCTUIColorFromSharedColor(newViewProps.selectionColor);
     } else {
       textView.tintColor = nullptr;
     }
+#else
+    if (isColorMeaningful(newViewProps.selectionColor)) {
+      [textView enrichedSetTintColor:RCTUIColorFromSharedColor(
+                                         newViewProps.selectionColor)];
+    }
+#endif
   }
 
+#if !TARGET_OS_OSX
+  // returnKeyType and autoCapitalize configure the software keyboard, which
+  // does not exist on macOS.
   if (newViewProps.returnKeyType != oldViewProps.returnKeyType) {
     NSString *str = [NSString fromCppString:newViewProps.returnKeyType];
 
     textView.returnKeyType =
         [KeyboardUtils getUIReturnKeyTypeFromReturnKeyType:str];
   }
+#endif
 
   if (newViewProps.submitBehavior != oldViewProps.submitBehavior) {
     _submitBehavior = [NSString fromCppString:newViewProps.submitBehavior];
   }
 
+#if !TARGET_OS_OSX
   // autoCapitalize
   if (newViewProps.autoCapitalize != oldViewProps.autoCapitalize) {
     NSString *str = [NSString fromCppString:newViewProps.autoCapitalize];
@@ -828,6 +902,7 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
       _emitFocusBlur = YES;
     }
   }
+#endif
 
   // isOnChangeHtmlSet
   _emitHtml = newViewProps.isOnChangeHtmlSet;
@@ -1447,7 +1522,7 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
 }
 
 - (void)tryEmittingOnChangeHtmlEvent {
-  if (!_emitHtml || textView.markedTextRange != nullptr) {
+  if (!_emitHtml || textView.enrichedHasMarkedText) {
     return;
   }
   auto emitter = [self getEventEmitter];
@@ -1663,7 +1738,7 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
 
 - (void)anyTextMayHaveBeenModified {
   // we don't do text changes when working with iOS marked text
-  if (textView.markedTextRange != nullptr) {
+  if (textView.enrichedHasMarkedText) {
     [self handlePlaceholderVisibility];
     return;
   }
@@ -1786,22 +1861,39 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
     // We recall measureSize here because value returned from previous
     // measureSize may not be up-to date at that point
     CGSize measuredSize = [self measureSize:self->textView.frame.size.width];
+#if !TARGET_OS_OSX
     self->textView.contentSize = measuredSize;
+#else
+    // On macOS scrollability is driven by the documentView's frame instead of
+    // an explicit contentSize.
+    CGFloat visibleHeight = self->_scrollView.contentSize.height;
+    [self->textView
+        setFrameSize:NSMakeSize(self->textView.frame.size.width,
+                                MAX(measuredSize.height, visibleHeight))];
+#endif
 
     // Re-position attachment image views after the forced full re-layout
     [self layoutAttachments];
   });
 }
 
+#if !TARGET_OS_OSX
 - (void)didMoveToWindow {
   [super didMoveToWindow];
   // used to run all lifecycle callbacks
   [self anyTextMayHaveBeenModified];
 }
+#else
+- (void)viewDidMoveToWindow {
+  [super viewDidMoveToWindow];
+  // used to run all lifecycle callbacks
+  [self anyTextMayHaveBeenModified];
+}
+#endif
 
 // MARK: - Delegate methods
 
-- (void)textViewDidBeginEditing:(UITextView *)textView {
+- (void)handleDidBeginEditing {
   auto emitter = [self getEventEmitter];
   if (emitter != nullptr) {
     // send onFocus event if allowed
@@ -1814,7 +1906,7 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   [self manageSelectionBasedChanges];
 }
 
-- (void)textViewDidEndEditing:(UITextView *)textView {
+- (void)handleDidEndEditing {
   auto emitter = [self getEventEmitter];
   if (emitter != nullptr && _emitFocusBlur) {
     // send onBlur event
@@ -1822,7 +1914,16 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   }
 }
 
-- (UIMenu *)textView:(UITextView *)tv
+#if !TARGET_OS_OSX
+- (void)textViewDidBeginEditing:(EnrichedBaseTextView *)textView {
+  [self handleDidBeginEditing];
+}
+
+- (void)textViewDidEndEditing:(EnrichedBaseTextView *)textView {
+  [self handleDidEndEditing];
+}
+
+- (UIMenu *)textView:(EnrichedBaseTextView *)tv
     editMenuForTextInRange:(NSRange)range
           suggestedActions:(NSArray<UIMenuElement *> *)suggestedActions
     API_AVAILABLE(ios(16.0)) {
@@ -1848,6 +1949,37 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   [customActions addObjectsFromArray:suggestedActions];
   return [UIMenu menuWithChildren:customActions];
 }
+#else
+- (NSMenu *)textView:(NSTextView *)view
+                menu:(NSMenu *)menu
+            forEvent:(NSEvent *)event
+             atIndex:(NSUInteger)charIndex {
+  if (_contextMenuItems == nil || _contextMenuItems.count == 0) {
+    return menu;
+  }
+
+  NSInteger insertionIndex = 0;
+  for (NSString *title in _contextMenuItems) {
+    NSMenuItem *item =
+        [[NSMenuItem alloc] initWithTitle:title
+                                   action:@selector(handleContextMenuAction:)
+                            keyEquivalent:@""];
+    item.target = self;
+    item.representedObject = title;
+    [menu insertItem:item atIndex:insertionIndex++];
+  }
+  [menu insertItem:[NSMenuItem separatorItem] atIndex:insertionIndex];
+
+  return menu;
+}
+
+- (void)handleContextMenuAction:(NSMenuItem *)item {
+  NSString *title = item.representedObject;
+  if ([title isKindOfClass:NSString.class]) {
+    [self emitOnContextMenuItemPressEvent:title];
+  }
+}
+#endif
 
 - (void)emitOnContextMenuItemPressEvent:(NSString *)itemText {
   auto emitter = [self getEventEmitter];
@@ -1910,9 +2042,27 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   }
 }
 
-- (bool)textView:(UITextView *)textView
+#if !TARGET_OS_OSX
+- (bool)textView:(EnrichedBaseTextView *)textView
     shouldChangeTextInRange:(NSRange)range
             replacementText:(NSString *)text {
+  return [self handleShouldChangeTextInRange:range replacementText:text];
+}
+#else
+- (BOOL)textView:(NSTextView *)view
+    shouldChangeTextInRange:(NSRange)range
+          replacementString:(NSString *)text {
+  // AppKit passes nil for attribute-only changes; treating it as a change
+  // would mis-detect a Backspace key press.
+  if (text == nil) {
+    return YES;
+  }
+  return [self handleShouldChangeTextInRange:range replacementText:text];
+}
+#endif
+
+- (bool)handleShouldChangeTextInRange:(NSRange)range
+                      replacementText:(NSString *)text {
   // Capture the attributes at range.location that are being replaced
   // (autocorrect / predictive) so didProcessEditing: can re-stamp them onto the
   // replacement.
@@ -1932,7 +2082,7 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
     }
 
     if (shouldReturn) {
-      [textView endEditing:NO];
+      [textView enrichedEndEditing];
     }
 
     if (shouldSubmit || shouldReturn) {
@@ -1997,7 +2147,17 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   return YES;
 }
 
-- (void)textViewDidChangeSelection:(UITextView *)textView {
+#if !TARGET_OS_OSX
+- (void)textViewDidChangeSelection:(EnrichedBaseTextView *)textView {
+  [self handleSelectionChange];
+}
+#else
+- (void)textViewDidChangeSelection:(NSNotification *)notification {
+  [self handleSelectionChange];
+}
+#endif
+
+- (void)handleSelectionChange {
   // emit the event
   NSString *textAtSelection =
       [[[NSMutableString alloc] initWithString:textView.textStorage.string]
@@ -2022,10 +2182,30 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
 // this function isn't called always when some text changes (for example setting
 // link or starting mention with indicator doesn't fire it) so all the logic is
 // in anyTextMayHaveBeenModified
-- (void)textViewDidChange:(UITextView *)textView {
+#if !TARGET_OS_OSX
+- (void)textViewDidChange:(EnrichedBaseTextView *)textView {
+  [self anyTextMayHaveBeenModified];
+}
+#else
+- (void)textDidChange:(NSNotification *)notification {
   [self anyTextMayHaveBeenModified];
 }
 
+- (BOOL)textView:(NSTextView *)view doCommandBySelector:(SEL)commandSelector {
+  // Shift-Enter (insertLineBreak:) would insert a U+2028 line separator and
+  // Option-Enter (insertNewlineIgnoringFieldEditor:) would bypass the field
+  // editor path; both must flow through the regular newline pipeline so
+  // submitBehavior and the paragraph model keep working.
+  if (commandSelector == @selector(insertLineBreak:) ||
+      commandSelector == @selector(insertNewlineIgnoringFieldEditor:)) {
+    [view insertNewline:nil];
+    return YES;
+  }
+  return NO;
+}
+#endif
+
+#if !TARGET_OS_OSX
 /**
  * Handles iOS Dynamic Type changes (User changing font size in System
  * Settings).
@@ -2069,7 +2249,39 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   textView.selectedRange = prevSelectedRange;
   [self anyTextMayHaveBeenModified];
 }
+#endif
 
+- (void)handleCheckboxTapAtIndex:(NSUInteger)charIndex {
+  CheckboxListStyle *checkboxStyle =
+      (CheckboxListStyle *)stylesDict[@([CheckboxListStyle getType])];
+  if (checkboxStyle == nullptr) {
+    return;
+  }
+
+  [checkboxStyle toggleCheckedAt:charIndex withDirtyRange:YES];
+  [self anyTextMayHaveBeenModified];
+
+  NSString *fullText = textView.textStorage.string;
+  NSRange paragraphRange =
+      [fullText paragraphRangeForRange:NSMakeRange(charIndex, 0)];
+  NSUInteger endOfLineIndex = NSMaxRange(paragraphRange);
+
+  // If the paragraph ends with a newline, step back by 1 so the cursor
+  // stays on the current line instead of jumping to the next one.
+  if (endOfLineIndex > 0 && endOfLineIndex <= fullText.length) {
+    unichar lastChar = [fullText characterAtIndex:endOfLineIndex - 1];
+    if ([[NSCharacterSet newlineCharacterSet] characterIsMember:lastChar]) {
+      endOfLineIndex--;
+    }
+  }
+
+  // Move the cursor to the end of the currently tapped checkbox line.
+  // Without this, the cursor may remain at its previous position,
+  // potentially inside a different checkbox line.
+  textView.selectedRange = NSMakeRange(endOfLineIndex, 0);
+}
+
+#if !TARGET_OS_OSX
 - (void)onTextBlockTap:(TextBlockTapGestureRecognizer *)gr {
   if (gr.state != UIGestureRecognizerStateEnded)
     return;
@@ -2080,33 +2292,7 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   switch (gr.tapKind) {
 
   case TextBlockTapKindCheckbox: {
-    CheckboxListStyle *checkboxStyle =
-        (CheckboxListStyle *)stylesDict[@([CheckboxListStyle getType])];
-
-    if (checkboxStyle) {
-      NSUInteger charIndex = (NSUInteger)gr.characterIndex;
-      [checkboxStyle toggleCheckedAt:charIndex withDirtyRange:YES];
-      [self anyTextMayHaveBeenModified];
-
-      NSString *fullText = textView.textStorage.string;
-      NSRange paragraphRange =
-          [fullText paragraphRangeForRange:NSMakeRange(charIndex, 0)];
-      NSUInteger endOfLineIndex = NSMaxRange(paragraphRange);
-
-      // If the paragraph ends with a newline, step back by 1 so the cursor
-      // stays on the current line instead of jumping to the next one.
-      if (endOfLineIndex > 0 && endOfLineIndex <= fullText.length) {
-        unichar lastChar = [fullText characterAtIndex:endOfLineIndex - 1];
-        if ([[NSCharacterSet newlineCharacterSet] characterIsMember:lastChar]) {
-          endOfLineIndex--;
-        }
-      }
-
-      // Move the cursor to the end of the currently tapped checkbox line.
-      // Without this, the cursor may remain at its previous position,
-      // potentially inside a different checkbox line.
-      textView.selectedRange = NSMakeRange(endOfLineIndex, 0);
-    }
+    [self handleCheckboxTapAtIndex:(NSUInteger)gr.characterIndex];
     break;
   }
 
@@ -2114,6 +2300,7 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
     break;
   }
 }
+#endif
 
 - (void)textStorage:(NSTextStorage *)textStorage
     didProcessEditing:(NSTextStorageEditActions)editedMask
@@ -2132,7 +2319,7 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
     // the new range so autocorrect/predictive replacements keep their styling.
     if (_capturedAttributesBeforeChange != nil) {
       // Skip while an IME composition is in progress; restamp on commit.
-      if (textView.markedTextRange == nil) {
+      if (!textView.enrichedHasMarkedText) {
         NSSet *customKeys = [attributesManager customAttributesKeys];
         for (NSString *key in _capturedAttributesBeforeChange) {
           if ([customKeys containsObject:key]) {

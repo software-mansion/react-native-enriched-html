@@ -1,5 +1,5 @@
 #pragma once
-#import <UIKit/UIKit.h>
+#import "EnrichedPlatform.h"
 
 // the order is aligned with the order of tags in parser
 typedef NS_ENUM(NSInteger, StyleType) {

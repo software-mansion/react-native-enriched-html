@@ -1,5 +1,5 @@
 #pragma once
-#import <UIkit/UIKit.h>
+#import "EnrichedPlatform.h"
 
 @interface AlignmentEntry : NSObject
 

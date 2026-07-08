@@ -12,7 +12,7 @@
     return;
   }
 
-  UITextView *textView = host.textView;
+  EnrichedBaseTextView *textView = host.textView;
 
   NSMutableDictionary<NSAttributedStringKey, id> *copiedAttrs =
       [textView.typingAttributes mutableCopy];
@@ -25,7 +25,7 @@
   [textView.textStorage insertAttributedString:newAttrStr atIndex:index];
 
   if (withSelection) {
-    if (![textView isFirstResponder]) {
+    if (!textView.enrichedIsFirstResponder) {
       [textView reactFocus];
     }
     textView.selectedRange = NSMakeRange(index + text.length, 0);
@@ -42,7 +42,7 @@
     return;
   }
 
-  UITextView *textView = host.textView;
+  EnrichedBaseTextView *textView = host.textView;
   [textView.textStorage replaceCharactersInRange:range withString:text];
   if (additionalAttrs != nullptr) {
     [textView.textStorage
@@ -51,7 +51,7 @@
   }
 
   if (withSelection) {
-    if (![textView isFirstResponder]) {
+    if (!textView.enrichedIsFirstResponder) {
       [textView reactFocus];
     }
     textView.selectedRange = NSMakeRange(range.location + text.length, 0);

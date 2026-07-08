@@ -1,6 +1,6 @@
 #pragma once
+#import "EnrichedPlatform.h"
 #import "EnrichedViewHost.h"
-#import <UIKit/UIKit.h>
 
 @interface HtmlParser : NSObject
 + (NSString *_Nullable)initiallyProcessHtml:(NSString *_Nonnull)html

@@ -1,5 +1,6 @@
 #import "EnrichedInputTextView.h"
 #import "AlignmentUtils.h"
+#import "CheckboxHitTestUtils.h"
 #import "EnrichedTextInputView.h"
 #import "HtmlParser.h"
 #import "StringExtension.h"
@@ -8,6 +9,8 @@
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
 @implementation EnrichedInputTextView
+
+#if !TARGET_OS_OSX
 
 - (void)layoutSubviews {
   [super layoutSubviews];
@@ -217,6 +220,8 @@
   [typedInput anyTextMayHaveBeenModified];
 }
 
+#endif // !TARGET_OS_OSX
+
 - (NSDictionary *)detectImageFormat:(NSString *)type {
   if ([type isEqual:UTTypeJPEG.identifier]) {
     return @{@"ext" : @"jpg", @"mime" : @"image/jpeg"};
@@ -235,6 +240,7 @@
   }
 }
 
+#if !TARGET_OS_OSX
 - (NSData *)getDataForImageItem:(UIImage *)image type:(NSString *)type {
   if ([type isEqual:UTTypePNG.identifier]) {
     return UIImagePNGRepresentation(image);
@@ -244,6 +250,8 @@
     return UIImageJPEGRepresentation(image, 1.0);
   }
 }
+
+#endif // !TARGET_OS_OSX
 
 - (NSString *)saveToTempFile:(NSData *)data extension:(NSString *)ext {
   if (!data)
@@ -261,6 +269,7 @@
   return nil;
 }
 
+#if !TARGET_OS_OSX
 - (void)tryHandlingPlainTextItemsIn:(UIPasteboard *)pasteboard
                               range:(NSRange)range
                               input:(EnrichedTextInputView *)input {
@@ -330,5 +339,338 @@
   }
   return [super canPerformAction:action withSender:sender];
 }
+
+#else // TARGET_OS_OSX
+
+- (void)layout {
+  [super layout];
+  // Re-schedule a relayout so sizing is re-applied after AppKit finishes its
+  // own layout pass (mirrors the layoutSubviews override on iOS).
+  EnrichedTextInputView *input = (EnrichedTextInputView *)_input;
+  if (input != nil) {
+    [input scheduleRelayoutIfNeeded];
+  }
+}
+
+// On macOS focus events are tied to first-responder status instead of
+// UITextViewDelegate's textViewDidBegin/EndEditing (whose AppKit counterparts
+// only fire around actual edits).
+- (BOOL)becomeFirstResponder {
+  BOOL result = [super becomeFirstResponder];
+  EnrichedTextInputView *input = (EnrichedTextInputView *)_input;
+  if (result && input != nil) {
+    [input handleDidBeginEditing];
+  }
+  return result;
+}
+
+- (BOOL)resignFirstResponder {
+  BOOL result = [super resignFirstResponder];
+  EnrichedTextInputView *input = (EnrichedTextInputView *)_input;
+  // resignFirstResponder also fires during window teardown; only emit for
+  // real focus changes.
+  if (result && input != nil && self.window != nil) {
+    [input handleDidEndEditing];
+  }
+  return result;
+}
+
+- (void)mouseDown:(NSEvent *)event {
+  EnrichedTextInputView *input = (EnrichedTextInputView *)_input;
+  if (input != nil) {
+    NSPoint point = [self convertPoint:event.locationInWindow fromView:nil];
+    NSInteger checkboxIndex =
+        [CheckboxHitTestUtils hitTestCheckboxAtPoint:point inInput:input];
+    if (checkboxIndex >= 0) {
+      if (!self.enrichedIsFirstResponder) {
+        [self.window makeFirstResponder:self];
+      }
+      [input handleCheckboxTapAtIndex:(NSUInteger)checkboxIndex];
+      // Swallow the click so the caret does not additionally move to the
+      // clicked location (matches cancelsTouchesInView on iOS).
+      return;
+    }
+  }
+  [super mouseDown:event];
+}
+
+// NSTextView places the cursor at the leading edge when a paragraph contains
+// zero (or invisible) glyphs because the layout engine has nothing to align.
+// This mirrors the caretRectForPosition: override on iOS by repositioning the
+// insertion point rect based on the active alignment.
+- (NSRect)adjustedInsertionPointRect:(NSRect)rect {
+  NSUInteger idx = self.selectedRange.location;
+  NSString *text = self.textStorage.string;
+  NSRange paraRange = NSMakeRange(0, 0);
+  if (idx <= text.length) {
+    paraRange = [text paragraphRangeForRange:NSMakeRange(idx, 0)];
+  }
+
+  // Non-empty paragraph gets its caret drawn the usual way.
+  if (paraRange.length != 0) {
+    return rect;
+  }
+
+  NSParagraphStyle *pStyle =
+      self.typingAttributes[NSParagraphStyleAttributeName];
+
+  if (pStyle == nil) {
+    return rect;
+  }
+
+  NSString *marker =
+      [TextListsUtils firstTextListWithPrefix:@"EnrichedAlignment"
+                                      inArray:pStyle.textLists]
+          .markerFormat;
+  NSTextAlignment alignment = [AlignmentUtils markerToAlignment:marker];
+  CGFloat containerWidth = self.textContainer.size.width;
+
+  if (alignment == NSTextAlignmentCenter) {
+    rect.origin.x = (containerWidth - rect.size.width) / 2.0;
+  } else if (alignment == NSTextAlignmentRight) {
+    rect.origin.x = containerWidth - rect.size.width;
+  }
+
+  return rect;
+}
+
+- (void)drawInsertionPointInRect:(NSRect)rect
+                           color:(NSColor *)color
+                        turnedOn:(BOOL)flag {
+  [super drawInsertionPointInRect:[self adjustedInsertionPointRect:rect]
+                            color:color
+                         turnedOn:flag];
+}
+
+- (void)setNeedsDisplayInRect:(NSRect)rect avoidAdditionalLayout:(BOOL)flag {
+  // Widen caret invalidation to the full line width so a repositioned
+  // insertion point does not leave ghosts at its original location.
+  rect.origin.x = 0;
+  rect.size.width = self.bounds.size.width;
+  [super setNeedsDisplayInRect:rect avoidAdditionalLayout:flag];
+}
+
+- (void)copy:(id)sender {
+  EnrichedTextInputView *typedInput = (EnrichedTextInputView *)_input;
+  if (typedInput == nullptr) {
+    return;
+  }
+
+  // remove zero width spaces before copying the text
+  NSString *plainText = [typedInput->textView.textStorage.string
+      substringWithRange:typedInput->textView.selectedRange];
+  NSString *fixedPlainText =
+      [plainText stringByReplacingOccurrencesOfString:@"\u200B" withString:@""];
+
+  NSString *parsedHtml =
+      [HtmlParser parseToHtmlFromRange:typedInput->textView.selectedRange
+                                  host:typedInput];
+
+  NSMutableAttributedString *attrStr = [[typedInput->textView.textStorage
+      attributedSubstringFromRange:typedInput->textView.selectedRange]
+      mutableCopy];
+  NSRange fullAttrStrRange = NSMakeRange(0, attrStr.length);
+  [attrStr.mutableString replaceOccurrencesOfString:@"\u200B"
+                                         withString:@""
+                                            options:0
+                                              range:fullAttrStrRange];
+
+  NSData *rtfData =
+      [attrStr dataFromRange:NSMakeRange(0, attrStr.length)
+          documentAttributes:@{
+            NSDocumentTypeDocumentAttribute : NSRTFTextDocumentType
+          }
+                       error:nullptr];
+
+  NSPasteboard *pasteboard = NSPasteboard.generalPasteboard;
+  [pasteboard clearContents];
+  [pasteboard declareTypes:@[
+    NSPasteboardTypeHTML, NSPasteboardTypeRTF, NSPasteboardTypeString
+  ]
+                     owner:nil];
+  [pasteboard setString:fixedPlainText forType:NSPasteboardTypeString];
+  [pasteboard setString:parsedHtml forType:NSPasteboardTypeHTML];
+  if (rtfData != nullptr) {
+    [pasteboard setData:rtfData forType:NSPasteboardTypeRTF];
+  }
+}
+
+- (void)cut:(id)sender {
+  EnrichedTextInputView *typedInput = (EnrichedTextInputView *)_input;
+  if (typedInput == nullptr) {
+    return;
+  }
+
+  [self copy:sender];
+  [TextInsertionUtils replaceText:@""
+                               at:typedInput->textView.selectedRange
+             additionalAttributes:nullptr
+                             host:typedInput
+                    withSelection:YES];
+
+  [typedInput anyTextMayHaveBeenModified];
+}
+
+- (void)paste:(id)sender {
+  EnrichedTextInputView *typedInput = (EnrichedTextInputView *)_input;
+  if (typedInput == nullptr) {
+    return;
+  }
+
+  NSPasteboard *pasteboard = NSPasteboard.generalPasteboard;
+  NSRange currentRange = typedInput->textView.selectedRange;
+
+  // Check the pasteboard for supported image formats. If found, save them to
+  // temporary storage then emit the 'onPasteImages' event and stop processing
+  // further (ignoring any HTML/Text). Modern NSPasteboard types are UTIs, so
+  // the same identifiers as on iOS apply.
+  NSMutableArray<NSDictionary *> *foundImages = [NSMutableArray new];
+
+  for (NSPasteboardItem *item in pasteboard.pasteboardItems) {
+    NSData *imageData = nil;
+    NSString *ext = nil;
+    NSString *mimeType = nil;
+
+    for (NSPasteboardType type in item.types) {
+      if ([type isEqual:UTTypeJPEG.identifier] ||
+          [type isEqual:UTTypePNG.identifier] ||
+          [type isEqual:UTTypeHEIC.identifier] ||
+          [type isEqual:UTTypeTIFF.identifier] ||
+          [type isEqual:UTTypeWebP.identifier] ||
+          [type isEqual:UTTypeGIF.identifier]) {
+        NSData *typeData = [item dataForType:type];
+        NSDictionary *info = [self detectImageFormat:type];
+        if (typeData == nil || info == nil) {
+          continue;
+        }
+        imageData = typeData;
+        ext = info[@"ext"];
+        mimeType = info[@"mime"];
+        break;
+      }
+
+      // Finder file copies arrive as file URLs instead of raw image bytes.
+      if ([type isEqual:NSPasteboardTypeFileURL]) {
+        NSString *urlString = [item stringForType:NSPasteboardTypeFileURL];
+        NSURL *fileURL =
+            urlString != nil ? [NSURL URLWithString:urlString] : nil;
+        if (fileURL == nil) {
+          continue;
+        }
+        UTType *fileType =
+            [UTType typeWithFilenameExtension:fileURL.pathExtension];
+        NSDictionary *info = [self detectImageFormat:fileType.identifier];
+        if (info == nil) {
+          continue;
+        }
+        NSData *fileData = [NSData dataWithContentsOfURL:fileURL];
+        if (fileData == nil) {
+          continue;
+        }
+        imageData = fileData;
+        ext = info[@"ext"];
+        mimeType = info[@"mime"];
+        break;
+      }
+    }
+
+    if (imageData == nil) {
+      continue;
+    }
+
+    UIImage *imageInfo = [UIImage imageWithData:imageData];
+    if (imageInfo) {
+      NSString *path = [self saveToTempFile:imageData extension:ext];
+      if (path) {
+        [foundImages addObject:@{
+          @"uri" : path,
+          @"type" : mimeType,
+          @"width" : @(imageInfo.size.width),
+          @"height" : @(imageInfo.size.height)
+        }];
+      }
+    }
+  }
+
+  if (foundImages.count > 0) {
+    [typedInput emitOnPasteImagesEvent:foundImages];
+    return;
+  }
+
+  NSString *htmlString = [pasteboard stringForType:NSPasteboardTypeHTML];
+  if (htmlString != nil) {
+    // we try processing the html contents
+    NSString *initiallyProcessedHtml =
+        [typedInput->parser initiallyProcessHtml:htmlString];
+
+    if (initiallyProcessedHtml != nullptr) {
+      // valid html, let's apply it
+      currentRange.length > 0
+          ? [typedInput->parser replaceFromHtml:initiallyProcessedHtml
+                                          range:currentRange]
+          : [typedInput->parser insertFromHtml:initiallyProcessedHtml
+                                      location:currentRange.location];
+    } else {
+      // fall back to plain text, otherwise do nothing
+      [self tryHandlingPlainTextItemsIn:pasteboard
+                                  range:currentRange
+                                  input:typedInput];
+    }
+  } else {
+    [self tryHandlingPlainTextItemsIn:pasteboard
+                                range:currentRange
+                                input:typedInput];
+  }
+
+  [typedInput anyTextMayHaveBeenModified];
+}
+
+- (void)pasteAsPlainText:(id)sender {
+  [self paste:sender];
+}
+
+- (void)pasteAsRichText:(id)sender {
+  [self paste:sender];
+}
+
+- (void)tryHandlingPlainTextItemsIn:(NSPasteboard *)pasteboard
+                              range:(NSRange)range
+                              input:(EnrichedTextInputView *)input {
+  NSString *plainText = [pasteboard stringForType:NSPasteboardTypeString];
+  if (plainText == nil) {
+    plainText = [pasteboard stringForType:NSPasteboardTypeURL];
+  }
+
+  if (!plainText) {
+    return;
+  }
+
+  range.length > 0 ? [TextInsertionUtils replaceText:plainText
+                                                  at:range
+                                additionalAttributes:nullptr
+                                                host:input
+                                       withSelection:YES]
+                   : [TextInsertionUtils insertText:plainText
+                                                 at:range.location
+                               additionalAttributes:nullptr
+                                               host:input
+                                      withSelection:YES];
+}
+
+- (BOOL)validateUserInterfaceItem:(id<NSValidatedUserInterfaceItem>)item {
+  if (item.action == @selector(paste:)) {
+    NSPasteboard *pasteboard = NSPasteboard.generalPasteboard;
+    // Enable Paste if clipboard has Text OR Images
+    if ([pasteboard canReadItemWithDataConformingToTypes:@[
+          UTTypeUTF8PlainText.identifier, UTTypeHTML.identifier,
+          UTTypeImage.identifier, NSPasteboardTypeFileURL
+        ]]) {
+      return YES;
+    }
+  }
+  return [super validateUserInterfaceItem:item];
+}
+
+#endif // TARGET_OS_OSX
 
 @end

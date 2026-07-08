@@ -93,7 +93,7 @@
 }
 
 - (NSString *)getStyleState {
-  UITextView *textView = self.host.textView;
+  EnrichedBaseTextView *textView = self.host.textView;
   NSParagraphStyle *paraStyle =
       textView.typingAttributes[NSParagraphStyleAttributeName];
 

@@ -1,6 +1,6 @@
 #pragma once
+#import "EnrichedPlatform.h"
 #import <ReactNativeEnrichedHtml/Props.h>
-#import <UIKit/UIKit.h>
 
 using namespace facebook::react;
 

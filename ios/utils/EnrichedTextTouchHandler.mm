@@ -52,12 +52,12 @@
 }
 
 - (NSUInteger)characterIndexAtPoint:(CGPoint)point {
-  UITextView *tv = self.view.textView;
+  EnrichedBaseTextView *tv = self.view.textView;
   NSLayoutManager *lm = tv.layoutManager;
   NSTextContainer *tc = tv.textContainer;
 
-  CGPoint textOffset =
-      CGPointMake(tv.textContainerInset.left, tv.textContainerInset.top);
+  CGPoint textOffset = CGPointMake(tv.enrichedTextContainerInset.left,
+                                   tv.enrichedTextContainerInset.top);
   CGPoint locationInContainer =
       CGPointMake(point.x - textOffset.x, point.y - textOffset.y);
 

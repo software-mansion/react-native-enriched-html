@@ -2,13 +2,13 @@
 #import "BaseStyleProtocol.h"
 #import "EnrichedConfig.h"
 #import "EnrichedInputTextView.h"
+#import "EnrichedPlatform.h"
 #import "EnrichedViewHost.h"
 #import "InputAttributesManager.h"
 #import "InputHtmlParser.h"
 #import "LinkData.h"
 #import "MediaAttachment.h"
 #import <React/RCTViewComponentView.h>
-#import <UIKit/UIKit.h>
 
 #ifndef EnrichedTextInputViewNativeComponent_h
 #define EnrichedTextInputViewNativeComponent_h
@@ -46,6 +46,9 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)emitOnPasteImagesEvent:(NSArray<NSDictionary *> *)images;
 - (void)anyTextMayHaveBeenModified;
 - (void)scheduleRelayoutIfNeeded;
+- (void)handleDidBeginEditing;
+- (void)handleDidEndEditing;
+- (void)handleCheckboxTapAtIndex:(NSUInteger)charIndex;
 
 @end
 

@@ -1,5 +1,5 @@
+#import "EnrichedPlatform.h"
 #import "EnrichedTextInputView.h"
-#import <UIKit/UIKit.h>
 #pragma once
 
 @interface ParagraphAttributesUtils : NSObject

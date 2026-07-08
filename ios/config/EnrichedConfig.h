@@ -1,8 +1,8 @@
 #pragma once
+#import "EnrichedPlatform.h"
 #import "LinkRegexConfig.h"
 #import "MentionStyleProps.h"
 #import "TextDecorationLineEnum.h"
-#import <UIKit/UIKit.h>
 
 @interface EnrichedConfig : NSObject <NSCopying>
 - (instancetype)init;
