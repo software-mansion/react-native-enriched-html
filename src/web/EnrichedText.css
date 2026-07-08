@@ -122,63 +122,64 @@
 .et-view ul:not([data-type]) {
   margin: 0;
   list-style: none;
-  padding-left: calc(
-    var(--et-ul-margin-left, 16px) + var(--et-ul-gap-width, 16px)
-  );
+  padding-left: calc(var(--et-ul-margin-left, 16px) + var(--et-ul-gap-width, 16px));
 }
 
 .eti-editor ul:not([data-type]) > li,
 .et-view ul:not([data-type]) > li {
-  position: relative;
-  min-height: max(1lh, var(--et-ul-bullet-size));
+  margin: 0;
 }
 
 .eti-editor ul:not([data-type]) > li::before,
 .et-view ul:not([data-type]) > li::before {
   content: '';
-  position: absolute;
-  left: calc(-1 * var(--et-ul-gap-width, 16px) - var(--et-ul-bullet-size, 8px));
-  bottom: 0.4em;
-  @supports (bottom: 0.5lh) {
-    bottom: 0.5lh;
-  }
-
-  transform: translateY(50%);
+  display: inline-block;
   width: var(--et-ul-bullet-size, 8px);
   height: var(--et-ul-bullet-size, 8px);
   border-radius: 50%;
   background-color: var(--et-ul-bullet-color, currentColor);
-  pointer-events: none;
+
+  margin-left: calc(-1 * (var(--et-ul-bullet-size, 8px) + var(--et-ul-gap-width, 16px)));
+  margin-right: var(--et-ul-gap-width, 16px);
+
+  vertical-align: middle;
+  position: relative;
+  top: -0.1em;
 }
 
 .eti-editor ol,
 .et-view ol {
   margin: 0;
   list-style: none;
-  padding-left: calc(
-    var(--et-ol-margin-left, 16px) + var(--et-ol-gap-width, 16px)
-  );
-  counter-reset: eti-ol;
+  padding-left: calc(var(--et-ol-margin-left, 16px) + var(--et-ol-gap-width, 16px));
+  counter-reset: et-ol;
 }
 
 .eti-editor ol > li,
 .et-view ol > li {
-  position: relative;
-  counter-increment: eti-ol;
-  min-height: 1lh;
+  margin: 0;
+  counter-increment: et-ol;
 }
 
 .eti-editor ol > li::before,
 .et-view ol > li::before {
-  content: counter(eti-ol) '.';
-  position: absolute;
-  left: calc(-1 * var(--et-ol-gap-width, 16px));
-  bottom: 0;
-  transform: translateX(-50%);
+  content: counter(et-ol) '.';
+  display: inline-block;
+  width: var(--et-ol-margin-left, 16px);
+  text-align: right;
+  margin-right: calc(var(--et-ol-gap-width, 16px) / 2);
+  margin-left: calc(-1 * (var(--et-ol-margin-left, 16px) + (var(--et-ol-gap-width, 16px) / 2)));
+
   color: var(--et-ol-marker-color, currentColor);
   font-weight: var(--et-ol-marker-font-weight, inherit);
   white-space: nowrap;
-  pointer-events: none;
+  vertical-align: baseline;
+}
+
+.eti-editor li > p,
+.et-view li > p {
+  display: inline;
+  margin: 0;
 }
 
 .eti-editor li,
@@ -222,78 +223,81 @@
 .eti-editor ul[data-type='checkboxList'] {
   margin: 0;
   list-style: none;
-  padding: 0;
-  padding-left: calc(
-    var(--et-checkbox-margin-left, 16px) + var(--et-checkbox-gap-width, 16px)
-  );
+  padding-left: calc(var(--et-checkbox-margin-left, 16px) + var(--et-checkbox-gap-width, 16px));
 }
 
 .eti-editor ul[data-type='checkboxList'] > li {
-  position: relative;
-  list-style: none;
+  margin: 0;
 }
 
 .eti-editor ul[data-type='checkboxList'] > li > label {
-  position: absolute;
-  left: calc(
-    -1 * var(--et-checkbox-gap-width, 16px) - var(--et-checkbox-box-size, 24px)
-  );
-  transform: translateY(50%);
   display: inline-flex;
   align-items: center;
-  gap: 0;
-  margin: 0;
-  padding: 0;
-  user-select: none;
-  bottom: 0.4em;
-  @supports (bottom: 0.5lh) {
-    bottom: 0.5lh;
-  }
+  width: var(--et-checkbox-box-size, 24px);
+  height: var(--et-checkbox-box-size, 24px);
+
+  margin-left: calc(-1 * (var(--et-checkbox-box-size, 24px) + var(--et-checkbox-gap-width, 16px)));
+  margin-right: var(--et-checkbox-gap-width, 16px);
+
+  vertical-align: middle;
+  position: relative;
+  top: -0.1em;
 }
 
 .eti-editor ul[data-type='checkboxList'] > li > label input[type='checkbox'] {
-  width: var(--et-checkbox-box-size, 24px);
-  height: var(--et-checkbox-box-size, 24px);
+  width: 100%;
+  height: 100%;
   margin: 0;
   flex-shrink: 0;
   accent-color: var(--et-checkbox-box-color, #0000ff);
 }
 
+.eti-editor ul[data-type='checkboxList'] > li > div,
+.eti-editor ul[data-type='checkboxList'] > li > div > p {
+  display: inline;
+  margin: 0;
+}
+
 .et-view ul[data-type="checkbox"] {
   margin: 0;
   list-style: none;
-  padding: 0;
   padding-left: calc(
     var(--et-checkbox-margin-left, 16px) + var(--et-checkbox-gap-width, 16px)
   );
 }
 
 .et-view ul[data-type="checkbox"] > li {
-  position: relative;
-  list-style: none;
-  pointer-events: none;
-  min-height: max(1lh, var(--et-checkbox-box-size, 24px));
+  margin: 0
 }
 
 .et-view ul[data-type="checkbox"] > li > input[type='checkbox'] {
-  position: absolute;
-  left: calc(
-    -1 * var(--et-checkbox-gap-width, 16px) - var(--et-checkbox-box-size, 24px)
-  );
+  display: inline-block;
+  align-items: center;
+
+  margin-left: calc(-1 * (var(--et-checkbox-box-size, 24px) + var(--et-checkbox-gap-width, 16px)));
+  margin-right: var(--et-checkbox-gap-width, 16px);
+
+  margin-top: 0;
+  margin-bottom: 0;
+
+  vertical-align: middle;
+  position: relative;
+  top: -0.1em;
+
   width: var(--et-checkbox-box-size, 24px);
   height: var(--et-checkbox-box-size, 24px);
-  margin: 0 var(--et-checkbox-gap-width, 16px) 0 0;
   flex-shrink: 0;
   accent-color: var(--et-checkbox-box-color, #0000ff);
+
+  /* disable checkbox press style as it's read-only */
+  pointer-events: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .et-view ul[data-type="checkbox"] > li > label {
-  display: inline-flex;
-  align-items: center;
-  gap: 0;
+  display: inline;
   margin: 0;
   padding: 0;
-  user-select: none;
 }
 
 .et-view img {
