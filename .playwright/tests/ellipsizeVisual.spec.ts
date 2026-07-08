@@ -112,19 +112,19 @@ const SHARED_CASES: EllipsizeCase[] = [
   {
     name: 'some text between empty paragraphs',
     slug: 'between-empty-paragraphs',
-    html: `<html><p></p><p>between empty paragraphs</p><p></p></html>`,
+    html: `<html><br><p>between empty paragraphs</p><br></html>`,
     numberOfLines: 2,
   },
   {
     name: 'some text between multiple empty lines',
     slug: 'between-multiple-empty-lines',
-    html: `<html><p></p><p></p><p>between empty paragraphs</p><p></p></html>`,
+    html: `<html><br><br><p>between empty paragraphs</p><br></html>`,
     numberOfLines: 2,
   },
   {
     name: 'some empty paragraphs in the middle',
     slug: 'empty-in-the-middle',
-    html: `<html><p>first line</p><p></p><p></p><p></p><p>last line</p></html>`,
+    html: `<html><p>first line</p><br><br><br><p>last line</p></html>`,
     numberOfLines: 2,
   },
   {

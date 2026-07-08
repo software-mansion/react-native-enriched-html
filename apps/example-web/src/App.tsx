@@ -343,7 +343,7 @@ function App() {
         >
           {enrichedTextValue}
         </EnrichedText>
-        {/*temporary code to make testing easier*/}
+        {/*temporary second component to make testing easier*/}
         <EnrichedText
           style={enrichedTextStyle}
           htmlStyle={WEB_DEFAULT_HTML_STYLE}

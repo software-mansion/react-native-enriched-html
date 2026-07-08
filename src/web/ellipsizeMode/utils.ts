@@ -375,11 +375,8 @@ export function eatBackwardUntilFits(
 
     // clip mode: drop the whole trailing unit (img / br / empty block)
     if (!withEllipsis) {
-      // an empty block is measured by its box, since a range over its (empty)
-      // contents would collapse; img / br are measured by their contents
-      const bottom = BLOCK_TAGS.has(lastNode.nodeName)
-        ? (lastNode as HTMLElement).getBoundingClientRect().bottom
-        : contentsBottom(lastNode);
+      // measure by the element's own box
+      const bottom = (lastNode as HTMLElement).getBoundingClientRect().bottom;
 
       if (overflows(bottom)) lastNode.parentNode?.removeChild(lastNode);
       else isOverflowing = false;
