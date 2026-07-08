@@ -56,10 +56,7 @@ class EnrichedSelection(
     end = finalEnd
     validateStyles()
 
-    if (view.text?.toString() == view.recentInputString) {
-      view.parametrizedStyles?.afterSelectionChangedMentions(finalStart, finalEnd)
-    }
-
+    view.parametrizedStyles?.afterSelectionChangedMentions(finalStart, finalEnd)
     emitSelectionChangeEvent(view.text, finalStart, finalEnd)
   }
 
