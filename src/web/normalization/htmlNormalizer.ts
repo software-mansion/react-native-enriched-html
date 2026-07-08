@@ -249,12 +249,16 @@ function emitAttributes(el: Element, name: string): string {
         emitOneAttr(el, 'width') +
         emitOneAttr(el, 'height')
       );
-    case 'ul': {
-      const val = el.getAttribute('data-type');
-      return val === 'checkbox' ? ' data-type="checkbox"' : '';
-    }
+    case 'ul':
+      return isCheckboxList(el) ? ' data-type="checkbox"' : '';
     case 'li':
-      return el.hasAttribute('checked') ? ' checked' : '';
+      // "" is U+F0FE (MS Word checked box); often encoded as "\xEF\x83\xBE" in UTF-8.
+      const isChecked =
+        el.hasAttribute('checked') ||
+        el.getAttribute('data-checked') === 'true' ||
+        el.getAttribute('aria-checked') === 'true' ||
+        el.getAttribute('data-leveltext') === ''; // MS Word checked box
+      return isChecked ? ' checked' : '';
     case 'mention':
       return (
         emitOneAttr(el, 'id') +
@@ -264,6 +268,32 @@ function emitAttributes(el: Element, name: string): string {
     default:
       return '';
   }
+}
+
+function isCheckboxList(el: Element): boolean {
+  if (
+    el.getAttribute('data-type') === 'checkbox' ||
+    el.getAttribute('data-type') === 'checkboxList'
+  ) {
+    return true;
+  }
+
+  // In Google Docs and MS Word the <li> elements define if it is a checkbox
+  // list. We only need to check the first <li>.
+  const firstLi = Array.from(el.children).find(
+    (c) => c.tagName.toLowerCase() === 'li'
+  );
+  if (firstLi) {
+    const role = firstLi.getAttribute('role');
+    const className = firstLi.getAttribute('class') || '';
+
+    // Matches Google Docs (role="checkbox") OR MS Word (class includes "checklist")
+    if (role === 'checkbox' || className.includes('checklist')) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 function isGoogleDocsWrapper(el: Element, tag: string): boolean {
@@ -340,6 +370,7 @@ type LiCtx = {
   el: Element;
   styles: CssStyles;
   nestedLists: Element[];
+  hasEmitted: boolean;
 };
 
 function flushLiBuffer(
@@ -354,6 +385,7 @@ function flushLiBuffer(
   out.buf += emitStylesClose(ctx.styles);
   out.buf += '</li>';
   ib.buf = '';
+  ctx.hasEmitted = true;
 }
 
 function flattenLiChildren(
@@ -378,6 +410,15 @@ function flattenLiNode(
     return;
   }
   if (!isElement(node)) return;
+
+  if (tagName(node) === 'img') {
+    const role = ctx.el.getAttribute('role');
+    // strip the <img> that Google Docs uses for the display of a checkbox icon
+    if (role === 'checkbox') {
+      return;
+    }
+  }
+
   if (isListNode(node)) {
     ctx.nestedLists.push(node);
     return;
@@ -573,9 +614,15 @@ function walkNode(node: Node, out: { buf: string }): void {
   if (outName === 'li') {
     const nestedLists: Element[] = [];
     const liIb = { buf: '' };
-    const ctx: LiCtx = { el: node, styles: es, nestedLists };
+    const ctx: LiCtx = { el: node, styles: es, nestedLists, hasEmitted: false };
     flattenLiChildren(node, liIb, out, ctx);
     flushLiBuffer(liIb, out, ctx);
+
+    // if nothing emitted - the <li> is empty, we add it manually
+    if (!ctx.hasEmitted) {
+      out.buf += `<li${emitAttributes(ctx.el, 'li')}></li>`;
+    }
+
     for (const nl of nestedLists) walkChildren(nl, out);
     return;
   }
