@@ -27,17 +27,14 @@ class MentionHandler(
     indicator: String,
     text: String?,
   ) {
-    var startMention = false
-
     // switching directly to an active mention
     if (previousIndicator != indicator) {
-      startMention = true
       endMention()
-    }
 
-    // explicit startMention event before changeMention event
-    if (startMention && !text.isNullOrEmpty()) {
-      emitEvent(indicator, "")
+      // explicit startMention event before changeMention event
+      if (!text.isNullOrEmpty()) {
+        emitEvent(indicator, "")
+      }
     }
 
     emitEvent(indicator, text)

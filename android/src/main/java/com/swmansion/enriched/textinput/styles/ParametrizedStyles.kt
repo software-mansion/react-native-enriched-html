@@ -331,12 +331,6 @@ class ParametrizedStyles(
     // Extract text without indicator
     val text = spannable.subSequence(finalStart, finalEnd).toString().replaceFirst(indicator, "")
 
-    // Means we are starting mention
-    if (text.isEmpty()) {
-      mentionStart = finalStart
-      mentionEnd = finalEnd
-    }
-
     mentionHandler.onMention(indicator, text)
   }
 
