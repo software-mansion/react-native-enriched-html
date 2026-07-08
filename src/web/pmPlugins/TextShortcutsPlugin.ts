@@ -21,13 +21,24 @@ const INLINE_STYLES = new Set<TextShortcutStyle>([
   'inline_code',
 ]);
 
-// Maps TextShortcutStyle names to TipTap/ProseMirror mark names
-const INLINE_MARK_NAME: Partial<Record<TextShortcutStyle, string>> = {
+// Maps every TextShortcutStyle to its corresponding TipTap extension name.
+const TIPTAP_NAME: Record<TextShortcutStyle, string> = {
   bold: 'bold',
   italic: 'italic',
   underline: 'underline',
   strikethrough: 'strike',
   inline_code: 'code',
+  h1: 'heading',
+  h2: 'heading',
+  h3: 'heading',
+  h4: 'heading',
+  h5: 'heading',
+  h6: 'heading',
+  blockquote: 'blockquote',
+  codeblock: 'codeBlock',
+  unordered_list: 'unorderedList',
+  ordered_list: 'orderedList',
+  checkbox_list: 'checkboxList',
 };
 
 function applyParagraphCommand(style: string, editor: Editor): boolean {
@@ -148,7 +159,7 @@ function tryParagraphShortcut(
       if (docPrefix !== trigger.slice(0, prefixLen)) continue;
     }
 
-    if (isFormatBlocked(style, editor, htmlStyle)) continue;
+    if (isFormatBlocked(TIPTAP_NAME[style], editor, htmlStyle)) continue;
 
     const marksToPreserve = view.state.selection.$from.marks();
 
@@ -201,8 +212,7 @@ function tryInlineShortcut(
     .sort((a, b) => b.trigger.length - a.trigger.length);
 
   for (const { trigger, style } of inlineShortcuts) {
-    const markName = INLINE_MARK_NAME[style];
-    if (!markName) continue;
+    const markName = TIPTAP_NAME[style];
 
     const lastChar = trigger[trigger.length - 1]!;
     if (text !== lastChar) continue;
