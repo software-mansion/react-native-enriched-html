@@ -40,7 +40,6 @@ test.describe('images', () => {
       timeout: VISIBILITY_TIMEOUT_MS,
     });
     await expect(page.locator('.eti-inline-image-img')).toHaveCount(0);
-
     await expect(editorLocator(page)).toHaveScreenshot(snapshotName);
   });
 
