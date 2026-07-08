@@ -4,6 +4,7 @@ import type { OnMentionDetected } from '../../../types';
 import { mentionPluginKey } from './mentionPluginKey';
 import type { MentionCallbacks, TriggerState } from './types';
 import { useEffect } from 'react';
+import type { EditorState } from '@tiptap/pm/state';
 
 export function useMentionEvents(
   editor: Editor,
@@ -45,7 +46,7 @@ export function useMentionEvents(
 
       if (!cb.onMentionDetected) return;
 
-      const mention = getMentionInCurrentSelection(editor);
+      const mention = getMentionInCurrentSelection(editor.state);
       if (!mention) {
         if (wasInMention) {
           cb.onMentionDetected({
@@ -88,9 +89,8 @@ export function useMentionEvents(
 }
 
 function getMentionInCurrentSelection(
-  editor: Editor
+  state: EditorState
 ): (OnMentionDetected & { key: string }) | null {
-  const { state } = editor;
   const mentionType = state.schema.marks.mention;
   if (!mentionType) return null;
 
