@@ -1,7 +1,6 @@
 import type { Editor } from '@tiptap/core';
 import type { HtmlStyle } from '../../types';
 import { HEADING_LEVELS, HEADING_TAGS } from './EnrichedHeading';
-
 type ChainedCommands = ReturnType<Editor['chain']>;
 
 export function isAnyParagraphFormatActive(editor: Editor): boolean {
@@ -77,8 +76,53 @@ export function toggleParagraphFormat(
   isActive: () => boolean,
   deactivate: () => boolean,
   activate: (c: ChainedCommands) => ChainedCommands,
-  chain: () => ChainedCommands
+  chain: () => ChainedCommands,
+  editor: Editor
 ): boolean {
-  if (isActive()) return deactivate();
-  return activate(chain().clearNodes()).run();
+  if (isActive()) {
+    return withPreservedAlignment(editor, chain(), (c) => {
+      deactivate();
+      return c;
+    });
+  }
+
+  return withPreservedAlignment(editor, chain(), (c) =>
+    activate(c.clearNodes())
+  );
+}
+
+export function getCurrentAlignment(editor: Editor): string | null {
+  const { doc, selection } = editor.state;
+  let { $from } = selection;
+
+  // If the user presses Cmd+A, the selection anchors to the document root (depth 0).
+  // We resolve position '1' to step exactly inside the first paragraph node
+  // so the loop can correctly read its alignment.
+  if ($from.depth === 0 && doc.content.size > 0) {
+    $from = doc.resolve(1);
+  }
+
+  for (let depth = $from.depth; depth >= 0; depth--) {
+    const node = $from.node(depth);
+    if (node.attrs.textAlign) {
+      return node.attrs.textAlign;
+    }
+  }
+  return null;
+}
+
+export function withPreservedAlignment(
+  editor: Editor,
+  chain: ChainedCommands,
+  mutateChain: (c: ChainedCommands) => ChainedCommands
+): boolean {
+  const currentAlignment = getCurrentAlignment(editor);
+
+  const c = mutateChain(chain);
+
+  if (currentAlignment && currentAlignment !== 'auto') {
+    c.setTextAlign(currentAlignment);
+  }
+
+  return c.run();
 }

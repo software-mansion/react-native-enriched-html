@@ -20,6 +20,13 @@
     return NO;
   }
 
+  // Do not manually intervene if the user is in the middle of IME
+  // composition. Let the iOS system handle the backspace natively to prevent
+  // state desync.
+  if (typedInput->textView.markedTextRange != nullptr) {
+    return NO;
+  }
+
   // we make sure it was a backspace (text with 0 length) and it deleted
   // something (range longer than 0)
   if (text.length > 0 || range.length == 0) {
