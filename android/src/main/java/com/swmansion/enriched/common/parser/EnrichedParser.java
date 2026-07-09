@@ -860,8 +860,18 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
     int len = text.length();
     text.append("￼");
     Object imageSpan =
-        spanFactory.createImageSpan(src, Integer.parseInt(width), Integer.parseInt(height));
+        spanFactory.createImageSpan(src, parseDimension(width), parseDimension(height));
     text.setSpan(imageSpan, len, text.length(), EnrichedSpanFlags.forSpan(imageSpan));
+  }
+
+  private static int parseDimension(String value) {
+    if (value == null) return 0;
+    try {
+      int parsed = (int) Math.floor(Float.parseFloat(value));
+      return Math.max(parsed, 0);
+    } catch (NumberFormatException e) {
+      return 0;
+    }
   }
 
   private static void startA(Editable text, Attributes attributes) {
