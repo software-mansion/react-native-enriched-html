@@ -49,6 +49,8 @@ function wrapBareLiContentInParagraph(doc: Document) {
       nodesToWrap.push(node);
     }
 
+    if (nodesToWrap.length === 0 && childNodes.length > 0) return;
+
     const p = doc.createElement('p');
 
     li.insertBefore(p, childNodes[0] || null);

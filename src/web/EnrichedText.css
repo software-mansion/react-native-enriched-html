@@ -131,9 +131,14 @@
   }
 }
 
-.eti-editor li::after,
-.et-view li::after {
-  content: '\200b'; /* Zero-width space */
+/* Zero-width space to correctly display empty list elements */
+.eti-editor ul:not([data-type]) > li > p:empty::after,
+.et-view ul:not([data-type]) > li > p:empty::after,
+.eti-editor ol > li > p:empty::after,
+.et-view ol > li > p:empty::after,
+.eti-editor ul[data-type='checkboxList'] > li > div:empty::after,
+.et-view ul[data-type="checkbox"] > li > label:empty::after {
+  content: '\200b';
 }
 
 .eti-editor ul:not([data-type]),
@@ -203,11 +208,6 @@
   display: block;
   flex: 1 1 auto;
   min-width: 0;
-  margin: 0;
-}
-
-.eti-editor li,
-.et-view li {
   margin: 0;
 }
 
