@@ -196,16 +196,6 @@
   white-space: nowrap;
 }
 
-/*
- * Every list item is laid out as a flexbox. The marker (the ::before bullet or
- * number above, the checkbox below) is the first flex item and its position is
- * fixed by flex layout, so it always stays on the left regardless of the list's
- * text-align, and it never shrinks (flex-shrink: 0) into the content. The
- * content is the second flex item — it is the only part that honours text-align,
- * and wrapped lines keep a hanging indent instead of flowing back under the
- * marker. This is applied to all lists (not just aligned ones) so that aligned
- * and non-aligned lists render through the exact same path.
- */
 .eti-editor ul:not([data-type]) > li > p,
 .et-view ul:not([data-type]) > li > p,
 .eti-editor ol > li > p,
@@ -260,16 +250,10 @@
   padding-left: calc(var(--et-checkbox-margin-left, 16px) + var(--et-checkbox-gap-width, 16px));
 }
 
-/*
- * A checkbox is a tall box, so baseline alignment would ride it up above the
- * text. Center it on the first line instead: pin the row to flex-start and
- * offset the box down by half the difference between the line height and the
- * box size. flex-shrink: 0 keeps the box from being squeezed by long content.
-*/
 .eti-editor ul[data-type='checkboxList'] > li {
   margin: 0;
   display: flex;
-  align-items: baseline; /* Switched from flex-start to match normal lists */
+  align-items: baseline;
 }
 
 .eti-editor ul[data-type='checkboxList'] > li > label {
@@ -282,10 +266,9 @@
   margin-left: calc(-1 * (var(--et-checkbox-box-size, 24px) + var(--et-checkbox-gap-width, 16px)));
   margin-right: var(--et-checkbox-gap-width, 16px);
 
-  /* Replaced the margin-top math with a relative baseline shift */
   margin-top: 0;
   position: relative;
-  top: 0.15em; /* Nudge down to visually center with the text. Adjust this if needed! */
+  top: 0.15em;
 }
 
 .eti-editor ul[data-type='checkboxList'] > li > label input[type='checkbox'] {
@@ -314,7 +297,7 @@
 .et-view ul[data-type="checkbox"] > li {
   margin: 0;
   display: flex;
-  align-items: baseline; /* Switched from flex-start to match normal lists */
+  align-items: baseline;
 }
 
 .et-view ul[data-type="checkbox"] > li > input[type='checkbox'] {
@@ -332,10 +315,9 @@
   pointer-events: none;
   -webkit-tap-highlight-color: transparent;
 
-  /* Replaced the margin-top math with a relative baseline shift */
   margin-top: 0;
   position: relative;
-  top: 0.15em; /* Nudge down to visually center with the text. Adjust this if needed! */
+  top: 0.15em;
 }
 
 .et-view ul[data-type="checkbox"] > li > label {
