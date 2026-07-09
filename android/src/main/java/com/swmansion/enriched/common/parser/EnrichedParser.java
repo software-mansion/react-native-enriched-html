@@ -857,10 +857,7 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
     if (value == null) return 0;
     try {
       int parsed = (int) Math.floor(Float.parseFloat(value));
-      if (parsed < 0) {
-        return 0;
-      }
-      return parsed;
+      return Math.max(parsed, 0);
     } catch (NumberFormatException e) {
       return 0;
     }
