@@ -118,6 +118,24 @@
   text-decoration-line: var(--et-link-text-decoration-line);
 }
 
+.eti-editor li,
+.et-view li {
+  margin: 0;
+  min-height: 1.2em;
+}
+
+@supports (min-height: 1lh) {
+  .eti-editor li,
+  .et-view li {
+    min-height: 1lh;
+  }
+}
+
+.eti-editor li::after,
+.et-view li::after {
+  content: '\200b'; /* Zero-width space */
+}
+
 .eti-editor ul:not([data-type]),
 .et-view ul:not([data-type]) {
   margin: 0;
@@ -128,12 +146,14 @@
 .eti-editor ul:not([data-type]) > li,
 .et-view ul:not([data-type]) > li {
   margin: 0;
+  display: flex;
+  align-items: baseline;
 }
 
 .eti-editor ul:not([data-type]) > li::before,
 .et-view ul:not([data-type]) > li::before {
   content: '';
-  display: inline-block;
+  flex-shrink: 0;
   width: var(--et-ul-bullet-size, 8px);
   height: var(--et-ul-bullet-size, 8px);
   border-radius: 50%;
@@ -142,7 +162,6 @@
   margin-left: calc(-1 * (var(--et-ul-bullet-size, 8px) + var(--et-ul-gap-width, 16px)));
   margin-right: var(--et-ul-gap-width, 16px);
 
-  vertical-align: middle;
   position: relative;
   top: -0.1em;
 }
@@ -159,12 +178,14 @@
 .et-view ol > li {
   margin: 0;
   counter-increment: et-ol;
+  display: flex;
+  align-items: baseline;
 }
 
 .eti-editor ol > li::before,
 .et-view ol > li::before {
   content: counter(et-ol) '.';
-  display: inline-block;
+  flex-shrink: 0;
   width: var(--et-ol-margin-left, 16px);
   text-align: right;
   margin-right: calc(var(--et-ol-gap-width, 16px) / 2);
@@ -173,12 +194,25 @@
   color: var(--et-ol-marker-color, currentColor);
   font-weight: var(--et-ol-marker-font-weight, inherit);
   white-space: nowrap;
-  vertical-align: baseline;
 }
 
-.eti-editor li > p,
-.et-view li > p {
-  display: inline;
+/*
+ * Every list item is laid out as a flexbox. The marker (the ::before bullet or
+ * number above, the checkbox below) is the first flex item and its position is
+ * fixed by flex layout, so it always stays on the left regardless of the list's
+ * text-align, and it never shrinks (flex-shrink: 0) into the content. The
+ * content is the second flex item — it is the only part that honours text-align,
+ * and wrapped lines keep a hanging indent instead of flowing back under the
+ * marker. This is applied to all lists (not just aligned ones) so that aligned
+ * and non-aligned lists render through the exact same path.
+ */
+.eti-editor ul:not([data-type]) > li > p,
+.et-view ul:not([data-type]) > li > p,
+.eti-editor ol > li > p,
+.et-view ol > li > p {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
   margin: 0;
 }
 
@@ -226,22 +260,32 @@
   padding-left: calc(var(--et-checkbox-margin-left, 16px) + var(--et-checkbox-gap-width, 16px));
 }
 
+/*
+ * A checkbox is a tall box, so baseline alignment would ride it up above the
+ * text. Center it on the first line instead: pin the row to flex-start and
+ * offset the box down by half the difference between the line height and the
+ * box size. flex-shrink: 0 keeps the box from being squeezed by long content.
+*/
 .eti-editor ul[data-type='checkboxList'] > li {
   margin: 0;
+  display: flex;
+  align-items: baseline; /* Switched from flex-start to match normal lists */
 }
 
 .eti-editor ul[data-type='checkboxList'] > li > label {
   display: inline-flex;
   align-items: center;
+  flex-shrink: 0;
   width: var(--et-checkbox-box-size, 24px);
   height: var(--et-checkbox-box-size, 24px);
 
   margin-left: calc(-1 * (var(--et-checkbox-box-size, 24px) + var(--et-checkbox-gap-width, 16px)));
   margin-right: var(--et-checkbox-gap-width, 16px);
 
-  vertical-align: middle;
+  /* Replaced the margin-top math with a relative baseline shift */
+  margin-top: 0;
   position: relative;
-  top: -0.1em;
+  top: 0.15em; /* Nudge down to visually center with the text. Adjust this if needed! */
 }
 
 .eti-editor ul[data-type='checkboxList'] > li > label input[type='checkbox'] {
@@ -252,9 +296,10 @@
   accent-color: var(--et-checkbox-box-color, #0000ff);
 }
 
-.eti-editor ul[data-type='checkboxList'] > li > div,
-.eti-editor ul[data-type='checkboxList'] > li > div > p {
-  display: inline;
+.eti-editor ul[data-type='checkboxList'] > li > div {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
   margin: 0;
 }
 
@@ -267,35 +312,36 @@
 }
 
 .et-view ul[data-type="checkbox"] > li {
-  margin: 0
+  margin: 0;
+  display: flex;
+  align-items: baseline; /* Switched from flex-start to match normal lists */
 }
 
 .et-view ul[data-type="checkbox"] > li > input[type='checkbox'] {
-  display: inline-block;
-  align-items: center;
+  flex-shrink: 0;
 
   margin-left: calc(-1 * (var(--et-checkbox-box-size, 24px) + var(--et-checkbox-gap-width, 16px)));
   margin-right: var(--et-checkbox-gap-width, 16px);
-
-  margin-top: 0;
   margin-bottom: 0;
-
-  vertical-align: middle;
-  position: relative;
-  top: -0.1em;
 
   width: var(--et-checkbox-box-size, 24px);
   height: var(--et-checkbox-box-size, 24px);
-  flex-shrink: 0;
   accent-color: var(--et-checkbox-box-color, #0000ff);
 
   /* disable checkbox press style as it's read-only */
   pointer-events: none;
   -webkit-tap-highlight-color: transparent;
+
+  /* Replaced the margin-top math with a relative baseline shift */
+  margin-top: 0;
+  position: relative;
+  top: 0.15em; /* Nudge down to visually center with the text. Adjust this if needed! */
 }
 
 .et-view ul[data-type="checkbox"] > li > label {
-  display: inline;
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
   margin: 0;
   padding: 0;
 }
