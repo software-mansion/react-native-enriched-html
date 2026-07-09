@@ -59,7 +59,11 @@ extern "C" {
 @compatibility_alias UIColor NSColor;
 @compatibility_alias UIImage NSImage;
 @compatibility_alias UIImageView NSImageView;
-@compatibility_alias UILabel RCTUILabel;
+// Not RCTUILabel: its `text` property only implements the setter (the
+// auto-synthesized getter returns nil, never the stringValue), which breaks
+// shared code that reads label.text. The category below provides both
+// accessors on top of a plain NSTextField.
+@compatibility_alias UILabel NSTextField;
 @compatibility_alias UIView NSView;
 
 typedef NSTextView EnrichedBaseTextView;
@@ -121,9 +125,19 @@ void EnrichedBringSubviewToFront(NSView *parent, NSView *child);
 
 @interface NSTextField (EnrichedUIKitCompat)
 
+// UILabel.text
+@property(nonatomic, copy, nullable) NSString *text;
+
 // UILabel.attributedText
 @property(nonatomic, copy, nullable) NSAttributedString *attributedText;
 
+@end
+
+// Placeholder label that is transparent to mouse events. UILabel has
+// userInteractionEnabled == NO by default, but NSTextField is an NSControl
+// that participates in hit-testing and swallows every mouseDown — placed on
+// top of the text view it would block clicks from ever focusing the input.
+@interface EnrichedPlaceholderLabel : NSTextField
 @end
 
 @interface NSImage (EnrichedUIKitCompat)

@@ -116,6 +116,10 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    // Explicit colors: the RN root window is white regardless of the system
+    // appearance, while Text defaults to the semantic labelColor (white in
+    // dark mode), which would make all labels invisible.
+    backgroundColor: '#fff',
   },
   content: {
     padding: 16,
@@ -124,6 +128,7 @@ const styles = StyleSheet.create({
   heading: {
     fontSize: 18,
     fontWeight: 'bold',
+    color: '#000',
   },
   toolbar: {
     flexDirection: 'row',
@@ -142,6 +147,7 @@ const styles = StyleSheet.create({
   },
   buttonLabel: {
     fontSize: 14,
+    color: '#000',
   },
   input: {
     minHeight: 120,
@@ -154,6 +160,7 @@ const styles = StyleSheet.create({
   html: {
     fontFamily: 'Menlo',
     fontSize: 12,
+    color: '#000',
   },
   text: {
     fontSize: 16,

@@ -21,7 +21,10 @@ const config = withMetroConfig(getDefaultConfig(__dirname), {
 // deps), so the rewritten name needs an explicit mapping to this app's copy.
 config.resolver.extraNodeModules = {
   ...config.resolver.extraNodeModules,
-  'react-native-macos': path.resolve(__dirname, 'node_modules/react-native-macos'),
+  'react-native-macos': path.resolve(
+    __dirname,
+    'node_modules/react-native-macos'
+  ),
 };
 
 module.exports = config;
