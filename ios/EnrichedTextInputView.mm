@@ -223,7 +223,15 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
 }
 
 - (void)setupPlaceholderLabel {
+#if !TARGET_OS_OSX
   _placeholderLabel = [[UILabel alloc] initWithFrame:CGRectZero];
+#else
+  // EnrichedPlaceholderLabel is transparent to clicks; a plain NSTextField
+  // would cover the text view and swallow every mouseDown, making the input
+  // impossible to focus with the mouse.
+  _placeholderLabel =
+      [[EnrichedPlaceholderLabel alloc] initWithFrame:CGRectZero];
+#endif
 #if TARGET_OS_OSX
   _placeholderLabel.bezeled = NO;
   _placeholderLabel.drawsBackground = NO;

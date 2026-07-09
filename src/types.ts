@@ -88,13 +88,13 @@ export interface EnrichedInputStyle {
   zIndex?: number;
 
   // Shadows
-  /** @platform ios */
+  /** @platform ios macos */
   shadowColor?: ColorValue;
-  /** @platform ios */
+  /** @platform ios macos */
   shadowOffset?: TextStyle['shadowOffset'];
-  /** @platform ios */
+  /** @platform ios macos */
   shadowOpacity?: TextStyle['shadowOpacity'];
-  /** @platform ios */
+  /** @platform ios macos */
   shadowRadius?: number;
 
   // Transforms
@@ -102,56 +102,56 @@ export interface EnrichedInputStyle {
   transformOrigin?: TextStyle['transformOrigin'];
 
   // View appearance
-  /** @platform ios web */
+  /** @platform ios macos web */
   backfaceVisibility?: TextStyle['backfaceVisibility'];
   backgroundColor?: ColorValue;
-  /** @platform ios web */
+  /** @platform ios macos web */
   borderBlockColor?: ColorValue;
-  /** @platform ios web */
+  /** @platform ios macos web */
   borderBlockEndColor?: ColorValue;
-  /** @platform ios web */
+  /** @platform ios macos web */
   borderBlockStartColor?: ColorValue;
-  /** @platform ios web */
+  /** @platform ios macos web */
   borderBottomColor?: ColorValue;
-  /** @platform ios web */
+  /** @platform ios macos web */
   borderBottomEndRadius?: TextStyle['borderBottomEndRadius'];
-  /** @platform ios web */
+  /** @platform ios macos web */
   borderBottomLeftRadius?: TextStyle['borderBottomLeftRadius'];
-  /** @platform ios web */
+  /** @platform ios macos web */
   borderBottomRightRadius?: TextStyle['borderBottomRightRadius'];
-  /** @platform ios web */
+  /** @platform ios macos web */
   borderBottomStartRadius?: TextStyle['borderBottomStartRadius'];
-  /** @platform ios web */
+  /** @platform ios macos web */
   borderColor?: ColorValue;
-  /** @platform ios web */
+  /** @platform ios macos web */
   borderEndColor?: ColorValue;
-  /** @platform ios web */
+  /** @platform ios macos web */
   borderEndEndRadius?: TextStyle['borderEndEndRadius'];
-  /** @platform ios web */
+  /** @platform ios macos web */
   borderEndStartRadius?: TextStyle['borderEndStartRadius'];
-  /** @platform ios web */
+  /** @platform ios macos web */
   borderLeftColor?: ColorValue;
-  /** @platform ios web */
+  /** @platform ios macos web */
   borderRadius?: TextStyle['borderRadius'];
-  /** @platform ios web */
+  /** @platform ios macos web */
   borderRightColor?: ColorValue;
-  /** @platform ios web */
+  /** @platform ios macos web */
   borderStartColor?: ColorValue;
-  /** @platform ios web */
+  /** @platform ios macos web */
   borderStartEndRadius?: TextStyle['borderStartEndRadius'];
-  /** @platform ios web */
+  /** @platform ios macos web */
   borderStartStartRadius?: TextStyle['borderStartStartRadius'];
-  /** @platform ios web */
+  /** @platform ios macos web */
   borderStyle?: TextStyle['borderStyle'];
-  /** @platform ios web */
+  /** @platform ios macos web */
   borderTopColor?: ColorValue;
-  /** @platform ios web */
+  /** @platform ios macos web */
   borderTopEndRadius?: TextStyle['borderTopEndRadius'];
-  /** @platform ios web */
+  /** @platform ios macos web */
   borderTopLeftRadius?: TextStyle['borderTopLeftRadius'];
-  /** @platform ios web */
+  /** @platform ios macos web */
   borderTopRightRadius?: TextStyle['borderTopRightRadius'];
-  /** @platform ios web */
+  /** @platform ios macos web */
   borderTopStartRadius?: TextStyle['borderTopStartRadius'];
   boxShadow?: TextStyle['boxShadow'];
   /** @platform web */
@@ -163,13 +163,13 @@ export interface EnrichedInputStyle {
   /** @platform android web */
   mixBlendMode?: TextStyle['mixBlendMode'];
   opacity?: TextStyle['opacity'];
-  /** @platform ios web */
+  /** @platform ios macos web */
   outlineColor?: ColorValue;
   outlineOffset?: TextStyle['outlineOffset'];
   /** @platform android web */
   outlineStyle?: TextStyle['outlineStyle'];
   outlineWidth?: TextStyle['outlineWidth'];
-  /** @platform ios web */
+  /** @platform ios macos web */
   pointerEvents?: TextStyle['pointerEvents'];
 
   // Typography
@@ -629,7 +629,10 @@ export interface EnrichedTextInputProps extends Omit<ViewProps, 'children'> {
   /** Highlight color for selected text. */
   selectionColor?: ColorValue;
 
-  /** Controls automatic capitalization of typed text. Defaults to `"sentences"`. */
+  /**
+   * Controls automatic capitalization of typed text. Defaults to `"sentences"`.
+   * Ignored on macOS (no software keyboard).
+   */
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
 
   /** Style overrides applied to the rendered HTML content inside the editor. */
@@ -651,7 +654,10 @@ export interface EnrichedTextInputProps extends Omit<ViewProps, 'children'> {
    */
   linkRegex?: RegExp | null;
 
-  /** The label shown on the return key of the software keyboard. */
+  /**
+   * The label shown on the return key of the software keyboard.
+   * Ignored on macOS (no software keyboard).
+   */
   returnKeyType?: ReturnKeyTypeOptions;
 
   /** Custom text label for the return key (Android only). */
@@ -764,7 +770,7 @@ export interface EnrichedTextInputProps extends Omit<ViewProps, 'children'> {
 
   /**
    * If true, fonts will scale to respect the system's accessibility text size.
-   * Enabled by default.
+   * Enabled by default. Has no effect on macOS, which has no Dynamic Type.
    */
   allowFontScaling?: boolean;
 }
@@ -827,7 +833,7 @@ export interface EnrichedTextProps extends ViewProps {
 
   /**
    * If true, fonts will scale to respect the system's accessibility text size.
-   * Enabled by default.
+   * Enabled by default. Has no effect on macOS, which has no Dynamic Type.
    */
   allowFontScaling?: boolean;
 

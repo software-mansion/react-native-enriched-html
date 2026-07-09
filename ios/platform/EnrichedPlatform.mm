@@ -149,12 +149,31 @@ UIBezierPath *EnrichedRoundedRectPath(CGRect rect, UIRectCorner corners,
 
 @implementation NSTextField (EnrichedUIKitCompat)
 
+- (NSString *)text {
+  return self.stringValue;
+}
+
+- (void)setText:(NSString *)text {
+  self.stringValue = text ?: @"";
+}
+
 - (NSAttributedString *)attributedText {
   return self.attributedStringValue;
 }
 
 - (void)setAttributedText:(NSAttributedString *)attributedText {
   self.attributedStringValue = attributedText ?: [NSAttributedString new];
+}
+
+@end
+
+@implementation EnrichedPlaceholderLabel
+
+// The label is constrained to cover the whole text view, so it must never win
+// hit-testing — otherwise clicks would not reach (and focus) the NSTextView
+// underneath it.
+- (NSView *)hitTest:(NSPoint)point {
+  return nil;
 }
 
 @end

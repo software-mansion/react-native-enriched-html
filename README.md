@@ -11,7 +11,7 @@
 - ⚡ Fully native input and display components (Supports New Architecture only)
 - 💻 HTML-based parsing with live, synchronous text styling
 - 🎨 Fully customizable styles for seamless UI integration
-- 🌐 Solid mobile support with an experimental Web implementation
+- 🌐 Solid mobile support with experimental Web and macOS implementations
 
 `EnrichedTextInput`, the rich text input component is an uncontrolled input. This means that it doesn't use any state or props to store its value, but instead directly interacts with the underlying platform-specific components. Thanks to this, the component is really performant and simple to use while offering complex and advanced features no other solution has.
 
@@ -46,8 +46,9 @@ We can help you build your next dream product –
 
 ## Prerequisites
 
-- `react-native-enriched-html` currently supports Android and iOS, Web implementation is still experimental.
+- `react-native-enriched-html` currently supports Android and iOS, Web and macOS implementations are still experimental.
 - It works only with [the React Native New Architecture (Fabric)](https://reactnative.dev/architecture/landing-page) and supports following React Native releases: `0.81`, `0.82`, `0.83`, `0.84` and `0.85`.
+- macOS support requires [react-native-macos](https://github.com/microsoft/react-native-macos) `0.81.x`, see [docs/MACOS.md](docs/MACOS.md) for details.
 
 ## Installation
 
@@ -74,6 +75,14 @@ The library includes native code so you will need to re-build the native app to 
 
 ```sh
 cd ios && bundler install && bundler exec pod install
+```
+
+#### 3. macOS (optional)
+
+For [react-native-macos](https://github.com/microsoft/react-native-macos) apps, install pods for the macOS target the same way. The New Architecture must be enabled in `macos/Podfile` (`ENV['RCT_NEW_ARCH_ENABLED'] = '1'`) — see [docs/MACOS.md](docs/MACOS.md).
+
+```sh
+cd macos && bundler install && bundler exec pod install
 ```
 
 ### Expo app
@@ -382,6 +391,7 @@ See the [EnrichedText API Reference](docs/TEXT_API_REFERENCE.md) for the `Enrich
 ## Future Plans
 
 - Web support: currently in the experimental stage. Details in [docs/WEB.md](docs/WEB.md).
+- macOS support: currently in the experimental stage. Details in [docs/MACOS.md](docs/MACOS.md).
 
 ## Contributing
 
