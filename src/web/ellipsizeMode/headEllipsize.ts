@@ -4,7 +4,9 @@ import {
   eatForwardUntilFits,
   fitsWithin,
   getBlockParent,
+  markLastListOrdinal,
   removeAndCleanUp,
+  restoreLastListOrdinal,
   scanLines,
   splitAtMark,
   walkerFilter,
@@ -43,6 +45,10 @@ export function headEllipsize(
 
   // we need to truncate as number of lines overflows the given maximum
   if (originalLastLine > numberOfLines) {
+    // remember the ordinal of the <li> that owns the last line before we strip
+    // the items above it, so it keeps its original number
+    markLastListOrdinal(lineStarts[originalLastLine]!.node, sandbox);
+
     let targetNode: Node | null = null;
     let overflowStartNode: Node | null = null;
 
@@ -169,6 +175,9 @@ export function headEllipsize(
 
     // truncating until those two last lines fit
     eatForwardUntilFits(sandbox, ellipsisNode, checkFits);
+
+    // restore the saved ordinal onto the surviving tail <li>
+    restoreLastListOrdinal(sandbox);
 
     setClampedHtml(sandbox.innerHTML);
   } else {

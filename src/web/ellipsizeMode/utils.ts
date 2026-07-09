@@ -1,5 +1,8 @@
 import { ENRICHED_TEXT_CLASSNAME } from '../constants/classNames';
 
+// Attribute used to persist the last <li>'s original ordinal before truncation
+const ORDINAL_ATTR = 'data-et-ellipsize-ordinal';
+
 export const BLOCK_TAGS = new Set([
   'P',
   'H1',
@@ -450,4 +453,54 @@ export function eatForwardUntilFits(
       else removeAndCleanUp(t, sandbox);
     }
   }
+}
+
+// Walks up from `node` to the nearest enclosing <li>
+// that is a direct child of an <ol>
+function enclosingOrderedListItem(
+  node: Node,
+  sandbox: HTMLElement
+): HTMLElement | null {
+  let current: Element | null =
+    node.nodeType === Node.ELEMENT_NODE
+      ? (node as Element)
+      : node.parentElement;
+
+  while (current && current !== sandbox) {
+    if (current.nodeName === 'LI' && current.parentElement?.nodeName === 'OL') {
+      return current as HTMLElement;
+    }
+    current = current.parentElement;
+  }
+  return null;
+}
+
+// Records the ordered-list counter value of the <li> that owns the final
+// rendered line, stashing it on a data-* attribute. Only this item matters,
+// as 'head' elllipsizeMode leaves the first N-1 lines untouched, so numbering
+// can only break on the last line
+export function markLastListOrdinal(lastLineNode: Node, sandbox: HTMLElement) {
+  const li = enclosingOrderedListItem(lastLineNode, sandbox);
+  if (!li) return;
+
+  let ordinal = 1;
+  let sibling = li.previousElementSibling;
+  while (sibling) {
+    if (sibling.nodeName === 'LI') ordinal++;
+    sibling = sibling.previousElementSibling;
+  }
+
+  li.setAttribute(ORDINAL_ATTR, String(ordinal));
+}
+
+// Reapplies the ordinal recorded by `markLastListOrdinal`
+export function restoreLastListOrdinal(sandbox: HTMLElement) {
+  const li = sandbox.querySelector<HTMLElement>(`[${ORDINAL_ATTR}]`);
+  if (!li) return;
+
+  const ordinal = parseInt(li.getAttribute(ORDINAL_ATTR) ?? '', 10);
+  if (Number.isFinite(ordinal)) {
+    li.style.counterReset = `et-ol ${ordinal - 1}`;
+  }
+  li.removeAttribute(ORDINAL_ATTR);
 }
