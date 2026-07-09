@@ -1,0 +1,4 @@
+# Pre-launch deploy. Block all crawlers until the docs.swmansion.com DNS
+# swap lands and the site is ready for public traffic.
+User-agent: *
+Disallow: /

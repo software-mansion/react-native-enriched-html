@@ -1,0 +1,136 @@
+// @ts-check
+// Note: type annotations allow type checking and IDEs autocompletion
+
+const lightCodeTheme = require('./src/theme/CodeBlock/highlighting-light.js');
+const darkCodeTheme = require('./src/theme/CodeBlock/highlighting-dark.js');
+
+/** @type {import('@docusaurus/types').Config} */
+const config = {
+  title: 'React Native Enriched HTML',
+  favicon: 'img/favicon.png',
+
+  url: 'https://docs.swmansion.com',
+
+  baseUrl: '/react-native-enriched-html/',
+
+  organizationName: 'software-mansion',
+  projectName: 'react-native-enriched-html',
+
+  // TODO: remove once the site is ready for public traffic. Until then,
+  // keep the deploy hidden from search engines.
+  noIndex: true,
+
+  onBrokenLinks: 'throw',
+  onBrokenAnchors: 'throw',
+  markdown: {
+    hooks: {
+      onBrokenMarkdownLinks: 'throw',
+    },
+    mermaid: true,
+  },
+
+  themes: ['@docusaurus/theme-mermaid'],
+
+  i18n: {
+    defaultLocale: 'en',
+    locales: ['en'],
+  },
+
+  presets: [
+    [
+      'classic',
+      /** @type {import('@docusaurus/preset-classic').Options} */
+      ({
+        docs: {
+          routeBasePath: '/',
+          breadcrumbs: false,
+          sidebarPath: require.resolve('./sidebars.js'),
+          sidebarCollapsible: false,
+          editUrl:
+            'https://github.com/software-mansion/react-native-enriched-html/edit/main/docs/',
+          lastVersion: 'current',
+          versions: {
+            current: {
+              label: '1.x',
+              banner: 'none',
+            },
+          },
+        },
+        theme: {
+          customCss: require.resolve('./src/css/index.css'),
+        },
+      }),
+    ],
+  ],
+
+  plugins: [
+    // TODO: enable Google Tag Manager with a container id for this site.
+    // process.env.NODE_ENV === 'production' && [
+    //   '@docusaurus/plugin-google-tag-manager',
+    //   {
+    //     containerId: 'GTM-XXXXXXX',
+    //   },
+    // ],
+  ].filter(Boolean),
+
+  themeConfig:
+    /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
+    ({
+      image: 'img/og-image.png',
+      metadata: [
+        { name: 'og:image:width', content: '1200' },
+        { name: 'og:image:height', content: '630' },
+      ],
+      colorMode: {
+        respectPrefersColorScheme: true,
+      },
+      navbar: {
+        hideOnScroll: false,
+        logo: {
+          alt: 'React Native Enriched HTML logo',
+          src: 'img/logo.svg',
+          srcDark: 'img/logo-dark.svg',
+        },
+        items: [
+          {
+            to: 'fundamentals/getting-started',
+            label: 'Docs',
+            position: 'right',
+          },
+          {
+            type: 'docsVersionDropdown',
+            position: 'right',
+            dropdownActiveClassDisabled: true,
+          },
+          {
+            href: 'https://github.com/software-mansion/react-native-enriched-html/',
+            position: 'right',
+            className: 'header-github',
+            'aria-label': 'GitHub repository',
+          },
+        ],
+      },
+      footer: {
+        style: 'light',
+        links: [],
+        copyright:
+          'All trademarks and copyrights belong to their respective owners.',
+      },
+      prism: {
+        theme: lightCodeTheme,
+        darkTheme: darkCodeTheme,
+        additionalLanguages: ['bash', 'diff', 'json', 'mermaid'],
+      },
+      // TODO: replace placeholders with real DocSearch credentials once
+      // Algolia approval lands. Required so preset-classic activates
+      // @docusaurus/theme-search-algolia and `@theme/SearchTranslations`
+      // alias resolves during build.
+      algolia: {
+        appId: 'PLACEHOLDER_APP_ID',
+        apiKey: 'PLACEHOLDER_API_KEY',
+        indexName: 'react-native-enriched-html',
+      },
+    }),
+};
+
+module.exports = config;
