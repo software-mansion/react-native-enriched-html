@@ -29,6 +29,7 @@ Include any visual proof that helps reviewers understand the change — UI updat
 | ------- | :---------: |
 | iOS     |    ✅❌     |
 | Android |    ✅❌     |
+| Web     |    ✅❌     |
 
 ## Checklist
 

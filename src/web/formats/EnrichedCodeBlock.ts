@@ -35,7 +35,8 @@ export const EnrichedCodeBlock = Blockquote.extend({
             () => editor.isActive('codeBlock'),
             () => commands.lift('codeBlock'),
             (c) => c.toggleWrap('codeBlock'),
-            chain
+            chain,
+            editor
           ),
     };
   },

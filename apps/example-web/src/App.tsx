@@ -10,12 +10,14 @@ import {
   type BlurEvent,
   type EnrichedInputStyle,
   type OnLinkDetected,
+  type OnPasteImagesEvent,
   type OnSubmitEditing,
   type OnChangeMentionEvent,
   type OnMentionDetected,
-} from 'react-native-enriched';
+  EnrichedText,
+} from 'react-native-enriched-html';
 import { WEB_DEFAULT_HTML_STYLE } from './defaultHtmlStyle';
-import type { NativeSyntheticEvent } from 'react-native';
+import type { NativeSyntheticEvent, TextStyle } from 'react-native';
 import { EditorActions } from './components/EditorActions';
 import { SetValueModal } from './components/SetValueModal';
 import { ImageModal } from './components/ImageModal';
@@ -33,6 +35,8 @@ const DEFAULT_LINK_STATE: OnLinkDetected = {
   start: 0,
   end: 0,
 };
+const LINK_REGEX =
+  /^(?:enriched:\/\/\S+|(?:https?:\/\/)?(?:www\.)?swmansion\.com(?:\/\S*)?)$/i;
 
 function App() {
   const ref = useRef<EnrichedTextInputInstance>(null);
@@ -51,6 +55,8 @@ function App() {
     useState<OnLinkDetected>(DEFAULT_LINK_STATE);
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+
+  const [enrichedTextValue, setEnrichedTextValue] = useState('');
 
   const isLinkActive = !!editorState?.link.isActive;
   const hasLinkUrl = currentLink.url.length > 0;
@@ -108,10 +114,8 @@ function App() {
     console.log('[EnrichedTextInput] Change mention', indicator, text);
     if (indicator === '@') {
       userMention.onMentionChange(text);
-      if (!isUserPopupOpen) setIsUserPopupOpen(true);
     } else {
       channelMention.onMentionChange(text);
-      if (!isChannelPopupOpen) setIsChannelPopupOpen(true);
     }
   };
 
@@ -215,6 +219,29 @@ function App() {
     setCurrentLink(e);
   };
 
+  const handlePasteImages = (e: NativeSyntheticEvent<OnPasteImagesEvent>) => {
+    const DEFAULT_W = 80;
+    const DEFAULT_H = 80;
+    for (const image of e.nativeEvent.images) {
+      const w = image.width > 0 ? image.width : DEFAULT_W;
+      const h = image.height > 0 ? image.height : DEFAULT_H;
+      ref.current?.setImage(image.uri, w, h);
+    }
+  };
+
+  const handleSetEnrichedTextValue = () => {
+    ref.current
+      ?.getHTML()
+      .then((html) => {
+        setEnrichedTextValue(html);
+        ref.current?.setValue('');
+      })
+      .catch((error: unknown) => {
+        setEnrichedTextValue('');
+        console.error('Failed to get HTML:', error);
+      });
+  };
+
   return (
     <div className="container">
       <h1 className="app-title">Enriched Text Input</h1>
@@ -243,12 +270,15 @@ function App() {
           onChangeState={handleChangeState}
           onSubmitEditing={handleSubmitEditing}
           onLinkDetected={handleOnLinkDetected}
+          onPasteImages={handlePasteImages}
           onStartMention={handleStartMention}
           onChangeMention={handleChangeMention}
           onEndMention={handleEndMention}
           onMentionDetected={handleOnMentionDetected}
           mentionIndicators={['@', '#']}
           htmlStyle={WEB_DEFAULT_HTML_STYLE}
+          linkRegex={LINK_REGEX}
+          useHtmlNormalizer
         />
         <MentionPopup
           variant="user"
@@ -290,7 +320,25 @@ function App() {
         }}
       />
 
+      <button
+        className="btn btn-full"
+        data-testid="set-enriched-text-value"
+        onClick={handleSetEnrichedTextValue}
+      >
+        Push Text
+      </button>
+
       {showHtmlOutput && <HtmlOutputPanel html={currentHtml} />}
+
+      <div className="container enriched-text-container">
+        <h1 className="app-title">Enriched Text</h1>
+        <EnrichedText
+          style={enrichedTextStyle}
+          htmlStyle={WEB_DEFAULT_HTML_STYLE}
+        >
+          {enrichedTextValue}
+        </EnrichedText>
+      </div>
 
       {isSetValueModalOpen && (
         <SetValueModal
@@ -326,6 +374,16 @@ const enrichedInputStyle: EnrichedInputStyle = {
   width: '100%',
   marginVertical: 12,
   maxHeight: 300,
+  paddingVertical: 12,
+  paddingHorizontal: 14,
+  borderRadius: 8,
+  fontSize: 18,
+};
+
+const enrichedTextStyle: TextStyle = {
+  backgroundColor: 'gainsboro',
+  width: '100%',
+  marginVertical: 12,
   paddingVertical: 12,
   paddingHorizontal: 14,
   borderRadius: 8,

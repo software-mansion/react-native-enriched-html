@@ -1,14 +1,24 @@
 # API Reference
 
+> **Web support is experimental.** Behavior may change without a major version bump.
+
 ## Props
+
+### `allowFontScaling`
+
+If `true`, the input respects the system's accessibility font scaling settings.
+
+| Type   | Default Value | Platform     |
+| ------ | ------------- | ------------ |
+| `bool` | `true`        | iOS, Android |
 
 ### `autoFocus`
 
 If `true`, focuses the input.
 
-| Type   | Default Value | Platform |
-| ------ | ------------- | -------- |
-| `bool` | `false`       | Both     |
+| Type   | Default Value | Platform          |
+| ------ | ------------- | ----------------- |
+| `bool` | `false`       | iOS, Android, Web |
 
 ### `autoCapitalize`
 
@@ -19,9 +29,9 @@ Tells input to automatically capitalize certain characters.
 - `sentences`: first letter of each sentence.
 - `none`: don't auto capitalize anything.
 
-| Type                                               | Default Value | Platform |
-| -------------------------------------------------- | ------------- | -------- |
-| `'none' \| 'sentences' \| 'words' \| 'characters'` | `'sentences'` | Both     |
+| Type                                               | Default Value | Platform          |
+| -------------------------------------------------- | ------------- | ----------------- |
+| `'none' \| 'sentences' \| 'words' \| 'characters'` | `'sentences'` | iOS, Android, Web |
 
 ### `contextMenuItems`
 
@@ -51,9 +61,9 @@ interface ContextMenuItem {
 - `onPress` is the callback invoked when the item is tapped.
 - `visible` controls whether the item is shown. Defaults to `true`.
 
-| Type                | Default Value | Platform |
-| ------------------- | ------------- | -------- |
-| `ContextMenuItem[]` | []             | iOS      |
+| Type                | Default Value | Platform     |
+| ------------------- | ------------- | ------------ |
+| `ContextMenuItem[]` | []            | iOS, Android |
 
 > [!NOTE]
 > On iOS items appear in array order, before the system items (Copy/Paste/Cut).
@@ -63,25 +73,25 @@ interface ContextMenuItem {
 
 When provided it will set the color of the cursor (or "caret") in the component.
 
-| Type                                           | Default Value  | Platform |
-| ---------------------------------------------- | -------------- | -------- |
-| [`color`](https://reactnative.dev/docs/colors) | system default | Android  |
+| Type                                           | Default Value  | Platform     |
+| ---------------------------------------------- | -------------- | ------------ |
+| [`color`](https://reactnative.dev/docs/colors) | system default | Android, Web |
 
 ### `defaultValue`
 
 Provides an initial value for the input. If the string is a valid HTML output of the `EnrichedTextInput` component (or other HTML that the parser will accept), proper styles will be applied.
 
-| Type     | Default Value | Platform |
-| -------- | ------------- | -------- |
-| `string` | -             | Both     |
+| Type     | Default Value | Platform          |
+| -------- | ------------- | ----------------- |
+| `string` | -             | iOS, Android, Web |
 
 ### `editable`
 
 If `false`, text is not editable.
 
-| Type   | Default Value | Platform |
-| ------ | ------------- | -------- |
-| `bool` | `true`        | Both     |
+| Type   | Default Value | Platform          |
+| ------ | ------------- | ----------------- |
+| `bool` | `true`        | iOS, Android, Web |
 
 > [!NOTE]
 > Setting `editable` to `false` will disable all user interactions with the input.
@@ -91,17 +101,17 @@ If `false`, text is not editable.
 
 A prop for customizing styles appearances.
 
-| Type                           | Default Value                                      | Platform |
-| ------------------------------ | -------------------------------------------------- | -------- |
-| [`HtmlStyle`](#htmlstyle-type) | default values from [`HtmlStyle`](#htmlstyle-type) | Both     |
+| Type                           | Default Value                                      | Platform          |
+| ------------------------------ | -------------------------------------------------- | ----------------- |
+| [`HtmlStyle`](#htmlstyle-type) | default values from [`HtmlStyle`](#htmlstyle-type) | iOS, Android, Web |
 
 ### `mentionIndicators`
 
 The recognized mention indicators. Each item needs to be a 1 character long string.
 
-| Type              | Default Value | Platform |
-| ----------------- | ------------- | -------- |
-| array of `string` | `['@']`       | Both     |
+| Type              | Default Value | Platform          |
+| ----------------- | ------------- | ----------------- |
+| array of `string` | `['@']`       | iOS, Android, Web |
 
 ### `linkRegex`
 
@@ -109,20 +119,20 @@ A custom regex pattern for detecting links in the input. If not provided, a defa
 With this approach you can customize what patterns should be recognized as links, for example you can make it so that only links starting with `https://` are detected, or you can support custom schemes.
 Keep in mind that not all JS regex features are supported, for example variable-width lookbehinds won't work.
 
-| Type     | Default Value                 | Platform |
-|----------|-------------------------------|----------|
-| `RegExp` | default native platform regex | Both     |
+| Type     | Default Value                 | Platform     |
+| -------- | ----------------------------- | ------------ |
+| `RegExp` | default native platform regex | iOS, Android |
 
 > [!TIP]
 > With this approach you can also disable link detection completely by providing a `null` value as the prop.
 
 ### `onBlur`
 
-Callback that's called whenever the input loses focused (is blurred).
+Callback that's called whenever the input loses focus (is blurred).
 
-| Type         | Platform |
-|--------------|----------|
-| `() => void` | Both     |
+| Type         | Platform          |
+| ------------ | ----------------- |
+| `() => void` | iOS, Android, Web |
 
 ### `onChangeHtml`
 
@@ -138,9 +148,9 @@ interface OnChangeHtmlEvent {
 
 - `value` is the new HTML.
 
-| Type                                                       | Platform |
-|------------------------------------------------------------|----------|
-| `(event: NativeSyntheticEvent<OnChangeHtmlEvent>) => void` | Both     |
+| Type                                                       | Platform          |
+| ---------------------------------------------------------- | ----------------- |
+| `(event: NativeSyntheticEvent<OnChangeHtmlEvent>) => void` | iOS, Android, Web |
 
 > [!TIP]
 > Specifying `onChangeHtml` may have performance implications, especially with large documents, as it requires continuous HTML parsing.
@@ -163,9 +173,9 @@ interface OnChangeMentionEvent {
 - `indicator` is the indicator of the currently edited mention.
 - `text` contains whole text that has been typed after the indicator.
 
-| Type                                    | Platform |
-|-----------------------------------------|----------|
-| `(event: OnChangeMentionEvent) => void` | Both     |
+| Type                                    | Platform          |
+| --------------------------------------- | ----------------- |
+| `(event: OnChangeMentionEvent) => void` | iOS, Android, Web |
 
 ### `onChangeSelection`
 
@@ -185,9 +195,9 @@ interface OnChangeSelectionEvent {
 - `end` is the first index after the selection's ending. For just a cursor in place (no selection), `start` equals `end`.
 - `text` is the input's text in the current selection.
 
-| Type                                                            | Platform |
-|-----------------------------------------------------------------|----------|
-| `(event: NativeSyntheticEvent<OnChangeSelectionEvent>) => void` | Both     |
+| Type                                                            | Platform          |
+| --------------------------------------------------------------- | ----------------- |
+| `(event: NativeSyntheticEvent<OnChangeSelectionEvent>) => void` | iOS, Android, Web |
 
 ### `onChangeState`
 
@@ -301,9 +311,12 @@ interface OnChangeStateEvent {
 - `isConflicting` indicates if the style is in conflict with other currently active styles, meaning toggling it will remove conflicting style.
 - `alignment` indicates the current text alignment of the paragraph at the cursor position. Possible values: `'left'`, `'center'`, `'right'`, `'justify'`, `'auto'`.
 
-| Type                                                        | Platform |
-|-------------------------------------------------------------|----------|
-| `(event: NativeSyntheticEvent<OnChangeStateEvent>) => void` | Both     |
+> [!NOTE]
+> On Android, `'justify'` is not supported. It is accepted in the type signature but has no justified layout effect — text is shown with natural alignment instead, the same as `'auto'`. On iOS, justified alignment works as expected.
+
+| Type                                                        | Platform          |
+| ----------------------------------------------------------- | ----------------- |
+| `(event: NativeSyntheticEvent<OnChangeStateEvent>) => void` | iOS, Android, Web |
 
 ### `onChangeText`
 
@@ -319,9 +332,9 @@ interface OnChangeTextEvent {
 
 - `value` is the new text value of the input.
 
-| Type                                                       | Platform |
-|------------------------------------------------------------|----------|
-| `(event: NativeSyntheticEvent<OnChangeTextEvent>) => void` | Both     |
+| Type                                                       | Platform          |
+| ---------------------------------------------------------- | ----------------- |
+| `(event: NativeSyntheticEvent<OnChangeTextEvent>) => void` | iOS, Android, Web |
 
 > [!TIP]
 > If you don't need the plain text value do not specify `onChangeText`, as it may have performance implications due to continuous text extraction.
@@ -332,17 +345,17 @@ Callback that is called when the user no longer edits a mention actively - has m
 
 - `indicator` is the indicator of the mention that was being edited.
 
-| Type                          | Platform |
-|-------------------------------|----------|
-| `(indicator: string) => void` | Both     |
+| Type                          | Platform          |
+| ----------------------------- | ----------------- |
+| `(indicator: string) => void` | iOS, Android, Web |
 
 ### `onFocus`
 
 Callback that's called whenever the input is focused.
 
-| Type         | Platform |
-|--------------|----------|
-| `() => void` | Both     |
+| Type         | Platform          |
+| ------------ | ----------------- |
+| `() => void` | iOS, Android, Web |
 
 ### `onLinkDetected`
 
@@ -364,9 +377,9 @@ interface OnLinkDetected {
 - `start` is the starting index of the link.
 - `end` is the first index after the ending index of the link.
 
-| Type                              | Platform |
-|-----------------------------------|----------|
-| `(event: OnLinkDetected) => void` | Both     |
+| Type                              | Platform          |
+| --------------------------------- | ----------------- |
+| `(event: OnLinkDetected) => void` | iOS, Android, Web |
 
 ### `onMentionDetected`
 
@@ -386,9 +399,9 @@ interface OnMentionDetected {
 - `indicator` is the indicator of the mention.
 - `attributes` are the additional user-defined attributes that are being stored with the mention.
 
-| Type                                 | Platform |
-|--------------------------------------|----------|
-| `(event: OnMentionDetected) => void` | Both     |
+| Type                                 | Platform          |
+| ------------------------------------ | ----------------- |
+| `(event: OnMentionDetected) => void` | iOS, Android, Web |
 
 ### `onStartMention`
 
@@ -396,9 +409,9 @@ Callback that gets called whenever a mention editing starts (after placing the i
 
 - `indicator` is the indicator of the mention that begins editing.
 
-| Type                          | Platform |
-|-------------------------------|----------|
-| `(indicator: string) => void` | Both     |
+| Type                          | Platform          |
+| ----------------------------- | ----------------- |
+| `(indicator: string) => void` | iOS, Android, Web |
 
 ### `onKeyPress`
 
@@ -410,15 +423,34 @@ export interface OnKeyPressEvent {
 }
 ```
 
-| Type                                                     | Platform |
-|----------------------------------------------------------|----------|
-| `(event: NativeSyntheticEvent<OnKeyPressEvent>) => void` | Both     |
+| Type                                                     | Platform          |
+| -------------------------------------------------------- | ----------------- |
+| `(event: NativeSyntheticEvent<OnKeyPressEvent>) => void` | iOS, Android, Web |
 
-### `OnPasteImages`
+### `onSubmitEditing`
+
+Callback called when the user submits the input (presses the return/enter key while `submitBehavior` is `'submit'` or `'blurAndSubmit'`).
+
+Payload interface:
+
+```ts
+interface OnSubmitEditing {
+  text: string;
+}
+```
+
+- `text` is the current plain-text content of the input at submission time.
+
+| Type                                                     | Platform          |
+| -------------------------------------------------------- | ----------------- |
+| `(event: NativeSyntheticEvent<OnSubmitEditing>) => void` | iOS, Android, Web |
+
+### `onPasteImages`
 
 Callback invoked when the user pastes one or more images or GIFs into the input.
 
 - `images` - is an array of objects containing the details (URI, MIME type, and dimensions) for each pasted image/GIF.
+- **Web:** each `uri` is a `blob:` URL (`URL.createObjectURL`). If you retain URIs, call `URL.revokeObjectURL` when finished so blobs can be released.
 
 ```ts
 export interface OnPasteImagesEvent {
@@ -431,53 +463,173 @@ export interface OnPasteImagesEvent {
 }
 ```
 
-| Type                                                        | Platform |
-| ----------------------------------------------------------- | -------- |
-| `(event: NativeSyntheticEvent<OnPasteImagesEvent>) => void` | Both     |
+| Type                                                        | Platform          |
+| ----------------------------------------------------------- | ----------------- |
+| `(event: NativeSyntheticEvent<OnPasteImagesEvent>) => void` | iOS, Android, Web |
+
+> [!NOTE]
+> On Web, `uri` is a blob URL (`blob:...`). Blob URLs hold memory until explicitly released.
+> Call `URL.revokeObjectURL(uri)` once you no longer need the image (e.g., after the upload completes).
 
 ### `placeholder`
 
 The placeholder text that is displayed in the input if nothing has been typed yet. Disappears when something is typed.
 
-| Type     | Default Value | Platform |
-| -------- | ------------- | -------- |
-| `string` | `''`          | Both     |
+| Type     | Default Value | Platform          |
+| -------- | ------------- | ----------------- |
+| `string` | `''`          | iOS, Android, Web |
 
 ### `placeholderTextColor`
 
 Input placeholder's text color.
 
-| Type                                           | Default Value           | Platform |
-| ---------------------------------------------- | ----------------------- | -------- |
-| [`color`](https://reactnative.dev/docs/colors) | input's [color](#style) | Both     |
+| Type                                           | Default Value           | Platform          |
+| ---------------------------------------------- | ----------------------- | ----------------- |
+| [`color`](https://reactnative.dev/docs/colors) | input's [color](#style) | iOS, Android, Web |
 
 ### `ref`
 
 A React ref that lets you call any ref methods on the input.
 
-| Type                                           | Default Value | Platform |
-| ---------------------------------------------- | ------------- | -------- |
-| `RefObject<EnrichedTextInputInstance \| null>` | -             | Both     |
+| Type                                           | Default Value | Platform          |
+| ---------------------------------------------- | ------------- | ----------------- |
+| `RefObject<EnrichedTextInputInstance \| null>` | -             | iOS, Android, Web |
+
+### `returnKeyLabel`
+
+Overrides the return key label with a custom string. Not supported on iOS.
+
+| Type     | Default Value | Platform |
+| -------- | ------------- | -------- |
+| `string` | -             | Android  |
+
+### `returnKeyType`
+
+Specifies the label or icon shown on the keyboard's return key.
+
+On Android, this prop is accepted but ignored, as `returnKeyType` doesn't work with multiline inputs.
+
+Accepts the standard React Native `ReturnKeyTypeOptions` values: `'go' | 'next' | 'search' | 'send' | 'done' | 'default' | 'google' | 'join' | 'route' | 'yahoo' | 'emergency-call' | 'previous' | 'none'`.
+
+| Type               | Platform |
+| ------------------ | -------- |
+| `'go'`             | iOS, Web |
+| `'next'`           | iOS, Web |
+| `'search'`         | iOS, Web |
+| `'send'`           | iOS, Web |
+| `'done'`           | iOS, Web |
+| `'default'`        | iOS      |
+| `'google'`         | iOS      |
+| `'join'`           | iOS      |
+| `'route'`          | iOS      |
+| `'yahoo'`          | iOS      |
+| `'emergency-call'` | iOS      |
+| `'previous'`       | Web      |
+
+| Type                   | Default Value | Platform |
+| ---------------------- | ------------- | -------- |
+| `ReturnKeyTypeOptions` | `'default'`   | iOS, Web |
+
+> [!NOTE]
+> On Web, this maps to the [`enterkeyhint`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/enterkeyhint) attribute on the editor element.
+> Only the values the browser recognises (`'enter'`, `'done'`, `'go'`, `'next'`, `'previous'`, `'search'`, `'send'`) have a visible effect; unsupported values are silently ignored and fall back to `'enter'`.
 
 ### `selectionColor`
 
 Color of the selection rectangle that gets drawn over the selected text. On iOS, the cursor (caret) also gets set to this color.
 
-| Type                                           | Default Value  | Platform |
-| ---------------------------------------------- | -------------- | -------- |
-| [`color`](https://reactnative.dev/docs/colors) | system default | Both     |
+| Type                                           | Default Value  | Platform          |
+| ---------------------------------------------- | -------------- | ----------------- |
+| [`color`](https://reactnative.dev/docs/colors) | system default | iOS, Android, Web |
 
 ### `style`
 
 The `style` prop controls the layout, dimensions, typography, borders, shadows, opacity, and similar container-level appearance of the editable content container. The exact supported properties are listed under [EnrichedInputStyle](ENRICHED_INPUT_STYLE.md).
 
-| Type                                                | Default Value | Platform |
-| --------------------------------------------------- | ------------- | -------- |
-| [EnrichedInputStyle](ENRICHED_INPUT_STYLE.md)       | -             | Both     |
+| Type                                          | Default Value | Platform          |
+| --------------------------------------------- | ------------- | ----------------- |
+| [EnrichedInputStyle](ENRICHED_INPUT_STYLE.md) | -             | iOS, Android, Web |
+
+### `submitBehavior`
+
+Controls what happens when the user presses the return/enter key.
+
+- `'newline'` — inserts a new line (default for multiline inputs).
+- `'submit'` — fires `onSubmitEditing` without inserting a new line.
+- `'blurAndSubmit'` — fires `onSubmitEditing` and blurs the input.
+
+| Type                                       | Default Value | Platform          |
+| ------------------------------------------ | ------------- | ----------------- |
+| `'submit' \| 'blurAndSubmit' \| 'newline'` | `'newline'`   | iOS, Android, Web |
+
+### `textShortcuts`
+
+An array of shortcuts that auto-convert typed patterns into styles. Each entry maps a `trigger` string to a `style`.
+These shortcuts allow users to format text similarly to modern Markdown editors by typing familiar patterns directly in the input.
+
+Item type:
+
+```ts
+interface TextShortcut {
+  trigger: string;
+  style: TextShortcutStyle;
+}
+
+type TextShortcutStyle =
+  | 'bold'
+  | 'italic'
+  | 'underline'
+  | 'strikethrough'
+  | 'inline_code'
+  | 'h1'
+  | 'h2'
+  | 'h3'
+  | 'h4'
+  | 'h5'
+  | 'h6'
+  | 'blockquote'
+  | 'codeblock'
+  | 'unordered_list'
+  | 'ordered_list'
+  | 'checkbox_list';
+```
+
+- `trigger` is the typed pattern that activates the shortcut.
+- `style` is the style to apply when the trigger completes.
+
+**[Paragraph styles](../README.md#paragraph-tags)** fire at the start of a paragraph (e.g. `# ` → H1, `- ` → unordered list). Supported styles: `h1`–`h6`, `blockquote`, `codeblock`, `unordered_list`, `ordered_list`, `checkbox_list`.
+
+> [!NOTE]
+> Paragraph shortcuts are only effective on plain paragraphs. If the paragraph already has an active paragraph style (e.g. it is already a heading or a list item), typing the trigger pattern has no effect.
+
+**[Inline styles](../README.md#inline-tags)** fire when a closing delimiter is typed around text (e.g. `**text**` → bold). The trigger is the delimiter string (e.g. `**`, `*`, `~~`). Supported styles: `bold`, `italic`, `underline`, `strikethrough`, `inline_code`.
+
+> [!NOTE]
+> Style rules still apply to shortcut-triggered styles: if the target style is **blocked** by another currently active style (e.g. bold inside a codeblock), the shortcut has no effect. If the target style **conflicts** with another active style, the conflicting style is removed when the new one is applied. See the [inline](../README.md#inline-tags) and [paragraph](../README.md#paragraph-tags) tag tables for the full conflict and blocking rules.
+
+Default value:
+
+```ts
+[
+  { trigger: '- ', style: 'unordered_list' },
+  { trigger: '1. ', style: 'ordered_list' },
+];
+```
+
+| Type             | Default Value | Platform |
+| ---------------- | ------------- | -------- |
+| `TextShortcut[]` | see above     | Both     |
+
+> [!NOTE]
+> Pass an empty array to disable all shortcuts.
 
 ### `ViewProps`
 
 The input inherits [ViewProps](https://reactnative.dev/docs/view#props), but keep in mind that some of the props may not be supported.
+
+| Platform     |
+| ------------ |
+| iOS, Android |
 
 ### `androidExperimentalSynchronousEvents` - EXPERIMENTAL
 
@@ -491,9 +643,9 @@ If true, Android will use experimental synchronous events. This will prevent fro
 
 If true, external HTML pasted/inserted into the input (e.g. from Google Docs, Word, or web pages) will be normalized into the canonical tag subset that the enriched parser understands. However, this is an experimental feature, which has not been thoroughly tested. We may decide to enable it by default in a future release.
 
-| Type   | Default Value | Platform |
-| ------ | ------------- |----------|
-| `bool` | `false`       | Both     |
+| Type   | Default Value | Platform          |
+| ------ | ------------- | ----------------- |
+| `bool` | `false`       | iOS, Android, Web |
 
 ## Ref Methods
 
@@ -593,7 +745,7 @@ setValue: (value: string) => void;
 
 Sets the input's value.
 
-- `value: string` - value to set, it can either be `react-native-enriched` supported HTML string or raw text.
+- `value: string` - value to set, it can either be `react-native-enriched-html` supported HTML string or raw text.
 
 ### `.setSelection()`
 
@@ -617,7 +769,7 @@ Sets text alignment for the paragraph(s) at the current selection. When inside a
 - `alignment` - the desired text alignment. Use `'auto'` to reset to the system natural alignment.
 
 > [!NOTE]
-> This method is iOS only for now.
+> On Android, `'justify'` is not supported. Calling `setTextAlignment('justify')` does not apply justified text — the paragraph ends up with natural alignment, the same as `'auto'`. On iOS, justified alignment works as expected.
 
 ### `.startMention()`
 
@@ -759,6 +911,28 @@ Converts current selection into an unordered list with checkboxes as items. Each
 User can later toggle each checkbox individually by tapping on it.
 
 - `checked: boolean` - defines whether the checkboxes should be checked or unchecked by default.
+
+## Web Keyboard Shortcuts
+
+The following keyboard shortcuts are available on Web. `Mod` is `⌘` on macOS and `Ctrl` on Windows/Linux.
+
+| Action              | Mac               | Windows / Linux         |
+| ------------------- | ----------------- | ----------------------- |
+| Bold                | ⌘ B               | Ctrl+B                  |
+| Italic              | ⌘ I               | Ctrl+I                  |
+| Underline           | ⌘ U               | Ctrl+U                  |
+| Strikethrough       | ⌘ Shift+X         | Ctrl+Shift+X            |
+| Inline code         | ⌘ Shift+C         | Ctrl+Shift+C            |
+| Code block          | ⌘ Alt Shift+C     | Ctrl+Alt+Shift+C        |
+| Normal paragraph    | ⌘ Alt+0           | Ctrl+Alt+0              |
+| Heading 1–6         | ⌘ Alt+1 … ⌘ Alt+6 | Ctrl+Alt+1 … Ctrl+Alt+6 |
+| Numbered list       | ⌘ Shift+7         | Ctrl+Shift+7            |
+| Bulleted list       | ⌘ Shift+8         | Ctrl+Shift+8            |
+| Checkbox list       | ⌘ Shift+9         | Ctrl+Shift+9            |
+| Paste as plain text | ⌘ Shift+V         | Ctrl+Shift+V            |
+| Undo                | ⌘ Z               | Ctrl+Z                  |
+| Redo                | ⌘ Shift+Z         | Ctrl+Shift+Z            |
+| Select all          | ⌘ A               | Ctrl+A                  |
 
 ## HtmlStyle type
 

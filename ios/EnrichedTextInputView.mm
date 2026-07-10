@@ -9,18 +9,20 @@
 #import "LayoutManagerExtension.h"
 #import "ParagraphAttributesUtils.h"
 #import "RCTFabricComponentsPlugins.h"
+#import "ShortcutsUtils.h"
 #import "StringExtension.h"
 #import "StyleHeaders.h"
 #import "StyleUtils.h"
 #import "TextBlockTapGestureRecognizer.h"
+#import "TextInsertionUtils.h"
 #import "UIView+React.h"
 #import "WordsUtils.h"
 #import "ZeroWidthSpaceUtils.h"
 #import <React/RCTConversions.h>
-#import <ReactNativeEnriched/EnrichedTextInputViewComponentDescriptor.h>
-#import <ReactNativeEnriched/EventEmitters.h>
-#import <ReactNativeEnriched/Props.h>
-#import <ReactNativeEnriched/RCTComponentViewHelpers.h>
+#import <ReactNativeEnrichedHtml/EnrichedTextInputViewComponentDescriptor.h>
+#import <ReactNativeEnrichedHtml/EventEmitters.h>
+#import <ReactNativeEnrichedHtml/Props.h>
+#import <ReactNativeEnrichedHtml/RCTComponentViewHelpers.h>
 #import <folly/dynamic.h>
 #import <react/utils/ManagedObjectWrapper.h>
 
@@ -596,6 +598,11 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
     [textView setScrollEnabled:newViewProps.scrollEnabled];
   }
 
+  if (newViewProps.allowFontScaling != oldViewProps.allowFontScaling) {
+    [newConfig setAllowFontScaling:newViewProps.allowFontScaling];
+    stylePropChanged = YES;
+  }
+
   folly::dynamic oldMentionStyle = oldViewProps.htmlStyle.mention;
   folly::dynamic newMentionStyle = newViewProps.htmlStyle.mention;
   if (oldMentionStyle != newMentionStyle) {
@@ -686,6 +693,41 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
     useHtmlNormalizer = newViewProps.useHtmlNormalizer;
   }
 
+  // textShortcuts
+  bool textShortcutsChanged =
+      newViewProps.textShortcuts.size() != oldViewProps.textShortcuts.size();
+  if (!textShortcutsChanged) {
+    for (size_t i = 0; i < newViewProps.textShortcuts.size(); i++) {
+      const auto &newItem = newViewProps.textShortcuts[i];
+      const auto &oldItem = oldViewProps.textShortcuts[i];
+      if (newItem.trigger != oldItem.trigger ||
+          newItem.style != oldItem.style) {
+        textShortcutsChanged = true;
+        break;
+      }
+    }
+  }
+
+  if (textShortcutsChanged) {
+    NSMutableArray *shortcuts = [NSMutableArray new];
+    for (const auto &item : newViewProps.textShortcuts) {
+      [shortcuts addObject:@{
+        @"trigger" : [NSString fromCppString:item.trigger],
+        @"style" : [NSString fromCppString:item.style],
+      }];
+    }
+    textShortcuts = shortcuts;
+  }
+
+  // linkRegex
+  LinkRegexConfig *oldRegexConfig =
+      [[LinkRegexConfig alloc] initWithLinkRegexProp:oldViewProps.linkRegex];
+  LinkRegexConfig *newRegexConfig =
+      [[LinkRegexConfig alloc] initWithLinkRegexProp:newViewProps.linkRegex];
+  if (![newRegexConfig isEqualToConfig:oldRegexConfig]) {
+    [config setLinkRegexConfig:newRegexConfig];
+  }
+
   // default value - must be set before placeholder to make sure it correctly
   // shows on first mount
   if (newViewProps.defaultValue != oldViewProps.defaultValue) {
@@ -740,15 +782,6 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
       }
     }
     [config setMentionIndicators:newIndicators];
-  }
-
-  // linkRegex
-  LinkRegexConfig *oldRegexConfig =
-      [[LinkRegexConfig alloc] initWithLinkRegexProp:oldViewProps.linkRegex];
-  LinkRegexConfig *newRegexConfig =
-      [[LinkRegexConfig alloc] initWithLinkRegexProp:newViewProps.linkRegex];
-  if (![newRegexConfig isEqualToConfig:oldRegexConfig]) {
-    [config setLinkRegexConfig:newRegexConfig];
   }
 
   // selection color sets both selection and cursor on iOS (just as in RN)
@@ -1632,8 +1665,9 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
 }
 
 - (void)anyTextMayHaveBeenModified {
-  // we don't do no text changes when working with iOS marked text
+  // we don't do text changes when working with iOS marked text
   if (textView.markedTextRange != nullptr) {
+    [self handlePlaceholderVisibility];
     return;
   }
 
@@ -1655,13 +1689,7 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
     [mentionStyleClass manageMentionEditing];
   }
 
-  // placholder management
-  if (!_placeholderLabel.hidden && textView.textStorage.string.length > 0) {
-    [self setPlaceholderLabelShown:NO];
-  } else if (textView.textStorage.string.length == 0 &&
-             _placeholderLabel.hidden) {
-    [self setPlaceholderLabelShown:YES];
-  }
+  [self handlePlaceholderVisibility];
 
   // modified words handling
   NSArray *currentDirtyRanges = [attributesManager getDirtyRanges];
@@ -1692,17 +1720,23 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   }
 
   if (![textView.textStorage.string isEqualToString:_recentInputString]) {
-    _recentInputString = [textView.textStorage.string copy];
-
-    // emit onChangeText event
     auto emitter = [self getEventEmitter];
-    if (emitter != nullptr && _emitTextChange) {
-      // emit string without zero width spaces
-      NSString *stringToBeEmitted = [[textView.textStorage.string
-          stringByReplacingOccurrencesOfString:@"\u200B"
-                                    withString:@""] copy];
+    if (emitter != nullptr) {
+      // set the recent input string only if the emitter is defined
+      // to properly emit the initial onChangeText event
+      // as anyTextMayHaveBeenModified also runs before the emitter's
+      // initialization
+      _recentInputString = [textView.textStorage.string copy];
 
-      emitter->onChangeText({.value = [stringToBeEmitted toCppString]});
+      // emit onChangeText event
+      if (_emitTextChange) {
+        // emit string without zero width spaces
+        NSString *stringToBeEmitted = [[textView.textStorage.string
+            stringByReplacingOccurrencesOfString:@"\u200B"
+                                      withString:@""] copy];
+
+        emitter->onChangeText({.value = [stringToBeEmitted toCppString]});
+      }
     }
   }
   // all the visible (not meta) attributes handling in the ranges that could
@@ -1712,9 +1746,18 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   [self tryUpdatingHeight];
   // update active styles as well
   [self tryUpdatingActiveStyles];
-  [self layoutAttachments];
   // update drawing - schedule debounced relayout
   [self scheduleRelayoutIfNeeded];
+}
+
+- (void)handlePlaceholderVisibility {
+  // placeholder management
+  if (!_placeholderLabel.hidden && textView.textStorage.string.length > 0) {
+    [self setPlaceholderLabelShown:NO];
+  } else if (textView.textStorage.string.length == 0 &&
+             _placeholderLabel.hidden) {
+    [self setPlaceholderLabelShown:YES];
+  }
 }
 
 // Debounced relayout helper - coalesces multiple requests into one per runloop
@@ -1752,6 +1795,9 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
     // measureSize may not be up-to date at that point
     CGSize measuredSize = [self measureSize:self->textView.frame.size.width];
     self->textView.contentSize = measuredSize;
+
+    // Re-position attachment image views after the forced full re-layout
+    [self layoutAttachments];
   });
 }
 
@@ -1904,8 +1950,6 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
 
   [self handleKeyPressInRange:text range:range];
 
-  UnorderedListStyle *uStyle = stylesDict[@([UnorderedListStyle getType])];
-  OrderedListStyle *oStyle = stylesDict[@([OrderedListStyle getType])];
   CheckboxListStyle *cbLStyle =
       (CheckboxListStyle *)stylesDict[@([CheckboxListStyle getType])];
   H1Style *h1Style = stylesDict[@([H1Style getType])];
@@ -1924,8 +1968,6 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
       [ZeroWidthSpaceUtils handleBackspaceInRange:range
                                   replacementText:text
                                              host:self] ||
-      [uStyle tryHandlingListShorcutInRange:range replacementText:text] ||
-      [oStyle tryHandlingListShorcutInRange:range replacementText:text] ||
       [cbLStyle handleNewlinesInRange:range replacementText:text] ||
       [h1Style handleNewlinesInRange:range replacementText:text] ||
       [h2Style handleNewlinesInRange:range replacementText:text] ||
@@ -1939,7 +1981,14 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
       [ParagraphAttributesUtils handleResetTypingAttributesOnBackspace:range
                                                        replacementText:text
                                                                  input:self]
-
+      // Check configurable text shortcuts (block: "# " → h1, inline: `code` →
+      // inline_code)
+      || [ShortcutsUtils tryHandlingParagraphShortcutsInRange:range
+                                              replacementText:text
+                                                        input:self] ||
+      [ShortcutsUtils tryHandlingInlineShortcutsInRange:range
+                                        replacementText:text
+                                                  input:self]
       //       CRITICAL: This callback HAS TO be always evaluated last.
       //
       //       This function is the "Generic Fallback": if no specific style
@@ -1998,30 +2047,35 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
 - (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection {
   [super traitCollectionDidChange:previousTraitCollection];
 
-  if (previousTraitCollection.preferredContentSizeCategory !=
-      self.traitCollection.preferredContentSizeCategory) {
-    [config invalidateFonts];
-
-    NSMutableDictionary *newTypingAttrs = [defaultTypingAttributes mutableCopy];
-    newTypingAttrs[NSFontAttributeName] = [config primaryFont];
-
-    defaultTypingAttributes = newTypingAttrs;
-    textView.typingAttributes = defaultTypingAttributes;
-
-    [self refreshPlaceholderLabelStyles];
-
-    NSRange prevSelectedRange = textView.selectedRange;
-
-    NSString *currentHtml = [HtmlParser
-        parseToHtmlFromRange:NSMakeRange(0, textView.textStorage.string.length)
-                        host:self];
-    NSString *initiallyProcessedHtml =
-        [parser initiallyProcessHtml:currentHtml];
-    [parser replaceWholeFromHtml:initiallyProcessedHtml];
-
-    textView.selectedRange = prevSelectedRange;
-    [self anyTextMayHaveBeenModified];
+  if (!config.allowFontScaling) {
+    return;
   }
+
+  if (previousTraitCollection.preferredContentSizeCategory ==
+      self.traitCollection.preferredContentSizeCategory) {
+    return;
+  }
+
+  [config invalidateFonts];
+
+  NSMutableDictionary *newTypingAttrs = [defaultTypingAttributes mutableCopy];
+  newTypingAttrs[NSFontAttributeName] = [config primaryFont];
+
+  defaultTypingAttributes = newTypingAttrs;
+  textView.typingAttributes = defaultTypingAttributes;
+
+  [self refreshPlaceholderLabelStyles];
+
+  NSRange prevSelectedRange = textView.selectedRange;
+
+  NSString *currentHtml = [HtmlParser
+      parseToHtmlFromRange:NSMakeRange(0, textView.textStorage.string.length)
+                      host:self];
+  NSString *initiallyProcessedHtml = [parser initiallyProcessHtml:currentHtml];
+  [parser replaceWholeFromHtml:initiallyProcessedHtml];
+
+  textView.selectedRange = prevSelectedRange;
+  [self anyTextMayHaveBeenModified];
 }
 
 - (void)onTextBlockTap:(TextBlockTapGestureRecognizer *)gr {

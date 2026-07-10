@@ -4,6 +4,8 @@
 #import "MentionParams.h"
 #import "StyleBase.h"
 
+@class EnrichedConfig;
+
 @interface BoldStyle : StyleBase
 @end
 
@@ -28,6 +30,8 @@
 - (void)handleAutomaticLinks:(NSString *)word inRange:(NSRange)wordRange;
 - (void)handleManualLinks:(NSString *)word inRange:(NSRange)wordRange;
 - (void)applyLinkMetaWithData:(LinkData *)linkData range:(NSRange)range;
++ (BOOL)matchesLinkRegexWithConfig:(NSString *)url
+                            config:(EnrichedConfig *)config;
 @end
 
 @interface MentionStyle : StyleBase
@@ -69,13 +73,9 @@
 @end
 
 @interface UnorderedListStyle : StyleBase
-- (BOOL)tryHandlingListShorcutInRange:(NSRange)range
-                      replacementText:(NSString *)text;
 @end
 
 @interface OrderedListStyle : StyleBase
-- (BOOL)tryHandlingListShorcutInRange:(NSRange)range
-                      replacementText:(NSString *)text;
 @end
 
 @interface CheckboxListStyle : StyleBase

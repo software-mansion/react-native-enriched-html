@@ -5,7 +5,7 @@ import {
   type EnrichedTextInputInstance,
   type HtmlStyle,
   type OnChangeStateEvent,
-} from 'react-native-enriched';
+} from 'react-native-enriched-html';
 import { Toolbar } from '../components/Toolbar';
 import { WEB_DEFAULT_HTML_STYLE } from '../defaultHtmlStyle';
 

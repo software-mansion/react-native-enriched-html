@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import { enrichedInputThemingToCSSProperties } from '../enrichedInputThemingToCSSProperties';
+import { enrichedInputThemingToCSSProperties } from '../enrichedThemingToCSSProperties';
 
 describe('enrichedInputThemingToCSSProperties', () => {
   it('returns an empty object when no colors are passed', () => {
@@ -15,8 +15,18 @@ describe('enrichedInputThemingToCSSProperties', () => {
       })
     ).toEqual({
       'caretColor': '#111',
-      '--eti-placeholder-text-color': '#222',
-      '--eti-selection-color': '#333',
+      '--et-placeholder-text-color': '#222',
+      '--et-selection-color': '#333',
+    } as CSSProperties);
+  });
+
+  it('maps only one prop if other are not provided', () => {
+    expect(
+      enrichedInputThemingToCSSProperties({
+        selectionColor: '#333',
+      })
+    ).toEqual({
+      '--et-selection-color': '#333',
     } as CSSProperties);
   });
 });

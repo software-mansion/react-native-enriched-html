@@ -1,11 +1,12 @@
 import {
+  useCallback,
   useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
   type CSSProperties,
 } from 'react';
-import './EnrichedTextInput.css';
+import './EnrichedText.css';
 import type { Node } from '@tiptap/pm/model';
 import type {
   EnrichedTextInputInstance,
@@ -32,13 +33,14 @@ import { useOnChangeHtml } from './useOnChangeHtml';
 import { useOnChangeText } from './useOnChangeText';
 import { useOnChangeState } from './useOnChangeState';
 import { useOnLinkDetected } from './useOnLinkDetected';
+import type { LinkEmitterState } from './emitLinkDetected';
 import {
   prepareHtmlForTiptap,
   normalizeHtmlFromTiptap,
-} from './tiptapHtmlNormalizer';
+} from './normalization/tiptapHtmlNormalizer';
 import { ENRICHED_TEXT_INPUT_DEFAULT_PROPS } from '../utils/EnrichedTextInputDefaultProps';
 import { enrichedInputStyleToCSSProperties } from './styleConversion/enrichedInputStyleToCSSProperties';
-import { enrichedInputThemingToCSSProperties } from './styleConversion/enrichedInputThemingToCSSProperties';
+import { enrichedInputThemingToCSSProperties } from './styleConversion/enrichedThemingToCSSProperties';
 import { buildMentionRulesCSS } from './styleConversion/buildMentionRulesCSS';
 import {
   htmlStyleToCSSVariables,
@@ -60,19 +62,24 @@ import { EnrichedUnorderedList } from './formats/EnrichedUnorderedList';
 import { EnrichedOrderedList } from './formats/EnrichedOrderedList';
 import { EnrichedCheckboxItem } from './formats/EnrichedCheckboxItem';
 import { EnrichedCheckboxList } from './formats/EnrichedCheckboxList';
+import { EnrichedTextAlign } from './formats/EnrichedTextAlign';
 import { StripBoldInStyledHeadingsPlugin } from './pmPlugins/StripBoldInStyledHeadingsPlugin';
 import { StrictMarksPlugin } from './pmPlugins/StrictMarksPlugin';
 import { MergeAdjacentSameKindBlocksPlugin } from './pmPlugins/MergeAdjacentSameKindBlocksPlugin';
 import { StripMarksInCodeBlockPlugin } from './pmPlugins/StripMarksInCodeBlockPlugin';
+import { handleClipboardPasteImages } from './pasteImages';
 import {
   MentionPlugin,
   setMention,
   startMention,
-  subscribeMentionEvents,
+  useMentionEvents,
 } from './pmPlugins/MentionPlugin';
 import { StripMarksOnImagePlugin } from './pmPlugins/StripMarksOnImagePlugin';
 import { ShortcutPlugin } from './pmPlugins/ShortcutPlugin';
 import { returnKeyTypeToEnterKeyHint } from './returnKeyTypeToEnterKeyHint';
+import { ENRICHED_TEXT_INPUT_CLASSNAME } from './constants/classNames';
+import { AutolinkPlugin } from './pmPlugins/AutolinkPlugin';
+import { useStableRef } from './useStableRef';
 
 function runFocused(
   editor: Editor,
@@ -105,59 +112,44 @@ export const EnrichedTextInput = ({
   onSubmitEditing,
   returnKeyType,
   submitBehavior,
+  onPasteImages,
   onMentionDetected,
   onStartMention,
   onChangeMention,
   onEndMention,
+  linkRegex,
   htmlStyle,
+  useHtmlNormalizer,
 }: EnrichedTextInputProps) => {
   const tiptapContent =
-    defaultValue != null ? prepareHtmlForTiptap(defaultValue) : defaultValue;
+    defaultValue != null
+      ? prepareHtmlForTiptap(defaultValue, useHtmlNormalizer)
+      : defaultValue;
 
   const resolvedHtmlStyle = useMemo(
     () => mergeWithDefaultHtmlStyle(htmlStyle),
     [htmlStyle]
   );
-
-  const htmlStyleRef = useRef(resolvedHtmlStyle);
-  useEffect(() => {
-    htmlStyleRef.current = resolvedHtmlStyle;
-  }, [resolvedHtmlStyle]);
-
-  const mentionIndicatorsRef = useRef(mentionIndicators);
-  useEffect(() => {
-    mentionIndicatorsRef.current = mentionIndicators;
-  }, [mentionIndicators]);
-
-  const mentionCallbacksRef = useRef({
-    onStartMention,
-    onChangeMention,
-    onEndMention,
-    onMentionDetected,
-  });
-  useEffect(() => {
-    mentionCallbacksRef.current = {
+  const mentionCallbacks = useMemo(
+    () => ({
       onStartMention,
       onChangeMention,
       onEndMention,
       onMentionDetected,
-    };
-  }, [onStartMention, onChangeMention, onEndMention, onMentionDetected]);
+    }),
+    [onStartMention, onChangeMention, onEndMention, onMentionDetected]
+  );
 
-  const submitBehaviorRef = useRef(submitBehavior);
-  const onSubmitEditingRef = useRef(onSubmitEditing);
-  const onKeyPressRef = useRef(onKeyPress);
+  const htmlStyleRef = useStableRef(resolvedHtmlStyle);
+  const onPasteImagesRef = useStableRef(onPasteImages);
+  const mentionIndicatorsRef = useStableRef(mentionIndicators);
+  const submitBehaviorRef = useStableRef(submitBehavior);
+  const onSubmitEditingRef = useStableRef(onSubmitEditing);
+  const onKeyPressRef = useStableRef(onKeyPress);
+  const useHtmlNormalizerRef = useStableRef(useHtmlNormalizer);
+  const mentionCallbacksRef = useStableRef(mentionCallbacks);
+
   const editorInstanceRef = useRef<Editor | null>(null);
-
-  useEffect(() => {
-    submitBehaviorRef.current = submitBehavior;
-  }, [submitBehavior]);
-  useEffect(() => {
-    onSubmitEditingRef.current = onSubmitEditing;
-  }, [onSubmitEditing]);
-  useEffect(() => {
-    onKeyPressRef.current = onKeyPress;
-  }, [onKeyPress]);
 
   const handleKeyDown = (doc: Node, event: KeyboardEvent): boolean => {
     onKeyPressRef.current?.(adaptWebToNativeEvent(event, { key: event.key }));
@@ -179,6 +171,16 @@ export const EnrichedTextInput = ({
     return false;
   };
 
+  const linkEmitterRef = useRef<LinkEmitterState>({
+    linkRegex,
+    onLinkDetected,
+    lastEmitted: null,
+  });
+  useEffect(() => {
+    linkEmitterRef.current.linkRegex = linkRegex;
+    linkEmitterRef.current.onLinkDetected = onLinkDetected;
+  }, [linkRegex, onLinkDetected]);
+
   const extensions = useMemo(
     () => [
       Document,
@@ -190,7 +192,9 @@ export const EnrichedTextInput = ({
       EnrichedUnderline,
       EnrichedStrike,
       EnrichedCode,
-      EnrichedLink,
+      EnrichedLink.configure({
+        getLinkRegex: () => linkEmitterRef.current.linkRegex,
+      }),
       EnrichedImage,
       EnrichedMention,
       EnrichedHeading,
@@ -201,6 +205,7 @@ export const EnrichedTextInput = ({
       EnrichedUnorderedList,
       EnrichedOrderedList,
       EnrichedCheckboxList,
+      EnrichedTextAlign,
       StripMarksInCodeBlockPlugin,
       StripMarksOnImagePlugin,
       StripBoldInStyledHeadingsPlugin.configure({
@@ -214,12 +219,15 @@ export const EnrichedTextInput = ({
       ShortcutPlugin.configure({
         getHtmlStyle: () => htmlStyleRef.current,
       }),
+      AutolinkPlugin.configure({
+        getLinkEmitter: () => linkEmitterRef.current,
+      }),
       Placeholder.configure({
         placeholder,
         showOnlyWhenEditable: true,
       }),
     ],
-    [placeholder]
+    [placeholder, htmlStyleRef, mentionIndicatorsRef]
   );
 
   const editor = useEditor(
@@ -248,9 +256,18 @@ export const EnrichedTextInput = ({
       },
       editorProps: {
         handleKeyDown: (view, event) => handleKeyDown(view.state.doc, event),
+        handlePaste: (_view, event) =>
+          handleClipboardPasteImages(
+            event,
+            () => editorInstanceRef.current,
+            () => onPasteImagesRef.current
+          ),
         attributes: {
           autoCapitalize,
           enterkeyhint: returnKeyTypeToEnterKeyHint(returnKeyType),
+        },
+        transformPastedHTML: (html) => {
+          return prepareHtmlForTiptap(html, useHtmlNormalizerRef.current);
         },
       },
     },
@@ -279,15 +296,16 @@ export const EnrichedTextInput = ({
     editor?.commands.normalizeBoldInStyledHeadings();
   }, [editor, resolvedHtmlStyle]);
 
-  useEffect(() => {
-    if (!editor) return;
-    return subscribeMentionEvents(editor, () => mentionCallbacksRef.current);
-  }, [editor]);
+  const getMentionCallbacks = useCallback(
+    () => mentionCallbacksRef.current,
+    [mentionCallbacksRef]
+  );
 
+  useMentionEvents(editor, getMentionCallbacks);
   useOnChangeHtml(editor, onChangeHtml);
   useOnChangeText(editor, onChangeText);
   useOnChangeState(editor, resolvedHtmlStyle, onChangeState);
-  useOnLinkDetected(editor, onLinkDetected);
+  useOnLinkDetected(editor, linkEmitterRef);
 
   useImperativeHandle(
     ref,
@@ -295,7 +313,9 @@ export const EnrichedTextInput = ({
       focus: () => editor.commands.focus(),
       blur: () => editor.commands.blur(),
       setValue: (value: string) =>
-        editor.commands.setContent(prepareHtmlForTiptap(value)),
+        editor.commands.setContent(
+          prepareHtmlForTiptap(value, useHtmlNormalizerRef.current)
+        ),
       setSelection: (start, end) => {
         const doc = editor.state.doc;
         runFocused(editor, (c) =>
@@ -342,9 +362,15 @@ export const EnrichedTextInput = ({
       measureInWindow: () => {},
       measureLayout: () => {},
       setNativeProps: () => {},
-      setTextAlignment: () => {},
+      setTextAlignment: (alignment) => {
+        if (alignment === 'auto') {
+          runFocused(editor, (c) => c.unsetTextAlign());
+        } else {
+          runFocused(editor, (c) => c.setTextAlign(alignment));
+        }
+      },
     }),
-    [editor]
+    [editor, mentionIndicatorsRef, useHtmlNormalizerRef]
   );
 
   const editorStyle: CSSProperties = useMemo(
@@ -382,7 +408,7 @@ export const EnrichedTextInput = ({
       {mentionRulesCSS ? <style>{mentionRulesCSS}</style> : null}
       <EditorContent
         editor={editor}
-        className="eti-editor"
+        className={ENRICHED_TEXT_INPUT_CLASSNAME}
         style={finalStyle}
         data-placeholder={placeholder}
       />

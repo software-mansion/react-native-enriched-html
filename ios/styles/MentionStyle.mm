@@ -13,6 +13,8 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
   NSValue *_activeMentionRange;
   NSString *_activeMentionIndicator;
   BOOL _blockMentionEditing;
+  NSString *_lastEmittedMentionIndicator;
+  NSString *_lastEmittedMentionText;
 }
 
 + (StyleType)getType {
@@ -54,7 +56,7 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
     NSUnderlineColorAttributeName : styleProps.color,
     NSStrikethroughColorAttributeName : styleProps.color,
     NSBackgroundColorAttributeName :
-        [styleProps.backgroundColor colorWithAlphaIfNotTransparent:0.4],
+        [styleProps.backgroundColor colorWithResolvedAlpha],
   } mutableCopy];
 
   if (styleProps.decorationLine == DecorationUnderline) {
@@ -156,14 +158,37 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
   params.indicator = indicator;
   params.attributes = attributes;
 
-  // add a single space after the mention
-  NSString *newText = [NSString stringWithFormat:@"%@ ", text];
   NSRange rangeToBeReplaced = [_activeMentionRange rangeValue];
+
+  // add a single space after the mention if there isn't one already
+  BOOL hasSpaceAfter = NO;
+  NSUInteger nextCharIndex =
+      rangeToBeReplaced.location + rangeToBeReplaced.length;
+
+  if (nextCharIndex < self.host.textView.textStorage.string.length) {
+    unichar nextChar =
+        [self.host.textView.textStorage.string characterAtIndex:nextCharIndex];
+    if ([[NSCharacterSet whitespaceCharacterSet] characterIsMember:nextChar]) {
+      hasSpaceAfter = YES;
+    }
+  }
+
+  NSString *newText =
+      hasSpaceAfter ? text : [NSString stringWithFormat:@"%@ ", text];
+
   [TextInsertionUtils replaceText:newText
                                at:rangeToBeReplaced
              additionalAttributes:nullptr
                              host:self.host
                     withSelection:YES];
+
+  // we always want the cursor to end up after the trailing space, so when we
+  // reused an existing space (and didn't insert our own) move it one to the
+  // right
+  if (hasSpaceAfter) {
+    NSRange selection = self.host.textView.selectedRange;
+    self.host.textView.selectedRange = NSMakeRange(selection.location + 1, 0);
+  }
 
   // THEN, add the attributes to not apply them on the space
   NSRange mentionRange = NSMakeRange(rangeToBeReplaced.location, text.length);
@@ -522,9 +547,24 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
       [NSString stringWithFormat:@"%C", [text characterAtIndex:0]];
   NSString *textString =
       [text substringWithRange:NSMakeRange(1, text.length - 1)];
+
+  BOOL startMention = NO;
+
+  // switching directly to an active mention
+  if (![_activeMentionIndicator isEqualToString:indicatorString]) {
+    startMention = YES;
+    [self removeActiveMentionRange];
+  }
+
+  // explicit startMention event before changeMention event
+  if (startMention && textString.length > 0) {
+    [self emitOnMentionEvent:indicatorString text:@""];
+  }
+
+  [self emitOnMentionEvent:indicatorString text:textString];
+
   _activeMentionIndicator = indicatorString;
   _activeMentionRange = [NSValue valueWithRange:range];
-  [self.host emitOnMentionEvent:indicatorString text:textString];
 }
 
 // removes stored mention range + indicator, which means that we no longer edit
@@ -534,7 +574,18 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
     NSString *indicatorCopy = [_activeMentionIndicator copy];
     _activeMentionIndicator = nullptr;
     _activeMentionRange = nullptr;
-    [self.host emitOnMentionEvent:indicatorCopy text:nullptr];
+    [self emitOnMentionEvent:indicatorCopy text:nullptr];
+  }
+}
+
+- (void)emitOnMentionEvent:(NSString *)indicator text:(NSString *)text {
+  BOOL sameText = (_lastEmittedMentionText == nullptr && text == nullptr) ||
+                  [_lastEmittedMentionText isEqualToString:text];
+
+  if (![_lastEmittedMentionIndicator isEqualToString:indicator] || !sameText) {
+    [self.host emitOnMentionEvent:indicator text:text];
+    _lastEmittedMentionIndicator = indicator;
+    _lastEmittedMentionText = text;
   }
 }
 

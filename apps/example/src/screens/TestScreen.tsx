@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
-import { EnrichedTextInput } from 'react-native-enriched';
+import { EnrichedTextInput } from 'react-native-enriched-html';
 import { Button } from '../components/Button';
 import { Toolbar } from '../components/Toolbar';
 import { LinkModal } from '../components/LinkModal';
@@ -27,10 +27,11 @@ export function TestScreen({
   const [sizeMode, setSizeMode] = useState<'base' | 'max'>('base');
 
   return (
-    <>
+    <View style={styles.container}>
       <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.content}
+        style={styles.scrollContainer}
+        contentContainerStyle={styles.scrollContent}
+        testID="full-screen"
       >
         <View style={styles.buttonStack}>
           <Button
@@ -165,7 +166,7 @@ export function TestScreen({
         isOpen={editor.isChannelPopupOpen}
         onItemPress={editor.handleChannelMentionSelected}
       />
-    </>
+    </View>
   );
 }
 
@@ -173,11 +174,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'white',
+    paddingTop: 100,
   },
-  content: {
+  scrollContainer: {
+    flex: 1,
+  },
+  scrollContent: {
     flexGrow: 1,
     padding: 16,
-    paddingTop: 100,
     alignItems: 'center',
   },
   editor: {
