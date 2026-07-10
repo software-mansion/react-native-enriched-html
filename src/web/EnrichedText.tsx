@@ -14,9 +14,16 @@ import { prepareHtmlForWeb } from './normalization/prepareHtmlForWeb';
 import { INLINE_IMAGE_CSS_VARIABLES } from './styleConversion/inlineImageCSSVariables';
 import { useImageErrorFallback } from './useImageErrorFallback';
 import { usePressInteractions } from './usePressInteractions';
+import { useStableRef } from './useStableRef';
 
 export const EnrichedText = memo(
-  ({ children, htmlStyle, style, selectionColor }: EnrichedTextProps) => {
+  ({
+    children,
+    htmlStyle,
+    style,
+    selectionColor,
+    onImagePress,
+  }: EnrichedTextProps) => {
     const containerRef = useRef<HTMLDivElement>(null);
 
     const sanitizedHtml = useMemo(() => sanitizeHtml(children), [children]);
@@ -64,7 +71,9 @@ export const EnrichedText = memo(
       [textStyle, themingStyle, cssVars]
     );
 
-    usePressInteractions(containerRef);
+    const onImagePressRef = useStableRef(onImagePress);
+
+    usePressInteractions(containerRef, onImagePressRef);
     useImageErrorFallback(containerRef);
 
     return (

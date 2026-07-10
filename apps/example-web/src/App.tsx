@@ -15,6 +15,7 @@ import {
   type OnChangeMentionEvent,
   type OnMentionDetected,
   EnrichedText,
+  type OnImagePressEvent,
 } from 'react-native-enriched-html';
 import { WEB_DEFAULT_HTML_STYLE } from './defaultHtmlStyle';
 import type { NativeSyntheticEvent, TextStyle } from 'react-native';
@@ -171,6 +172,10 @@ function App() {
   ) => {
     console.log('[EnrichedTextInput] onChangeSelection event', e.nativeEvent);
     setSelection(e.nativeEvent);
+  };
+
+  const handleImagePress = (e: OnImagePressEvent) => {
+    console.log('[EnrichedText] image press event', e);
   };
 
   const openLinkModal = () => {
@@ -337,6 +342,7 @@ function App() {
         <EnrichedText
           style={enrichedTextStyle}
           htmlStyle={WEB_DEFAULT_HTML_STYLE}
+          onImagePress={handleImagePress}
         >
           {enrichedTextValue}
         </EnrichedText>
