@@ -8,6 +8,7 @@ const INITIAL_VALUE = '<html><p></p></html>';
 export function TestEnrichedText() {
   const [htmlInput, setHtmlInput] = useState(INITIAL_VALUE);
   const [value, setValue] = useState(INITIAL_VALUE);
+  const [isWide, setIsWide] = useState(false);
 
   return (
     <div data-testid="test-enriched-text-root">
@@ -16,12 +17,22 @@ export function TestEnrichedText() {
         style={enrichedTextContainerStyle}
       >
         <EnrichedText
-          style={enrichedTextStyle}
+          style={isWide ? enrichedTextWideStyle : enrichedTextStyle}
           htmlStyle={WEB_DEFAULT_HTML_STYLE}
         >
           {value}
         </EnrichedText>
       </div>
+
+      <button
+        type="button"
+        data-testid="test-enriched-text-toggle-width-button"
+        onClick={() => {
+          setIsWide((prev) => !prev);
+        }}
+      >
+        Toggle width
+      </button>
 
       <textarea
         data-testid="test-enriched-text-html-input"
@@ -53,6 +64,12 @@ const enrichedTextStyle: TextStyle = {
   paddingHorizontal: 8,
   backgroundColor: 'gainsboro',
   fontSize: 16,
+};
+
+const enrichedTextWideStyle: TextStyle = {
+  ...enrichedTextStyle,
+  minWidth: 360,
+  maxWidth: 720,
 };
 
 const enrichedTextContainerStyle = {
