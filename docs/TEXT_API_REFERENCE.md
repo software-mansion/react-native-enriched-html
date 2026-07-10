@@ -128,9 +128,9 @@ interface OnImagePressEvent {
 }
 ```
 
-| Type                                 | Default Value | Platform     |
-| ------------------------------------ | ------------- | ------------ |
-| `(event: OnImagePressEvent) => void` | -             | iOS, Android |
+| Type                                 | Default Value | Platform          |
+| ------------------------------------ | ------------- | ----------------- |
+| `(event: OnImagePressEvent) => void` | -             | iOS, Android, Web |
 
 > [!NOTE]
 > No visual feedback is applied on press.

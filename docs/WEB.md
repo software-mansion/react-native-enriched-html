@@ -39,6 +39,7 @@ See [Web Keyboard Shortcuts](./INPUT_API_REFERENCE.md#web-keyboard-shortcuts) fo
 ### What works
 
 - Customizing the styling using props: `style`, `htmlStyle`, `selectionColor`.
+- `onImagePress` callback
 
 ### Unsupported
 
