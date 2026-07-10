@@ -1,5 +1,8 @@
 import { useState, type ChangeEvent } from 'react';
-import { EnrichedText } from 'react-native-enriched-html';
+import {
+  EnrichedText,
+  type OnImagePressEvent,
+} from 'react-native-enriched-html';
 import type { TextStyle } from 'react-native';
 import { WEB_DEFAULT_HTML_STYLE } from '../defaultHtmlStyle';
 
@@ -8,6 +11,8 @@ const INITIAL_VALUE = '<html><p></p></html>';
 export function TestEnrichedText() {
   const [htmlInput, setHtmlInput] = useState(INITIAL_VALUE);
   const [value, setValue] = useState(INITIAL_VALUE);
+  const [lastImagePress, setLastImagePress] =
+    useState<OnImagePressEvent | null>(null);
 
   return (
     <div data-testid="test-enriched-text-root">
@@ -18,6 +23,7 @@ export function TestEnrichedText() {
         <EnrichedText
           style={enrichedTextStyle}
           htmlStyle={WEB_DEFAULT_HTML_STYLE}
+          onImagePress={setLastImagePress}
         >
           {value}
         </EnrichedText>
@@ -42,6 +48,10 @@ export function TestEnrichedText() {
       </button>
 
       <pre data-testid="test-enriched-text-value-output">{value}</pre>
+
+      <pre data-testid="test-enriched-text-image-press-output">
+        {JSON.stringify(lastImagePress)}
+      </pre>
     </div>
   );
 }
