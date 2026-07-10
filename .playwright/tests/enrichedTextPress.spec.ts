@@ -160,11 +160,11 @@ test.describe('EnrichedText press inside lists', () => {
       open: '<ol>',
       close: '</ol>',
     },
-    // {
-    //   name: 'checkbox list',
-    //   open: '<ul data-type="checkbox">',
-    //   close: '</ul>',
-    // },
+    {
+      name: 'checkbox list',
+      open: '<ul data-type="checkbox">',
+      close: '</ul>',
+    },
   ];
 
   for (const c of listCases) {

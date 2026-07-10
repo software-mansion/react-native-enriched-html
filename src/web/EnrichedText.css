@@ -271,7 +271,6 @@
 .et-view ul[data-type="checkbox"] > li {
   position: relative;
   list-style: none;
-  pointer-events: none;
   min-height: max(1lh, var(--et-checkbox-box-size, 24px));
 }
 
@@ -284,6 +283,7 @@
   height: var(--et-checkbox-box-size, 24px);
   margin: 0 var(--et-checkbox-gap-width, 16px) 0 0;
   flex-shrink: 0;
+  pointer-events: none;
   accent-color: var(--et-checkbox-box-color, #0000ff);
 }
 
@@ -293,7 +293,6 @@
   gap: 0;
   margin: 0;
   padding: 0;
-  user-select: none;
 }
 
 .et-view img {
