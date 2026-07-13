@@ -22,12 +22,16 @@ export function usePressInteractions(
     const handleInteraction = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
 
-      const image = target.closest('img');
+      const anchor = target.closest('a');
+      if (anchor && container.contains(anchor)) {
+        e.preventDefault();
+      }
 
+      const image = target.closest('img');
       if (image && container.contains(image)) {
         e.preventDefault();
 
-        const imageAttributes = parseImageAttributs(image);
+        const imageAttributes = parseImageAttributes(image);
 
         if (imageAttributes) {
           onImagePressRef.current?.({
@@ -42,7 +46,7 @@ export function usePressInteractions(
   }, [containerRef, onImagePressRef]);
 }
 
-function parseImageAttributs(image: HTMLElement): ImageAttributes | undefined {
+function parseImageAttributes(image: HTMLElement): ImageAttributes | undefined {
   const uri = image.getAttribute('src');
   const rawWidth = image.getAttribute('width');
   const rawHeight = image.getAttribute('height');
