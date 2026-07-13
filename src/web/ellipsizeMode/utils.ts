@@ -116,6 +116,29 @@ export function getBlockParent(
   return sandbox;
 }
 
+// Tags that can host the ellipsis when we descend into an empty list item -
+// block tags plus <label>, the content wrapper of checkbox list items.
+const ELLIPSIS_HOST_TAGS = new Set([...BLOCK_TAGS, 'LABEL']);
+
+// Descends from an empty block element into its empty content child and returns
+// the innermost one. We use it to correctly append the ellipsis into an empty node.
+// If we have a eg. <li><p></p></li>, we need to descent into the <p> tag and
+// append the ellipsis there
+export function innermostEmptyBlock(el: Element): Element {
+  let current = el;
+  while (true) {
+    const child = Array.from(current.children).find(
+      (c) =>
+        ELLIPSIS_HOST_TAGS.has(c.nodeName) &&
+        !c.textContent?.trim() &&
+        !c.querySelector('img, br')
+    );
+    if (!child) break;
+    current = child;
+  }
+  return current;
+}
+
 // Removes a node and then prunes any now-empty ancestor blocks up to the
 // sandbox.
 export function removeAndCleanUp(nd: Node, sandbox: HTMLElement) {
@@ -410,8 +433,9 @@ export function eatBackwardUntilFits(
         isOverflowing = false;
       }
     } else {
-      // empty block (e.g. <li></li>) - append the ellipsis inside it
-      lastNode.appendChild(ellipsisNode);
+      // empty block (e.g. <li></li>) - append the ellipsis into its innermost
+      // empty content wrapper, so it joins the content flow
+      innermostEmptyBlock(lastNode as Element).appendChild(ellipsisNode);
       if (overflows(contentsBottom(ellipsisNode))) {
         lastNode.parentNode?.removeChild(lastNode);
       } else {

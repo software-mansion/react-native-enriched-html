@@ -4,6 +4,7 @@ import {
   eatForwardUntilFits,
   fitsWithin,
   getBlockParent,
+  innermostEmptyBlock,
   markLastListOrdinal,
   removeAndCleanUp,
   restoreLastListOrdinal,
@@ -138,7 +139,7 @@ export function headEllipsize(
         targetNode.nodeType === Node.ELEMENT_NODE &&
         BLOCK_TAGS.has(targetNode.nodeName)
       ) {
-        targetNode.appendChild(ellipsisNode);
+        innermostEmptyBlock(targetNode as Element).appendChild(ellipsisNode);
       } else {
         const prevWalker = document.createTreeWalker(
           sandbox,
