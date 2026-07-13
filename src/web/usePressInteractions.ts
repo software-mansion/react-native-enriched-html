@@ -31,7 +31,7 @@ export function usePressInteractions(
       if (image && container.contains(image)) {
         e.preventDefault();
 
-        const imageAttributes = parseImageAttributes(image);
+        const imageAttributes = getImageAttributes(image);
 
         if (imageAttributes) {
           onImagePressRef.current?.({
@@ -46,23 +46,41 @@ export function usePressInteractions(
   }, [containerRef, onImagePressRef]);
 }
 
-function parseImageAttributes(image: HTMLElement): ImageAttributes | undefined {
+function getImageAttributes(
+  image: HTMLImageElement
+): ImageAttributes | undefined {
   const uri = image.getAttribute('src');
+
+  if (!uri) {
+    return undefined;
+  }
+
+  const { width, height } = getImageDimensions(image);
+
+  return {
+    uri,
+    width,
+    height,
+  };
+}
+
+function getImageDimensions(image: HTMLImageElement): {
+  width: number;
+  height: number;
+} {
   const rawWidth = image.getAttribute('width');
   const rawHeight = image.getAttribute('height');
 
-  if (uri && rawWidth && rawHeight) {
+  if (rawWidth && rawHeight) {
     const width = parseInt(rawWidth, 10);
     const height = parseInt(rawHeight, 10);
 
     if (!isNaN(width) && !isNaN(height)) {
-      return {
-        uri,
-        width,
-        height,
-      };
+      return { width, height };
     }
   }
 
-  return undefined;
+  const rect = image.getBoundingClientRect();
+
+  return { width: rect.width, height: rect.height };
 }
