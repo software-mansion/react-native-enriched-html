@@ -93,4 +93,4 @@ nitrogen/
 .maestro/**/*_diff.png
 
 # Claude skills
-.claude/skills
+.claude/skills/internal
