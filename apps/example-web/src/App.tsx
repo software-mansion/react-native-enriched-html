@@ -17,8 +17,9 @@ import {
   EnrichedText,
 } from 'react-native-enriched-html';
 import { WEB_DEFAULT_HTML_STYLE } from './defaultHtmlStyle';
-import type { NativeSyntheticEvent, TextStyle } from 'react-native';
+import type { NativeSyntheticEvent, TextProps, TextStyle } from 'react-native';
 import { EditorActions } from './components/EditorActions';
+import { EnrichedTextActions } from './components/EnrichedTextActions';
 import { SetValueModal } from './components/SetValueModal';
 import { ImageModal } from './components/ImageModal';
 import { LinkModal } from './components/LinkModal';
@@ -57,6 +58,9 @@ function App() {
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
 
   const [enrichedTextValue, setEnrichedTextValue] = useState('');
+  const [ellipsizeMode, setEllipsizeMode] =
+    useState<TextProps['ellipsizeMode']>('tail');
+  const [numberOfLines, setNumberOfLines] = useState(2);
 
   const isLinkActive = !!editorState?.link.isActive;
   const hasLinkUrl = currentLink.url.length > 0;
@@ -338,11 +342,17 @@ function App() {
         <EnrichedText
           style={enrichedTextStyle}
           htmlStyle={WEB_DEFAULT_HTML_STYLE}
-          numberOfLines={2}
-          ellipsizeMode="middle"
+          numberOfLines={numberOfLines}
+          ellipsizeMode={ellipsizeMode}
         >
           {enrichedTextValue}
         </EnrichedText>
+        <EnrichedTextActions
+          ellipsizeMode={ellipsizeMode ?? 'tail'}
+          numberOfLines={numberOfLines}
+          onChangeEllipsizeMode={setEllipsizeMode}
+          onChangeNumberOfLines={setNumberOfLines}
+        />
         {/*temporary second component to make testing easier*/}
         <EnrichedText
           style={enrichedTextStyle}
