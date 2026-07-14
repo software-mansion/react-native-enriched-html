@@ -13,6 +13,7 @@ import EnrichedTextInputNativeComponent, {
   type OnMentionEvent,
   type OnMentionDetectedInternal,
   type OnRequestHtmlResultEvent,
+  type OnCaretRectEvent,
 } from '../spec/EnrichedTextInputNativeComponent';
 import type {
   HostInstance,
@@ -27,6 +28,7 @@ import { toNativeRegexConfig } from '../utils/regexParser';
 import { nullthrows } from '../utils/nullthrows';
 import { ENRICHED_TEXT_INPUT_DEFAULT_PROPS } from '../utils/EnrichedTextInputDefaultProps';
 import type {
+  CaretRect,
   ContextMenuItem,
   EnrichedTextInputProps,
   OnLinkDetected,
@@ -45,6 +47,15 @@ type HtmlRequest = {
   resolve: (html: string) => void;
   reject: (error: Error) => void;
 };
+
+type CaretRectRequest = {
+  resolve: (rect: CaretRect | null) => void;
+  timeout: ReturnType<typeof setTimeout>;
+};
+
+// If the native caret-rect event never arrives (e.g. a platform without the
+// native patch applied), resolve null rather than leaking a pending promise.
+const CARET_RECT_TIMEOUT_MS = 400;
 
 export const EnrichedTextInput = ({
   ref,
@@ -88,6 +99,9 @@ export const EnrichedTextInput = ({
 
   const nextHtmlRequestId = useRef(1);
   const pendingHtmlRequests = useRef(new Map<number, HtmlRequest>());
+
+  const nextCaretRequestId = useRef(1);
+  const pendingCaretRequests = useRef(new Map<number, CaretRectRequest>());
 
   // Store onPress callbacks in a ref so native only receives serializable data
   const contextMenuCallbacksRef = useRef<
@@ -135,11 +149,17 @@ export const EnrichedTextInput = ({
 
   useEffect(() => {
     const pendingRequests = pendingHtmlRequests.current;
+    const pendingCaret = pendingCaretRequests.current;
     return () => {
       pendingRequests.forEach(({ reject }) => {
         reject(new Error('Component unmounted'));
       });
       pendingRequests.clear();
+      pendingCaret.forEach(({ resolve, timeout }) => {
+        clearTimeout(timeout);
+        resolve(null);
+      });
+      pendingCaret.clear();
     };
   }, []);
 
@@ -188,6 +208,28 @@ export const EnrichedTextInput = ({
         const requestId = nextHtmlRequestId.current++;
         pendingHtmlRequests.current.set(requestId, { resolve, reject });
         Commands.requestHTML(nullthrows(nativeRef.current), requestId);
+      });
+    },
+    getCaretRect: () => {
+      return new Promise<CaretRect | null>((resolve) => {
+        const node = nativeRef.current;
+        if (!node) {
+          resolve(null);
+          return;
+        }
+        const requestId = nextCaretRequestId.current++;
+        const timeout = setTimeout(() => {
+          pendingCaretRequests.current.delete(requestId);
+          resolve(null);
+        }, CARET_RECT_TIMEOUT_MS);
+        pendingCaretRequests.current.set(requestId, { resolve, timeout });
+        try {
+          Commands.requestCaretRect(node, requestId);
+        } catch {
+          clearTimeout(timeout);
+          pendingCaretRequests.current.delete(requestId);
+          resolve(null);
+        }
       });
     },
     toggleBold: () => {
@@ -327,6 +369,15 @@ export const EnrichedTextInput = ({
     pendingHtmlRequests.current.delete(requestId);
   };
 
+  const handleCaretRect = (e: NativeSyntheticEvent<OnCaretRectEvent>) => {
+    const { requestId, x, y, width, height, valid } = e.nativeEvent;
+    const pending = pendingCaretRequests.current.get(requestId);
+    if (!pending) return;
+    clearTimeout(pending.timeout);
+    pendingCaretRequests.current.delete(requestId);
+    pending.resolve(valid ? { x, y, width, height } : null);
+  };
+
   return (
     <EnrichedTextInputNativeComponent
       ref={nativeRef}
@@ -354,6 +405,7 @@ export const EnrichedTextInput = ({
       onMention={handleMentionEvent}
       onChangeSelection={onChangeSelection}
       onRequestHtmlResult={handleRequestHtmlResult}
+      onCaretRect={handleCaretRect}
       onInputKeyPress={onKeyPress}
       contextMenuItems={nativeContextMenuItems}
       textShortcuts={textShortcuts}
