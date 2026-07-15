@@ -2,10 +2,8 @@ import { memo, useMemo, useRef, type CSSProperties } from 'react';
 import type { EnrichedTextProps } from '../types';
 import './EnrichedText.css';
 import { enrichedTextStyleToCSSProperties } from './styleConversion/enrichedTextStyleToCSSProperties';
-import {
-  htmlStyleToCSSVariables,
-  mergeWithDefaultEnrichedTextHtmlStyle,
-} from './styleConversion/htmlStyleToCSSVariables';
+import { mergeWithDefaultEnrichedTextHtmlStyle } from './styleConversion/htmlStyleToCSSVariables';
+import { enrichedTextHtmlStyleToCSSVariables } from './styleConversion/htmlStyleToCSSVariables';
 import { ENRICHED_TEXT_CLASSNAME } from './constants/classNames';
 import { enrichedInputThemingToCSSProperties } from './styleConversion/enrichedThemingToCSSProperties';
 import { buildMentionRulesCSS } from './styleConversion/buildMentionRulesCSS';
@@ -14,9 +12,17 @@ import { prepareHtmlForWeb } from './normalization/prepareHtmlForWeb';
 import { INLINE_IMAGE_CSS_VARIABLES } from './styleConversion/inlineImageCSSVariables';
 import { useImageErrorFallback } from './useImageErrorFallback';
 import { usePressInteractions } from './usePressInteractions';
+import { useStableRef } from './useStableRef';
 
 export const EnrichedText = memo(
-  ({ children, htmlStyle, style, selectionColor }: EnrichedTextProps) => {
+  ({
+    children,
+    htmlStyle,
+    style,
+    selectionColor,
+    onLinkPress,
+    onMentionPress,
+  }: EnrichedTextProps) => {
     const containerRef = useRef<HTMLDivElement>(null);
 
     const sanitizedHtml = useMemo(() => sanitizeHtml(children), [children]);
@@ -38,7 +44,7 @@ export const EnrichedText = memo(
 
     const cssVars = useMemo(
       () => ({
-        ...htmlStyleToCSSVariables(resolvedHtmlStyle),
+        ...enrichedTextHtmlStyleToCSSVariables(resolvedHtmlStyle),
         ...INLINE_IMAGE_CSS_VARIABLES,
       }),
       [resolvedHtmlStyle]
@@ -50,8 +56,8 @@ export const EnrichedText = memo(
     );
 
     const mentionRulesCSS = useMemo(
-      () => buildMentionRulesCSS(resolvedHtmlStyle),
-      [resolvedHtmlStyle]
+      () => buildMentionRulesCSS(resolvedHtmlStyle, !!onMentionPress),
+      [resolvedHtmlStyle, onMentionPress]
     );
 
     const finalStyle = useMemo(
@@ -64,8 +70,11 @@ export const EnrichedText = memo(
       [textStyle, themingStyle, cssVars]
     );
 
-    usePressInteractions(containerRef);
+    const onLinkPressRef = useStableRef(onLinkPress);
+    const onMentionPressRef = useStableRef(onMentionPress);
+
     useImageErrorFallback(containerRef);
+    usePressInteractions(containerRef, onLinkPressRef, onMentionPressRef);
 
     return (
       <>

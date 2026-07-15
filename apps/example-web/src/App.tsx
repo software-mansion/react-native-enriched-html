@@ -15,6 +15,8 @@ import {
   type OnChangeMentionEvent,
   type OnMentionDetected,
   EnrichedText,
+  type OnLinkPressEvent,
+  type OnMentionPressEvent,
 } from 'react-native-enriched-html';
 import { WEB_DEFAULT_HTML_STYLE } from './defaultHtmlStyle';
 import type { NativeSyntheticEvent, TextStyle } from 'react-native';
@@ -169,6 +171,14 @@ function App() {
   ) => {
     console.log('[EnrichedTextInput] onChangeSelection event', e.nativeEvent);
     setSelection(e.nativeEvent);
+  };
+
+  const handleLinkPress = (e: OnLinkPressEvent) => {
+    console.log('[EnrichedText] link press event', e);
+  };
+
+  const handleMentionPress = (e: OnMentionPressEvent) => {
+    console.log('[EnrichedText] mention press event', e);
   };
 
   const openLinkModal = () => {
@@ -335,6 +345,8 @@ function App() {
         <EnrichedText
           style={enrichedTextStyle}
           htmlStyle={WEB_DEFAULT_HTML_STYLE}
+          onLinkPress={handleLinkPress}
+          onMentionPress={handleMentionPress}
         >
           {enrichedTextValue}
         </EnrichedText>
