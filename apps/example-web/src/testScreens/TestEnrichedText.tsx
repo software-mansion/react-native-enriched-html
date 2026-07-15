@@ -17,6 +17,7 @@ export function TestEnrichedText() {
   );
   const [lastMentionPress, setLastMentionPress] =
     useState<OnMentionPressEvent | null>(null);
+  const [isWide, setIsWide] = useState(false);
 
   return (
     <div data-testid="test-enriched-text-root">
@@ -25,7 +26,7 @@ export function TestEnrichedText() {
         style={enrichedTextContainerStyle}
       >
         <EnrichedText
-          style={enrichedTextStyle}
+          style={isWide ? enrichedTextWideStyle : enrichedTextStyle}
           htmlStyle={WEB_DEFAULT_HTML_STYLE}
           onLinkPress={setLastLinkPress}
           onMentionPress={setLastMentionPress}
@@ -33,6 +34,16 @@ export function TestEnrichedText() {
           {value}
         </EnrichedText>
       </div>
+
+      <button
+        type="button"
+        data-testid="test-enriched-text-toggle-width-button"
+        onClick={() => {
+          setIsWide((prev) => !prev);
+        }}
+      >
+        Toggle width
+      </button>
 
       <textarea
         data-testid="test-enriched-text-html-input"
@@ -71,6 +82,12 @@ const enrichedTextStyle: TextStyle = {
   paddingHorizontal: 8,
   backgroundColor: 'gainsboro',
   fontSize: 16,
+};
+
+const enrichedTextWideStyle: TextStyle = {
+  ...enrichedTextStyle,
+  minWidth: 360,
+  maxWidth: 720,
 };
 
 const enrichedTextContainerStyle = {

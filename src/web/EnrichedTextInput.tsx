@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useImperativeHandle,
   useMemo,
@@ -61,6 +62,7 @@ import { EnrichedUnorderedList } from './formats/EnrichedUnorderedList';
 import { EnrichedOrderedList } from './formats/EnrichedOrderedList';
 import { EnrichedCheckboxItem } from './formats/EnrichedCheckboxItem';
 import { EnrichedCheckboxList } from './formats/EnrichedCheckboxList';
+import { EnrichedTextAlign } from './formats/EnrichedTextAlign';
 import { StripBoldInStyledHeadingsPlugin } from './pmPlugins/StripBoldInStyledHeadingsPlugin';
 import { StrictMarksPlugin } from './pmPlugins/StrictMarksPlugin';
 import { MergeAdjacentSameKindBlocksPlugin } from './pmPlugins/MergeAdjacentSameKindBlocksPlugin';
@@ -70,7 +72,7 @@ import {
   MentionPlugin,
   setMention,
   startMention,
-  subscribeMentionEvents,
+  useMentionEvents,
 } from './pmPlugins/MentionPlugin';
 import { StripMarksOnImagePlugin } from './pmPlugins/StripMarksOnImagePlugin';
 import { ShortcutPlugin } from './pmPlugins/ShortcutPlugin';
@@ -203,6 +205,7 @@ export const EnrichedTextInput = ({
       EnrichedUnorderedList,
       EnrichedOrderedList,
       EnrichedCheckboxList,
+      EnrichedTextAlign,
       StripMarksInCodeBlockPlugin,
       StripMarksOnImagePlugin,
       StripBoldInStyledHeadingsPlugin.configure({
@@ -293,11 +296,12 @@ export const EnrichedTextInput = ({
     editor?.commands.normalizeBoldInStyledHeadings();
   }, [editor, resolvedHtmlStyle]);
 
-  useEffect(() => {
-    if (!editor) return;
-    return subscribeMentionEvents(editor, () => mentionCallbacksRef.current);
-  }, [editor, mentionCallbacksRef]);
+  const getMentionCallbacks = useCallback(
+    () => mentionCallbacksRef.current,
+    [mentionCallbacksRef]
+  );
 
+  useMentionEvents(editor, getMentionCallbacks);
   useOnChangeHtml(editor, onChangeHtml);
   useOnChangeText(editor, onChangeText);
   useOnChangeState(editor, resolvedHtmlStyle, onChangeState);
@@ -358,7 +362,13 @@ export const EnrichedTextInput = ({
       measureInWindow: () => {},
       measureLayout: () => {},
       setNativeProps: () => {},
-      setTextAlignment: () => {},
+      setTextAlignment: (alignment) => {
+        if (alignment === 'auto') {
+          runFocused(editor, (c) => c.unsetTextAlign());
+        } else {
+          runFocused(editor, (c) => c.setTextAlign(alignment));
+        }
+      },
     }),
     [editor, mentionIndicatorsRef, useHtmlNormalizerRef]
   );

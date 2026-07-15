@@ -3922,6 +3922,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tiptap/extension-text-align@npm:3.27.1":
+  version: 3.27.1
+  resolution: "@tiptap/extension-text-align@npm:3.27.1"
+  peerDependencies:
+    "@tiptap/core": 3.27.1
+  checksum: 10c0/9d020a2dfde9dc26c2df59a6912e3f7bbf5247ff6a911aef0fb9cef809caf2a0fa2c03086c38c1a1ffb4e9fb3b447f43018954d98262636ab03732d3deebedf8
+  languageName: node
+  linkType: hard
+
 "@tiptap/extension-text@npm:3.27.1":
   version: 3.27.1
   resolution: "@tiptap/extension-text@npm:3.27.1"
@@ -12285,6 +12294,7 @@ __metadata:
     "@tiptap/extension-paragraph": "npm:3.27.1"
     "@tiptap/extension-strike": "npm:3.27.1"
     "@tiptap/extension-text": "npm:3.27.1"
+    "@tiptap/extension-text-align": "npm:3.27.1"
     "@tiptap/extension-underline": "npm:3.27.1"
     "@tiptap/extensions": "npm:3.27.1"
     "@tiptap/pm": "npm:3.27.1"

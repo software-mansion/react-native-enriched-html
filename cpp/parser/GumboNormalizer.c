@@ -411,6 +411,34 @@ static void emit_one_attr(buffer_t *out, GumboElement *el,
   }
 }
 
+static bool is_checkbox_list(GumboElement *el) {
+  const char *val = get_attr(el, "data-type");
+  if (val && (strcmp(val, "checkbox") == 0 || strcmp(val, "checkboxList") == 0)) {
+    return true;
+  }
+
+  // In Google Docs and MS Word the <li> elements define if it is a checkbox
+  // list. We only need to check the first <li>.
+  GumboVector *children = &el->children;
+  for (unsigned int i = 0; i < children->length; i++) {
+    GumboNode *child = children->data[i];
+    if (is_element(child)) {
+      char child_tag[64];
+      if (get_tag_name(child, child_tag, sizeof(child_tag)) && strcmp(child_tag, "li") == 0) {
+        GumboElement *child_el = &child->v.element;
+        const char *role = get_attr(child_el, "role");
+        const char *cls = get_attr(child_el, "class");
+
+        // Matches Google Docs (role="checkbox") OR MS Word (class includes "checklist")
+        return (role && strcmp(role, "checkbox") == 0) ||
+               (cls && strstr(cls, "checklist") != NULL);
+      }
+    }
+  }
+
+  return false;
+}
+
 static void emit_attributes(GumboElement *el, const char *tag_name,
                             buffer_t *out) {
   if (strcmp(tag_name, "a") == 0) {
@@ -421,12 +449,21 @@ static void emit_attributes(GumboElement *el, const char *tag_name,
     emit_one_attr(out, el, "width");
     emit_one_attr(out, el, "height");
   } else if (strcmp(tag_name, "ul") == 0) {
-    const char *val = get_attr(el, "data-type");
-    if (val && strcmp(val, "checkbox") == 0)
+    if (is_checkbox_list(el)) {
       buffer_append_str(out, " data-type=\"checkbox\"");
+    }
   } else if (strcmp(tag_name, "li") == 0) {
-    if (gumbo_get_attribute(&el->attributes, "checked") != NULL)
+    const char *data_checked = get_attr(el, "data-checked");
+    const char *aria_checked = get_attr(el, "aria-checked");
+    const char *level_text = get_attr(el, "data-leveltext");
+
+    // "\xEF\x83\xBE" is the UTF-8 hex encoding for U+F0FE (MS Word Checked Box)
+    if (gumbo_get_attribute(&el->attributes, "checked") != NULL ||
+        (data_checked && strcmp(data_checked, "true") == 0) ||
+        (aria_checked && strcmp(aria_checked, "true") == 0) ||
+        (level_text && strcmp(level_text, "\xEF\x83\xBE") == 0)) {
       buffer_append_str(out, " checked");
+    }
   } else if (strcmp(tag_name, "mention") == 0) {
     emit_one_attr(out, el, "id");
     emit_one_attr(out, el, "text");
@@ -511,6 +548,7 @@ typedef struct {
   GumboNode **nested_lists;
   int *nested_count;
   int max_nested;
+  bool has_emitted;
 } li_ctx_t;
 
 static void flatten_li_node(GumboNode *node, buffer_t *ib, buffer_t *out,
@@ -527,6 +565,7 @@ static void flush_li_buffer(buffer_t *ib, buffer_t *out, li_ctx_t *ctx) {
   emit_styles_close(out, ctx->styles);
   buffer_append_str(out, "</li>");
   buffer_clear(ib);
+  ctx->has_emitted = true;
 }
 
 static void flatten_li_children(GumboNode *node, buffer_t *ib, buffer_t *out,
@@ -551,6 +590,17 @@ static void flatten_li_node(GumboNode *node, buffer_t *ib, buffer_t *out,
     flatten_li_children(node, ib, out, ctx);
     return;
   }
+
+  char buf[64];
+  const char *tag = get_tag_name(node, buf, sizeof(buf));
+  if (tag && strcmp(tag, "img") == 0) {
+    const char *role = get_attr(ctx->el, "role");
+    // strip the <img> that Google Docs uses for the display of a checkbox icon
+    if (role && strcmp(role, "checkbox") == 0) {
+      return;
+    }
+  }
+
   if (is_list_node(node)) {
     if (*ctx->nested_count < ctx->max_nested) {
       ctx->nested_lists[*ctx->nested_count] = node;
@@ -837,6 +887,14 @@ static void walk_node(GumboNode *node, buffer_t *out) {
       li_ctx_t ctx = {el, es, nested_lists, &nested_count, 16};
       flatten_li_children(node, &li_ib, out, &ctx);
       flush_li_buffer(&li_ib, out, &ctx);
+
+      /* if nothing emitted - the <li> is empty, we add it manually */
+      if (!ctx.has_emitted) {
+        buffer_append_str(out, "<li");
+        emit_attributes(el, "li", out);
+        buffer_append_str(out, "></li>");
+      }
+
       free(li_ib.data);
       for (int k = 0; k < nested_count; k++)
         walk_children(nested_lists[k], out);
