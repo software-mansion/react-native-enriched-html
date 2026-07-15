@@ -448,6 +448,60 @@ TEST(GumboParserTest, ListFlattening) {
             "<ul><li><b>another one </b>hi kacper,</li><li>hi</li></ul>");
 }
 
+TEST(GumboParserTest, TiptapCheckboxList) {
+  EXPECT_EQ(
+      GumboParser::normalizeHtml(
+          "<ul data-type=\"checkboxList\"><li data-checked=\"true\" "
+          "data-type=\"checkboxItem\"><label><input type=\"checkbox\" "
+          "checked=\"checked\"><span></span></label><div><p>first</p></div></"
+          "li><li data-checked=\"false\" data-type=\"checkboxItem\"><label>"
+          "<input type=\"checkbox\"><span></span></label><div><p>second</p></"
+          "div></li></ul>"),
+      "<ul data-type=\"checkbox\"><li checked>first</li><li>second</li></ul>");
+}
+
+TEST(GumboParserTest, GoogleDocsCheckboxList) {
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<ul><li role=\"checkbox\" aria-checked=\"true\"><img "
+                "src=\"data:...\" /><p>Checked</p></li><li role=\"checkbox\" "
+                "aria-checked=\"false\"><img src=\"data:...\" "
+                "/><p>Unchecked</p></li></ul>"),
+            "<ul data-type=\"checkbox\"><li "
+            "checked>Checked</li><li>Unchecked</li></ul>");
+}
+
+TEST(GumboParserTest, MSWordCheckboxList) {
+  // \xEF\x83\xBE is the UTF-8 hex for U+F0FE (Checked MS Word box)
+  // \xEF\x82\xA8 is the UTF-8 hex for U+F0A8 (Unchecked MS Word box)
+  EXPECT_EQ(
+      GumboParser::normalizeHtml(
+          "<ul><li class=\"OutlineElement checklist\" "
+          "data-leveltext=\"\xEF\x83\xBE\">Checked</li><li "
+          "class=\"OutlineElement "
+          "checklist\" data-leveltext=\"\xEF\x82\xA8\">Unchecked</li></ul>"),
+      "<ul data-type=\"checkbox\"><li "
+      "checked>Checked</li><li>Unchecked</li></ul>");
+}
+
+TEST(GumboParserTest, EmptyListItems) {
+  EXPECT_EQ(GumboParser::normalizeHtml("<ul><li></li><li>first</li><li></"
+                                       "li><li>second</li><li></li><li></li>"
+                                       "</ul>"),
+            "<ul><li></li><li>first</li><li></li><li>second</li><li></li><li></"
+            "li></ul>");
+  EXPECT_EQ(GumboParser::normalizeHtml("<ol><li></li><li>first</li><li></"
+                                       "li><li>second</li><li></li><li></li>"
+                                       "</ol>"),
+            "<ol><li></li><li>first</li><li></li><li>second</li><li></li><li></"
+            "li></ol>");
+  EXPECT_EQ(
+      GumboParser::normalizeHtml(
+          "<ul data-type=\"checkbox\"><li checked></li><li>first</li><li>"
+          "</li><li checked>second</li><li></li><li></li></ul>"),
+      "<ul data-type=\"checkbox\"><li checked></li><li>first</li><li></li><li "
+      "checked>second</li><li></li><li></li></ul>");
+}
+
 TEST(GumboParserTest, BrRemappings) {
   EXPECT_EQ(GumboParser::normalizeHtml(
                 "<p><b>Asdasdasd</b></p><br><br><p>Sent with<span> </span><a "
