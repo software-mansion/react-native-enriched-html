@@ -30,7 +30,7 @@ export const EnrichedText = memo(
     style,
     selectionColor,
     selectable = false,
-    useHtmlNormalizer = false,
+    useHtmlNormalizer = true,
     onFocus,
     onBlur,
   }: EnrichedTextProps) => {

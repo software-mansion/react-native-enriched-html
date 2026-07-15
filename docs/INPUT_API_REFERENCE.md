@@ -639,13 +639,13 @@ If true, Android will use experimental synchronous events. This will prevent fro
 | ------ | ------------- | -------- |
 | `bool` | `false`       | Android  |
 
-### `useHtmlNormalizer` - EXPERIMENTAL
+### `useHtmlNormalizer`
 
-If true, external HTML pasted/inserted into the input (e.g. from Google Docs, Word, or web pages) will be normalized into the canonical tag subset that the enriched parser understands. However, this is an experimental feature, which has not been thoroughly tested. We may decide to enable it by default in a future release.
+If true, external HTML pasted/inserted into the input (e.g. from Google Docs, Word, or web pages) will be normalized into the canonical tag subset that the enriched parser understands.
 
 | Type   | Default Value | Platform          |
 | ------ | ------------- | ----------------- |
-| `bool` | `false`       | iOS, Android, Web |
+| `bool` | `true`        | iOS, Android, Web |
 
 ## Ref Methods
 

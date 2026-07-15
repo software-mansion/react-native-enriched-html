@@ -600,6 +600,8 @@ function walkNode(node: Node, out: { buf: string }): void {
 }
 
 export function normalizeHtml(html: string): string {
+  if (typeof DOMParser === 'undefined') return html;
+
   const parser = new DOMParser();
   const doc = parser.parseFromString(`<body>${html}</body>`, 'text/html');
   const body = doc.body;

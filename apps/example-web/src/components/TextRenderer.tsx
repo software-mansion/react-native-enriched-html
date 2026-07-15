@@ -30,7 +30,6 @@ export function TextRenderer({ htmlValue }: TextRendererProps) {
         ref={ref}
         style={enrichedTextStyle}
         htmlStyle={WEB_DEFAULT_HTML_STYLE}
-        useHtmlNormalizer
         onFocus={handleTextFocus}
         onBlur={handleTextBlur}
       >
