@@ -1,8 +1,7 @@
 ---
-slug: /
-sidebar_position: 1
+sidebar_position: 5
 ---
 
-# Getting started
+# Inline images
 
 <!-- TODO: write content for this page -->

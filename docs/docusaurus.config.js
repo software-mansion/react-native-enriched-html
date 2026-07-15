@@ -61,9 +61,29 @@ const config = {
         },
       }),
     ],
+    require.resolve('@swmansion/t-rex-ui/preset'),
   ],
 
   plugins: [
+    function transpileTRexUiTheme() {
+      return {
+        name: 'transpile-t-rex-ui-theme',
+        configureWebpack(_config, isServer, utils) {
+          return {
+            module: {
+              rules: [
+                {
+                  test: /\.jsx?$/,
+                  include:
+                    /node_modules[\\/]@swmansion[\\/]t-rex-ui[\\/]theme[\\/]/,
+                  use: [utils.getJSLoader({ isServer })],
+                },
+              ],
+            },
+          };
+        },
+      };
+    },
     // TODO: enable Google Tag Manager with a container id for this site.
     // process.env.NODE_ENV === 'production' && [
     //   '@docusaurus/plugin-google-tag-manager',
@@ -93,7 +113,7 @@ const config = {
         },
         items: [
           {
-            to: 'fundamentals/getting-started',
+            to: '/',
             label: 'Docs',
             position: 'right',
           },

@@ -1,8 +1,7 @@
 ---
-slug: /
-sidebar_position: 1
+sidebar_position: 7
 ---
 
-# Getting started
+# Text shortcuts
 
 <!-- TODO: write content for this page -->
