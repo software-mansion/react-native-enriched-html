@@ -1,8 +1,7 @@
 ---
-slug: /
-sidebar_position: 1
+sidebar_position: 2
 ---
 
-# Getting started
+# Rendering rich text
 
 <!-- TODO: write content for this page -->

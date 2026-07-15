@@ -1,8 +1,7 @@
 ---
-slug: /
-sidebar_position: 1
+sidebar_position: 4
 ---
 
-# Getting started
+# Custom context menu
 
 <!-- TODO: write content for this page -->

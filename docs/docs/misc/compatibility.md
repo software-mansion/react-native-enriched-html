@@ -1,8 +1,7 @@
 ---
-slug: /
 sidebar_position: 1
 ---
 
-# Getting started
+# Compatibility
 
 <!-- TODO: write content for this page -->

@@ -1,8 +1,7 @@
 ---
-slug: /
-sidebar_position: 1
+sidebar_position: 6
 ---
 
-# Getting started
+# Text alignment
 
 <!-- TODO: write content for this page -->

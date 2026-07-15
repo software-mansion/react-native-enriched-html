@@ -1,8 +1,7 @@
 ---
-slug: /
-sidebar_position: 1
+sidebar_position: 4
 ---
 
-# Getting started
+# HTML format and supported tags
 
 <!-- TODO: write content for this page -->

@@ -1,8 +1,7 @@
 ---
-slug: /
-sidebar_position: 1
+sidebar_position: 3
 ---
 
-# Getting started
+# Emojis
 
 <!-- TODO: write content for this page -->
