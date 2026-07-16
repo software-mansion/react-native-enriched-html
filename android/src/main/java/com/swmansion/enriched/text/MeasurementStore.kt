@@ -17,6 +17,7 @@ import com.facebook.react.views.text.ReactTypefaceUtils.parseFontWeight
 import com.facebook.yoga.YogaMeasureMode
 import com.facebook.yoga.YogaMeasureOutput
 import com.swmansion.enriched.common.EnrichedConstants
+import com.swmansion.enriched.common.GumboNormalizer
 import com.swmansion.enriched.common.allowFontScalingFromProps
 import com.swmansion.enriched.common.parser.EnrichedParser
 import com.swmansion.enriched.common.pixelFromSpOrDp
@@ -104,21 +105,74 @@ object MeasurementStore {
     props: ReadableMap?,
   ): CharSequence {
     val text = props?.getString("text") ?: ""
+    val enrichedStyle = getEnrichedStyle(context, fontSize, props)
+    val useHtmlNormalizer = useHtmlNormalizerFromProps(props)
 
-    val isHtml = text.startsWith("<html>") && text.endsWith("</html>")
-    if (!isHtml) return text
+    return parseText(text, enrichedStyle, useHtmlNormalizer) ?: text
+  }
 
-    try {
-      val style = props?.getMap("htmlStyle") ?: return text
-      val allowFontScaling = allowFontScalingFromProps(props)
-      val enrichedStyle =
-        EnrichedTextStyle.fromReadableMap(context as ReactContext, fontSize, style, allowFontScaling)
+  private fun getEnrichedStyle(
+    context: Context,
+    fontSize: Int,
+    props: ReadableMap?,
+  ): EnrichedTextStyle? {
+    val style = props?.getMap("htmlStyle") ?: return null
+    val allowFontScaling = allowFontScalingFromProps(props)
+    return EnrichedTextStyle.fromReadableMap(context as ReactContext, fontSize, style, allowFontScaling)
+  }
+
+  private fun useHtmlNormalizerFromProps(props: ReadableMap?): Boolean {
+    if (props == null || !props.hasKey("useHtmlNormalizer") || props.isNull("useHtmlNormalizer")) {
+      return false
+    }
+    return props.getBoolean("useHtmlNormalizer")
+  }
+
+  private fun parseText(
+    text: String,
+    style: EnrichedTextStyle?,
+    useHtmlNormalizer: Boolean,
+  ): CharSequence? {
+    if (style == null) return null
+
+    val isInternalHtml = text.startsWith("<html>") && text.endsWith("</html>")
+
+    if (isInternalHtml) {
+      try {
+        val factory = EnrichedTextSpanFactory()
+        val parsed = EnrichedParser.fromHtml(text, style, factory)
+        return parsed.trimEnd('\n')
+      } catch (e: Exception) {
+        Log.w("MeasurementStore", "Error parsing initial HTML text: ${e.message}")
+        return normalizeHtmlIfNeeded(text, style, useHtmlNormalizer)
+      }
+    }
+
+    return normalizeHtmlIfNeeded(text, style, useHtmlNormalizer)
+  }
+
+  private fun normalizeHtmlIfNeeded(
+    text: String,
+    style: EnrichedTextStyle,
+    useHtmlNormalizer: Boolean,
+  ): CharSequence? {
+    if (!useHtmlNormalizer) return null
+    return parseNormalizedHtml(text, style)
+  }
+
+  private fun parseNormalizedHtml(
+    text: String,
+    style: EnrichedTextStyle,
+  ): CharSequence? {
+    val normalized = GumboNormalizer.normalizeHtml(text) ?: return null
+
+    return try {
       val factory = EnrichedTextSpanFactory()
-      val parsed = EnrichedParser.fromHtml(text, enrichedStyle, factory)
-      return parsed.trimEnd('\n')
+      val parsed = EnrichedParser.fromHtml(normalized, style, factory)
+      parsed.trimEnd('\n')
     } catch (e: Exception) {
-      Log.w("MeasurementStore", "Error parsing initial HTML text: ${e.message}")
-      return text
+      Log.w("MeasurementStore", "Error parsing normalized HTML: ${e.message}")
+      null
     }
   }
 
