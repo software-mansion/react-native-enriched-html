@@ -497,8 +497,23 @@ static void walk_node(GumboNode *node, buffer_t *out);
 
 static void flatten_bq_node(GumboNode *node, buffer_t *ib, buffer_t *out);
 
+/** True if buf is empty or contains only ASCII whitespace. */
+static bool is_whitespace_only(const char *data, size_t len) {
+  for (size_t i = 0; i < len; i++) {
+    unsigned char c = (unsigned char)data[i];
+    if (c != ' ' && c != '\t' && c != '\n' && c != '\r' && c != '\f')
+      return false;
+  }
+  return true;
+}
+
+/**
+ * Flush buffered inline content as a <p>. Inter-block whitespace (newlines /
+ * spaces between block tags in pretty-printed HTML) is discarded so it does
+ * not become empty paragraphs that later serialize as extra <br>s.
+ */
 static void flush_inline_p(buffer_t *ib, buffer_t *out) {
-  if (ib->len > 0) {
+  if (ib->len > 0 && !is_whitespace_only(ib->data, ib->len)) {
     buffer_append_str(out, "<p>");
     buffer_append(out, ib->data, ib->len);
     buffer_append_str(out, "</p>");
@@ -674,7 +689,8 @@ static void walk_children(GumboNode *node, buffer_t *out) {
              !is_blockquote_node(children->data[i])) {
         child = children->data[i];
         if (is_br_node(child)) {
-          if (ib.len > 0)
+          /* Whitespace-only buffer is layout noise; treat like empty → <br> */
+          if (ib.len > 0 && !is_whitespace_only(ib.data, ib.len))
             flush_inline_p(&ib, out);
           else
             buffer_append_str(out, "<br>");
