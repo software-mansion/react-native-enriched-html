@@ -105,10 +105,16 @@ object MeasurementStore {
     props: ReadableMap?,
   ): CharSequence {
     val text = props?.getString("text") ?: ""
-    val enrichedStyle = getEnrichedStyle(context, fontSize, props)
+    val isInternalHtml = text.startsWith("<html>") && text.endsWith("</html>")
     val useHtmlNormalizer = useHtmlNormalizerFromProps(props)
 
-    return parseText(text, enrichedStyle, useHtmlNormalizer) ?: text
+    if (!isInternalHtml && !useHtmlNormalizer) {
+      return text
+    }
+
+    val enrichedStyle = getEnrichedStyle(context, fontSize, props) ?: return text
+
+    return parseText(text, enrichedStyle, useHtmlNormalizer, isInternalHtml) ?: text
   }
 
   private fun getEnrichedStyle(
@@ -130,13 +136,10 @@ object MeasurementStore {
 
   private fun parseText(
     text: String,
-    style: EnrichedTextStyle?,
+    style: EnrichedTextStyle,
     useHtmlNormalizer: Boolean,
+    isInternalHtml: Boolean,
   ): CharSequence? {
-    if (style == null) return null
-
-    val isInternalHtml = text.startsWith("<html>") && text.endsWith("</html>")
-
     if (isInternalHtml) {
       try {
         val factory = EnrichedTextSpanFactory()
