@@ -140,44 +140,22 @@ object MeasurementStore {
     useHtmlNormalizer: Boolean,
     isInternalHtml: Boolean,
   ): CharSequence? {
-    if (isInternalHtml) {
-      try {
-        val factory = EnrichedTextSpanFactory()
-        val parsed = EnrichedParser.fromHtml(text, style, factory)
-        return parsed.trimEnd('\n')
-      } catch (e: Exception) {
-        Log.w("MeasurementStore", "Error parsing initial HTML text: ${e.message}")
-        return normalizeHtmlIfNeeded(text, style, useHtmlNormalizer)
-      }
-    }
+    val textToParse = if (isInternalHtml) text else normalizeHtmlIfNeeded(text, useHtmlNormalizer)
 
-    return normalizeHtmlIfNeeded(text, style, useHtmlNormalizer)
+    try {
+      val factory = EnrichedTextSpanFactory()
+      val parsed = EnrichedParser.fromHtml(textToParse, style, factory)
+      return parsed.trimEnd('\n')
+    } catch (e: Exception) {
+      Log.w("MeasurementStore", "Error parsing initial HTML text: ${e.message}")
+      return textToParse
+    }
   }
 
   private fun normalizeHtmlIfNeeded(
     text: String,
-    style: EnrichedTextStyle,
     useHtmlNormalizer: Boolean,
-  ): CharSequence? {
-    if (!useHtmlNormalizer) return null
-    return parseNormalizedHtml(text, style)
-  }
-
-  private fun parseNormalizedHtml(
-    text: String,
-    style: EnrichedTextStyle,
-  ): CharSequence? {
-    val normalized = GumboNormalizer.normalizeHtml(text) ?: return null
-
-    return try {
-      val factory = EnrichedTextSpanFactory()
-      val parsed = EnrichedParser.fromHtml(normalized, style, factory)
-      parsed.trimEnd('\n')
-    } catch (e: Exception) {
-      Log.w("MeasurementStore", "Error parsing normalized HTML: ${e.message}")
-      null
-    }
-  }
+  ): String? = if (useHtmlNormalizer) GumboNormalizer.normalizeHtml(text) else null
 
   private fun getInitialFontSize(props: ReadableMap?): Float {
     val propsFontSize = props?.getDouble("fontSize")?.toFloat() ?: EnrichedConstants.TEXT_DEFAULT_FONT_SIZE
