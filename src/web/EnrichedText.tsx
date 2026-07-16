@@ -1,35 +1,60 @@
-import { memo, useMemo, useRef, type CSSProperties } from 'react';
+import {
+  memo,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  type CSSProperties,
+} from 'react';
 import type { EnrichedTextProps } from '../types';
 import './EnrichedText.css';
 import { enrichedTextStyleToCSSProperties } from './styleConversion/enrichedTextStyleToCSSProperties';
 import { mergeWithDefaultEnrichedTextHtmlStyle } from './styleConversion/htmlStyleToCSSVariables';
 import { enrichedTextHtmlStyleToCSSVariables } from './styleConversion/htmlStyleToCSSVariables';
 import { ENRICHED_TEXT_CLASSNAME } from './constants/classNames';
-import { enrichedInputThemingToCSSProperties } from './styleConversion/enrichedThemingToCSSProperties';
+import { enrichedTextThemingToCSSProperties } from './styleConversion/enrichedThemingToCSSProperties';
 import { buildMentionRulesCSS } from './styleConversion/buildMentionRulesCSS';
 import { sanitizeHtml } from './sanitization/htmlSanitizer';
 import { prepareHtmlForWeb } from './normalization/prepareHtmlForWeb';
 import { INLINE_IMAGE_CSS_VARIABLES } from './styleConversion/inlineImageCSSVariables';
 import { useImageErrorFallback } from './useImageErrorFallback';
 import { usePressInteractions } from './usePressInteractions';
+import { adaptWebToNativeEvent } from './adaptWebToNativeEvent';
 import { useStableRef } from './useStableRef';
 
 export const EnrichedText = memo(
   ({
+    ref,
     children,
     htmlStyle,
     style,
     selectionColor,
+    selectable = false,
+    useHtmlNormalizer = true,
+    onFocus,
+    onBlur,
     onLinkPress,
     onMentionPress,
   }: EnrichedTextProps) => {
     const containerRef = useRef<HTMLDivElement>(null);
 
+    useImperativeHandle(ref, () => ({
+      measureInWindow: () => {},
+      measure: () => {},
+      measureLayout: () => {},
+      setNativeProps: () => {},
+      focus: () => {
+        containerRef.current?.focus();
+      },
+      blur: () => {
+        containerRef.current?.blur();
+      },
+    }));
+
     const sanitizedHtml = useMemo(() => sanitizeHtml(children), [children]);
 
     const finalHtml = useMemo(
-      () => prepareHtmlForWeb(sanitizedHtml),
-      [sanitizedHtml]
+      () => prepareHtmlForWeb(sanitizedHtml, useHtmlNormalizer),
+      [sanitizedHtml, useHtmlNormalizer]
     );
 
     const resolvedHtmlStyle = useMemo(
@@ -51,8 +76,8 @@ export const EnrichedText = memo(
     );
 
     const themingStyle = useMemo(
-      () => enrichedInputThemingToCSSProperties({ selectionColor }),
-      [selectionColor]
+      () => enrichedTextThemingToCSSProperties({ selectionColor, selectable }),
+      [selectionColor, selectable]
     );
 
     const mentionRulesCSS = useMemo(
@@ -81,8 +106,15 @@ export const EnrichedText = memo(
         {mentionRulesCSS ? <style>{mentionRulesCSS}</style> : null}
         <div
           ref={containerRef}
+          tabIndex={-1}
           style={finalStyle}
           className={ENRICHED_TEXT_CLASSNAME}
+          onFocus={(event) =>
+            onFocus?.(adaptWebToNativeEvent(event, { target: -1 }))
+          }
+          onBlur={(event) =>
+            onBlur?.(adaptWebToNativeEvent(event, { target: -1 }))
+          }
           dangerouslySetInnerHTML={{ __html: finalHtml }}
         />
       </>
