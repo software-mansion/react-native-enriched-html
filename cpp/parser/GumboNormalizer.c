@@ -517,8 +517,8 @@ static void flush_inline_p(buffer_t *ib, buffer_t *out) {
     buffer_append_str(out, "<p>");
     buffer_append(out, ib->data, ib->len);
     buffer_append_str(out, "</p>");
-    buffer_clear(ib);
   }
+  buffer_clear(ib);
 }
 
 static void flatten_bq_children(GumboNode *node, buffer_t *ib, buffer_t *out) {
@@ -692,8 +692,10 @@ static void walk_children(GumboNode *node, buffer_t *out) {
           /* Whitespace-only buffer is layout noise; treat like empty → <br> */
           if (ib.len > 0 && !is_whitespace_only(ib.data, ib.len))
             flush_inline_p(&ib, out);
-          else
+          else {
+            buffer_clear(&ib);
             buffer_append_str(out, "<br>");
+          }
           i++;
           continue;
         }
