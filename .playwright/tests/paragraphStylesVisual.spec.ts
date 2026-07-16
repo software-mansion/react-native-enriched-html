@@ -89,4 +89,49 @@ test.describe('paragraph styles visual', () => {
       'paragraph-styles-visual-checkbox-list.png'
     );
   });
+
+  test('unordered list with wrapped text displays correctly', async ({
+    page,
+  }) => {
+    const html =
+      '<html><ul><li>This is a very long unordered list item that should naturally wrap onto multiple lines to ensure that the bullet alignment behaves as expected.</li></ul></html>';
+    await setEditorHtml(page, html);
+
+    const editor = editorLocator(page);
+    await expect(editor).toContainText('as expected');
+
+    await expect(editor).toHaveScreenshot(
+      'paragraph-styles-visual-unordered-list-wrapped.png'
+    );
+  });
+
+  test('ordered list with wrapped text displays correctly', async ({
+    page,
+  }) => {
+    const html =
+      '<html><ol><li>This is a very long ordered list item that should naturally wrap onto multiple lines to ensure that the number alignment behaves as expected.</li></ol></html>';
+    await setEditorHtml(page, html);
+
+    const editor = editorLocator(page);
+    await expect(editor).toContainText('as expected');
+
+    await expect(editor).toHaveScreenshot(
+      'paragraph-styles-visual-ordered-list-wrapped.png'
+    );
+  });
+
+  test('checkbox list with wrapped text displays correctly', async ({
+    page,
+  }) => {
+    const html =
+      '<html><ul data-type="checkbox"><li>This is a very long checkbox list item that should naturally wrap onto multiple lines to ensure that the checkbox alignment behaves as expected.</li></ul></html>';
+    await setEditorHtml(page, html);
+
+    const editor = editorLocator(page);
+    await expect(editor).toContainText('as expected');
+
+    await expect(editor).toHaveScreenshot(
+      'paragraph-styles-visual-checkbox-list-wrapped.png'
+    );
+  });
 });

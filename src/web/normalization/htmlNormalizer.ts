@@ -231,6 +231,29 @@ function emitStylesClose(s: CssStyles): string {
   return out;
 }
 
+// Tags that may carry a text-align style in our canonical output
+const ALIGN_TAGS = new Set([
+  'p',
+  'ul',
+  'ol',
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6',
+]);
+const ALIGN_VALUES = new Set(['left', 'center', 'right', 'justify']);
+
+function emitAlignment(el: Element, name: string): string {
+  if (!ALIGN_TAGS.has(name)) return '';
+  const align = findCssValue(el.getAttribute('style') ?? '', 'text-align');
+  if (!align) return '';
+  const lower = align.toLowerCase();
+  if (!ALIGN_VALUES.has(lower)) return '';
+  return ` style="text-align: ${lower}"`;
+}
+
 function emitOneAttr(el: Element, attr: string): string {
   const val = el.getAttribute(attr);
   if (val == null || val === '') return '';
@@ -249,22 +272,55 @@ function emitAttributes(el: Element, name: string): string {
         emitOneAttr(el, 'width') +
         emitOneAttr(el, 'height')
       );
-    case 'ul': {
-      const val = el.getAttribute('data-type');
-      return val === 'checkbox' ? ' data-type="checkbox"' : '';
-    }
+    case 'ul':
+      return (
+        (isCheckboxList(el) ? ' data-type="checkbox"' : '') +
+        emitAlignment(el, name)
+      );
     case 'li':
-      return el.hasAttribute('checked') ? ' checked' : '';
-    case 'mention': {
+      // "" is U+F0FE (MS Word checked box); often encoded as "\xEF\x83\xBE" in UTF-8.
+      const isChecked =
+        el.hasAttribute('checked') ||
+        el.getAttribute('data-checked') === 'true' ||
+        el.getAttribute('aria-checked') === 'true' ||
+        el.getAttribute('data-leveltext') === ''; // MS Word checked box
+      return isChecked ? ' checked' : '';
+    case 'mention':
       let out = '';
       for (const attr of Array.from(el.attributes)) {
         out += emitOneAttr(el, attr.name);
       }
       return out;
-    }
     default:
-      return '';
+      // preserve text-align
+      return emitAlignment(el, name);
   }
+}
+
+function isCheckboxList(el: Element): boolean {
+  if (
+    el.getAttribute('data-type') === 'checkbox' ||
+    el.getAttribute('data-type') === 'checkboxList'
+  ) {
+    return true;
+  }
+
+  // In Google Docs and MS Word the <li> elements define if it is a checkbox
+  // list. We only need to check the first <li>.
+  const firstLi = Array.from(el.children).find(
+    (c) => c.tagName.toLowerCase() === 'li'
+  );
+  if (firstLi) {
+    const role = firstLi.getAttribute('role');
+    const className = firstLi.getAttribute('class') || '';
+
+    // Matches Google Docs (role="checkbox") OR MS Word (class includes "checklist")
+    if (role === 'checkbox' || className.includes('checklist')) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 function isGoogleDocsWrapper(el: Element, tag: string): boolean {
@@ -294,9 +350,13 @@ function escapeText(s: string): string {
 
 // --- Blockquote content flattening ---
 
-function flushInlineP(ib: { buf: string }, out: { buf: string }): void {
+function flushInlineP(
+  ib: { buf: string },
+  out: { buf: string },
+  attrs = ''
+): void {
   if (ib.buf.length > 0) {
-    out.buf += `<p>${ib.buf}</p>`;
+    out.buf += `<p${attrs}>${ib.buf}</p>`;
     ib.buf = '';
   }
 }
@@ -329,7 +389,8 @@ function flattenBqNode(
   if (isBlockProducing(node) || isBlockquoteNode(node)) {
     flushInlineP(ib, out);
     flattenBqChildren(node, ib, out);
-    flushInlineP(ib, out);
+    // The flattened block becomes a <p>; carry over its text-align (if any).
+    flushInlineP(ib, out, emitAlignment(node, 'p'));
     return;
   }
   walkNode(node, ib);
@@ -341,6 +402,7 @@ type LiCtx = {
   el: Element;
   styles: CssStyles;
   nestedLists: Element[];
+  hasEmitted: boolean;
 };
 
 function flushLiBuffer(
@@ -355,6 +417,7 @@ function flushLiBuffer(
   out.buf += emitStylesClose(ctx.styles);
   out.buf += '</li>';
   ib.buf = '';
+  ctx.hasEmitted = true;
 }
 
 function flattenLiChildren(
@@ -379,6 +442,15 @@ function flattenLiNode(
     return;
   }
   if (!isElement(node)) return;
+
+  if (tagName(node) === 'img') {
+    const role = ctx.el.getAttribute('role');
+    // strip the <img> that Google Docs uses for the display of a checkbox icon
+    if (role === 'checkbox') {
+      return;
+    }
+  }
+
   if (isListNode(node)) {
     ctx.nestedLists.push(node);
     return;
@@ -574,9 +646,15 @@ function walkNode(node: Node, out: { buf: string }): void {
   if (outName === 'li') {
     const nestedLists: Element[] = [];
     const liIb = { buf: '' };
-    const ctx: LiCtx = { el: node, styles: es, nestedLists };
+    const ctx: LiCtx = { el: node, styles: es, nestedLists, hasEmitted: false };
     flattenLiChildren(node, liIb, out, ctx);
     flushLiBuffer(liIb, out, ctx);
+
+    // if nothing emitted - the <li> is empty, we add it manually
+    if (!ctx.hasEmitted) {
+      out.buf += `<li${emitAttributes(ctx.el, 'li')}></li>`;
+    }
+
     for (const nl of nestedLists) walkChildren(nl, out);
     return;
   }
@@ -601,6 +679,8 @@ function walkNode(node: Node, out: { buf: string }): void {
 }
 
 export function normalizeHtml(html: string): string {
+  if (typeof DOMParser === 'undefined') return html;
+
   const parser = new DOMParser();
   const doc = parser.parseFromString(`<body>${html}</body>`, 'text/html');
   const body = doc.body;

@@ -20,6 +20,7 @@ Web support is still experimental. APIs and behavior can change in future releas
 - Input theming via `placeholderTextColor`, `cursorColor` and `selectionColor` props
 - Keyboard shortcuts for formatting
 - `useHtmlNormalizer`
+- Setting text alignment via `setTextAlignment()`
 
 ### Keyboard shortcuts
 
@@ -38,14 +39,15 @@ See [Web Keyboard Shortcuts](./INPUT_API_REFERENCE.md#web-keyboard-shortcuts) fo
 ### What works
 
 - Customizing the styling using props: `style`, `htmlStyle`, `selectionColor`.
+- `selectable` prop
+- `useHtmlNormalizer`
+- `onLinkPress` and `onMentionPress` callbacks
 
 ### Unsupported
 
-- **`selectable`**: ignored on web.
-- **`useHtmlNormalizer`**: ignored on web.
 - **`ellipsizeMode`**: ignored on web.
 - **`numberOfLines`**: ignored on web.
-- **Press events**: `onLinkPress` and `onMentionPress` callbacks are ignored on web.
+- **RN layout ref methods**: `measure`, `measureInWindow`, `measureLayout`, and `setNativeProps` are no-ops.
 
 ## HTML sanitization
 
