@@ -119,7 +119,7 @@ export const EnrichedTextInput = ({
   onEndMention,
   linkRegex,
   htmlStyle,
-  useHtmlNormalizer,
+  useHtmlNormalizer = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.useHtmlNormalizer,
 }: EnrichedTextInputProps) => {
   const tiptapContent =
     defaultValue != null
