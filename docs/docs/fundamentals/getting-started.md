@@ -26,7 +26,7 @@ Not only does this library allow you to apply basic rich text styles you know we
 like *bold* or _italic_, but also provides more powerful tools like `mentions`, something
 you will learn more about in the next chapters.
 
-iOS and Android are and Web are all supported. iOS and Android are both stable, where Web is still experimental, so expect
+iOS, Android, and Web are all supported. iOS and Android are stable; Web is still experimental, so expect
 its behavior to change between releases.
 
 ## Prerequisites

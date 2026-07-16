@@ -47,13 +47,9 @@ sources.
 :::
 
 ## Normalization
+HTML can be messy. If a user pastes text from Google Docs or MS Word, it can arrive packed with wrapper tags, inline styles, and structural quirks that don't match the format we expect.
 
-## Normalization
-
-HTML can often be messy. If a user pastes text from Google Docs or MS Word, it arrives packed with wrapper tags, inline styles, and structural quirks that don't match the format we expect.
-
-To handle this, both components provide `useHtmlNormalizer` prop that normalizes any incoming HTML. The normalizer cleans and restructures the input into the predictable format the library expects. For example, it maps `<strong>` to `<b>`, safely unwraps `<div>` containers into `<p>` tags, and strips tags that are unsupported. The `useHtmlNormalizer` prop defaults to `true`.
-
+To handle this, both components provide a `useHtmlNormalizer` prop that normalizes incoming HTML. The normalizer cleans and restructures the input into the predictable format the library expects (e.g. it maps `<strong>` to `<b>`, unwraps `<div>` containers into `<p>` tags, and strips unsupported tags). The `useHtmlNormalizer` prop defaults to `true`.
 All supported and canonical tags are listed in [Supported HTML tags](/fundamentals/html-format-and-supported-tags).
 
 ## Two components, one styling API
@@ -86,6 +82,7 @@ through `onChangeState`, which gives each style three booleans:
   blockquote. Use it to hint that the toggle is a swap, not an addition.
 
 Driving your toolbar from these three flags keeps the UI honest: buttons light
-up and grey out according do the editor's state.
-To find the comprehensive list about what style blocks or conflicts with, check out
+up and grey out according to the editor's state.
+
+For the comprehensive list of which styles block or conflict with each other, see
 [Supported HTML tags](/fundamentals/html-format-and-supported-tags).
