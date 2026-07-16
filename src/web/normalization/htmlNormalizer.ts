@@ -323,11 +323,27 @@ function escapeText(s: string): string {
 
 // --- Blockquote content flattening ---
 
-function flushInlineP(ib: { buf: string }, out: { buf: string }): void {
-  if (ib.buf.length > 0) {
-    out.buf += `<p>${ib.buf}</p>`;
-    ib.buf = '';
+function isWhitespaceOnly(value: string): boolean {
+  for (let i = 0; i < value.length; i++) {
+    const c = value.charCodeAt(i);
+    // space, tab, LF, CR, FF — mirrors GumboNormalizer.c
+    if (c !== 0x20 && c !== 0x09 && c !== 0x0a && c !== 0x0d && c !== 0x0c) {
+      return false;
+    }
   }
+  return true;
+}
+
+/**
+ * Flush buffered inline content as a <p>. Inter-block whitespace (newlines /
+ * spaces between block tags in pretty-printed HTML) is discarded so it does
+ * not become empty paragraphs that later serialize as extra <br>s.
+ */
+function flushInlineP(ib: { buf: string }, out: { buf: string }): void {
+  if (ib.buf.length > 0 && !isWhitespaceOnly(ib.buf)) {
+    out.buf += `<p>${ib.buf}</p>`;
+  }
+  ib.buf = '';
 }
 
 function flattenBqChildren(
@@ -493,9 +509,11 @@ function walkChildren(node: Element, out: { buf: string }): void {
           break;
         }
         if (isElement(cur) && isBrNode(cur)) {
-          if (ib.buf.length > 0) {
+          // Whitespace-only buffer is layout noise; treat like empty → <br>
+          if (ib.buf.length > 0 && !isWhitespaceOnly(ib.buf)) {
             flushInlineP(ib, out);
           } else {
+            ib.buf = '';
             out.buf += '<br>';
           }
           i++;
