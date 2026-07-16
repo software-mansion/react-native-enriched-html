@@ -41,12 +41,12 @@ See [Web Keyboard Shortcuts](./INPUT_API_REFERENCE.md#web-keyboard-shortcuts) fo
 - Customizing the styling using props: `style`, `htmlStyle`, `selectionColor`.
 - `selectable` prop
 - `useHtmlNormalizer`
+- `onLinkPress` and `onMentionPress` callbacks
 
 ### Unsupported
 
 - **`ellipsizeMode`**: ignored on web.
 - **`numberOfLines`**: ignored on web.
-- **Press events**: `onLinkPress` and `onMentionPress` callbacks are ignored on web.
 - **RN layout ref methods**: `measure`, `measureInWindow`, `measureLayout`, and `setNativeProps` are no-ops.
 
 ## HTML sanitization

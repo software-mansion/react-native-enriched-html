@@ -5,6 +5,8 @@ import {
   type BlurEvent,
   type EnrichedTextInstance,
   type FocusEvent,
+  type OnLinkPressEvent,
+  type OnMentionPressEvent,
 } from 'react-native-enriched-html';
 import { WEB_DEFAULT_HTML_STYLE } from '../defaultHtmlStyle';
 
@@ -23,6 +25,14 @@ export function TextRenderer({ htmlValue }: TextRendererProps) {
     console.log('[EnrichedText] onBlur', e.nativeEvent);
   };
 
+  const handleLinkPress = (e: OnLinkPressEvent) => {
+    console.log('[EnrichedText] link press event', e);
+  };
+
+  const handleMentionPress = (e: OnMentionPressEvent) => {
+    console.log('[EnrichedText] mention press event', e);
+  };
+
   return (
     <div className="container enriched-text-container">
       <h1 className="app-title">Enriched Text</h1>
@@ -32,6 +42,8 @@ export function TextRenderer({ htmlValue }: TextRendererProps) {
         htmlStyle={WEB_DEFAULT_HTML_STYLE}
         onFocus={handleTextFocus}
         onBlur={handleTextBlur}
+        onLinkPress={handleLinkPress}
+        onMentionPress={handleMentionPress}
       >
         {htmlValue}
       </EnrichedText>

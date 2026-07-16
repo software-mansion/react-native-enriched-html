@@ -94,9 +94,9 @@ interface OnLinkPressEvent {
 }
 ```
 
-| Type                                | Default Value | Platform     |
-| ----------------------------------- | ------------- | ------------ |
-| `(event: OnLinkPressEvent) => void` | -             | iOS, Android |
+| Type                                | Default Value | Platform          |
+| ----------------------------------- | ------------- | ----------------- |
+| `(event: OnLinkPressEvent) => void` | -             | iOS, Android, Web |
 
 ### `onMentionPress`
 
@@ -110,9 +110,9 @@ interface OnMentionPressEvent {
 }
 ```
 
-| Type                                   | Default Value | Platform     |
-| -------------------------------------- | ------------- | ------------ |
-| `(event: OnMentionPressEvent) => void` | -             | iOS, Android |
+| Type                                   | Default Value | Platform          |
+| -------------------------------------- | ------------- | ----------------- |
+| `(event: OnMentionPressEvent) => void` | -             | iOS, Android, Web |
 
 ## EnrichedTextHtmlStyle type
 
