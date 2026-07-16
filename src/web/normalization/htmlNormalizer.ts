@@ -326,7 +326,7 @@ function escapeText(s: string): string {
 function isWhitespaceOnly(value: string): boolean {
   for (let i = 0; i < value.length; i++) {
     const c = value.charCodeAt(i);
-    // space, tab, LF, CR, FF — mirrors GumboNormalizer.c
+    // space, tab, LF, CR, FF
     if (c !== 0x20 && c !== 0x09 && c !== 0x0a && c !== 0x0d && c !== 0x0c) {
       return false;
     }
