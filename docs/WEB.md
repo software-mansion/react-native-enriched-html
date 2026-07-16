@@ -59,3 +59,9 @@ On web, HTML is sanitized automatically with [DOMPurify](https://github.com/cure
 ### Custom mention attributes
 
 To attach custom data to a mention, use the `data-` prefix (e.g. `data-user-id`) to make sure they survive sanitization. Attributes passed to the `setMention` ref method are properly sanitized.
+
+## Client-only rendering (no SSR)
+
+Both `EnrichedText` and `EnrichedTextInput` are **client-only** components. They rely on browser-only APIs (`DOMParser`, `DOMPurify`, `TipTap`) and are **not designed for server-side rendering (SSR)**.
+
+If your application uses SSR (Next.js, Remix, Gatsby, etc.), make sure these components only render on the client.

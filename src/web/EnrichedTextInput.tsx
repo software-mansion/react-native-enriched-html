@@ -84,6 +84,7 @@ import {
   checkMentionAttributes,
   sanitizeMentionAttributes,
 } from './sanitization/htmlSanitizer';
+import { assertBrowserEnvironment } from './assertBrowserEnvironment';
 
 function runFocused(
   editor: Editor,
@@ -125,6 +126,8 @@ export const EnrichedTextInput = ({
   htmlStyle,
   useHtmlNormalizer = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.useHtmlNormalizer,
 }: EnrichedTextInputProps) => {
+  assertBrowserEnvironment('EnrichedTextInput');
+
   const tiptapContent =
     defaultValue != null
       ? prepareHtmlForTiptap(defaultValue, useHtmlNormalizer)
