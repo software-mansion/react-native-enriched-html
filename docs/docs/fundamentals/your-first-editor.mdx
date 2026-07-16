@@ -34,12 +34,14 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 16 },
+  container: { gap: 12 },
   input: {
     fontSize: 18,
+    color: '#232736',
     padding: 12,
-    maxHeight: 200,
-    backgroundColor: 'gainsboro',
+    borderRadius: 12,
+    minHeight: 96,
+    backgroundColor: '#eef0ff',
   },
 });
 ```
@@ -53,11 +55,11 @@ Add a ref and a button that calls `toggleBold`. Each call flips bold on the
 current selection, or arms it for the next characters you type if nothing is
 selected.
 
-```tsx {2-4,9,12-15}
+```tsx {2-4,7,12,16-18,33-44}
 import { EnrichedTextInput } from 'react-native-enriched-html';
 import type { EnrichedTextInputInstance } from 'react-native-enriched-html';
 import { useRef } from 'react';
-import { View, Button, StyleSheet } from 'react-native';
+import { View, StyleSheet, Pressable, Text } from 'react-native';
 
 export default function App() {
   const ref = useRef<EnrichedTextInputInstance>(null);
@@ -69,32 +71,57 @@ export default function App() {
         style={styles.input}
         placeholder="Type something here..."
       />
-      <Button title="Bold" onPress={() => ref.current?.toggleBold()} />
+      <Pressable style={styles.button} onPress={() => ref.current?.toggleBold()}>
+        <Text style={styles.text}>Bold</Text>
+      </Pressable>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { gap: 12 },
+  input: {
+    fontSize: 18,
+    color: '#232736',
+    padding: 12,
+    borderRadius: 12,
+    minHeight: 96,
+    backgroundColor: '#eef0ff',
+  },
+  button: {
+    alignSelf: 'center',
+    width: 100,
+    padding: 8,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: '#919fcf',
+  },
+  text: {
+    textAlign: 'center',
+    color: '#919fcf',
+  },
+});
 ```
 
-Every other style works the same way — there's a `toggleItalic`,
+Every other style is toggled similarly via `ref` — there's a `toggleItalic`,
 `toggleUnderline`, `toggleH1`, `toggleOrderedList`, and so on.
 
 ## Reading the state back
 
 A toolbar button should also show whether bold is _currently_ active, so the
 user knows what they're about to change. The input reports this through the
-`onChangeState` event, which fires whenever the active styles change — including
-when the user just moves the cursor.
+`onChangeState` event, which fires whenever the active styles change.
 
 The payload holds an entry per style. Use `bold.isActive` to drive the button:
 
-```tsx {8,15-19,22-26}
+```tsx {4,6,11,19,22,24,50-53,58-60}
 import { EnrichedTextInput } from 'react-native-enriched-html';
 import type {
   EnrichedTextInputInstance,
   OnChangeStateEvent,
 } from 'react-native-enriched-html';
 import { useRef, useState } from 'react';
-import { View, Button, StyleSheet } from 'react-native';
+import { View, StyleSheet, Pressable, Text } from 'react-native';
 
 export default function App() {
   const ref = useRef<EnrichedTextInputInstance>(null);
@@ -106,16 +133,49 @@ export default function App() {
         ref={ref}
         style={styles.input}
         placeholder="Type something here..."
-        onChangeState={(e) => setState(e.nativeEvent)}
+        onChangeState={e => setState(e.nativeEvent)}
       />
-      <Button
-        title={state?.bold.isActive ? 'Unbold' : 'Bold'}
-        color={state?.bold.isActive ? 'green' : 'gray'}
-        onPress={() => ref.current?.toggleBold()}
-      />
+      <Pressable
+        style={[styles.button, state?.bold.isActive && styles.buttonActive]}
+        onPress={() => ref.current?.toggleBold()}>
+        <Text style={[styles.text, state?.bold.isActive && styles.textActive]}>
+          Bold
+        </Text>
+      </Pressable>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { gap: 12 },
+  input: {
+    fontSize: 18,
+    color: '#232736',
+    padding: 12,
+    borderRadius: 12,
+    minHeight: 96,
+    backgroundColor: '#eef0ff',
+  },
+  button: {
+    alignSelf: 'center',
+    width: 100,
+    padding: 8,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: '#919fcf',
+  },
+  buttonActive: {
+    borderColor: '#57b495',
+    backgroundColor: '#57b495',
+  },
+  text: {
+    textAlign: 'center',
+    color: '#919fcf',
+  },
+  textActive: {
+    color: '#eef0ff',
+  },
+});
 ```
 
 That's the full loop: the button **acts** on the input with `toggleBold`, and
@@ -139,4 +199,3 @@ notice the button turns green whenever the cursor sits on bold text. Switch to
 the **Code** tab to see the exact source.
 
 <InteractiveExample src={FirstEditorSrc} component={FirstEditor} />
-

@@ -15,7 +15,7 @@ your own. Let's dive in.
 ## What is React Native Enriched HTML?
 
 React Native Enriched HTML is a rich text solution for React Native built by
-[Software Mansion](https://swmansion.com/).
+[Software Mansion](https://swmansion.com/). It supports iOS, Android and Web.
 
 It ships two fully native components: `EnrichedTextInput`, a rich text editor
 that styles text live as you type, and `EnrichedText`, a read-only display component that
@@ -25,9 +25,6 @@ produces it, the display consumes it.
 Not only does this library allow you to apply basic rich text styles you know well,
 like *bold* or _italic_, but also provides more powerful tools like `mentions`, something
 you will learn more about in the next chapters.
-
-iOS, Android, and Web are all supported. iOS and Android are stable; Web is still experimental, so expect
-its behavior to change between releases.
 
 ## Prerequisites
 
