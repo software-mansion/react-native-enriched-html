@@ -33,7 +33,10 @@
     "prettier": "^3.6.2",
     "prism-react-renderer": "^2.1.0",
     "react": "19.1.1",
-    "react-dom": "19.1.1"
+    "react-dom": "19.1.1",
+    "react-native": "0.83.0",
+    "react-native-enriched-html": "1.0.0",
+    "react-native-web": "0.21.2"
   },
   "resolutions": {
     "webpack": "5.105.4",
@@ -54,7 +57,8 @@
   "devDependencies": {
     "@docusaurus/module-type-aliases": "3.9.2",
     "@docusaurus/tsconfig": "3.9.2",
-    "@docusaurus/types": "3.9.2"
+    "@docusaurus/types": "3.9.2",
+    "raw-loader": "^4.0.2"
   },
   "browserslist": {
     "production": [

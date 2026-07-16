@@ -1,6 +1,7 @@
 import MDXComponents from '@theme-original/MDXComponents';
 import Details from '@site/src/theme/MDXComponents/Details';
 import CollapsibleCode from '@site/src/components/CollapsibleCode';
+import InteractiveExample from '@site/src/components/InteractiveExample';
 import PlatformCompatibility from '@site/src/components/PlatformCompatibility';
 import ExampleVideo from '@site/src/components/ExampleVideo';
 import ThemedVideo from '@site/src/components/ThemedVideo';
@@ -15,6 +16,7 @@ export default {
   ...MDXComponents,
   details: Details,
   CollapsibleCode,
+  InteractiveExample,
   PlatformCompatibility,
   ExampleVideo,
   ThemedVideo,
