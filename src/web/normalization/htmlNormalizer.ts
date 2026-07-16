@@ -370,11 +370,13 @@ function flushInlineP(
   ib: { buf: string },
   out: { buf: string },
   attrs = ''
-): void {
-  if (ib.buf.length > 0 && !isWhitespaceOnly(ib.buf)) {
+): boolean {
+  const emitted = ib.buf.length > 0 && !isWhitespaceOnly(ib.buf);
+  if (emitted) {
     out.buf += `<p${attrs}>${ib.buf}</p>`;
   }
   ib.buf = '';
+  return emitted;
 }
 
 function flattenBqChildren(
@@ -542,10 +544,7 @@ function walkChildren(node: Element, out: { buf: string }): void {
         }
         if (isElement(cur) && isBrNode(cur)) {
           // Whitespace-only buffer is layout noise; treat like empty → <br>
-          if (ib.buf.length > 0 && !isWhitespaceOnly(ib.buf)) {
-            flushInlineP(ib, out);
-          } else {
-            ib.buf = '';
+          if (!flushInlineP(ib, out)) {
             out.buf += '<br>';
           }
           i++;

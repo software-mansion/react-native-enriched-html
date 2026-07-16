@@ -563,9 +563,10 @@ static bool is_whitespace_only(const char *data, size_t len) {
  * spaces between block tags in pretty-printed HTML) is discarded so it does
  * not become empty paragraphs that later serialize as extra <br>s.
  */
-static void flush_inline_p(buffer_t *ib, buffer_t *out,
+static bool flush_inline_p(buffer_t *ib, buffer_t *out,
                            GumboElement *align_el) {
-  if (ib->len > 0 && !is_whitespace_only(ib->data, ib->len)) {
+  bool emitted = ib->len > 0 && !is_whitespace_only(ib->data, ib->len);
+  if (emitted) {
     buffer_append_str(out, "<p");
     if (align_el)
       emit_alignment(align_el, "p", out);
@@ -574,6 +575,7 @@ static void flush_inline_p(buffer_t *ib, buffer_t *out,
     buffer_append_str(out, "</p>");
   }
   buffer_clear(ib);
+  return emitted;
 }
 
 static void flatten_bq_children(GumboNode *node, buffer_t *ib, buffer_t *out) {
@@ -746,12 +748,8 @@ static void walk_children(GumboNode *node, buffer_t *out) {
         child = children->data[i];
         if (is_br_node(child)) {
           /* Whitespace-only buffer is layout noise; treat like empty → <br> */
-          if (ib.len > 0 && !is_whitespace_only(ib.data, ib.len))
-            flush_inline_p(&ib, out, NULL);
-          else {
-            buffer_clear(&ib);
+          if (!flush_inline_p(&ib, out, NULL))
             buffer_append_str(out, "<br>");
-          }
           i++;
           continue;
         }
