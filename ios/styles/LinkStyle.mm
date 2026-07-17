@@ -326,28 +326,10 @@ static NSString *const AutomaticLinkAttributeName = @"EnrichedAutomaticLink";
   }
 
   // all conditions are met; try matching the word to a proper regex
-
-  NSString *regexPassedUrl = nullptr;
-  NSRange matchingRange = NSMakeRange(0, word.length);
-
-  if (linkRegexConfig.isDefault) {
-    // use default regex
-    regexPassedUrl = [self tryMatchingDefaultLinkRegex:word
-                                            matchRange:matchingRange];
-  } else {
-    // use user defined regex if it exists
-    NSRegularExpression *userRegex = [self.host.config parsedLinkRegex];
-
-    if (userRegex == nullptr) {
-      // fallback to default regex
-      regexPassedUrl = [self tryMatchingDefaultLinkRegex:word
-                                              matchRange:matchingRange];
-    } else if ([userRegex numberOfMatchesInString:word
-                                          options:0
-                                            range:matchingRange]) {
-      regexPassedUrl = word;
-    }
-  }
+  NSString *regexPassedUrl =
+      [LinkStyle matchesLinkRegexWithConfig:word config:self.host.config]
+          ? word
+          : nullptr;
 
   if (regexPassedUrl != nullptr) {
     // add style only if needed
@@ -378,21 +360,25 @@ static NSString *const AutomaticLinkAttributeName = @"EnrichedAutomaticLink";
   }
 }
 
-- (NSString *)tryMatchingDefaultLinkRegex:(NSString *)word
-                               matchRange:(NSRange)range {
-  if ([[LinkStyle fullRegex] numberOfMatchesInString:word
-                                             options:0
-                                               range:range] ||
-      [[LinkStyle wwwRegex] numberOfMatchesInString:word
-                                            options:0
-                                              range:range] ||
-      [[LinkStyle bareRegex] numberOfMatchesInString:word
-                                             options:0
-                                               range:range]) {
-    return word;
++ (BOOL)matchesLinkRegexWithConfig:(NSString *)url
+                            config:(EnrichedConfig *)config {
+  LinkRegexConfig *linkRegexConfig = [config linkRegexConfig];
+  if (linkRegexConfig == nullptr || linkRegexConfig.isDisabled) {
+    return NO;
   }
-
-  return nullptr;
+  NSRange range = NSMakeRange(0, url.length);
+  NSRegularExpression *userRegex = [config parsedLinkRegex];
+  if (linkRegexConfig.isDefault || userRegex == nullptr) {
+    return [[self fullRegex] numberOfMatchesInString:url
+                                             options:0
+                                               range:range] > 0 ||
+           [[self wwwRegex] numberOfMatchesInString:url options:0
+                                              range:range] > 0 ||
+           [[self bareRegex] numberOfMatchesInString:url
+                                             options:0
+                                               range:range] > 0;
+  }
+  return [userRegex numberOfMatchesInString:url options:0 range:range] > 0;
 }
 
 // handles refreshing manual links

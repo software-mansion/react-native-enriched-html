@@ -719,6 +719,15 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
     textShortcuts = shortcuts;
   }
 
+  // linkRegex
+  LinkRegexConfig *oldRegexConfig =
+      [[LinkRegexConfig alloc] initWithLinkRegexProp:oldViewProps.linkRegex];
+  LinkRegexConfig *newRegexConfig =
+      [[LinkRegexConfig alloc] initWithLinkRegexProp:newViewProps.linkRegex];
+  if (![newRegexConfig isEqualToConfig:oldRegexConfig]) {
+    [config setLinkRegexConfig:newRegexConfig];
+  }
+
   // default value - must be set before placeholder to make sure it correctly
   // shows on first mount
   if (newViewProps.defaultValue != oldViewProps.defaultValue) {
@@ -773,15 +782,6 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
       }
     }
     [config setMentionIndicators:newIndicators];
-  }
-
-  // linkRegex
-  LinkRegexConfig *oldRegexConfig =
-      [[LinkRegexConfig alloc] initWithLinkRegexProp:oldViewProps.linkRegex];
-  LinkRegexConfig *newRegexConfig =
-      [[LinkRegexConfig alloc] initWithLinkRegexProp:newViewProps.linkRegex];
-  if (![newRegexConfig isEqualToConfig:oldRegexConfig]) {
-    [config setLinkRegexConfig:newRegexConfig];
   }
 
   // selection color sets both selection and cursor on iOS (just as in RN)
@@ -1717,18 +1717,23 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   }
 
   if (![textView.textStorage.string isEqualToString:_recentInputString]) {
-    // emit onChangeText event
     auto emitter = [self getEventEmitter];
-    if (emitter != nullptr && _emitTextChange) {
+    if (emitter != nullptr) {
       // set the recent input string only if the emitter is defined
+      // to properly emit the initial onChangeText event
+      // as anyTextMayHaveBeenModified also runs before the emitter's
+      // initialization
       _recentInputString = [textView.textStorage.string copy];
 
-      // emit string without zero width spaces
-      NSString *stringToBeEmitted = [[textView.textStorage.string
-          stringByReplacingOccurrencesOfString:@"\u200B"
-                                    withString:@""] copy];
+      // emit onChangeText event
+      if (_emitTextChange) {
+        // emit string without zero width spaces
+        NSString *stringToBeEmitted = [[textView.textStorage.string
+            stringByReplacingOccurrencesOfString:@"\u200B"
+                                      withString:@""] copy];
 
-      emitter->onChangeText({.value = [stringToBeEmitted toCppString]});
+        emitter->onChangeText({.value = [stringToBeEmitted toCppString]});
+      }
     }
   }
   // all the visible (not meta) attributes handling in the ranges that could
