@@ -19,7 +19,7 @@ freely, and there are two kinds of restriction:
   style is active. `<b>` is blocked inside `<codeblock>`, so bold can't be
   applied there.
 
-Both show up in the [`onChangeState`](/fundamentals/core-concepts) payload as
+Both show up in the [`onChangeState`](/fundamentals/core-concepts#the-style-state-model) payload as
 `isConflicting` and `isBlocking`.
 
 ## Inline tags
@@ -74,6 +74,6 @@ paragraph comes out like this:
 
 ```html
 <h1>Title</h1>
-<br />
+<br>
 <p>Some body text.</p>
 ```

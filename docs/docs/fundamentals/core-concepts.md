@@ -21,10 +21,8 @@ Keeping it native makes the editor fast and stable.
 
 In practice this means:
 
-- To **change** content or styling, call a method: `ref.current?.toggleBold()`,
-  `ref.current?.setValue(html)`, `ref.current?.setLink(...)`.
-- To **observe** content or styling, listen to an event: `onChangeState`,
-  `onChangeHtml`, `onChangeSelection`.
+- To **change** the content or formatting, call a method on the ref, e.g. `ref.current?.toggleBold()`, `ref.current?.setValue(html)`, or `ref.current?.setLink(...)`.
+- To **observe** changes to the content or formatting, listen to events such as `onChangeState`, `onChangeHtml`, or `onChangeSelection`.
 
 You never set a `value` prop and re-render to make an edit happen.
 
@@ -35,22 +33,22 @@ The editor's content is HTML. `setValue` and `defaultValue` seeds it with an HTM
 changes. What you store and what you render is a string of HTML.
 
 The library uses a fixed set of standard and custom tags, so the output is
-predictable and portable. [Supported HTML tags](/fundamentals/html-format-and-supported-tags)
+predictable and portable. [Supported tags](/fundamentals/html-format-and-supported-tags)
 lists exactly what it produces and accepts.
 
 :::caution
 
-You own sanitization. The library doesn't guarantee safe or clean HTML, so
+Sanitizing HTML is your responsibility. The library doesn't guarantee safe or clean HTML, so
 sanitize anything you persist, render elsewhere, or accept from untrusted
 sources.
 
 :::
 
 ## Normalization
-HTML can be messy. If a user pastes text from Google Docs or MS Word, it can arrive packed with wrapper tags, inline styles, and structural quirks that don't match the format we expect.
+HTML can be messy. When users paste rich text from applications like Google Docs or Microsoft Word, the HTML often contains additional wrapper elements, inline styles, and structural quirks that may not match the HTML structure expected by the library.
 
 To handle this, both components provide a `useHtmlNormalizer` prop that normalizes incoming HTML. The normalizer cleans and restructures the input into the predictable format the library expects (e.g. it maps `<strong>` to `<b>`, unwraps `<div>` containers into `<p>` tags, and strips unsupported tags). The `useHtmlNormalizer` prop defaults to `true`.
-All supported and canonical tags are listed in [Supported HTML tags](/fundamentals/html-format-and-supported-tags).
+All supported and canonical tags are listed in [Supported tags](/fundamentals/html-format-and-supported-tags).
 
 ## Two components, one styling API
 
@@ -68,9 +66,7 @@ drift between the two. A common setup edits in `EnrichedTextInput`, stores the
 
 ## The style state model
 
-Not every style can combine with every other. A heading isn't a list; bold
-inside a code block doesn't make sense. The editor tracks this and reports it
-through `onChangeState`, which gives each style three booleans:
+Not every style can be combined with every other. For example, a paragraph can't be both a heading and a list item, code blocks don't support inline formatting such as bold or italic. The editor tracks this and reports it through `onChangeState`, which gives each style three booleans:
 
 - **`isActive`** — the style is applied at the current selection. Use it to
   highlight a toolbar button.
@@ -85,4 +81,4 @@ Driving your toolbar from these three flags keeps the UI honest: buttons light
 up and grey out according to the editor's state.
 
 For the comprehensive list of which styles block or conflict with each other, see
-[Supported HTML tags](/fundamentals/html-format-and-supported-tags).
+[Supported tags](/fundamentals/html-format-and-supported-tags).
