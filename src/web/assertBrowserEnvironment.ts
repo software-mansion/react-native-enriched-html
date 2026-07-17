@@ -14,7 +14,7 @@ export function assertBrowserEnvironment(componentName: string): void {
 
   if (!hasDOM) {
     throw new Error(
-      `[react-native-enriched] ${componentName} is a client-only component and cannot be rendered without a DOM. ` +
+      `[react-native-enriched-html] ${componentName} is a client-only component and cannot be rendered without a DOM. ` +
         `If you are running an SSR application, make sure the component is only rendered on the client.`
     );
   }
