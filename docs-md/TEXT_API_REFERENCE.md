@@ -40,9 +40,9 @@ A prop for customizing styles of HTML elements, including press colors for inter
 
 If `true`, external HTML (e.g. from Google Docs, Word, web pages) will be normalized before rendering. This converts arbitrary HTML into the canonical tag subset that the enriched parser understands.
 
-| Type   | Default Value | Platform     |
-| ------ | ------------- | ------------ |
-| `bool` | `false`       | iOS, Android |
+| Type   | Default Value | Platform          |
+| ------ | ------------- | ----------------- |
+| `bool` | `true`        | iOS, Android, Web |
 
 ### `ellipsizeMode`
 
@@ -72,9 +72,9 @@ Limits the number of displayed lines. Set to `0` for unlimited lines.
 
 If `true`, the text can be selected by the user (e.g. for copy/paste).
 
-| Type   | Default Value | Platform     |
-| ------ | ------------- | ------------ |
-| `bool` | `false`       | iOS, Android |
+| Type   | Default Value | Platform          |
+| ------ | ------------- | ----------------- |
+| `bool` | `false`       | iOS, Android, Web |
 
 ### `selectionColor`
 
@@ -94,9 +94,9 @@ interface OnLinkPressEvent {
 }
 ```
 
-| Type                                | Default Value | Platform     |
-| ----------------------------------- | ------------- | ------------ |
-| `(event: OnLinkPressEvent) => void` | -             | iOS, Android |
+| Type                                | Default Value | Platform          |
+| ----------------------------------- | ------------- | ----------------- |
+| `(event: OnLinkPressEvent) => void` | -             | iOS, Android, Web |
 
 ### `onMentionPress`
 
@@ -110,9 +110,9 @@ interface OnMentionPressEvent {
 }
 ```
 
-| Type                                   | Default Value | Platform     |
-| -------------------------------------- | ------------- | ------------ |
-| `(event: OnMentionPressEvent) => void` | -             | iOS, Android |
+| Type                                   | Default Value | Platform          |
+| -------------------------------------- | ------------- | ----------------- |
+| `(event: OnMentionPressEvent) => void` | -             | iOS, Android, Web |
 
 ## EnrichedTextHtmlStyle type
 

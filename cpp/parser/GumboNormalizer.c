@@ -411,6 +411,53 @@ static void emit_one_attr(buffer_t *out, GumboElement *el,
   }
 }
 
+/* Tags that may carry a text-align style in our canonical output */
+static bool is_alignable_tag(const char *tag_name) {
+  return strcmp(tag_name, "p") == 0 || strcmp(tag_name, "ul") == 0 ||
+         strcmp(tag_name, "ol") == 0 || strcmp(tag_name, "h1") == 0 ||
+         strcmp(tag_name, "h2") == 0 || strcmp(tag_name, "h3") == 0 ||
+         strcmp(tag_name, "h4") == 0 || strcmp(tag_name, "h5") == 0 ||
+         strcmp(tag_name, "h6") == 0;
+}
+
+static const char *canonical_alignment(const char *val, size_t val_len) {
+  static const char *aligns[] = {"left", "center", "right", "justify"};
+  for (size_t i = 0; i < 4; i++) {
+    size_t alen = strlen(aligns[i]);
+    if (alen != val_len)
+      continue;
+    bool match = true;
+    for (size_t j = 0; j < val_len; j++) {
+      if (tolower((unsigned char)val[j]) != aligns[i][j]) {
+        match = false;
+        break;
+      }
+    }
+    if (match)
+      return aligns[i];
+  }
+  return NULL;
+}
+
+static void emit_alignment(GumboElement *el, const char *tag_name,
+                           buffer_t *out) {
+  if (!is_alignable_tag(tag_name))
+    return;
+  const char *style = get_attr(el, "style");
+  if (!style)
+    return;
+  size_t vlen;
+  const char *val = find_css_value(style, strlen(style), "text-align", &vlen);
+  if (!val)
+    return;
+  const char *canon = canonical_alignment(val, vlen);
+  if (!canon)
+    return;
+  buffer_append_str(out, " style=\"text-align: ");
+  buffer_append_str(out, canon);
+  buffer_append_str(out, "\"");
+}
+
 static bool is_checkbox_list(GumboElement *el) {
   const char *val = get_attr(el, "data-type");
   if (val && (strcmp(val, "checkbox") == 0 || strcmp(val, "checkboxList") == 0)) {
@@ -452,6 +499,7 @@ static void emit_attributes(GumboElement *el, const char *tag_name,
     if (is_checkbox_list(el)) {
       buffer_append_str(out, " data-type=\"checkbox\"");
     }
+    emit_alignment(el, tag_name, out);
   } else if (strcmp(tag_name, "li") == 0) {
     const char *data_checked = get_attr(el, "data-checked");
     const char *aria_checked = get_attr(el, "aria-checked");
@@ -468,6 +516,9 @@ static void emit_attributes(GumboElement *el, const char *tag_name,
     emit_one_attr(out, el, "id");
     emit_one_attr(out, el, "text");
     emit_one_attr(out, el, "indicator");
+  } else {
+    /* preserve text-align */
+    emit_alignment(el, tag_name, out);
   }
 }
 
@@ -497,9 +548,13 @@ static void walk_node(GumboNode *node, buffer_t *out);
 
 static void flatten_bq_node(GumboNode *node, buffer_t *ib, buffer_t *out);
 
-static void flush_inline_p(buffer_t *ib, buffer_t *out) {
+static void flush_inline_p(buffer_t *ib, buffer_t *out,
+                           GumboElement *align_el) {
   if (ib->len > 0) {
-    buffer_append_str(out, "<p>");
+    buffer_append_str(out, "<p");
+    if (align_el)
+      emit_alignment(align_el, "p", out);
+    buffer_append_str(out, ">");
     buffer_append(out, ib->data, ib->len);
     buffer_append_str(out, "</p>");
     buffer_clear(ib);
@@ -526,13 +581,14 @@ static void flatten_bq_node(GumboNode *node, buffer_t *ib, buffer_t *out) {
     return;
   }
   if (is_br_node(node)) {
-    flush_inline_p(ib, out);
+    flush_inline_p(ib, out, NULL);
     return;
   }
   if (is_block_producing(node) || is_blockquote_node(node)) {
-    flush_inline_p(ib, out);
+    flush_inline_p(ib, out, NULL);
     flatten_bq_children(node, ib, out);
-    flush_inline_p(ib, out);
+    // The flattened block becomes a <p>; carry over its text-align (if any).
+    flush_inline_p(ib, out, &node->v.element);
     return;
   }
   walk_node(node, ib);
@@ -660,7 +716,7 @@ static void walk_children(GumboNode *node, buffer_t *out) {
         flatten_bq_children(children->data[i], &bq_ib, out);
         i++;
       }
-      flush_inline_p(&bq_ib, out);
+      flush_inline_p(&bq_ib, out, NULL);
       free(bq_ib.data);
       buffer_append_str(out, "</blockquote>");
       continue;
@@ -675,7 +731,7 @@ static void walk_children(GumboNode *node, buffer_t *out) {
         child = children->data[i];
         if (is_br_node(child)) {
           if (ib.len > 0)
-            flush_inline_p(&ib, out);
+            flush_inline_p(&ib, out, NULL);
           else
             buffer_append_str(out, "<br>");
           i++;
@@ -683,7 +739,7 @@ static void walk_children(GumboNode *node, buffer_t *out) {
         }
         /* Transparent inline wrapper for block/bq children */
         if (is_element(child) && has_block_or_bq_child(child)) {
-          flush_inline_p(&ib, out);
+          flush_inline_p(&ib, out, NULL);
           walk_children(child, out);
           i++;
           continue;
@@ -691,7 +747,7 @@ static void walk_children(GumboNode *node, buffer_t *out) {
         walk_node(child, &ib);
         i++;
       }
-      flush_inline_p(&ib, out);
+      flush_inline_p(&ib, out, NULL);
       free(ib.data);
       continue;
     }

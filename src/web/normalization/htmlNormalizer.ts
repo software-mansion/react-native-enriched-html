@@ -231,6 +231,29 @@ function emitStylesClose(s: CssStyles): string {
   return out;
 }
 
+// Tags that may carry a text-align style in our canonical output
+const ALIGN_TAGS = new Set([
+  'p',
+  'ul',
+  'ol',
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6',
+]);
+const ALIGN_VALUES = new Set(['left', 'center', 'right', 'justify']);
+
+function emitAlignment(el: Element, name: string): string {
+  if (!ALIGN_TAGS.has(name)) return '';
+  const align = findCssValue(el.getAttribute('style') ?? '', 'text-align');
+  if (!align) return '';
+  const lower = align.toLowerCase();
+  if (!ALIGN_VALUES.has(lower)) return '';
+  return ` style="text-align: ${lower}"`;
+}
+
 function emitOneAttr(el: Element, attr: string): string {
   const val = el.getAttribute(attr);
   if (val == null || val === '') return '';
@@ -250,7 +273,10 @@ function emitAttributes(el: Element, name: string): string {
         emitOneAttr(el, 'height')
       );
     case 'ul':
-      return isCheckboxList(el) ? ' data-type="checkbox"' : '';
+      return (
+        (isCheckboxList(el) ? ' data-type="checkbox"' : '') +
+        emitAlignment(el, name)
+      );
     case 'li':
       // "" is U+F0FE (MS Word checked box); often encoded as "\xEF\x83\xBE" in UTF-8.
       const isChecked =
@@ -266,7 +292,8 @@ function emitAttributes(el: Element, name: string): string {
         emitOneAttr(el, 'indicator')
       );
     default:
-      return '';
+      // preserve text-align
+      return emitAlignment(el, name);
   }
 }
 
@@ -323,9 +350,13 @@ function escapeText(s: string): string {
 
 // --- Blockquote content flattening ---
 
-function flushInlineP(ib: { buf: string }, out: { buf: string }): void {
+function flushInlineP(
+  ib: { buf: string },
+  out: { buf: string },
+  attrs = ''
+): void {
   if (ib.buf.length > 0) {
-    out.buf += `<p>${ib.buf}</p>`;
+    out.buf += `<p${attrs}>${ib.buf}</p>`;
     ib.buf = '';
   }
 }
@@ -358,7 +389,8 @@ function flattenBqNode(
   if (isBlockProducing(node) || isBlockquoteNode(node)) {
     flushInlineP(ib, out);
     flattenBqChildren(node, ib, out);
-    flushInlineP(ib, out);
+    // The flattened block becomes a <p>; carry over its text-align (if any).
+    flushInlineP(ib, out, emitAlignment(node, 'p'));
     return;
   }
   walkNode(node, ib);
@@ -647,6 +679,8 @@ function walkNode(node: Node, out: { buf: string }): void {
 }
 
 export function normalizeHtml(html: string): string {
+  if (typeof DOMParser === 'undefined') return html;
+
   const parser = new DOMParser();
   const doc = parser.parseFromString(`<body>${html}</body>`, 'text/html');
   const body = doc.body;
