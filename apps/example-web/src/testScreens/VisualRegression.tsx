@@ -55,7 +55,6 @@ export function VisualRegression() {
     const raw = textShortcutsJson.trim();
     if (!raw) return undefined;
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return JSON.parse(raw) as TextShortcut[];
     } catch {
       return undefined;
