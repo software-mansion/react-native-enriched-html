@@ -45,12 +45,14 @@ sources.
 :::
 
 ## Normalization
-HTML can be messy. When users paste rich text from applications like Google Docs or Microsoft Word, the HTML often contains additional wrapper elements, inline styles, and structural quirks that may not match the HTML structure expected by the library.
 
-To handle this, both components provide a `useHtmlNormalizer` prop that normalizes incoming HTML. The normalizer cleans and restructures the input into the predictable format the library expects (e.g. it maps `<strong>` to `<b>`, unwraps `<div>` containers into `<p>` tags, and strips unsupported tags). The `useHtmlNormalizer` prop defaults to `true`.
+HTML can be messy. Whether users paste rich text from applications like Google Docs or Microsoft Word, or you inject external HTML via `defaultValue`, `setValue`, or pass it directly as `children` into `EnrichedText`, the markup often contains additional wrapper elements, inline styles, and structural quirks that may not match the HTML structure expected by the library..
+
+To handle this, both components provide a `useHtmlNormalizer` prop that normalizes incoming HTML. The normalizer cleans and restructures the input into the predictable format the library relies on (e.g., it maps `<strong>` to `<b>`, unwraps `<div>` containers into `<p>` tags, and strips unsupported tags). The `useHtmlNormalizer` prop defaults to `true`.
+
 All supported and canonical tags are listed in [Supported tags](/fundamentals/html-format-and-supported-tags).
 
-## Two components, one styling API
+## Two components, one HTML format
 
 The library is split into an editor and a viewer:
 
@@ -58,11 +60,7 @@ The library is split into an editor and a viewer:
 - **`EnrichedText`** — a read-only display component that renders the input's
   HTML.
 
-Both accept the same `htmlStyle` prop, which describes how each tag looks
-(heading sizes, blockquote borders, code block colors, and so on). Because they
-share it, text looks identical whether it's being edited or displayed — no
-drift between the two. A common setup edits in `EnrichedTextInput`, stores the
-`getHTML` output, and later shows it with `EnrichedText`.
+The HTML format that both components expect is identical, what allows you to integrate them seamlessly. A common setup edits in `EnrichedTextInput`, stores the `getHTML` output, and later displays it with `EnrichedText`.
 
 ## The style state model
 

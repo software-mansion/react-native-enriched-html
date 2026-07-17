@@ -73,7 +73,9 @@ is represented by `<br>`. So a document with a heading, a blank line and a
 paragraph comes out like this:
 
 ```html
-<h1>Title</h1>
-<br>
-<p>Some body text.</p>
+<html>
+  <h1>Title</h1>
+  <br>
+  <p>Some body text.</p>
+</html>
 ```
