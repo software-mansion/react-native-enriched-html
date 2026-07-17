@@ -38,7 +38,7 @@ lists exactly what it produces and accepts.
 
 :::caution
 
-Sanitizing HTML is your responsibility. The library doesn't guarantee safe or clean HTML, so
+Sanitizing HTML is your responsibility. The library doesn't guarantee safe HTML, so
 sanitize anything you persist, render elsewhere, or accept from untrusted
 sources.
 
