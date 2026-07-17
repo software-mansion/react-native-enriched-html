@@ -112,19 +112,19 @@ object MeasurementStore {
       return text
     }
 
-    val enrichedStyle = getEnrichedStyle(context, fontSize, props) ?: return text
+    try {
+      val textToParse = if (isInternalHtml) text else GumboNormalizer.normalizeHtml(text)
+      val style = props?.getMap("htmlStyle") ?: return text
+      val allowFontScaling = allowFontScalingFromProps(props)
+      val enrichedStyle = EnrichedTextStyle.fromReadableMap(context as ReactContext, fontSize, style, allowFontScaling)
 
-    return parseText(text, enrichedStyle, useHtmlNormalizer, isInternalHtml) ?: text
-  }
-
-  private fun getEnrichedStyle(
-    context: Context,
-    fontSize: Int,
-    props: ReadableMap?,
-  ): EnrichedTextStyle? {
-    val style = props?.getMap("htmlStyle") ?: return null
-    val allowFontScaling = allowFontScalingFromProps(props)
-    return EnrichedTextStyle.fromReadableMap(context as ReactContext, fontSize, style, allowFontScaling)
+      val factory = EnrichedTextSpanFactory()
+      val parsed = EnrichedParser.fromHtml(textToParse, enrichedStyle, factory)
+      return parsed.trimEnd('\n')
+    } catch (e: Exception) {
+      Log.w("MeasurementStore", "Error parsing initial HTML text: ${e.message}")
+      return text
+    }
   }
 
   private fun useHtmlNormalizerFromProps(props: ReadableMap?): Boolean {
@@ -133,29 +133,6 @@ object MeasurementStore {
     }
     return props.getBoolean("useHtmlNormalizer")
   }
-
-  private fun parseText(
-    text: String,
-    style: EnrichedTextStyle,
-    useHtmlNormalizer: Boolean,
-    isInternalHtml: Boolean,
-  ): CharSequence? {
-    val textToParse = if (isInternalHtml) text else normalizeHtmlIfNeeded(text, useHtmlNormalizer)
-
-    try {
-      val factory = EnrichedTextSpanFactory()
-      val parsed = EnrichedParser.fromHtml(textToParse, style, factory)
-      return parsed.trimEnd('\n')
-    } catch (e: Exception) {
-      Log.w("MeasurementStore", "Error parsing initial HTML text: ${e.message}")
-      return textToParse
-    }
-  }
-
-  private fun normalizeHtmlIfNeeded(
-    text: String,
-    useHtmlNormalizer: Boolean,
-  ): String? = if (useHtmlNormalizer) GumboNormalizer.normalizeHtml(text) else null
 
   private fun getInitialFontSize(props: ReadableMap?): Float {
     val propsFontSize = props?.getDouble("fontSize")?.toFloat() ?: EnrichedConstants.TEXT_DEFAULT_FONT_SIZE
