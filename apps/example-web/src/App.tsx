@@ -14,10 +14,9 @@ import {
   type OnSubmitEditing,
   type OnChangeMentionEvent,
   type OnMentionDetected,
-  EnrichedText,
 } from 'react-native-enriched-html';
 import { WEB_DEFAULT_HTML_STYLE } from './defaultHtmlStyle';
-import type { NativeSyntheticEvent, TextStyle } from 'react-native';
+import type { NativeSyntheticEvent } from 'react-native';
 import { EditorActions } from './components/EditorActions';
 import { SetValueModal } from './components/SetValueModal';
 import { ImageModal } from './components/ImageModal';
@@ -28,6 +27,7 @@ import { Toolbar } from './components/Toolbar';
 import { MentionPopup, type MentionItem } from './components/MentionPopup';
 import { useUserMention } from './hooks/useUserMention';
 import { useChannelMention } from './hooks/useChannelMention';
+import { TextRenderer } from './components/TextRenderer';
 
 const DEFAULT_LINK_STATE: OnLinkDetected = {
   text: '',
@@ -114,10 +114,8 @@ function App() {
     console.log('[EnrichedTextInput] Change mention', indicator, text);
     if (indicator === '@') {
       userMention.onMentionChange(text);
-      if (!isUserPopupOpen) setIsUserPopupOpen(true);
     } else {
       channelMention.onMentionChange(text);
-      if (!isChannelPopupOpen) setIsChannelPopupOpen(true);
     }
   };
 
@@ -280,7 +278,6 @@ function App() {
           mentionIndicators={['@', '#']}
           htmlStyle={WEB_DEFAULT_HTML_STYLE}
           linkRegex={LINK_REGEX}
-          useHtmlNormalizer
         />
         <MentionPopup
           variant="user"
@@ -332,15 +329,7 @@ function App() {
 
       {showHtmlOutput && <HtmlOutputPanel html={currentHtml} />}
 
-      <div className="container enriched-text-container">
-        <h1 className="app-title">Enriched Text</h1>
-        <EnrichedText
-          style={enrichedTextStyle}
-          htmlStyle={WEB_DEFAULT_HTML_STYLE}
-        >
-          {enrichedTextValue}
-        </EnrichedText>
-      </div>
+      <TextRenderer htmlValue={enrichedTextValue} />
 
       {isSetValueModalOpen && (
         <SetValueModal
@@ -376,16 +365,6 @@ const enrichedInputStyle: EnrichedInputStyle = {
   width: '100%',
   marginVertical: 12,
   maxHeight: 300,
-  paddingVertical: 12,
-  paddingHorizontal: 14,
-  borderRadius: 8,
-  fontSize: 18,
-};
-
-const enrichedTextStyle: TextStyle = {
-  backgroundColor: 'gainsboro',
-  width: '100%',
-  marginVertical: 12,
   paddingVertical: 12,
   paddingHorizontal: 14,
   borderRadius: 8,

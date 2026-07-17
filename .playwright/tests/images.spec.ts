@@ -33,14 +33,13 @@ test.describe('images', () => {
     const snapshotName = 'images-placeholder-empty-src.png';
     await setEditorHtml(
       page,
-      '<html><p>Hi <img src="" width="40" height="40" /> bye</p></html>'
+      '<html><p>Hi <img src="/pw-e2e-broken.png" width="40" height="40" /> bye</p></html>'
     );
 
     await expect(page.locator('[data-eti-image-placeholder]')).toBeVisible({
       timeout: VISIBILITY_TIMEOUT_MS,
     });
     await expect(page.locator('.eti-inline-image-img')).toHaveCount(0);
-
     await expect(editorLocator(page)).toHaveScreenshot(snapshotName);
   });
 
@@ -103,22 +102,22 @@ test.describe('images', () => {
       {
         name: 'paragraph with placeholder image',
         snapshot: 'images-paragraph-placeholder.png',
-        html: '<html><p>Before <img src="" width="40" height="40" /> after</p></html>',
+        html: '<html><p>Before <img src="/pw-e2e-broken.png" width="40" height="40" /> after</p></html>',
       },
       {
         name: 'blockquote with placeholder image',
         snapshot: 'images-blockquote-placeholder.png',
-        html: '<html><blockquote><p>Before <img src="" width="40" height="40" /> after</p></blockquote></html>',
+        html: '<html><blockquote><p>Before <img src="/pw-e2e-broken.png" width="40" height="40" /> after</p></blockquote></html>',
       },
       {
         name: 'unordered list item with placeholder image',
         snapshot: 'images-ul-placeholder.png',
-        html: '<html><ul><li><p>Item <img src="" width="40" height="40" /> end</p></li></ul></html>',
+        html: '<html><ul><li><p>Item <img src="/pw-e2e-broken.png" width="40" height="40" /> end</p></li></ul></html>',
       },
       {
         name: 'ordered list item with placeholder image',
         snapshot: 'images-ol-placeholder.png',
-        html: '<html><ol><li><p>Step <img src="" width="40" height="40" /> done</p></li></ol></html>',
+        html: '<html><ol><li><p>Step <img src="/pw-e2e-broken.png" width="40" height="40" /> done</p></li></ol></html>',
       },
       {
         name: 'loaded image inside list (routed PNG)',
@@ -128,7 +127,7 @@ test.describe('images', () => {
       {
         name: 'placeholder image inside checkbox list',
         snapshot: 'images-checkbox-list-placeholder.png',
-        html: '<html><ul data-type="checkbox"><li checked>Before <img src="" width="40" height="40" /> after</li></ul></html>',
+        html: '<html><ul data-type="checkbox"><li checked>Before <img src="/pw-e2e-broken.png" width="40" height="40" /> after</li></ul></html>',
       },
     ] as const;
 
@@ -149,7 +148,7 @@ test.describe('images', () => {
     page,
   }) => {
     const expectedHtml =
-      '<html><p><code><b><i><u><s>Alpha </s></u></i></b></code><img src="" width="48" height="48"/><code><b><i><u><s> Beta</s></u></i></b></code></p></html>';
+      '<html><p><code><b><i><u><s>Alpha </s></u></i></b></code><img src="/pw-e2e-broken.png" width="48" height="48"/><code><b><i><u><s> Beta</s></u></i></b></code></p></html>';
     const toolbarOrder = [
       'bold',
       'italic',
@@ -160,7 +159,7 @@ test.describe('images', () => {
 
     await setEditorHtml(
       page,
-      '<html><p>Alpha <img src="" width="48" height="48"/> Beta</p></html>'
+      '<html><p>Alpha <img src="/pw-e2e-broken.png" width="48" height="48"/> Beta</p></html>'
     );
 
     await expect(page.locator('.eti-inline-image')).toBeVisible({
