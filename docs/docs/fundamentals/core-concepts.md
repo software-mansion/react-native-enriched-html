@@ -46,7 +46,7 @@ sources.
 
 ## Normalization
 
-HTML can be messy. Whether users paste rich text from applications like Google Docs or Microsoft Word, or you inject external HTML via `defaultValue`, `setValue`, or pass it directly as `children` into `EnrichedText`, the markup often contains additional wrapper elements, inline styles, and structural quirks that may not match the HTML structure expected by the library..
+HTML can be messy. Whether users paste rich text from applications like Google Docs or Microsoft Word, or you inject external HTML via `defaultValue`, `setValue`, or pass it directly as `children` into `EnrichedText`, the markup often contains additional wrapper elements, inline styles, and structural quirks that may not match the HTML structure expected by the library.
 
 To handle this, both components provide a `useHtmlNormalizer` prop that normalizes incoming HTML. The normalizer cleans and restructures the input into the predictable format the library relies on (e.g., it maps `<strong>` to `<b>`, unwraps `<div>` containers into `<p>` tags, and strips unsupported tags). The `useHtmlNormalizer` prop defaults to `true`.
 
