@@ -14,7 +14,10 @@ appId: swmansion.enriched.example
 - tapOn:
     id: "toolbar-code-block"
 
-- inputText: "ABC example.com"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "ABC example.com"
 
 - assertVisible:
     id: "toolbar-bold"

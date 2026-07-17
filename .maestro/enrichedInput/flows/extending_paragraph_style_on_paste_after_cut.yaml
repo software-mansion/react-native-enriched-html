@@ -9,7 +9,10 @@ tags:
 - tapOn:
     id: "focus-button"
 
-- inputText: "EADING"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "EADING"
 - doubleTapOn:
     id: "editor-input"
     point: "10%, 50%"
@@ -21,7 +24,10 @@ tags:
 - tapOn:
     id: "toolbar-heading-1"
 
-- inputText: "H"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "H"
 
 - longPressOn:
     id: "editor-input"

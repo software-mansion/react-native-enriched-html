@@ -4,71 +4,104 @@ appId: swmansion.enriched.example
 - launchApp
 
 - tapOn:
-    id: "toggle-screen-button"
+    id: 'toggle-screen-button'
 
 - tapOn:
-    id: "editor-input"
+    id: 'editor-input'
 
 - tapOn:
-    id: "toolbar-unordered-list"
-- inputText: "Bullet item one"
+    id: 'toolbar-unordered-list'
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: 'Bullet item one'
 - pressKey: Enter
-- inputText: "Bullet item two"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: 'Bullet item two'
 - pressKey: Enter
-- inputText: "Bullet item three"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: 'Bullet item three'
 - pressKey: Enter
 - pressKey: Enter
 
 - tapOn:
-    id: "toolbar-quote"
-- inputText: "Quoted line one"
+    id: 'toolbar-quote'
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: 'Quoted line one'
 - pressKey: Enter
-- inputText: "Quoted line two"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: 'Quoted line two'
 - pressKey: Enter
-- inputText: "Quoted line three"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: 'Quoted line three'
 - pressKey: Enter
 - tapOn:
-    id: "toolbar-quote"
+    id: 'toolbar-quote'
 
 - tapOn:
-    id: "toolbar-ordered-list"
-- inputText: "Numbered item one"
+    id: 'toolbar-ordered-list'
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: 'Numbered item one'
 - pressKey: Enter
-- inputText: "Numbered item two"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: 'Numbered item two'
 - pressKey: Enter
-- inputText: "Numbered item three"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: 'Numbered item three'
 - pressKey: Enter
 - pressKey: Enter
 
 - pressKey: Backspace
 
-- inputText: "Plain text line one"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: 'Plain text line one'
 - pressKey: Enter
-- inputText: "Plain text final"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: 'Plain text final'
 
 - swipe:
     from:
-      id: "editor-input"
+      id: 'editor-input'
     direction: DOWN
 
 - runFlow:
-    file: "../subflows/capture_or_assert_screenshot.yaml"
+    file: '../subflows/capture_or_assert_screenshot.yaml'
     env:
-      SCREENSHOT_NAME: "scrolling_paragraph_styles_top"
+      SCREENSHOT_NAME: 'scrolling_paragraph_styles_top'
 
 - tapOn:
-    id: "focus-button"
+    id: 'focus-button'
 
 - tapOn:
-    id: "editor-input"
-    point: "0%,0%"
+    id: 'editor-input'
+    point: '0%,0%'
 
 - swipe:
     from:
-      id: "editor-input"
+      id: 'editor-input'
     direction: UP
 
 - runFlow:
-    file: "../subflows/capture_or_assert_screenshot.yaml"
+    file: '../subflows/capture_or_assert_screenshot.yaml'
     env:
-      SCREENSHOT_NAME: "scrolling_paragraph_styles_bottom"
+      SCREENSHOT_NAME: 'scrolling_paragraph_styles_bottom'

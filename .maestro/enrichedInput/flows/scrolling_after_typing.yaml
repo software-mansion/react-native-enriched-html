@@ -10,25 +10,55 @@ appId: swmansion.enriched.example
 - tapOn:
     id: "editor-input"
 
-- inputText: "Line one"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "Line one"
 - pressKey: Enter
-- inputText: "Line two"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "Line two"
 - pressKey: Enter
-- inputText: "Line three"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "Line three"
 - pressKey: Enter
-- inputText: "Line four"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "Line four"
 - pressKey: Enter
-- inputText: "Line five"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "Line five"
 - pressKey: Enter
-- inputText: "Line six"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "Line six"
 - pressKey: Enter
-- inputText: "Line seven"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "Line seven"
 - pressKey: Enter
-- inputText: "Line eight"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "Line eight"
 - pressKey: Enter
-- inputText: "Line nine"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "Line nine"
 - pressKey: Enter
-- inputText: "Line ten"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "Line ten"
 
 - runFlow:
     file: "../subflows/capture_or_assert_screenshot.yaml"

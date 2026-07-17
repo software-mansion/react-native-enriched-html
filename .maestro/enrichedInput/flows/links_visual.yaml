@@ -10,7 +10,10 @@ appId: swmansion.enriched.example
     id: "editor-input"
 
 # autolinks break on text change or paste
-- inputText: 'swmansion.com'
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: 'swmansion.com'
 
 - doubleTapOn:
     id: 'editor-input'
@@ -28,10 +31,16 @@ appId: swmansion.enriched.example
     point: '50%, 70%'
 - tapOn:
     text: 'Paste'
-- inputText: 'm'
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: 'm'
 
 - pressKey: Enter
-- inputText: 'swm'
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: 'swm'
 - longPressOn:
     id: 'editor-input'
     point: '50%, 75%'
