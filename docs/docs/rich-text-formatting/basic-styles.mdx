@@ -1,0 +1,116 @@
+---
+sidebar_position: 1
+---
+
+import InteractiveExample from '@site/src/components/InteractiveExample';
+import BasicStylesEditor from '@site/src/examples/BasicStylesEditor';
+import BasicStylesEditorSrc from '!!raw-loader!@site/src/examples/BasicStylesEditor';
+
+# Basic styles
+
+In [Your first editor](/fundamentals/your-first-editor) you wired up a single
+**Bold** button. Every other formatting style works exactly the same way: a
+`toggle` method on the `ref` changes the text, and `onChangeState` reports back
+whether the style is active. The only exceptions to that rule are **mentions**,
+**links** and **inline images**, which work a bit differently. They cannot be toggled
+on/off on any text - they require additional data to be valid,but you'll learn more
+about them in further sections. This page walks through the rest of the basic rich
+text styles and the one core distinction that shapes how they behave - **inline**
+versus **paragraph** formatting.
+
+## Inline styles
+
+Inline styles wrap a range of characters. Toggling one applies it to exactly the
+characters you have selected, or - if nothing is selected - arms it so the next
+characters you type come out styled. This is the family the bold belongs to:
+
+- **Bold** - `toggleBold()`
+- **Italic** - `toggleItalic()`
+- **Underline** - `toggleUnderline()`
+- **Strikethrough** - `toggleStrikeThrough()`
+- **Inline code** - `toggleInlineCode()`
+
+They combine freely, so a word can be bold and italic and underlined at
+once.
+
+:::note
+
+There are two more inline styles, which you cannot toggle quite like the others - **links** and **mentions**. You'll learn about them in their respective sections, once you finish this chapter.
+
+:::
+
+## Paragraph styles
+
+Paragraph styles apply to a whole paragraph at once. Toggling one affects the entire paragraph the
+cursor sits in (or every paragraph the selection touches), no matter how much of
+it is actually selected. The common ones are:
+
+- **Headings** - `toggleH1()` through `toggleH6()`
+- **Blockquote** - `toggleBlockQuote()`
+- **Code block** - `toggleCodeBlock()`
+- **Unordered list** - `toggleUnorderedList()`
+- **Ordered list** - `toggleOrderedList()`
+- **Checkbox list** - `toggleCheckboxList(checked: boolean)`
+
+:::note
+
+We will not touch list styles for now - we'll cover them in-depth in their [own section](/rich-text-formatting/lists).
+
+:::
+
+The key difference from inline styles is that **a paragraph can only have one
+paragraph style at a time**. A line can't be both a heading and a blockquote, so
+toggling a second paragraph style replaces the first rather than stacking on top.
+The editor surfaces this through the `isConflicting` flag in `onChangeState`.
+
+Code blocks go one step further: they **block** inline styles entirely. You
+can't make text bold inside a code block, and `onChangeState` reports bold as
+`isBlocking` there so you can grey the button out.
+
+:::tip
+
+The full table of what every style blocks or conflicts with is available in
+[Supported tags](/fundamentals/html-format-and-supported-tags) and the `onChangeState` behavior is described in [Style state model](/fundamentals/core-concepts#the-style-state-model).
+
+:::
+
+## Building the toolbar
+
+A toolbar with many styles is just the [first editor](/fundamentals/your-first-editor)
+loop repeated. Each button reads its slice of the `onChangeState` payload for
+`isActive` (to highlight it) and `isBlocking` (to disable it), and calls the
+matching `toggle` method on press:
+
+```tsx
+const inlineButtons = [
+  { label: 'Bold', state: state?.bold, onPress: () => ref.current?.toggleBold() },
+  { label: 'Italic', state: state?.italic, onPress: () => ref.current?.toggleItalic() },
+  { label: 'Underline', state: state?.underline, onPress: () => ref.current?.toggleUnderline() },
+  { label: 'Strike', state: state?.strikeThrough, onPress: () => ref.current?.toggleStrikeThrough() },
+];
+
+const paragraphButtons = [
+  { label: 'H1', state: state?.h1, onPress: () => ref.current?.toggleH1() },
+  { label: 'H2', state: state?.h2, onPress: () => ref.current?.toggleH2() },
+  { label: 'Quote', state: state?.blockQuote, onPress: () => ref.current?.toggleBlockQuote() },
+  { label: 'Code', state: state?.codeBlock, onPress: () => ref.current?.toggleCodeBlock() },
+];
+```
+
+## Try it out
+
+And just like that we've expanded our editor with several new styles to choose
+from a small toolbar. Select some text and toggle inline styles, or place the cursor
+on a line and try the paragraph ones - notice how switching from **H1** to **Quote**
+swaps the style instead of adding to it, and how the inline buttons grey out once
+you're inside a **Code** block.
+
+<InteractiveExample src={BasicStylesEditorSrc} component={BasicStylesEditor} />
+
+:::info
+
+This page is about _what_ each style does, using the built-in defaults. To change
+how they look - heading sizes, blockquote borders, code block colors - see
+[Styling the input](/core-functionalities/styling-the-input).
+
+:::
