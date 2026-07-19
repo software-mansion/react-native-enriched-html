@@ -1,6 +1,8 @@
 // @ts-check
 // Note: type annotations allow type checking and IDEs autocompletion
 
+const path = require('path');
+
 const lightCodeTheme = require('./src/theme/CodeBlock/highlighting-light.js');
 const darkCodeTheme = require('./src/theme/CodeBlock/highlighting-dark.js');
 
@@ -13,6 +15,41 @@ function reactNativeWebPlugin() {
         resolve: {
           alias: { 'react-native$': 'react-native-web' },
           extensions: ['.web.js', '...'],
+        },
+      };
+    },
+  };
+}
+
+// TEMP (docs in progress): consume react-native-enriched-html from the local
+// package source instead of the published npm build, so the docs can use
+// features that are merged but not yet released.
+function enrichedHtmlLocalSourcePlugin() {
+  const librarySource = path.resolve(__dirname, '../src');
+  return {
+    name: 'enriched-html-local-source',
+    configureWebpack(_config, isServer, utils) {
+      return {
+        module: {
+          rules: [
+            {
+              test: /\.tsx?$/,
+              include: librarySource,
+              use: [utils.getJSLoader({ isServer })],
+            },
+          ],
+        },
+        resolve: {
+          alias: {
+            'react-native-enriched-html$': path.resolve(
+              librarySource,
+              'index.tsx'
+            ),
+            // The react-native-enriched-html has separate react and react-dom dependencies in node_modules,
+            // so React would otherwise be resolved from the repo root and bundled twice.
+            'react': path.resolve(__dirname, 'node_modules/react'),
+            'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
+          },
         },
       };
     },
@@ -81,6 +118,8 @@ const config = {
 
   plugins: [
     reactNativeWebPlugin,
+    // TEMP (docs in progress): see the plugin definition above.
+    enrichedHtmlLocalSourcePlugin,
     function transpileTRexUiTheme() {
       return {
         name: 'transpile-t-rex-ui-theme',
