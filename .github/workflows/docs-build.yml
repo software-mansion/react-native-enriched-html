@@ -22,7 +22,13 @@ jobs:
         with:
           node-version: 22
           cache: yarn
-          cache-dependency-path: docs/yarn.lock
+          cache-dependency-path: |
+            yarn.lock
+            docs/yarn.lock
+
+      - name: Install library dependencies (local source)
+        working-directory: ${{ github.workspace }}
+        run: yarn install --immutable
 
       - name: Install dependencies
         run: yarn install --immutable
