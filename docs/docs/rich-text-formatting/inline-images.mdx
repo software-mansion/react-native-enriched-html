@@ -1,0 +1,61 @@
+---
+sidebar_position: 5
+---
+
+import InteractiveExample from '@site/src/components/InteractiveExample';
+import ImagesEditor from '@site/src/examples/ImagesEditor';
+import ImagesEditorSrc from '!!raw-loader!@site/src/examples/ImagesEditor';
+
+# Inline images
+
+Aside from just styled text, the library offers much more. This includes inline images - pictures embedded straight into the text flow.
+
+## Inserting an image
+
+You can insert it explicitly with the `setImage` ref method:
+
+```ts
+setImage(src: string, width: number, height: number)
+```
+
+- `src` - an absolute file path or a remote image URL.
+- `width` / `height` - the size the image should render at.
+
+The image lands on its own line at the current selection, replacing any
+selected text.
+
+```tsx
+const insertImage = () => {
+  ref.current?.setImage('https://picsum.photos/320/160', 160, 80);
+};
+```
+
+:::note
+
+You are responsible for the `width` and `height` you pass - the editor does not
+measure the image for you, so if you want to preserve a picture's aspect ratio you
+need to compute it yourself before calling `setImage`.
+
+:::
+
+## When the source can't load
+
+If the `src` can't be resolved - a broken URL, a missing file - the editor doesn't
+error out and renders a static placeholder in the image's place instead.
+
+## Try it out
+
+Place the cursor in the input and insert an image. The first button inserts a real
+photo from [Lorem Picsum](https://picsum.photos) at a matching size; the second
+points at a source that doesn't exist, so you get the fallback placeholder rather
+than a crash.
+
+<InteractiveExample src={ImagesEditorSrc} component={ImagesEditor} />
+
+:::info
+
+Images can also arrive by pasting rather than through `setImage` - the editor
+surfaces those through the `onPasteImages` event, which hands you each image's URI,
+MIME type, and dimensions so you can upload or resize before inserting.
+
+:::
