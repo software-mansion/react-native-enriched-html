@@ -6,7 +6,7 @@ import type {
 import { useRef, useState } from 'react';
 import { View, StyleSheet, Pressable, Text } from 'react-native';
 
-// Autolink any "issue-123" style token on top of the default URL detection.
+// Autolink any "issue-123" style token.
 const linkRegex = /issue-\d+/g;
 
 export default function App() {
@@ -33,7 +33,7 @@ export default function App() {
       <EnrichedTextInput
         ref={ref}
         style={styles.input}
-        placeholder="Type a URL, or issue-123, or select text below..."
+        placeholder="Type issue-123, or select text below..."
         linkRegex={linkRegex}
         onChangeSelection={e => setSelection(e.nativeEvent)}
       />
