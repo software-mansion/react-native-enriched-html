@@ -1,0 +1,81 @@
+---
+sidebar_position: 2
+---
+
+import InteractiveExample from '@site/src/components/InteractiveExample';
+import RenderingEditor from '@site/src/examples/RenderingEditor';
+import RenderingEditorSrc from '!!raw-loader!@site/src/examples/RenderingEditor';
+
+# Rendering rich text
+
+`EnrichedTextInput` is for editing. To _display_ rich text without an editor -
+a chat message, a comment, an article - use its read-only counterpart,
+**`EnrichedText`**.
+
+Both components speak the same [HTML format](/fundamentals/html-format-and-supported-tags),
+so the typical flow is: edit in `EnrichedTextInput`, persist the
+`getHTML` output, and later feed that
+string to `EnrichedText`.
+
+## Passing content
+
+`EnrichedText` takes the HTML string as its `children`:
+
+```tsx
+import { EnrichedText } from 'react-native-enriched-html';
+
+<EnrichedText>{'<p>Hello <b>world</b></p>'}</EnrichedText>;
+```
+
+## Styling
+
+Styling mirrors the input. `style` controls the container and base typography,
+and `htmlStyle` controls per-element appearance. `EnrichedText` extends
+`htmlStyle` with **press states** for interactive elements, since links and
+mentions are pressable here:
+
+```tsx
+<EnrichedText
+  style={{ fontSize: 16, color: '#232736' }}
+  htmlStyle={{
+    a: { pressColor: '#1e40af' },
+    mention: { pressColor: '#16a34a', pressBackgroundColor: '#dcfce7' },
+  }}>
+  {html}
+</EnrichedText>
+```
+
+The added `pressColor` / `pressBackgroundColor` fields on `a` and `mention` are
+the only shape difference from the input's `htmlStyle`. See the
+`EnrichedText` reference for the full type.
+
+## Notable props
+
+- **`selectable`** - allow the user to select and copy the rendered text.
+  Defaults to `false`.
+- **`onLinkPress` / `onMentionPress`** - fire when a link or mention is pressed.
+- **`numberOfLines` / `ellipsizeMode`** - truncate long content to a fixed
+  number of lines with an ellipsis.
+- **`useHtmlNormalizer`** - normalize external or messy HTML into the library's canonical
+  tag subset before rendering. Defaults to `true`. See
+  [Normalization](/fundamentals/core-concepts#normalization).
+
+:::note
+
+On web, the default behavior of the pressed `<a>` tag is suppressed. To navigate to the link's URL, you need to properly handle the `onLinkPress` event.
+
+:::
+
+## Try it out
+
+Format some text in the editor, then press **Render** - the current HTML is read
+with `getHTML()` and handed to an `EnrichedText` below.
+
+<InteractiveExample src={RenderingEditorSrc} component={RenderingEditor} />
+
+:::caution
+
+On iOS and Android, `EnrichedText` does not sanitize HTML for you. Sanitize anything you render that
+came from users or other untrusted sources. To know more about the web's built-in sanitization, visit [Web support](/core-functionalities/web-support#sanitization).
+
+:::
