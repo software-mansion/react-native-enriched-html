@@ -1,0 +1,69 @@
+---
+sidebar_position: 4
+---
+
+import InteractiveExample from '@site/src/components/InteractiveExample';
+import ListsEditor from '@site/src/examples/ListsEditor';
+import ListsEditorSrc from '!!raw-loader!@site/src/examples/ListsEditor';
+
+# Lists
+
+Lists are [paragraph styles](/rich-text-formatting/basic-styles#paragraph-styles),
+just like headings and blockquotes - toggling one affects the whole paragraph the
+cursor sits in, or every paragraph the selection touches. The editor supports three
+kinds:
+
+- **Unordered list** - `toggleUnorderedList()`
+- **Ordered list** - `toggleOrderedList()`
+- **Checkbox list** - `toggleCheckboxList(checked: boolean)`
+
+Because they're paragraph styles, **only one can be active on a paragraph at a
+time**. Toggling a second list type (or any other paragraph style) replaces the
+first rather than stacking - the editor reports this through the `isConflicting`
+flag in `onChangeState`, exactly as described in
+[Basic styles](/rich-text-formatting/basic-styles#paragraph-styles).
+
+:::note
+
+The library does not support nested lists. You can only create a single level list. If you try to insert a nested list in any way, e.g. by calling `setValue` on the editor's `ref`, the list will get flattened by the [normalizer](/fundamentals/core-concepts#normalization).
+
+:::
+
+## Bulleted and numbered lists
+
+These two take no arguments - each call converts the affected paragraphs into a
+list, and calling it again turns them back into plain paragraphs:
+
+```tsx
+ref.current?.toggleUnorderedList();
+ref.current?.toggleOrderedList();
+```
+
+## Checkbox lists
+
+This list's items need a starting state. `toggleCheckboxList` takes a `checked` boolean that
+decides whether newly created boxes begin checked or unchecked:
+
+```tsx
+// New items start unchecked.
+ref.current?.toggleCheckboxList(false);
+```
+
+Once the list exists, the user can tick individual items by tapping their
+checkbox - you don't need to wire anything up for that.
+
+## Try it out
+
+Type a few lines, place the cursor on one (or select several), and toggle each
+list type. Notice how switching from **Bulleted** to **Numbered** swaps the style
+instead of stacking, inserting a new line keeps the list format by creating an another element and how tapping a checkbox in the checkbox list toggles just that item.
+
+<InteractiveExample src={ListsEditorSrc} component={ListsEditor} />
+
+:::info
+
+This page covers creating lists. To change how they look - bullet color and size,
+marker weight, checkbox size, indentation - see
+[Styling the input](/core-functionalities/styling-the-input).
+
+:::
