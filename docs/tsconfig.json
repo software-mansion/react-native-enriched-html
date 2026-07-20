@@ -1,5 +1,5 @@
 {
-  "extends": ["../tsconfig.base.json", "@docusaurus/tsconfig"],
+  "extends": ["../tsconfig.base.json"],
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
