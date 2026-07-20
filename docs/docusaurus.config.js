@@ -21,9 +21,6 @@ function reactNativeWebPlugin() {
   };
 }
 
-// TEMP (docs in progress): consume react-native-enriched-html from the local
-// package source instead of the published npm build, so the docs can use
-// features that are merged but not yet released.
 function enrichedHtmlLocalSourcePlugin() {
   const librarySource = path.resolve(__dirname, '../src');
   return {
@@ -118,7 +115,6 @@ const config = {
 
   plugins: [
     reactNativeWebPlugin,
-    // TEMP (docs in progress): see the plugin definition above.
     enrichedHtmlLocalSourcePlugin,
     function transpileTRexUiTheme() {
       return {

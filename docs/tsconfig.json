@@ -4,8 +4,6 @@
     "baseUrl": ".",
     "paths": {
       "@site/*": ["./*"],
-      // TEMP (docs in progress): resolve react-native-enriched-html from the
-      // local package source. See more details in docusaurus.config.js file.
       "react-native-enriched-html": ["../src/index.tsx"],
     },
   },
