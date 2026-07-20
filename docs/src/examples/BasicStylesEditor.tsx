@@ -50,7 +50,9 @@ export default function App() {
     },
   ];
 
-  const renderButton = (button: (typeof inlineButtons)[number]) => (
+  const renderButton = (
+    button: (typeof inlineButtons)[number] | (typeof paragraphButtons)[number]
+  ) => (
     <Pressable
       key={button.label}
       disabled={button.state?.isBlocking}
