@@ -25,7 +25,7 @@ flag in `onChangeState`, exactly as described in
 
 :::note
 
-The library does not support nested lists. You can only create a single level list. If you try to insert a nested list in any way, e.g. by calling `setValue` on the editor's `ref`, the list will get flattened by the [normalizer](/fundamentals/core-concepts#normalization).
+The library does not support nested lists. You can only create a single-level list. If you try to insert a nested list in any way, e.g. by calling `setValue` on the editor's `ref`, the list will get flattened by the [normalizer](/fundamentals/core-concepts#normalization).
 
 :::
 
@@ -56,7 +56,7 @@ checkbox - you don't need to wire anything up for that.
 
 Type a few lines, place the cursor on one (or select several), and toggle each
 list type. Notice how switching from **Bulleted** to **Numbered** swaps the style
-instead of stacking, inserting a new line keeps the list format by creating an another element and how tapping a checkbox in the checkbox list toggles just that item.
+instead of stacking. Inserting a new line preserves the list format by creating another item, and tapping a checkbox toggles just that item.
 
 <InteractiveExample src={ListsEditorSrc} component={ListsEditor} />
 
