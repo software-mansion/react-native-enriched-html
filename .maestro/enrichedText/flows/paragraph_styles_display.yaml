@@ -20,12 +20,8 @@ appId: swmansion.enriched.example
           <h4>Heading 4</h4>
           <h5>Heading 5</h5>
           <h6>Heading 6</h6>
-          <codeblock>
-            <p>Code block</p>
-          </codeblock>
-          <blockquote>
-            <p>Blockquote</p>
-          </blockquote>
+          <codeblock><p>Code block</p></codeblock>
+          <blockquote><p>Blockquote</p></blockquote>
           <ul>
             <li>Unordered list</li>
           </ul>

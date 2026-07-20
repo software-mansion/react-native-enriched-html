@@ -16,20 +16,24 @@
 #   ./run-tests.sh --platform ios
 #   ./run-tests.sh --platform android --update-screenshots .maestro/enrichedInput/flows/core_controls_smoke.yaml
 #   ./run-tests.sh --platform ios --rebuild
+#
+# Uses the local maestro-runner binary:
+#   Android → --driver devicelab
+#   iOS     → default driver
 
 set -euo pipefail
 
-MIN_MAESTRO_VERSION="2.3.0"
+DEFAULT_MAESTRO_RUNNER="$HOME/.maestro-runner/bin/maestro-runner"
 
-if ! command -v maestro >/dev/null 2>&1; then
-  echo "Error: maestro CLI not found." >&2
-  exit 1
-fi
-
-MAESTRO_VERSION=$(maestro --version)
-# Compare versions by sorting them; if the minimum sorts after the actual, it's too old.
-if [ "$(printf '%s\n' "$MIN_MAESTRO_VERSION" "$MAESTRO_VERSION" | sort -V | head -n1)" != "$MIN_MAESTRO_VERSION" ]; then
-  echo "Error: maestro $MAESTRO_VERSION is too old, minimum required is $MIN_MAESTRO_VERSION" >&2
+if [ -n "${MAESTRO_RUNNER:-}" ]; then
+  MAESTRO_BIN="$MAESTRO_RUNNER"
+elif [ -x "$DEFAULT_MAESTRO_RUNNER" ]; then
+  MAESTRO_BIN="$DEFAULT_MAESTRO_RUNNER"
+elif command -v maestro-runner >/dev/null 2>&1; then
+  MAESTRO_BIN="$(command -v maestro-runner)"
+else
+  echo "Error: maestro-runner not found." >&2
+  echo "Install it locally (expected at $DEFAULT_MAESTRO_RUNNER) or set MAESTRO_RUNNER." >&2
   exit 1
 fi
 
@@ -62,6 +66,20 @@ case "$PLATFORM" in
 esac
 
 DEVICE_ID=$("$SETUP" | tee /dev/tty | grep "^DEVICE_ID=" | cut -d= -f2)
+
+# Android uses DeviceLab; iOS keeps the runner default driver.
+DRIVER_ARGS=""
+if [ "$PLATFORM" = android ]; then
+  DRIVER_ARGS="--driver devicelab"
+fi
+
+echo "=== Using maestro-runner: $MAESTRO_BIN ==="
+"$MAESTRO_BIN" --version || true
+if [ -n "$DRIVER_ARGS" ]; then
+  echo "=== Driver: devicelab (android) ==="
+else
+  echo "=== Driver: default (ios) ==="
+fi
 
 app_installed() {
   if [ "$PLATFORM" = ios ]; then
@@ -120,23 +138,26 @@ ASSETS_DIR="$MAESTRO_ROOT/assets"
 # leaving the device scaled. Force a known state before the normal tests.
 set_font_scale default
 
-# maestro exits non-zero when the tag filter matches zero flows. That's not a
-# real failure for us (e.g. running a single flow that has no accessibility
-# variant), and letting it propagate aborts latter test suites.
+# maestro-runner exits non-zero when the tag filter matches zero flows. That's
+# not a real failure for us (e.g. running a single flow that has no
+# accessibility variant), and letting it propagate aborts latter test suites.
 run_maestro() {
   local tmp rc
   tmp=$(mktemp)
-  # `script` allocates a pseudo-TTY so maestro keeps
+  # `script` allocates a pseudo-TTY so the runner keeps
   # ANSI colors when piped through `tee`.
+  # Global flags (--device, --driver, --env, tags) come before `test`.
   if [[ "$OSTYPE" == darwin* ]]; then
-    script -q /dev/null maestro test "$@" 2>&1 | tee "$tmp"
+    # shellcheck disable=SC2086
+    script -q /dev/null "$MAESTRO_BIN" --platform "$PLATFORM" --device "$DEVICE_ID" $DRIVER_ARGS $EXTRA "$@" test $FLOWS 2>&1 | tee "$tmp"
   else
     local cmd
-    cmd=$(printf '%q ' maestro test "$@")
+    # shellcheck disable=SC2086
+    cmd=$(printf '%q ' "$MAESTRO_BIN" --platform "$PLATFORM" --device "$DEVICE_ID" $DRIVER_ARGS $EXTRA "$@" test $FLOWS)
     script -qc "$cmd" /dev/null 2>&1 | tee "$tmp"
   fi
   rc=${PIPESTATUS[0]}
-  if [ "$rc" -ne 0 ] && grep -q "did not match any Flows" "$tmp"; then
+  if [ "$rc" -ne 0 ] && grep -Eqi "did not match any [Ff]lows|no flows matched" "$tmp"; then
     echo "warn: no flows matched the tag filter — treating as success" >&2
     rc=0
   fi
@@ -147,8 +168,7 @@ run_maestro() {
 set +e
 
 echo "=== Running maestro tests ==="
-# shellcheck disable=SC2086
-run_maestro --device "$DEVICE_ID" --exclude-tags accessibility $EXTRA $FLOWS
+run_maestro --exclude-tags accessibility
 EXIT_REGULAR=$?
 
 # These are the tests that require changing the system's settings
@@ -156,8 +176,7 @@ EXIT_REGULAR=$?
 echo "=== Running maestro accessibility tests ==="
 set_font_scale large
 
-# shellcheck disable=SC2086
-run_maestro --device "$DEVICE_ID" --include-tags accessibility $EXTRA $FLOWS
+run_maestro --include-tags accessibility
 EXIT_A11Y=$?
 
 set -e
