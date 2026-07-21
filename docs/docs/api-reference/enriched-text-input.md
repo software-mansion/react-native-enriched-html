@@ -247,8 +247,7 @@ interface OnChangeHtmlEvent {
 Specifying `onChangeHtml` may have performance implications, especially with
 large documents, as it requires continuous HTML parsing. If you only need the
 HTML at specific moments (for example when saving), use the
-[`getHTML`](#gethtml) ref method instead. When `onChangeHtml` is not provided,
-the component avoids unnecessary HTML parsing.
+[`getHTML`](#gethtml) ref method instead.
 
 :::
 
