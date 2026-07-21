@@ -61,7 +61,7 @@ The HTML string to render. Accepts the HTML format produced by
 
 | Type     | Default | Platforms         |
 | -------- | ------- | ----------------- |
-| `string` | —       | Android, iOS, Web |
+| `string` | -       | Android, iOS, Web |
 
 ### `style` {#style}
 
@@ -69,7 +69,7 @@ Standard React Native `TextStyle` applied to the text.
 
 | Type        | Default | Platforms         |
 | ----------- | ------- | ----------------- |
-| `TextStyle` | —       | Android, iOS, Web |
+| `TextStyle` | -       | Android, iOS, Web |
 
 ### `htmlStyle` {#htmlstyle}
 
@@ -78,7 +78,7 @@ elements. See [`EnrichedTextHtmlStyle`](#enrichedtexthtmlstyle-type).
 
 | Type                    | Default | Platforms         |
 | ----------------------- | ------- | ----------------- |
-| `EnrichedTextHtmlStyle` | —       | Android, iOS, Web |
+| `EnrichedTextHtmlStyle` | -       | Android, iOS, Web |
 
 ### `useHtmlNormalizer` <Optional /> {#usehtmlnormalizer}
 
@@ -95,10 +95,10 @@ tag subset that the enriched parser understands. See
 
 How the text should be truncated when `numberOfLines` is set and the text overflows.
 
-- `head` — truncates at the beginning, e.g. `...wxyz`
-- `middle` — truncates in the middle, e.g. `ab...yz`
-- `tail` — truncates at the end, e.g. `abcd...`
-- `clip` — clips the text without inserting an ellipsis
+- `head` - truncates at the beginning, e.g. `...wxyz`
+- `middle` - truncates in the middle, e.g. `ab...yz`
+- `tail` - truncates at the end, e.g. `abcd...`
+- `clip` - clips the text without inserting an ellipsis
 
 | Type                                     | Default  | Platforms    |
 | ---------------------------------------- | -------- | ------------ |
@@ -148,7 +148,7 @@ interface OnLinkPressEvent {
 
 | Type                                | Default | Platforms         |
 | ----------------------------------- | ------- | ----------------- |
-| `(event: OnLinkPressEvent) => void` | —       | Android, iOS, Web |
+| `(event: OnLinkPressEvent) => void` | -       | Android, iOS, Web |
 
 ### `onMentionPress` <Optional /> {#onmentionpress}
 
@@ -166,7 +166,7 @@ interface OnMentionPressEvent {
 
 | Type                                   | Default | Platforms         |
 | -------------------------------------- | ------- | ----------------- |
-| `(event: OnMentionPressEvent) => void` | —       | Android, iOS, Web |
+| `(event: OnMentionPressEvent) => void` | -       | Android, iOS, Web |
 
 ## EnrichedTextHtmlStyle type
 
@@ -201,7 +201,7 @@ interface EnrichedTextMentionStyleProperties {
 Inherits all properties from [`HtmlStyle`'s `a`](/api-reference/enriched-text-input#a-link)
 and adds:
 
-- `pressColor` — the color of the link text while it is being pressed. Takes a
+- `pressColor` - the color of the link text while it is being pressed. Takes a
   [color](https://reactnative.dev/docs/colors) value.
 
 ### mention
@@ -209,14 +209,15 @@ and adds:
 Inherits all properties from
 [`HtmlStyle`'s `mention`](/api-reference/enriched-text-input#mention) and adds:
 
-- `pressColor` — the color of the mention text while it is being pressed. Takes
+- `pressColor` - the color of the mention text while it is being pressed. Takes
   a [color](https://reactnative.dev/docs/colors) value.
-- `pressBackgroundColor` — the background color of the mention while it is being
+- `pressBackgroundColor` - the background color of the mention while it is being
   pressed. Takes a [color](https://reactnative.dev/docs/colors) value.
 
 Same as in `HtmlStyle`, if only a single config is given the style applies to
 all mention types. To style each indicator separately, pass a record with
-indicators as keys and configs as values.
+indicators as keys and configs as values. Use the `'default'` key for a fallback
+style applied to any indicator without its own config.
 
 ## Remarks
 

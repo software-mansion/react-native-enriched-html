@@ -98,10 +98,10 @@ If `true`, focuses the input when it mounts.
 
 Tells the input to automatically capitalize certain characters.
 
-- `characters` — all characters
-- `words` — first letter of each word
-- `sentences` — first letter of each sentence
-- `none` — don't auto-capitalize anything
+- `characters` - all characters
+- `words` - first letter of each word
+- `sentences` - first letter of each sentence
+- `none` - don't auto-capitalize anything
 
 | Type                                               | Default       | Platforms         |
 | -------------------------------------------------- | ------------- | ----------------- |
@@ -112,13 +112,6 @@ Tells the input to automatically capitalize certain characters.
 An array of custom items to display in the native text editing menu. Each item
 specifies a title, visibility flag, and a callback that fires when the item is
 tapped.
-
-The `onPress` callback receives a single object argument with:
-
-- `text` — the currently selected text
-- `selection` — an object with `start` and `end` indices of the current selection
-- `styleState` — the latest `OnChangeStateEvent` payload reflecting active styles
-  at the time of the tap
 
 ```ts
 interface ContextMenuItem {
@@ -136,9 +129,16 @@ interface ContextMenuItem {
 - `onPress` is the callback invoked when the item is tapped
 - `visible` controls whether the item is shown; defaults to `true`
 
+The `onPress` callback receives a single object argument with:
+
+- `text` - the currently selected text
+- `selection` - an object with `start` and `end` indices of the current selection
+- `styleState` - the latest `OnChangeStateEvent` payload reflecting active styles
+  at the time of the tap
+
 | Type                | Default | Platforms    |
 | ------------------- | ------- | ------------ |
-| `ContextMenuItem[]` | —       | Android, iOS |
+| `ContextMenuItem[]` | -       | Android, iOS |
 
 :::note
 
@@ -164,7 +164,7 @@ are applied.
 
 | Type     | Default | Platforms         |
 | -------- | ------- | ----------------- |
-| `string` | —       | Android, iOS, Web |
+| `string` | -       | Android, iOS, Web |
 
 ### `editable` <Optional /> {#editable}
 
@@ -203,13 +203,14 @@ The recognized mention indicators. Each item must be a 1-character string.
 
 A custom regex pattern for detecting links in the input. If not provided, a
 default regex is used. You can customize which patterns are recognized as links
-— for example only `https://` URLs, or custom schemes.
+
+- for example only `https://` URLs, or custom schemes.
 
 Not all JS regex features are supported; for example variable-width lookbehinds
 won't work.
 
-| Type             | Default                       | Platforms    |
-| ---------------- | ----------------------------- | ------------ |
+| Type             | Default                       | Platforms         |
+| ---------------- | ----------------------------- | ----------------- |
 | `RegExp \| null` | default native platform regex | Android, iOS, Web |
 
 :::tip
@@ -224,7 +225,7 @@ Called whenever the input loses focus.
 
 | Type                     | Default | Platforms         |
 | ------------------------ | ------- | ----------------- |
-| `(e: BlurEvent) => void` | —       | Android, iOS, Web |
+| `(e: BlurEvent) => void` | -       | Android, iOS, Web |
 
 ### `onChangeHtml` <Optional /> {#onchangehtml}
 
@@ -240,7 +241,7 @@ interface OnChangeHtmlEvent {
 
 | Type                                                       | Default | Platforms         |
 | ---------------------------------------------------------- | ------- | ----------------- |
-| `(event: NativeSyntheticEvent<OnChangeHtmlEvent>) => void` | —       | Android, iOS, Web |
+| `(event: NativeSyntheticEvent<OnChangeHtmlEvent>) => void` | -       | Android, iOS, Web |
 
 :::tip
 
@@ -253,7 +254,7 @@ HTML at specific moments (for example when saving), use the
 
 ### `onChangeMention` <Optional /> {#onchangemention}
 
-Called whenever the user changes a mention that is being edited.
+Called whenever the text typed after the mention indicator changes while a mention is being edited.
 
 ```ts
 interface OnChangeMentionEvent {
@@ -267,7 +268,7 @@ interface OnChangeMentionEvent {
 
 | Type                                    | Default | Platforms         |
 | --------------------------------------- | ------- | ----------------- |
-| `(event: OnChangeMentionEvent) => void` | —       | Android, iOS, Web |
+| `(event: OnChangeMentionEvent) => void` | -       | Android, iOS, Web |
 
 ### `onChangeSelection` <Optional /> {#onchangeselection}
 
@@ -288,7 +289,7 @@ interface OnChangeSelectionEvent {
 
 | Type                                                            | Default | Platforms         |
 | --------------------------------------------------------------- | ------- | ----------------- |
-| `(event: NativeSyntheticEvent<OnChangeSelectionEvent>) => void` | —       | Android, iOS, Web |
+| `(event: NativeSyntheticEvent<OnChangeSelectionEvent>) => void` | -       | Android, iOS, Web |
 
 ### `onChangeState` <Optional /> {#onchangestate}
 
@@ -349,24 +350,24 @@ interface OnChangeStateEvent {
 }
 ```
 
-- `isActive` — the style is active within the current selection
-- `isBlocking` — the style is blocked by another currently active style, so it
+- `isActive` - the style is active within the current selection
+- `isBlocking` - the style is blocked by another currently active style, so it
   can't be toggled
-- `isConflicting` — toggling the style removes a conflicting active style
-- `alignment` — current text alignment of the paragraph at the cursor:
+- `isConflicting` - toggling the style removes a conflicting active style
+- `alignment` - current text alignment of the paragraph at the cursor:
   `'left'`, `'center'`, `'right'`, `'justify'`, or `'auto'`
 
 :::note
 
 On Android, `'justify'` is not supported. It is accepted in the type signature
-but has no justified layout effect — text is shown with natural alignment
+but has no justified layout effect - text is shown with natural alignment
 instead, the same as `'auto'`.
 
 :::
 
 | Type                                                        | Default | Platforms         |
 | ----------------------------------------------------------- | ------- | ----------------- |
-| `(event: NativeSyntheticEvent<OnChangeStateEvent>) => void` | —       | Android, iOS, Web |
+| `(event: NativeSyntheticEvent<OnChangeStateEvent>) => void` | -       | Android, iOS, Web |
 
 ### `onChangeText` <Optional /> {#onchangetext}
 
@@ -382,18 +383,18 @@ interface OnChangeTextEvent {
 
 | Type                                                       | Default | Platforms         |
 | ---------------------------------------------------------- | ------- | ----------------- |
-| `(event: NativeSyntheticEvent<OnChangeTextEvent>) => void` | —       | Android, iOS, Web |
+| `(event: NativeSyntheticEvent<OnChangeTextEvent>) => void` | -       | Android, iOS, Web |
 
 :::tip
 
-If you don't need the plain text value, omit `onChangeText` — continuous text
+If you don't need the plain text value, omit `onChangeText` - continuous text
 extraction can have performance implications.
 
 :::
 
 ### `onEndMention` <Optional /> {#onendmention}
 
-Called when the user is no longer editing a mention actively — they moved the
+Called when the user is no longer editing a mention actively - they moved the
 cursor elsewhere, or typed a space and the cursor is no longer within the edited
 mention.
 
@@ -401,7 +402,7 @@ mention.
 
 | Type                          | Default | Platforms         |
 | ----------------------------- | ------- | ----------------- |
-| `(indicator: string) => void` | —       | Android, iOS, Web |
+| `(indicator: string) => void` | -       | Android, iOS, Web |
 
 ### `onFocus` <Optional /> {#onfocus}
 
@@ -409,7 +410,7 @@ Called whenever the input is focused.
 
 | Type                      | Default | Platforms         |
 | ------------------------- | ------- | ----------------- |
-| `(e: FocusEvent) => void` | —       | Android, iOS, Web |
+| `(e: FocusEvent) => void` | -       | Android, iOS, Web |
 
 ### `onLinkDetected` <Optional /> {#onlinkdetected}
 
@@ -432,7 +433,7 @@ interface OnLinkDetected {
 
 | Type                              | Default | Platforms         |
 | --------------------------------- | ------- | ----------------- |
-| `(event: OnLinkDetected) => void` | —       | Android, iOS, Web |
+| `(event: OnLinkDetected) => void` | -       | Android, iOS, Web |
 
 ### `onMentionDetected` <Optional /> {#onmentiondetected}
 
@@ -453,7 +454,7 @@ interface OnMentionDetected {
 
 | Type                                 | Default | Platforms         |
 | ------------------------------------ | ------- | ----------------- |
-| `(event: OnMentionDetected) => void` | —       | Android, iOS, Web |
+| `(event: OnMentionDetected) => void` | -       | Android, iOS, Web |
 
 ### `onStartMention` <Optional /> {#onstartmention}
 
@@ -463,7 +464,7 @@ Called whenever mention editing starts.
 
 | Type                          | Default | Platforms         |
 | ----------------------------- | ------- | ----------------- |
-| `(indicator: string) => void` | —       | Android, iOS, Web |
+| `(indicator: string) => void` | -       | Android, iOS, Web |
 
 ### `onKeyPress` <Optional /> {#onkeypress}
 
@@ -479,7 +480,7 @@ interface OnKeyPressEvent {
 
 | Type                                                     | Default | Platforms         |
 | -------------------------------------------------------- | ------- | ----------------- |
-| `(event: NativeSyntheticEvent<OnKeyPressEvent>) => void` | —       | Android, iOS, Web |
+| `(event: NativeSyntheticEvent<OnKeyPressEvent>) => void` | -       | Android, iOS, Web |
 
 ### `onSubmitEditing` <Optional /> {#onsubmitediting}
 
@@ -496,13 +497,13 @@ interface OnSubmitEditing {
 
 | Type                                                     | Default | Platforms         |
 | -------------------------------------------------------- | ------- | ----------------- |
-| `(event: NativeSyntheticEvent<OnSubmitEditing>) => void` | —       | Android, iOS, Web |
+| `(event: NativeSyntheticEvent<OnSubmitEditing>) => void` | -       | Android, iOS, Web |
 
 ### `onPasteImages` <Optional /> {#onpasteimages}
 
 Called when the user pastes one or more images or GIFs into the input.
 
-- `images` — an array of objects with URI, MIME type, and dimensions for each
+- `images` - an array of objects with URI, MIME type, and dimensions for each
   pasted image/GIF
 
 ```ts
@@ -518,7 +519,7 @@ interface OnPasteImagesEvent {
 
 | Type                                                        | Default | Platforms         |
 | ----------------------------------------------------------- | ------- | ----------------- |
-| `(event: NativeSyntheticEvent<OnPasteImagesEvent>) => void` | —       | Android, iOS, Web |
+| `(event: NativeSyntheticEvent<OnPasteImagesEvent>) => void` | -       | Android, iOS, Web |
 
 :::note
 
@@ -551,7 +552,7 @@ A React ref that lets you call any [ref methods](#ref-methods) on the input.
 
 | Type                                           | Default | Platforms         |
 | ---------------------------------------------- | ------- | ----------------- |
-| `RefObject<EnrichedTextInputInstance \| null>` | —       | Android, iOS, Web |
+| `RefObject<EnrichedTextInputInstance \| null>` | -       | Android, iOS, Web |
 
 ### `returnKeyLabel` <Optional /> {#returnkeylabel}
 
@@ -559,7 +560,7 @@ Overrides the return key label with a custom string.
 
 | Type     | Default | Platforms |
 | -------- | ------- | --------- |
-| `string` | —       | Android   |
+| `string` | -       | Android   |
 
 ### `returnKeyType` <Optional /> {#returnkeytype}
 
@@ -612,15 +613,15 @@ similar container-level appearance of the editable content container. See
 
 | Type                 | Default | Platforms         |
 | -------------------- | ------- | ----------------- |
-| `EnrichedInputStyle` | —       | Android, iOS, Web |
+| `EnrichedInputStyle` | -       | Android, iOS, Web |
 
 ### `submitBehavior` <Optional /> {#submitbehavior}
 
 Controls what happens when the user presses the return/enter key.
 
-- `'newline'` — inserts a new line (default for multiline inputs)
-- `'submit'` — fires `onSubmitEditing` without inserting a new line
-- `'blurAndSubmit'` — fires `onSubmitEditing` and blurs the input
+- `'newline'` - inserts a new line (default for multiline inputs)
+- `'submit'` - fires `onSubmitEditing` without inserting a new line
+- `'blurAndSubmit'` - fires `onSubmitEditing` and blurs the input
 
 | Type                                       | Default     | Platforms         |
 | ------------------------------------------ | ----------- | ----------------- |
@@ -744,7 +745,7 @@ may not be supported.
 
 | Type        | Default | Platforms    |
 | ----------- | ------- | ------------ |
-| `ViewProps` | —       | Android, iOS |
+| `ViewProps` | -       | Android, iOS |
 
 ## Ref methods
 
@@ -784,9 +785,9 @@ setImage: (src: string, width: number, height: number) => void;
 
 Sets an inline image at the current selection.
 
-- `src: string` — absolute path to a file or remote image address
-- `width: number` — width of the image
-- `height: number` — height of the image
+- `src: string` - absolute path to a file or remote image address
+- `width: number` - width of the image
+- `height: number` - height of the image
 
 :::note
 
@@ -806,10 +807,10 @@ Sets a link at the given place with the given displayed text and URL. The link
 replaces any text between `start` and `end`. Setting a link with `start` equal
 to `end` inserts it in place.
 
-- `start: number` — starting index where the link should be
-- `end: number` — first index behind the new link's ending index
-- `text: string` — displayed text of the link
-- `url: string` — URL of the link
+- `start: number` - starting index where the link should be
+- `end: number` - first index behind the new link's ending index
+- `text: string` - displayed text of the link
+- `url: string` - URL of the link
 
 ### `.removeLink()`
 
@@ -820,8 +821,8 @@ removeLink: (start: number, end: number) => void;
 Removes link styling from any links found within the given range. The text
 content is preserved; only the link attributes are stripped.
 
-- `start: number` — starting index of the range to remove links from
-- `end: number` — first index behind the range's ending index
+- `start: number` - starting index of the range to remove links from
+- `end: number` - first index behind the range's ending index
 
 ### `.setMention()`
 
@@ -836,10 +837,10 @@ setMention: (
 Sets the currently edited mention with a given indicator, displayed text, and
 custom attributes.
 
-- `indicator: string` — indicator of the set mention
-- `text: string` — text displayed for the mention; anything the user typed is
+- `indicator: string` - indicator of the set mention
+- `text: string` - text displayed for the mention; anything the user typed is
   replaced by that text. The mention indicator isn't added to that text
-- `attributes?: Record<string, string>` — additional custom attributes for the
+- `attributes?: Record<string, string>` - additional custom attributes for the
   mention, preserved through parsing to and from HTML
 
 :::note
@@ -859,7 +860,7 @@ setValue: (value: string) => void;
 
 Sets the input's value.
 
-- `value: string` — value to set; either a supported HTML string or raw text
+- `value: string` - value to set; either a supported HTML string or raw text
 
 ### `.setSelection()`
 
@@ -869,8 +870,8 @@ setSelection: (start: number, end: number) => void;
 
 Sets the selection at the given indexes.
 
-- `start: number` — starting index of the selection
-- `end: number` — first index after the selection's ending index; for a cursor
+- `start: number` - starting index of the selection
+- `end: number` - first index after the selection's ending index; for a cursor
   with no selection, `start` equals `end`
 
 ### `.setTextAlignment()`
@@ -884,13 +885,13 @@ setTextAlignment: (
 Sets text alignment for the paragraph(s) at the current selection. When inside a
 list, the alignment is applied to all contiguous list items.
 
-- `alignment` — desired text alignment; use `'auto'` to reset to the system
+- `alignment` - desired text alignment; use `'auto'` to reset to the system
   natural alignment
 
 :::note
 
 On Android, `'justify'` is not supported. Calling
-`setTextAlignment('justify')` does not apply justified text — the paragraph ends
+`setTextAlignment('justify')` does not apply justified text - the paragraph ends
 up with natural alignment, the same as `'auto'`.
 
 :::
@@ -903,7 +904,7 @@ startMention: (indicator: string) => void;
 
 Starts a mention with the given indicator at the cursor/selection.
 
-- `indicator: string` — indicator that starts the new mention
+- `indicator: string` - indicator that starts the new mention
 
 ### `.toggleBlockQuote()`
 
@@ -1035,7 +1036,7 @@ Converts the current selection into an unordered list with checkboxes as items.
 Each checkbox can be checked or unchecked. The user can later toggle each
 checkbox individually by tapping on it.
 
-- `checked: boolean` — whether the checkboxes should be checked or unchecked by
+- `checked: boolean` - whether the checkboxes should be checked or unchecked by
   default
 
 ## HtmlStyle type
@@ -1117,42 +1118,42 @@ interface MentionStyleProperties {
 
 ### h1/h2/h3/h4/h5/h6 (headings)
 
-- `fontSize` — size of the heading's font. Defaults to `32` for `H1`, `24` for
+- `fontSize` - size of the heading's font. Defaults to `32` for `H1`, `24` for
   `H2`, `20` for `H3`, `16` for `H4`, `14` for `H5`, `12` for `H6`
-- `bold` — whether the heading should be bolded; defaults to `false`
+- `bold` - whether the heading should be bolded; defaults to `false`
 
 ### blockquote
 
-- `borderColor` — color of the rectangular border drawn to the left of
+- `borderColor` - color of the rectangular border drawn to the left of
   blockquote text; takes a [color](https://reactnative.dev/docs/colors) value,
   defaults to `darkgray`
-- `borderWidth` — width of that border; defaults to `4`
-- `gapWidth` — width of the gap between the border and the blockquote text;
+- `borderWidth` - width of that border; defaults to `4`
+- `gapWidth` - width of the gap between the border and the blockquote text;
   defaults to `16`
-- `color` — color of blockquote text; takes a
+- `color` - color of blockquote text; takes a
   [color](https://reactnative.dev/docs/colors) value; if not set, uses the
   input's [color](#style)
 
 ### codeblock
 
-- `color` — color of codeblock text; takes a
+- `color` - color of codeblock text; takes a
   [color](https://reactnative.dev/docs/colors) value, defaults to `black`
-- `borderRadius` — radius of the codeblock's border; defaults to `8`
-- `backgroundColor` — codeblock background color; takes a
+- `borderRadius` - radius of the codeblock's border; defaults to `8`
+- `backgroundColor` - codeblock background color; takes a
   [color](https://reactnative.dev/docs/colors) value, defaults to `darkgray`
 
 ### code (inline code)
 
-- `color` — color of inline code text; takes a
+- `color` - color of inline code text; takes a
   [color](https://reactnative.dev/docs/colors) value, defaults to `red`
-- `backgroundColor` — inline code background color; takes a
+- `backgroundColor` - inline code background color; takes a
   [color](https://reactnative.dev/docs/colors) value, defaults to `darkgray`
 
 ### a (link)
 
-- `color` — color of link text; takes a
+- `color` - color of link text; takes a
   [color](https://reactnative.dev/docs/colors) value, defaults to `blue`
-- `textDecorationLine` — whether links are underlined; `'underline'` or
+- `textDecorationLine` - whether links are underlined; `'underline'` or
   `'none'`, defaults to `'underline'`
 
 ### mention
@@ -1161,24 +1162,41 @@ If only a single config is given, the style applies to all mention types. You
 can also set a different config for each `mentionIndicator`; then the prop
 should be a record with indicators as keys and configs as values.
 
-- `color` — color of mention text; takes a
+- `color` - color of mention text; takes a
   [color](https://reactnative.dev/docs/colors) value, defaults to `blue`
-- `backgroundColor` — mention background color; takes a
+- `backgroundColor` - mention background color; takes a
   [color](https://reactnative.dev/docs/colors) value, defaults to `yellow`
-- `textDecorationLine` — whether mentions are underlined; `'underline'` or
+- `textDecorationLine` - whether mentions are underlined; `'underline'` or
   `'none'`, defaults to `'underline'`
+
+:::tip
+
+You can also create a default `mention` style config, by using the `'default'` key.
+
+```tsx
+htmlStyle={{
+  mention: {
+    'default': { color: '#2563eb', backgroundColor: '#dbeafe' },
+    '#': { color: '#16a34a', backgroundColor: '#dcfce7' },
+  },
+}}
+```
+
+This way you can create a style for any mention indicator to fallback if it doesn't have one fully defined.
+
+:::
 
 ### ol (ordered list)
 
 By marker, we mean the number that denotes consecutive lines of the list.
 
-- `gapWidth` — gap between the marker and the list item's text; defaults to `16`
-- `marginLeft` — margin to the left of the marker (between the marker and the
+- `gapWidth` - gap between the marker and the list item's text; defaults to `16`
+- `marginLeft` - margin to the left of the marker (between the marker and the
   input's left edge); defaults to `16`
-- `markerFontWeight` — font weight of the marker; takes a
+- `markerFontWeight` - font weight of the marker; takes a
   [fontWeight](https://reactnative.dev/docs/text-style-props#fontweight) value;
   if not set, defaults to the input's [fontWeight](#style)
-- `markerColor` — text color of the marker; takes a
+- `markerColor` - text color of the marker; takes a
   [color](https://reactnative.dev/docs/colors) value; if not set, defaults to
   the input's [color](#style)
 
@@ -1186,27 +1204,27 @@ By marker, we mean the number that denotes consecutive lines of the list.
 
 By bullet, we mean the dot that begins each line of the list.
 
-- `bulletColor` — color of the bullet; takes a
+- `bulletColor` - color of the bullet; takes a
   [color](https://reactnative.dev/docs/colors) value, defaults to `black`
-- `bulletSize` — height and width of the bullet; defaults to `8`
-- `marginLeft` — margin to the left of the bullet; defaults to `16`
-- `gapWidth` — gap between the bullet and the list item's text; defaults to `16`
+- `bulletSize` - height and width of the bullet; defaults to `8`
+- `marginLeft` - margin to the left of the bullet; defaults to `16`
+- `gapWidth` - gap between the bullet and the list item's text; defaults to `16`
 
 ### ulCheckbox (checkbox list)
 
 Unordered list with checkboxes instead of bullets.
 
-- `boxColor` — color of the checkbox; takes a
+- `boxColor` - color of the checkbox; takes a
   [color](https://reactnative.dev/docs/colors) value, defaults to `blue`
-- `boxSize` — height and width of the checkbox; defaults to `24`
-- `marginLeft` — margin to the left of the checkbox; defaults to `16`
-- `gapWidth` — gap between the checkbox and the list item's text; defaults to
+- `boxSize` - height and width of the checkbox; defaults to `24`
+- `marginLeft` - margin to the left of the checkbox; defaults to `16`
+- `gapWidth` - gap between the checkbox and the list item's text; defaults to
   `16`
 
 ## EnrichedInputStyle type
 
 Defines the [`style`](#style) prop's shape. This type is a subset of React
-Native's [TextStyle](https://reactnative.dev/docs/text-style-props) — some
+Native's [TextStyle](https://reactnative.dev/docs/text-style-props) - some
 properties are not supported (for example `textAlign`, `textDecorationLine`,
 `justifyContent`). Certain properties are platform-specific and include an
 `@platform` directive in the type definition.
