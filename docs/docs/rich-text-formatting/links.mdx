@@ -104,11 +104,15 @@ while editing an autolinked token breaks it.
 
 <InteractiveExample src={LinksEditorSrc} component={LinksEditor} />
 
+## Handling links with events
+
+There is an event that allows you to handle user's interaction with links inside `EnrichedTextInput`.
+
+- **`onLinkDetected`** fires when the cursor enters or leaves a created link.
+
 :::info
 
-This page covers creating and detecting links. To react to links the user
-touches, listen for the
-`onLinkDetected` event, and to change how
-links look, see [Styling the input](/core-functionalities/styling-the-input).
+This page covers creating and detecting links. To change how
+they look, see [Styling the input](/core-functionalities/styling-the-input).
 
 :::
