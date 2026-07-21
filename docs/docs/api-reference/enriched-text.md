@@ -26,6 +26,7 @@ function App() {
 
 ```ts
 interface EnrichedTextProps extends ViewProps {
+  ref?: RefObject<EnrichedTextInstance | null>;
   children: string;
   style?: TextStyle;
   htmlStyle?: EnrichedTextHtmlStyle;
