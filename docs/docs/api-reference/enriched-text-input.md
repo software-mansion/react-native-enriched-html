@@ -210,7 +210,7 @@ won't work.
 
 | Type             | Default                       | Platforms    |
 | ---------------- | ----------------------------- | ------------ |
-| `RegExp \| null` | default native platform regex | Android, iOS |
+| `RegExp \| null` | default native platform regex | Android, iOS, Web |
 
 :::tip
 
