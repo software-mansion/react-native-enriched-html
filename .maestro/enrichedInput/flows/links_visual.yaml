@@ -1,0 +1,73 @@
+appId: swmansion.enriched.example
+---
+# Verifies typing a URL directly into the editor
+- launchApp
+
+- tapOn:
+    id: 'toggle-screen-button'
+
+- tapOn:
+    id: "editor-input"
+
+# autolinks break on text change or paste
+- inputText: 'swmansion.com'
+
+- doubleTapOn:
+    id: 'editor-input'
+    point: '20%, 50%'
+- tapOn:
+    text: 'Copy'
+
+- tapOn:
+    id: 'editor-input'
+    point: '70%, 50%'
+- pressKey: Enter
+
+- longPressOn:
+    id: 'editor-input'
+    point: '50%, 70%'
+- tapOn:
+    text: 'Paste'
+- inputText: 'm'
+
+- pressKey: Enter
+- inputText: 'swm'
+- longPressOn:
+    id: 'editor-input'
+    point: '50%, 75%'
+- tapOn:
+    text: 'Paste'
+
+- runFlow:
+    file: '../subflows/capture_or_assert_screenshot.yaml'
+    env:
+      SCREENSHOT_NAME: 'links_visual_auto'
+
+# manual link where href == textValue but does not match the linkRegex is considered as a manual link
+- runFlow:
+    file: '../subflows/set_editor_value.yaml'
+    env:
+      VALUE: '<html><p><a href="example.com">example.com</a></p></html>'
+
+- doubleTapOn:
+    id: 'editor-input'
+    point: '20%, 50%'
+- tapOn:
+    text: 'Copy'
+
+- tapOn:
+    id: 'editor-input'
+    point: '70%, 50%'
+- pressKey: Enter
+
+- longPressOn:
+    id: 'editor-input'
+    point: '50%, 70%'
+- tapOn:
+    text: 'Paste'
+- pressKey: Backspace
+
+- runFlow:
+    file: '../subflows/capture_or_assert_screenshot.yaml'
+    env:
+      SCREENSHOT_NAME: 'links_visual_manual'

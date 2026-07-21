@@ -38,6 +38,7 @@ class EnrichedTextSpanFactory : EnrichedSpanFactory<EnrichedTextStyle> {
   override fun createLinkSpan(
     url: String,
     style: EnrichedTextStyle,
+    isManual: Boolean,
   ) = EnrichedTextLinkSpan(url, style)
 
   override fun createMentionSpan(
