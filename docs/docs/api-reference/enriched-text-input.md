@@ -1389,7 +1389,7 @@ export interface EnrichedInputStyle {
 - Sanitizing HTML is your responsibility. See
   [Core concepts](/fundamentals/core-concepts#html-is-the-source-of-truth).
 - For the full list of supported tags and style conflicts, see
-  [Supported tags](/fundamentals/html-format-and-supported-tags).
+  [HTML format and supported tags](/fundamentals/html-format-and-supported-tags).
 
 ## Platform compatibility
 
