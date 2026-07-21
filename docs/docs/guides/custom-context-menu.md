@@ -12,7 +12,7 @@ user long-presses selected text.
 
 This is a **native-only** feature (iOS and Android) - which
 is why this page has no live preview. To see it in action, run the snippet below in the
-[example app](https://github.com/software-mansion/react-native-enriched).
+[example app](https://github.com/software-mansion/react-native-enriched-html/tree/main/apps/example).
 
 :::
 
