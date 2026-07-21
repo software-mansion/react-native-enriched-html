@@ -15,7 +15,7 @@ the library: **calling methods on the input** and **reading its state back**.
 ## Rendering the input
 
 Start by dropping an `EnrichedTextInput` on the screen. It behaves like a
-regular `TextInput` — give it a `style` and a `placeholder` and you have a
+regular `TextInput` - give it a `style` and a `placeholder` and you have a
 working editor.
 
 ```tsx
@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
 
 ## Toggling a style
 
-The input is uncontrolled — you don't change its content through props. Instead
+The input is uncontrolled - you don't change its content through props. Instead
 you call methods on it through a `ref` of type `EnrichedTextInputInstance`.
 
 Add a ref and a button that calls `toggleBold`. Each call flips bold on the
@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
 });
 ```
 
-Every other style is toggled similarly via `ref` — there's a `toggleItalic`,
+Every other style is toggled similarly via `ref` - there's a `toggleItalic`,
 `toggleUnderline`, `toggleH1`, `toggleOrderedList`, and so on.
 
 ## Reading the state back
@@ -194,7 +194,7 @@ lists which styles clash with each other.
 
 ## Try it out
 
-Here's that editor running live on this page. Select some text and hit **Bold** —
+Here's that editor running live on this page. Select some text and hit **Bold** -
 notice the button turns green whenever the cursor sits on bold text. Switch to
 the **Code** tab to see the exact source.
 
