@@ -139,7 +139,7 @@ interface ContextMenuItem {
 
 | Type                | Default | Platforms    |
 | ------------------- | ------- | ------------ |
-| `ContextMenuItem[]` | `[]`    | Android, iOS |
+| `ContextMenuItem[]` | —       | Android, iOS |
 
 :::note
 
