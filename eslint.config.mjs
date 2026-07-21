@@ -38,6 +38,9 @@ export default defineConfig([
       'lib/',
       'apps/example-web/dist/',
       'cpp/build/',
+      // excludes all docs/ except:
+      // - files directly in the docs/ directory
+      // - the docs/src/examples directory
       'docs/**/*',
       '!docs/src',
       '!docs/src/examples',
