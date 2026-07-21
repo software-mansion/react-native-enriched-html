@@ -7,7 +7,7 @@ sidebar_position: 1
 `EnrichedTextInput` is styled through two separate props. Together they cover
 everything from the container's dimensions down to the color of a bullet point.
 
-- **`style`** - the container's layouting behavior and its base typography (`fontSize`, `color`, `fontFamily`, …). It accepts a subset of React Native's `TextStyle`, described by
+- **`style`** - the container's layout behavior and its base typography (`fontSize`, `color`, `fontFamily`, …). It accepts a subset of React Native's `TextStyle`, described by
   `EnrichedInputStyle`.
 - **`htmlStyle`** - the appearance of individual rich text elements: heading
   sizes, blockquote borders, code colors, list markers, mention colors, and so
