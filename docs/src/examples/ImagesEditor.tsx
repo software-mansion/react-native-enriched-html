@@ -2,6 +2,7 @@ import { EnrichedTextInput } from 'react-native-enriched-html';
 import type { EnrichedTextInputInstance } from 'react-native-enriched-html';
 import { useRef } from 'react';
 import { View, StyleSheet, Pressable, Text } from 'react-native';
+import { htmlStyle } from './htmlStyle';
 
 export default function App() {
   const ref = useRef<EnrichedTextInputInstance>(null);
@@ -23,6 +24,7 @@ export default function App() {
       <EnrichedTextInput
         ref={ref}
         style={styles.input}
+        htmlStyle={htmlStyle}
         placeholder="Place the cursor, then insert an image below..."
       />
       <View style={styles.row}>

@@ -2,6 +2,7 @@ import { EnrichedTextInput } from 'react-native-enriched-html';
 import type { EnrichedTextInputInstance } from 'react-native-enriched-html';
 import { useRef } from 'react';
 import { View, StyleSheet, Pressable, Text } from 'react-native';
+import { htmlStyle } from './htmlStyle';
 
 const user = { id: '1', name: 'John' };
 
@@ -18,6 +19,7 @@ export default function App() {
       <EnrichedTextInput
         ref={ref}
         style={styles.input}
+        htmlStyle={htmlStyle}
         placeholder="Type '@', then tap the button below..."
       />
       <Pressable style={styles.button} onPress={insertMention}>

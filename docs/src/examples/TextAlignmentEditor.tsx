@@ -5,6 +5,7 @@ import type {
 } from 'react-native-enriched-html';
 import { useRef, useState } from 'react';
 import { View, StyleSheet, Pressable, Text } from 'react-native';
+import { htmlStyle } from './htmlStyle';
 
 const alignments = ['left', 'center', 'right', 'justify'] as const;
 
@@ -32,6 +33,7 @@ export default function App() {
       <EnrichedTextInput
         ref={ref}
         style={styles.input}
+        htmlStyle={htmlStyle}
         placeholder="Type a paragraph, then align it below..."
         onChangeState={e => setState(e.nativeEvent)}
       />
