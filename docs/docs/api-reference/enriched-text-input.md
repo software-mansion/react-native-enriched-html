@@ -5,8 +5,7 @@ sidebar_position: 1
 # EnrichedTextInput
 
 `EnrichedTextInput` is a rich text editor that styles text live as you type.
-It is uncontrolled — content lives on the native side and you talk to it through
-a `ref`. See [Core concepts](/fundamentals/core-concepts) for the mental model.
+See [Core concepts](/fundamentals/core-concepts) for the mental model.
 
 ## Reference
 
