@@ -413,7 +413,7 @@ Called whenever the input is focused.
 
 ### `onLinkDetected` <Optional /> {#onlinkdetected}
 
-Called when a new link has been added, or the user has moved the
+Called when the user has moved the
 cursor/selection onto a link.
 
 ```ts
