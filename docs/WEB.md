@@ -39,15 +39,15 @@ See [Web Keyboard Shortcuts](./INPUT_API_REFERENCE.md#web-keyboard-shortcuts) fo
 ### What works
 
 - Customizing the styling using props: `style`, `htmlStyle`, `selectionColor`.
-- `onImagePress` callback
+- `selectable` prop
+- `useHtmlNormalizer`
+- `onLinkPress`, `onMentionPress` and `onImagePress` callbacks
 
 ### Unsupported
 
-- **`selectable`**: ignored on web.
-- **`useHtmlNormalizer`**: ignored on web.
 - **`ellipsizeMode`**: ignored on web.
 - **`numberOfLines`**: ignored on web.
-- **Press events**: `onLinkPress` and `onMentionPress` callbacks are ignored on web.
+- **RN layout ref methods**: `measure`, `measureInWindow`, `measureLayout`, and `setNativeProps` are no-ops.
 
 ## HTML sanitization
 

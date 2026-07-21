@@ -30,7 +30,7 @@ export const EnrichedText = ({
   children,
   style,
   htmlStyle: _htmlStyle = {},
-  useHtmlNormalizer = false,
+  useHtmlNormalizer = true,
   ellipsizeMode = 'tail',
   numberOfLines = 0,
   selectable = false,

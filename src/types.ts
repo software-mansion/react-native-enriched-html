@@ -758,7 +758,7 @@ export interface EnrichedTextInputProps extends Omit<ViewProps, 'children'> {
    * normalized through the HTML normalizer before being applied.
    * This converts arbitrary HTML into the canonical tag subset that the enriched
    * parser understands.
-   * Disabled by default.
+   * Enabled by default.
    */
   useHtmlNormalizer?: boolean;
 
@@ -800,7 +800,7 @@ export interface EnrichedTextProps extends ViewProps {
 
   /**
    * If true, external HTML will be normalized through the HTML normalizer
-   * before being rendered. Disabled by default.
+   * before being rendered. Enabled by default.
    */
   useHtmlNormalizer?: boolean;
 

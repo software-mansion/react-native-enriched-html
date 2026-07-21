@@ -11,8 +11,20 @@ type ImageAttributes = {
   height: number;
 };
 
+import type { OnLinkPressEvent, OnMentionPressEvent } from '../types';
+
+type OnLinkPressEventRef = RefObject<
+  ((event: OnLinkPressEvent) => void) | undefined
+>;
+
+type OnMentionPressEventRef = RefObject<
+  ((event: OnMentionPressEvent) => void) | undefined
+>;
+
 export function usePressInteractions(
   containerRef: RefObject<HTMLDivElement | null>,
+  onLinkPressRef: OnLinkPressEventRef,
+  onMentionPressRef: OnMentionPressEventRef,
   onImagePressRef: OnImagePressEventRef
 ) {
   useEffect(() => {
@@ -21,11 +33,6 @@ export function usePressInteractions(
 
     const handleInteraction = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-
-      const anchor = target.closest('a');
-      if (anchor && container.contains(anchor)) {
-        e.preventDefault();
-      }
 
       const image = target.closest('img');
       if (image && container.contains(image)) {
@@ -39,11 +46,43 @@ export function usePressInteractions(
           });
         }
       }
+
+      const checkbox = target.closest("input[type='checkbox']");
+      if (checkbox && container.contains(checkbox)) {
+        e.preventDefault();
+      }
+
+      const anchor = target.closest('a');
+      if (anchor && container.contains(anchor)) {
+        e.preventDefault();
+        const url = anchor.getAttribute('href');
+        if (url && onLinkPressRef.current) {
+          onLinkPressRef.current({ url });
+        }
+      }
+
+      const mention = target.closest('mention');
+      if (mention && container.contains(mention)) {
+        if (onMentionPressRef.current) {
+          const customAttributes: Record<string, string> = {};
+          for (const attr of Array.from(mention.attributes)) {
+            if (attr.name !== 'text' && attr.name !== 'indicator') {
+              customAttributes[attr.name] = attr.value;
+            }
+          }
+
+          onMentionPressRef.current({
+            text: mention.getAttribute('text') ?? '',
+            indicator: mention.getAttribute('indicator') ?? '',
+            attributes: customAttributes,
+          });
+        }
+      }
     };
 
     container.addEventListener('click', handleInteraction);
     return () => container.removeEventListener('click', handleInteraction);
-  }, [containerRef, onImagePressRef]);
+  }, [containerRef, onLinkPressRef, onMentionPressRef, onImagePressRef]);
 }
 
 function getImageAttributes(

@@ -2,6 +2,8 @@ import { useState, type ChangeEvent } from 'react';
 import {
   EnrichedText,
   type OnImagePressEvent,
+  type OnLinkPressEvent,
+  type OnMentionPressEvent,
 } from 'react-native-enriched-html';
 import type { TextStyle } from 'react-native';
 import { WEB_DEFAULT_HTML_STYLE } from '../defaultHtmlStyle';
@@ -13,6 +15,12 @@ export function TestEnrichedText() {
   const [value, setValue] = useState(INITIAL_VALUE);
   const [lastImagePress, setLastImagePress] =
     useState<OnImagePressEvent | null>(null);
+  const [lastLinkPress, setLastLinkPress] = useState<OnLinkPressEvent | null>(
+    null
+  );
+  const [lastMentionPress, setLastMentionPress] =
+    useState<OnMentionPressEvent | null>(null);
+  const [isWide, setIsWide] = useState(false);
 
   return (
     <div data-testid="test-enriched-text-root">
@@ -21,13 +29,25 @@ export function TestEnrichedText() {
         style={enrichedTextContainerStyle}
       >
         <EnrichedText
-          style={enrichedTextStyle}
+          style={isWide ? enrichedTextWideStyle : enrichedTextStyle}
           htmlStyle={WEB_DEFAULT_HTML_STYLE}
+          onLinkPress={setLastLinkPress}
+          onMentionPress={setLastMentionPress}
           onImagePress={setLastImagePress}
         >
           {value}
         </EnrichedText>
       </div>
+
+      <button
+        type="button"
+        data-testid="test-enriched-text-toggle-width-button"
+        onClick={() => {
+          setIsWide((prev) => !prev);
+        }}
+      >
+        Toggle width
+      </button>
 
       <textarea
         data-testid="test-enriched-text-html-input"
@@ -52,6 +72,12 @@ export function TestEnrichedText() {
       <pre data-testid="test-enriched-text-image-press-output">
         {JSON.stringify(lastImagePress)}
       </pre>
+      <pre data-testid="test-enriched-text-link-press-output">
+        {JSON.stringify(lastLinkPress)}
+      </pre>
+      <pre data-testid="test-enriched-text-mention-press-output">
+        {JSON.stringify(lastMentionPress)}
+      </pre>
     </div>
   );
 }
@@ -63,6 +89,12 @@ const enrichedTextStyle: TextStyle = {
   paddingHorizontal: 8,
   backgroundColor: 'gainsboro',
   fontSize: 16,
+};
+
+const enrichedTextWideStyle: TextStyle = {
+  ...enrichedTextStyle,
+  minWidth: 360,
+  maxWidth: 720,
 };
 
 const enrichedTextContainerStyle = {

@@ -79,6 +79,21 @@ test.describe('EnrichedText display visual regression', () => {
       snapshot: 'enriched-text-checkbox-list-empty-items.png',
       html: '<html><h4>Empty lists</h4><ul data-type="checkbox"><li></li><li checked>one</li><li></li><li>three</li><li checked></li></ul><p>bottom</p></html>',
     },
+    {
+      name: 'unordered list with wrapped text',
+      snapshot: 'enriched-text-unordered-list-wrapped.png',
+      html: '<html><ul><li>This is a very long unordered list item that should naturally wrap onto multiple lines to ensure that the bullet alignment behaves as expected.</li></ul></html>',
+    },
+    {
+      name: 'ordered list with wrapped text',
+      snapshot: 'enriched-text-ordered-list-wrapped.png',
+      html: '<html><ol><li>This is a very long ordered list item that should naturally wrap onto multiple lines to ensure that the number alignment behaves as expected.</li></ol></html>',
+    },
+    {
+      name: 'checkbox list with wrapped text',
+      snapshot: 'enriched-text-checkbox-list-wrapped.png',
+      html: '<html><ul data-type="checkbox"><li>This is a very long checkbox list item that should naturally wrap onto multiple lines to ensure that the checkbox alignment behaves as expected.</li></ul></html>',
+    },
   ];
 
   for (const c of cases) {
@@ -212,7 +227,7 @@ test.describe('visual: images', () => {
     {
       name: 'image placeholder inside lists',
       snapshot: 'enriched-text-images-placeholder-list.png',
-      html: '<html><ol><li>List with a broken image <img src="" width="20" height="20" /> inside.</li></ol></html>',
+      html: '<html><ol><li>List with a broken image <img src="/pw-e2e-broken.png" width="20" height="20" /> inside.</li></ol></html>',
     },
   ];
 
