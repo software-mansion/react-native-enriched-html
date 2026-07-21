@@ -1,0 +1,86 @@
+---
+sidebar_position: 3
+---
+
+import InteractiveExample from '@site/src/components/InteractiveExample';
+import EmojiEditor from '@site/src/examples/EmojiEditor';
+import EmojiEditorSrc from '!!raw-loader!@site/src/examples/EmojiEditor';
+
+# Emojis
+
+Mentions are extremely powerful that you can build much more with. An emoji picker is just a mention with where its display text does not match its query. For the indicator, we'll use `:` - the user types `:smile`, picks from a list, and the shortcode is
+replaced with the emoji itself. If the mention events are new to you, start with
+[Mentions](/rich-text-formatting/mentions) and the
+[Mention-only input](/guides/mention-only-input) guide; this page reuses the
+exact same flow.
+
+## A shortcode table
+
+Map each shortcode to the glyph it inserts:
+
+```tsx
+const EMOJIS = [
+  { shortcode: 'smile', char: '😄' },
+  { shortcode: 'heart', char: '❤️' },
+  { shortcode: 'fire', char: '🔥' },
+  { shortcode: 'rocket', char: '🚀' },
+];
+```
+
+## Wiring it up
+
+Register `:` as the only indicator and filter the table with the text typed
+after it. Because people habitually close the shortcode (`:smile:`), strip a
+trailing colon before matching:
+
+```tsx
+<EnrichedTextInput
+  mentionIndicators={[':']}
+  onStartMention={() => setOpen(true)}
+  onChangeMention={({ text }) => setQuery(text)}
+  onEndMention={() => setOpen(false)}
+  // ...
+/>;
+
+const q = query.replace(/:$/, '').toLowerCase();
+const suggestions = EMOJIS.filter(e => e.shortcode.startsWith(q));
+```
+
+When the user picks, `setMention` inserts the glyph as the mention's display
+text. The `data-shortcode` makes a handy attribute if you ever need to reconstruct it:
+
+```tsx
+const pick = (emoji) => {
+  ref.current?.setMention(':', emoji.char, {
+    'data-shortcode': emoji.shortcode,
+  });
+};
+```
+
+Since the emoji glyph _is_ the whole mention, drop the usual highlight so it
+reads as plain text:
+
+```tsx
+const htmlStyle = {
+  mention: {
+    ':': {
+      color: '#232736',
+      backgroundColor: 'transparent',
+      textDecorationLine: 'none',
+    },
+  },
+};
+```
+
+:::info
+
+If you want to see the whole code used to build this example, you can find it below by switching the tab from `Preview` to `Code`.
+
+:::
+
+## Try it out
+
+Type `:` followed by a name - `:fire`, `:heart` - then tap a suggestion. The
+shortcode collapses into a single emoji you can place anywhere in the text.
+
+<InteractiveExample src={EmojiEditorSrc} component={EmojiEditor} />
