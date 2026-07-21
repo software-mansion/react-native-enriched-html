@@ -436,7 +436,7 @@ interface OnLinkDetected {
 
 ### `onMentionDetected` <Optional /> {#onmentiondetected}
 
-Called when a mention has been detected — either a new mention was added, or the
+Called when the
 user moved the cursor/selection onto a mention.
 
 ```ts
@@ -457,7 +457,7 @@ interface OnMentionDetected {
 
 ### `onStartMention` <Optional /> {#onstartmention}
 
-Called whenever mention editing starts (after placing the indicator).
+Called whenever mention editing starts.
 
 - `indicator` is the indicator of the mention that begins editing
 
@@ -504,8 +504,6 @@ Called when the user pastes one or more images or GIFs into the input.
 
 - `images` — an array of objects with URI, MIME type, and dimensions for each
   pasted image/GIF
-- **Web:** each `uri` is a `blob:` URL (`URL.createObjectURL`). If you retain
-  URIs, call `URL.revokeObjectURL` when finished so blobs can be released
 
 ```ts
 interface OnPasteImagesEvent {
@@ -820,8 +818,7 @@ removeLink: (start: number, end: number) => void;
 ```
 
 Removes link styling from any links found within the given range. The text
-content is preserved; only the link attributes are stripped. Out-of-bounds
-values are clamped to a valid range.
+content is preserved; only the link attributes are stripped.
 
 - `start: number` — starting index of the range to remove links from
 - `end: number` — first index behind the range's ending index
