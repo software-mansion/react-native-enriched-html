@@ -17,8 +17,8 @@ Full payload shapes of the available callbacks can be found in the `EnrichedText
 
 :::tip
 
-The `onChangeHtml` callbacks has to parse the content into HTML on every keystroke.
-This is a heavy, computational operation, which might slow down your app's performance. Consider using the `getHTML()` ref method instead if it meets your requirements.
+The `onChangeHtml` callback has to parse the content into HTML on every keystroke.
+This is a heavy computational operation that might slow down your app's performance. Consider using the `getHTML()` ref method instead if it meets your requirements.
 
 :::
 
