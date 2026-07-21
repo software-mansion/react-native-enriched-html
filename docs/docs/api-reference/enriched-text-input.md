@@ -845,6 +845,15 @@ custom attributes.
 - `attributes?: Record<string, string>` — additional custom attributes for the
   mention, preserved through parsing to and from HTML
 
+:::note
+
+The attributes you pass to `setMention` ride along in the HTML
+and survive a round-trip through `getHTML` / `setValue`. Prefix custom keys with
+`data-` if they need to outlive a sanitizer - see the note in
+[Mentions](/rich-text-formatting/mentions).
+
+:::
+
 ### `.setValue()`
 
 ```ts
