@@ -2,6 +2,7 @@ import { EnrichedTextInput } from 'react-native-enriched-html';
 import type { EnrichedTextInputInstance } from 'react-native-enriched-html';
 import { useRef } from 'react';
 import { View, StyleSheet } from 'react-native';
+import { htmlStyle } from './htmlStyle';
 
 export default function App() {
   const ref = useRef<EnrichedTextInputInstance>(null);
@@ -11,6 +12,7 @@ export default function App() {
       <EnrichedTextInput
         ref={ref}
         style={styles.input}
+        htmlStyle={htmlStyle}
         // Two shortcuts, one of each kind:
         // - '# ' at the start of a paragraph turns the line into an H1 (paragraph style)
         // - '**text**' wraps the delimited text in bold (inline style)
