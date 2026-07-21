@@ -1845,7 +1845,7 @@ PODS:
     - React-utils (= 0.86.0)
     - ReactNativeDependencies
   - ReactNativeDependencies (0.86.0)
-  - ReactNativeEnrichedHtml (1.0.0):
+  - ReactNativeEnrichedHtml (1.0.1):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety

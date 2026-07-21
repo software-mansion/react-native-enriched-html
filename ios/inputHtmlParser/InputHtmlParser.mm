@@ -24,7 +24,8 @@
   _input->textView.typingAttributes = _input->defaultTypingAttributes;
 
   @try {
-    NSArray *processingResult = [HtmlParser getTextAndStylesFromHtml:html];
+    NSArray *processingResult =
+        [HtmlParser getTextAndStylesFromHtml:html config:_input.config];
     NSString *plainText = (NSString *)processingResult[0];
     NSArray *stylesInfo = (NSArray *)processingResult[1];
     NSArray *alignments = (NSArray *)processingResult[2];
@@ -50,7 +51,8 @@
 
 - (void)replaceFromHtml:(NSString *_Nonnull)html range:(NSRange)range {
   @try {
-    NSArray *processingResult = [HtmlParser getTextAndStylesFromHtml:html];
+    NSArray *processingResult =
+        [HtmlParser getTextAndStylesFromHtml:html config:_input.config];
     NSString *plainText = (NSString *)processingResult[0];
     NSArray *stylesInfo = (NSArray *)processingResult[1];
     NSArray *alignments = (NSArray *)processingResult[2];
@@ -81,7 +83,8 @@
 
 - (void)insertFromHtml:(NSString *_Nonnull)html location:(NSInteger)location {
   @try {
-    NSArray *processingResult = [HtmlParser getTextAndStylesFromHtml:html];
+    NSArray *processingResult =
+        [HtmlParser getTextAndStylesFromHtml:html config:_input.config];
     NSString *plainText = (NSString *)processingResult[0];
     NSArray *stylesInfo = (NSArray *)processingResult[1];
     NSArray *alignments = (NSArray *)processingResult[2];

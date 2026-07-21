@@ -27,10 +27,11 @@ export function TestScreen({
   const [sizeMode, setSizeMode] = useState<'base' | 'max'>('base');
 
   return (
-    <>
+    <View style={styles.container}>
       <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.content}
+        style={styles.scrollContainer}
+        contentContainerStyle={styles.scrollContent}
+        testID="full-screen"
       >
         <View style={styles.buttonStack}>
           <Button
@@ -95,7 +96,6 @@ export function TestScreen({
               ANDROID_EXPERIMENTAL_SYNCHRONOUS_EVENTS
             }
             onPasteImages={(e) => editor.handlePasteImagesEvent(e.nativeEvent)}
-            useHtmlNormalizer
             testID="editor-input"
           />
           <Toolbar
@@ -165,7 +165,7 @@ export function TestScreen({
         isOpen={editor.isChannelPopupOpen}
         onItemPress={editor.handleChannelMentionSelected}
       />
-    </>
+    </View>
   );
 }
 
@@ -173,11 +173,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'white',
+    paddingTop: 100,
   },
-  content: {
+  scrollContainer: {
+    flex: 1,
+  },
+  scrollContent: {
     flexGrow: 1,
     padding: 16,
-    paddingTop: 100,
     alignItems: 'center',
   },
   editor: {

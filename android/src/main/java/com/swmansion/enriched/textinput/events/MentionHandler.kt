@@ -27,8 +27,17 @@ class MentionHandler(
     indicator: String,
     text: String?,
   ) {
+    // switching directly to an active mention
+    if (previousIndicator != indicator) {
+      endMention()
+
+      // explicit startMention event before changeMention event
+      if (!text.isNullOrEmpty()) {
+        emitEvent(indicator, "")
+      }
+    }
+
     emitEvent(indicator, text)
-    previousIndicator = indicator
   }
 
   private fun emitEvent(
@@ -36,8 +45,9 @@ class MentionHandler(
     text: String?,
   ) {
     // Do not emit events too often
-    if (previousText == text) return
+    if (previousIndicator == indicator && previousText == text) return
 
+    previousIndicator = indicator
     previousText = text
     val context = view.context as ReactContext
     val surfaceId = UIManagerHelper.getSurfaceId(context)
