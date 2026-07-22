@@ -1,5 +1,17 @@
 import { useEffect, type RefObject } from 'react';
-import type { OnImagePressEvent } from '../types';
+import type {
+  OnLinkPressEvent,
+  OnMentionPressEvent,
+  OnImagePressEvent,
+} from '../types';
+
+type OnLinkPressEventRef = RefObject<
+  ((event: OnLinkPressEvent) => void) | undefined
+>;
+
+type OnMentionPressEventRef = RefObject<
+  ((event: OnMentionPressEvent) => void) | undefined
+>;
 
 type OnImagePressEventRef = RefObject<
   ((event: OnImagePressEvent) => void) | undefined
@@ -10,16 +22,6 @@ type ImageAttributes = {
   width: number;
   height: number;
 };
-
-import type { OnLinkPressEvent, OnMentionPressEvent } from '../types';
-
-type OnLinkPressEventRef = RefObject<
-  ((event: OnLinkPressEvent) => void) | undefined
->;
-
-type OnMentionPressEventRef = RefObject<
-  ((event: OnMentionPressEvent) => void) | undefined
->;
 
 export function usePressInteractions(
   containerRef: RefObject<HTMLDivElement | null>,
