@@ -40,7 +40,7 @@ export const htmlStyle: HtmlStyle = {
   },
   a: {
     color: '#38acdd',
-    textDecorationLine: 'none',
+    textDecorationLine: 'underline',
   },
   mention: {
     color: LINK,
