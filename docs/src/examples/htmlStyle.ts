@@ -71,7 +71,7 @@ export const enrichedTextHtmlStyle: EnrichedTextHtmlStyle = {
     pressColor: '#3b82f6',
   },
   mention: {
-    ...(htmlStyle.mention as object),
+    ...htmlStyle.mention,
     pressColor: '#1d4fa0',
     pressBackgroundColor: '#c2d8f7',
   },
