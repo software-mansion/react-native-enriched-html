@@ -5,6 +5,7 @@ import type {
 } from 'react-native-enriched-html';
 import { useRef, useState } from 'react';
 import { View, StyleSheet, Pressable, Text } from 'react-native';
+import { htmlStyle, enrichedTextHtmlStyle } from './htmlStyle';
 
 export default function App() {
   const ref = useRef<EnrichedTextInputInstance>(null);
@@ -43,6 +44,7 @@ export default function App() {
       <EnrichedTextInput
         ref={ref}
         style={styles.input}
+        htmlStyle={htmlStyle}
         placeholder="Type something here..."
         onChangeState={e => setState(e.nativeEvent)}
       />
@@ -72,7 +74,10 @@ export default function App() {
         <Text style={styles.renderText}>Render ↓</Text>
       </Pressable>
 
-      <EnrichedText style={styles.viewer} selectable>
+      <EnrichedText
+        style={styles.viewer}
+        htmlStyle={enrichedTextHtmlStyle}
+        selectable>
         {html}
       </EnrichedText>
     </View>
