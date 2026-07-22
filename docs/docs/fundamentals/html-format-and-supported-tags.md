@@ -4,7 +4,7 @@ sidebar_position: 4
 
 # HTML format and supported tags
 
-The editor works with a fixed set of standard and custom HTML tags — it both
+The editor works with a fixed set of standard and custom HTML tags - it both
 produces them in its output and accepts them as input. This page is the
 reference for that set.
 
@@ -12,10 +12,10 @@ Styles fall into two groups: **inline** tags that wrap a range of characters,
 and **paragraph** tags that apply to whole lines. Not all of them combine
 freely, and there are two kinds of restriction:
 
-- **Conflicting** — toggling a style that conflicts with an active one replaces
+- **Conflicting** - toggling a style that conflicts with an active one replaces
   it. Toggling `<h2>` on a `<blockquote>` paragraph removes the blockquote and
   applies the heading.
-- **Blocking** — a blocked style can't be toggled at all while the blocking
+- **Blocking** - a blocked style can't be toggled at all while the blocking
   style is active. `<b>` is blocked inside `<codeblock>`, so bold can't be
   applied there.
 
@@ -45,7 +45,7 @@ of it is redundant and therefore blocked.
 
 ## Paragraph tags
 
-Only one paragraph-level style can be active per paragraph — they all conflict
+Only one paragraph-level style can be active per paragraph - they all conflict
 with each other.
 
 Some paragraph styles are containers that wrap each line inside them with an

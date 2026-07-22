@@ -68,9 +68,11 @@ export default function App() {
         ))}
       </View>
 
-      <Pressable style={styles.render} onPress={render}>
-        <Text style={styles.renderText}>Render ↓</Text>
-      </Pressable>
+      <View style={styles.row}>
+        <Pressable style={styles.button} onPress={render}>
+          <Text style={styles.text}>Render ↓</Text>
+        </Pressable>
+      </View>
 
       <EnrichedText style={styles.viewer} selectable>
         {html}
@@ -116,23 +118,12 @@ const styles = StyleSheet.create({
   textActive: {
     color: '#eef0ff',
   },
-  render: {
-    alignSelf: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 20,
-    borderRadius: 24,
-    backgroundColor: '#232736',
-  },
-  renderText: {
-    color: '#eef0ff',
-    fontWeight: '600',
-  },
   viewer: {
     fontSize: 18,
     color: '#232736',
     padding: 12,
     borderRadius: 12,
     minHeight: 64,
-    backgroundColor: '#f6f7ff',
+    backgroundColor: '#eef0ff',
   },
 });

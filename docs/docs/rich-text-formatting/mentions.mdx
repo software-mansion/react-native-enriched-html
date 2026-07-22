@@ -74,7 +74,7 @@ space, and a second space ends it. That makes `@John Doe` a valid mention.
 
 This example is deliberately bare-bones - one hard-coded user behind a button.
 A real app watches what the user types after the
-indicator and shows a picker. Three events give you everything you need for
+indicator and shows a picker. Four events give you everything you need for
 that:
 
 - **`onStartMention`** fires when a mention starts - a good moment to open your suggestion list.
@@ -82,6 +82,7 @@ that:
   typed after the indicator - use it to filter the list.
 - **`onEndMention`** fires when the mention stops being edited - the cursor
   moved away, or the query was closed - so you can dismiss the list.
+- **`onMentionDetected`** fires when the cursor enters or leaves a created mention.
 
 You'd open the list on `onStartMention`, filter it on `onChangeMention`, and
 call `setMention` when the user picks someone. This example doesn't wire up any

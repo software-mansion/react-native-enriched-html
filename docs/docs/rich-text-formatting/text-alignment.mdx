@@ -22,6 +22,11 @@ The five values are:
 - **`justify`** - stretch each line to fill the full width.
 - **`auto`** - reset to the system's natural alignment.
 
+:::note
+
+On Android, `justify` is not supported. Calling `setTextAlignment('justify')` results in natural alignment (the same as `auto`).
+
+:::
 Unlike the paragraph styles from [Basic styles](/rich-text-formatting/basic-styles),
 text alignment does not report its state with the `isActive` / `isConflicting` booleans in `onChangeState`. Instead it exposes `alignment` with its relevant string value.
 
