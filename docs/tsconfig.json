@@ -1,0 +1,12 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@site/*": ["./*"],
+      "react-native-enriched-html": ["../src/index.tsx"],
+    },
+  },
+  "exclude": [".docusaurus", "build"],
+  "include": ["src/examples"],
+}

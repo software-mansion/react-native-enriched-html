@@ -33,6 +33,19 @@ export default defineConfig([
     },
   },
   {
-    ignores: ['node_modules/', 'lib/', 'apps/example-web/dist/', 'cpp/build/'],
+    ignores: [
+      'node_modules/',
+      'lib/',
+      'apps/example-web/dist/',
+      'cpp/build/',
+      // excludes all docs/ except:
+      // - files directly in the docs/ directory
+      // - the docs/src/examples directory
+      'docs/**/*',
+      '!docs/src',
+      '!docs/src/examples',
+      '!docs/src/examples/**',
+      '!docs/*',
+    ],
   },
 ]);
