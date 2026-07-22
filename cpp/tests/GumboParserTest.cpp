@@ -581,9 +581,10 @@ TEST(GumboParserTest, InterBlockWhitespace) {
   EXPECT_EQ(GumboParser::normalizeHtml(
                 "<p>Asdasd</p>\n\n<p>Asdasd</p>\n\n<p>Asdasda</p>"),
             "<p>Asdasd</p><p>Asdasd</p><p>Asdasda</p>");
-  EXPECT_EQ(GumboParser::normalizeHtml(
-                "<html>\n<p>Asdasd</p>\n<p>Asdasd</p>\n<p>Asdasda</p>\n</html>"),
-            "<p>Asdasd</p><p>Asdasd</p><p>Asdasda</p>");
+  EXPECT_EQ(
+      GumboParser::normalizeHtml(
+          "<html>\n<p>Asdasd</p>\n<p>Asdasd</p>\n<p>Asdasda</p>\n</html>"),
+      "<p>Asdasd</p><p>Asdasd</p><p>Asdasda</p>");
   EXPECT_EQ(GumboParser::normalizeHtml("<p>Asdasd</p> <p>Asdasd</p>"),
             "<p>Asdasd</p><p>Asdasd</p>");
 

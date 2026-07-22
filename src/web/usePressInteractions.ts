@@ -1,5 +1,9 @@
 import { useEffect, type RefObject } from 'react';
-import type { OnLinkPressEvent, OnMentionPressEvent } from '../types';
+import type {
+  OnLinkPressEvent,
+  OnMentionPressEvent,
+  OnImagePressEvent,
+} from '../types';
 
 type OnLinkPressEventRef = RefObject<
   ((event: OnLinkPressEvent) => void) | undefined
@@ -9,10 +13,21 @@ type OnMentionPressEventRef = RefObject<
   ((event: OnMentionPressEvent) => void) | undefined
 >;
 
+type OnImagePressEventRef = RefObject<
+  ((event: OnImagePressEvent) => void) | undefined
+>;
+
+type ImageAttributes = {
+  uri: string;
+  width: number;
+  height: number;
+};
+
 export function usePressInteractions(
   containerRef: RefObject<HTMLDivElement | null>,
   onLinkPressRef: OnLinkPressEventRef,
-  onMentionPressRef: OnMentionPressEventRef
+  onMentionPressRef: OnMentionPressEventRef,
+  onImagePressRef: OnImagePressEventRef
 ) {
   useEffect(() => {
     const container = containerRef.current;
@@ -20,6 +35,19 @@ export function usePressInteractions(
 
     const handleInteraction = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
+
+      const image = target.closest('img');
+      if (image && container.contains(image)) {
+        e.preventDefault();
+
+        const imageAttributes = getImageAttributes(image);
+
+        if (imageAttributes) {
+          onImagePressRef.current?.({
+            image: imageAttributes,
+          });
+        }
+      }
 
       const checkbox = target.closest("input[type='checkbox']");
       if (checkbox && container.contains(checkbox)) {
@@ -56,5 +84,44 @@ export function usePressInteractions(
 
     container.addEventListener('click', handleInteraction);
     return () => container.removeEventListener('click', handleInteraction);
-  }, [containerRef, onLinkPressRef, onMentionPressRef]);
+  }, [containerRef, onLinkPressRef, onMentionPressRef, onImagePressRef]);
+}
+
+function getImageAttributes(
+  image: HTMLImageElement
+): ImageAttributes | undefined {
+  const uri = image.getAttribute('src');
+
+  if (!uri) {
+    return undefined;
+  }
+
+  const { width, height } = getImageDimensions(image);
+
+  return {
+    uri,
+    width,
+    height,
+  };
+}
+
+function getImageDimensions(image: HTMLImageElement): {
+  width: number;
+  height: number;
+} {
+  const rawWidth = image.getAttribute('width');
+  const rawHeight = image.getAttribute('height');
+
+  if (rawWidth && rawHeight) {
+    const width = parseInt(rawWidth, 10);
+    const height = parseInt(rawHeight, 10);
+
+    if (!isNaN(width) && !isNaN(height)) {
+      return { width, height };
+    }
+  }
+
+  const rect = image.getBoundingClientRect();
+
+  return { width: rect.width, height: rect.height };
 }

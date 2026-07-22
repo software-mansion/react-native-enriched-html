@@ -320,6 +320,7 @@
 
   width: var(--et-checkbox-box-size, 24px);
   height: var(--et-checkbox-box-size, 24px);
+  pointer-events: none;
   accent-color: var(--et-checkbox-box-color, #0000ff);
 
   /* disable checkbox press style as it's read-only */

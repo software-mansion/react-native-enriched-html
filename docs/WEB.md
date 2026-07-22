@@ -41,7 +41,7 @@ See [Web Keyboard Shortcuts](./INPUT_API_REFERENCE.md#web-keyboard-shortcuts) fo
 - Customizing the styling using props: `style`, `htmlStyle`, `selectionColor`.
 - `selectable` prop
 - `useHtmlNormalizer`
-- `onLinkPress` and `onMentionPress` callbacks
+- `onLinkPress`, `onMentionPress` and `onImagePress` callbacks
 
 ### Unsupported
 
