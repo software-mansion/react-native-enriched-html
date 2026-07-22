@@ -598,7 +598,11 @@ static void flatten_bq_node(GumboNode *node, buffer_t *ib, buffer_t *out) {
     return;
   }
   if (is_br_node(node)) {
-    flush_inline_p(ib, out, NULL);
+    // Emit the canonical <br> so it is not silently dropped.
+    // With buffered inline content it just terminates the current paragraph.
+    if (!flush_inline_p(ib, out, NULL)) {
+      buffer_append_str(out, "<br>");
+    }
     return;
   }
   if (is_block_producing(node) || is_blockquote_node(node)) {
