@@ -1,5 +1,14 @@
-export function prepareHtmlForWeb(html: string): string {
+import { normalizeHtml } from './htmlNormalizer';
+
+export function prepareHtmlForWeb(
+  html: string,
+  useHtmlNormalizer: boolean | undefined
+): string {
   if (typeof DOMParser === 'undefined') return html;
+
+  if (useHtmlNormalizer) {
+    html = normalizeHtml(html);
+  }
 
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');

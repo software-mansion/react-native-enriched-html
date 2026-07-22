@@ -18,6 +18,7 @@ export type {
   FocusEvent,
   BlurEvent,
   EnrichedTextInputInstance,
+  EnrichedTextInstance,
   ContextMenuItem,
   OnChangeMentionEvent,
   EnrichedTextHtmlStyle,

@@ -91,7 +91,7 @@ function runFocused(
 export const EnrichedTextInput = ({
   ref,
   defaultValue,
-  autoFocus,
+  autoFocus = false,
   editable = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.editable,
   placeholder = '',
   placeholderTextColor,
@@ -119,7 +119,7 @@ export const EnrichedTextInput = ({
   onEndMention,
   linkRegex,
   htmlStyle,
-  useHtmlNormalizer,
+  useHtmlNormalizer = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.useHtmlNormalizer,
 }: EnrichedTextInputProps) => {
   const tiptapContent =
     defaultValue != null

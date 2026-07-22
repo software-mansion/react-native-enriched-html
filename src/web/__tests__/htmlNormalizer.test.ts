@@ -497,4 +497,110 @@ describe('htmlNormalizer', () => {
       expect(normalizeHtml(input)).toBe(expected);
     });
   });
+
+  // Preserve text alignment
+  describe('TextAlignment', () => {
+    test.each([
+      [
+        '<p style="text-align: left">x</p>',
+        '<p style="text-align: left">x</p>',
+      ],
+      [
+        '<p style="text-align: center">x</p>',
+        '<p style="text-align: center">x</p>',
+      ],
+      [
+        '<p style="text-align: right">x</p>',
+        '<p style="text-align: right">x</p>',
+      ],
+      [
+        '<p style="text-align: justify">x</p>',
+        '<p style="text-align: justify">x</p>',
+      ],
+
+      [
+        '<ul style="text-align: center"><li>x</li></ul>',
+        '<ul style="text-align: center"><li>x</li></ul>',
+      ],
+      [
+        '<ol style="text-align: right"><li>x</li></ol>',
+        '<ol style="text-align: right"><li>x</li></ol>',
+      ],
+      [
+        '<ul data-type="checkbox" style="text-align: center"><li>x</li></ul>',
+        '<ul data-type="checkbox" style="text-align: center"><li>x</li></ul>',
+      ],
+
+      [
+        '<h1 style="text-align: center">x</h1>',
+        '<h1 style="text-align: center">x</h1>',
+      ],
+      [
+        '<h6 style="text-align: justify">x</h6>',
+        '<h6 style="text-align: justify">x</h6>',
+      ],
+
+      // Value is normalized to lowercase
+      [
+        '<p style="text-align: CENTER">x</p>',
+        '<p style="text-align: center">x</p>',
+      ],
+
+      // Coexists with inline formatting on the same tag
+      [
+        '<p style="font-weight: bold; text-align: center">x</p>',
+        '<p style="text-align: center"><b>x</b></p>',
+      ],
+
+      // Invalid value is stripped
+      ['<p style="text-align: bogus">x</p>', '<p>x</p>'],
+
+      // Not emitted on non-alignable tags
+      ['<ul><li style="text-align: center">x</li></ul>', '<ul><li>x</li></ul>'],
+      [
+        '<blockquote style="text-align: center">x</blockquote>',
+        '<blockquote><p>x</p></blockquote>',
+      ],
+
+      // Preserved per-paragraph when a <p> blocks are flattened
+      [
+        '<blockquote><p style="text-align: left">l</p>' +
+          '<p style="text-align: center">c</p>' +
+          '<p style="text-align: right">r</p></blockquote>',
+        '<blockquote><p style="text-align: left">l</p>' +
+          '<p style="text-align: center">c</p>' +
+          '<p style="text-align: right">r</p></blockquote>',
+      ],
+    ])('%s → %s', (input, expected) => {
+      expect(normalizeHtml(input)).toBe(expected);
+    });
+  });
+
+  describe('InterBlockWhitespace', () => {
+    // Pretty-printed consecutive paragraphs must not gain empty <p>s from the
+    // newlines between them (those would later serialize as extra <br>s).
+    test.each([
+      [
+        '<p>Asdasd</p>\n<p>Asdasd</p>\n<p>Asdasda</p>',
+        '<p>Asdasd</p><p>Asdasd</p><p>Asdasda</p>',
+      ],
+      [
+        '<p>Asdasd</p>\n\n<p>Asdasd</p>\n\n<p>Asdasda</p>',
+        '<p>Asdasd</p><p>Asdasd</p><p>Asdasda</p>',
+      ],
+      [
+        '<html>\n<p>Asdasd</p>\n<p>Asdasd</p>\n<p>Asdasda</p>\n</html>',
+        '<p>Asdasd</p><p>Asdasd</p><p>Asdasda</p>',
+      ],
+      ['<p>Asdasd</p> <p>Asdasd</p>', '<p>Asdasd</p><p>Asdasd</p>'],
+      // Significant inline content between blocks is still wrapped in <p>.
+      ['<p>a</p> hello <p>b</p>', '<p>a</p><p> hello </p><p>b</p>'],
+      // Spaces inside text / between inlines must be preserved.
+      ['hello world', 'hello world'],
+      ['<p>hello world</p>', '<p>hello world</p>'],
+      ['<b>hello</b> <i>world</i>', '<b>hello</b> <i>world</i>'],
+    ])('%s → %s', (input, expected) => {
+      expect(normalizeHtml(input)).toBe(expected);
+    });
+  });
 });

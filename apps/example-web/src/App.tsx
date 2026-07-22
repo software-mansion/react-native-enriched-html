@@ -14,12 +14,10 @@ import {
   type OnSubmitEditing,
   type OnChangeMentionEvent,
   type OnMentionDetected,
-  EnrichedText,
 } from 'react-native-enriched-html';
 import { WEB_DEFAULT_HTML_STYLE } from './defaultHtmlStyle';
-import type { NativeSyntheticEvent, TextProps, TextStyle } from 'react-native';
+import type { NativeSyntheticEvent } from 'react-native';
 import { EditorActions } from './components/EditorActions';
-import { EnrichedTextActions } from './components/EnrichedTextActions';
 import { SetValueModal } from './components/SetValueModal';
 import { ImageModal } from './components/ImageModal';
 import { LinkModal } from './components/LinkModal';
@@ -29,6 +27,7 @@ import { Toolbar } from './components/Toolbar';
 import { MentionPopup, type MentionItem } from './components/MentionPopup';
 import { useUserMention } from './hooks/useUserMention';
 import { useChannelMention } from './hooks/useChannelMention';
+import { TextRenderer } from './components/TextRenderer';
 
 const DEFAULT_LINK_STATE: OnLinkDetected = {
   text: '',
@@ -58,9 +57,6 @@ function App() {
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
 
   const [enrichedTextValue, setEnrichedTextValue] = useState('');
-  const [ellipsizeMode, setEllipsizeMode] =
-    useState<TextProps['ellipsizeMode']>('tail');
-  const [numberOfLines, setNumberOfLines] = useState(2);
 
   const isLinkActive = !!editorState?.link.isActive;
   const hasLinkUrl = currentLink.url.length > 0;
@@ -283,7 +279,6 @@ function App() {
           mentionIndicators={['@', '#']}
           htmlStyle={WEB_DEFAULT_HTML_STYLE}
           linkRegex={LINK_REGEX}
-          useHtmlNormalizer
         />
         <MentionPopup
           variant="user"
@@ -335,30 +330,7 @@ function App() {
 
       {showHtmlOutput && <HtmlOutputPanel html={currentHtml} />}
 
-      <div className="container enriched-text-container">
-        <h1 className="app-title">Enriched Text</h1>
-        <EnrichedText
-          style={enrichedTextStyle}
-          htmlStyle={WEB_DEFAULT_HTML_STYLE}
-          numberOfLines={numberOfLines}
-          ellipsizeMode={ellipsizeMode}
-        >
-          {enrichedTextValue}
-        </EnrichedText>
-        <EnrichedTextActions
-          ellipsizeMode={ellipsizeMode ?? 'tail'}
-          numberOfLines={numberOfLines}
-          onChangeEllipsizeMode={setEllipsizeMode}
-          onChangeNumberOfLines={setNumberOfLines}
-        />
-        {/*temporary second component to make testing easier*/}
-        <EnrichedText
-          style={enrichedTextStyle}
-          htmlStyle={WEB_DEFAULT_HTML_STYLE}
-        >
-          {enrichedTextValue}
-        </EnrichedText>
-      </div>
+      <TextRenderer htmlValue={enrichedTextValue} />
 
       {isSetValueModalOpen && (
         <SetValueModal
@@ -394,16 +366,6 @@ const enrichedInputStyle: EnrichedInputStyle = {
   width: '100%',
   marginVertical: 12,
   maxHeight: 300,
-  paddingVertical: 12,
-  paddingHorizontal: 14,
-  borderRadius: 8,
-  fontSize: 18,
-};
-
-const enrichedTextStyle: TextStyle = {
-  backgroundColor: 'gainsboro',
-  width: '100%',
-  marginVertical: 12,
   paddingVertical: 12,
   paddingHorizontal: 14,
   borderRadius: 8,

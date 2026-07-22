@@ -227,7 +227,7 @@ test.describe('visual: images', () => {
     {
       name: 'image placeholder inside lists',
       snapshot: 'enriched-text-images-placeholder-list.png',
-      html: '<html><ol><li>List with a broken image <img src="" width="20" height="20" /> inside.</li></ol></html>',
+      html: '<html><ol><li>List with a broken image <img src="/pw-e2e-broken.png" width="20" height="20" /> inside.</li></ol></html>',
     },
   ];
 
