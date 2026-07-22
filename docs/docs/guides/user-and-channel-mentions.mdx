@@ -1,0 +1,112 @@
+---
+sidebar_position: 2
+---
+
+import InteractiveExample from '@site/src/components/InteractiveExample';
+import MentionOnlyEditor from '@site/src/examples/MentionOnlyEditor';
+import MentionOnlyEditorSrc from '!!raw-loader!@site/src/examples/MentionOnlyEditor';
+
+# User and channel mentions
+
+This guide wires the mention events into a complete picker - the flow behind a
+chat composer where typing `@` suggests people and `#` suggests channels. If you
+haven't met the mention API yet, read
+[Mentions](/rich-text-formatting/mentions) first; here we move quickly and
+assume the events and `setMention` are familiar.
+
+## The data behind a mention
+
+Mentions are particularly useful if they point at something. Keep two lists around - one
+for users, one for channels - each item carrying an `id` you can attach
+to the finished mention:
+
+```tsx
+const USERS = [
+  { id: 'u1', name: 'John Doe' },
+  { id: 'u2', name: 'Jane Smith' },
+  { id: 'u3', name: 'Alice Johnson' },
+  { id: 'u4', name: 'Bob Brown' },
+];
+
+const CHANNELS = [
+  { id: 'c1', name: 'general' },
+  { id: 'c2', name: 'engineering' },
+  { id: 'c3', name: 'random' },
+  { id: 'c4', name: 'announcements' },
+];
+```
+
+## Wiring the picker
+
+Now let's register both indicators and the events callbacks:
+
+```tsx
+<EnrichedTextInput
+  mentionIndicators={['@', '#']}
+  onStartMention={openPicker} // fired when '@' or '#' is typed
+  onChangeMention={updateQuery} // fired on every keystroke after it
+  onEndMention={closePicker} // fired when the mention is left
+  // ...
+/>
+```
+
+`onStartMention` hands you the indicator, so you know whether to show people or
+channels. `onChangeMention` hands you the `text` typed so far - filter your list
+with it. `onEndMention` fires when the cursor leaves the mention, so you dismiss
+the list.
+
+When the user taps a suggestion, finish the mention with `setMention`. Pass the
+same indicator that started it, the display text, and
+the item's data as attributes:
+
+```tsx
+const pick = (item) => {
+  ref.current?.setMention(indicator, `${indicator}${item.name}`, {
+    id: item.id,
+  });
+};
+```
+
+Now let's give each indicator its own look through
+`htmlStyle.mention`:
+
+```tsx
+const htmlStyle = {
+  mention: {
+    '@': { color: '#2b7a4b', backgroundColor: '#d8f3e3' },
+    '#': { color: '#2b5f9e', backgroundColor: '#d8e6f9' },
+  },
+};
+```
+
+## Try it out
+
+Type `@` to filter people or `#` to filter channels, keep typing to narrow the
+list, then tap a suggestion.
+
+<InteractiveExample src={MentionOnlyEditorSrc} component={MentionOnlyEditor} />
+
+:::info
+
+If you want to see the whole code used to build this example, you can find it by switching the tab from `Preview` to `Code`.
+
+:::
+
+:::tip
+
+A mention is only active while the editor is focused - if it blurs,
+`onEndMention` fires and `setMention` becomes a no-op. On native, tapping a
+suggestion never steals focus, so it just works. On web it does, so the rows
+call `preventDefault` on `mousedown` to keep the editor focused. The example
+wraps that in a small `keepEditorFocused` helper (see the Code tab).
+
+:::
+
+:::note
+
+The attributes you pass to `setMention` (here `{ id }`) ride along in the HTML
+and survive a round-trip through `getHTML` / `setValue`. Prefix custom keys with
+`data-` if they need to outlive a sanitizer - see the note in
+[Mentions](/rich-text-formatting/mentions).
+
+:::
