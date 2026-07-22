@@ -14,8 +14,8 @@ does and help you understand further chapters better.
 every keystroke back into React state. It owns its content on the native side
 and you talk to it through a `ref`.
 
-This is deliberate. Rich text changes constantly — every character, selection
-move and style toggle — and round-tripping all of that through JavaScript state
+This is deliberate. Rich text changes constantly - every character, selection
+move and style toggle - and round-tripping all of that through JavaScript state
 would be extremely slow and open to a possible de-synchronization of those states.
 Keeping it native makes the editor fast and stable.
 
@@ -56,8 +56,8 @@ All supported and canonical tags are listed in [Supported tags](/fundamentals/ht
 
 The library is split into an editor and a viewer:
 
-- **`EnrichedTextInput`** — the interactive editor from the previous page.
-- **`EnrichedText`** — a read-only display component that renders the input's
+- **`EnrichedTextInput`** - the interactive editor from the previous page.
+- **`EnrichedText`** - a read-only display component that renders the input's
   HTML.
 
 The HTML format that both components expect is identical, what allows you to integrate them seamlessly. A common setup edits in `EnrichedTextInput`, stores the `getHTML` output, and later displays it with `EnrichedText`.
@@ -66,12 +66,12 @@ The HTML format that both components expect is identical, what allows you to int
 
 Not every style can be combined with every other. For example, a paragraph can't be both a heading and a list item, code blocks don't support inline formatting such as bold or italic. The editor tracks this and reports it through `onChangeState`, which gives each style three booleans:
 
-- **`isActive`** — the style is applied at the current selection. Use it to
+- **`isActive`** - the style is applied at the current selection. Use it to
   highlight a toolbar button.
-- **`isBlocking`** — another active style forbids this one entirely, so toggling
+- **`isBlocking`** - another active style forbids this one entirely, so toggling
   it would do nothing. For example bold is blocked inside a code block. Use it
   to disable a button.
-- **`isConflicting`** — this style would replace an active one if toggled on.
+- **`isConflicting`** - this style would replace an active one if toggled on.
   For example switching a blockquote paragraph to a heading removes the
   blockquote. Use it to hint that the toggle is a swap, not an addition.
 

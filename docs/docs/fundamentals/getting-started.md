@@ -19,7 +19,7 @@ React Native Enriched HTML is a rich text solution for React Native built by
 
 It ships two fully native components: `EnrichedTextInput`, a rich text editor
 that styles text live as you type, and `EnrichedText`, a read-only display component that
-renders the input's output. Both speak HTML — the input
+renders the input's output. Both speak HTML - the input
 produces it, the display consumes it.
 
 Not only does this library allow you to apply basic rich text styles you know well,
