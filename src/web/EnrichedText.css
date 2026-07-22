@@ -47,6 +47,7 @@
   font-weight: var(--et-h1-font-weight);
   margin: 0;
   line-height: normal;
+  color: inherit;
 }
 .eti-editor h2,
 .et-view h2 {
@@ -54,6 +55,7 @@
   font-weight: var(--et-h2-font-weight);
   margin: 0;
   line-height: normal;
+  color: inherit;
 }
 .eti-editor h3,
 .et-view h3 {
@@ -61,6 +63,7 @@
   font-weight: var(--et-h3-font-weight);
   margin: 0;
   line-height: normal;
+  color: inherit;
 }
 .eti-editor h4,
 .et-view h4 {
@@ -68,6 +71,7 @@
   font-weight: var(--et-h4-font-weight);
   margin: 0;
   line-height: normal;
+  color: inherit;
 }
 .eti-editor h5,
 .et-view h5 {
@@ -75,6 +79,7 @@
   font-weight: var(--et-h5-font-weight);
   margin: 0;
   line-height: normal;
+  color: inherit;
 }
 .eti-editor h6,
 .et-view h6 {
@@ -82,6 +87,7 @@
   font-weight: var(--et-h6-font-weight);
   margin: 0;
   line-height: normal;
+  color: inherit;
 }
 
 .eti-editor blockquote,

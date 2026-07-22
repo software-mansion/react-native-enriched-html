@@ -575,4 +575,32 @@ describe('htmlNormalizer', () => {
       expect(normalizeHtml(input)).toBe(expected);
     });
   });
+
+  describe('InterBlockWhitespace', () => {
+    // Pretty-printed consecutive paragraphs must not gain empty <p>s from the
+    // newlines between them (those would later serialize as extra <br>s).
+    test.each([
+      [
+        '<p>Asdasd</p>\n<p>Asdasd</p>\n<p>Asdasda</p>',
+        '<p>Asdasd</p><p>Asdasd</p><p>Asdasda</p>',
+      ],
+      [
+        '<p>Asdasd</p>\n\n<p>Asdasd</p>\n\n<p>Asdasda</p>',
+        '<p>Asdasd</p><p>Asdasd</p><p>Asdasda</p>',
+      ],
+      [
+        '<html>\n<p>Asdasd</p>\n<p>Asdasd</p>\n<p>Asdasda</p>\n</html>',
+        '<p>Asdasd</p><p>Asdasd</p><p>Asdasda</p>',
+      ],
+      ['<p>Asdasd</p> <p>Asdasd</p>', '<p>Asdasd</p><p>Asdasd</p>'],
+      // Significant inline content between blocks is still wrapped in <p>.
+      ['<p>a</p> hello <p>b</p>', '<p>a</p><p> hello </p><p>b</p>'],
+      // Spaces inside text / between inlines must be preserved.
+      ['hello world', 'hello world'],
+      ['<p>hello world</p>', '<p>hello world</p>'],
+      ['<b>hello</b> <i>world</i>', '<b>hello</b> <i>world</i>'],
+    ])('%s → %s', (input, expected) => {
+      expect(normalizeHtml(input)).toBe(expected);
+    });
+  });
 });
