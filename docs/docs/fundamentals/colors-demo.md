@@ -44,9 +44,9 @@ This is a caution
 
   Inner details
 
-  This is a [link](/fundamentals/getting-started)
+  This is a [link](/)
 </details>
 
 ### Link
 
-This is a [link](/fundamentals/getting-started)
+This is a [link](/)
