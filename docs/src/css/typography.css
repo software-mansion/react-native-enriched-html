@@ -168,7 +168,7 @@ code {
   font-weight: 500;
   text-decoration: none;
 
-  border-bottom: 1px solid var(--ifm-link-color);
+  border-bottom: 1px solid currentColor;
 }
 
 /* Sidebar */

@@ -17,7 +17,7 @@ const extTheme = extendTheme({
           main: '#001a72', //--swm-navy-light-100
         },
         secondary: {
-          main: '#ef623e', //--swm-orange-light-100
+          main: '#ed7253', //--swm-orange-light-100
         },
         background: {
           default: '#fcfcff',

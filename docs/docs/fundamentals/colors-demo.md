@@ -23,7 +23,7 @@ This is a note
 
 :::info
 
-This is a info
+This is an info message
 
 :::
 
