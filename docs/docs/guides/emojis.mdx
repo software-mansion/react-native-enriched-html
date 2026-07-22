@@ -57,7 +57,7 @@ const pick = (emoji) => {
 };
 ```
 
-Since the emoji glyph _is_ the whole mention, drop the usual highlight so it
+Since the emoji glyph is the whole mention, drop the usual highlight so it
 reads as plain text:
 
 ```tsx
@@ -72,15 +72,15 @@ const htmlStyle = {
 };
 ```
 
-:::info
-
-If you want to see the whole code used to build this example, you can find it below by switching the tab from `Preview` to `Code`.
-
-:::
-
 ## Try it out
 
 Type `:` followed by a name - `:fire`, `:heart` - then tap a suggestion. The
 shortcode collapses into a single emoji you can place anywhere in the text.
 
 <InteractiveExample src={EmojiEditorSrc} component={EmojiEditor} />
+
+:::info
+
+If you want to see the whole code used to build this example, you can find it by switching the tab from `Preview` to `Code`.
+
+:::
