@@ -1,8 +1,27 @@
 // @ts-check
 // Note: type annotations allow type checking and IDEs autocompletion
 
+import { topbarBannerReservationScript } from '@swmansion/t-rex-ui/topbar-banner'; 
+import { TOP_BAR_BANNER } from './src/components/topbarBanner.config.ts'; 
+
 const lightCodeTheme = require('./src/theme/CodeBlock/highlighting-light.js');
 const darkCodeTheme = require('./src/theme/CodeBlock/highlighting-dark.js');
+
+
+const firstBannerZone = TOP_BAR_BANNER.zones[0];
+const bannerReservationHeadTags = firstBannerZone
+  ? [
+      {
+        tagName: 'script',
+        attributes: { type: 'text/javascript' },
+        innerHTML: topbarBannerReservationScript(
+          firstBannerZone.zoneId,
+          firstBannerZone.contentId,
+          TOP_BAR_BANNER.hiddenPaths,
+        ),
+      },
+    ]
+  : [];
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
@@ -64,6 +83,10 @@ const config = {
     require.resolve('@swmansion/t-rex-ui/preset'),
   ],
 
+  headTags: bannerReservationHeadTags,
+
+  clientModules: [require.resolve('./src/clientModules/topbarBannerRefresh.ts')],
+
   plugins: [
     function transpileTRexUiTheme() {
       return {
@@ -84,13 +107,12 @@ const config = {
         },
       };
     },
-    // TODO: enable Google Tag Manager with a container id for this site.
-    // process.env.NODE_ENV === 'production' && [
-    //   '@docusaurus/plugin-google-tag-manager',
-    //   {
-    //     containerId: 'GTM-XXXXXXX',
-    //   },
-    // ],
+    process.env.NODE_ENV === 'production' && [
+      '@docusaurus/plugin-google-tag-manager',
+      {
+        containerId: 'GTM-N5QK8TMT',
+      },
+    ],
   ].filter(Boolean),
 
   themeConfig:

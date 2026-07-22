@@ -3925,9 +3925,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swmansion/t-rex-ui@npm:1.3.2":
-  version: 1.3.2
-  resolution: "@swmansion/t-rex-ui@npm:1.3.2"
+"@swmansion/t-rex-ui@npm:1.3.4":
+  version: 1.3.4
+  resolution: "@swmansion/t-rex-ui@npm:1.3.4"
   dependencies:
     "@docusaurus/core": "npm:3.9.2"
     "@docusaurus/module-type-aliases": "npm:3.9.2"
@@ -3948,10 +3948,11 @@ __metadata:
     "@emotion/styled": "*"
     "@mui/material": ">=5.0.0"
     copy-text-to-clipboard: ^3.2.2
+    prism-react-renderer: ^2.0.0
     react: "*"
     react-dom: "*"
     react-icons: "*"
-  checksum: 10c0/8e88ca4efbc892b01cea5e07f6b46332f32c04008685c7083f52a8f9b0c269f74e6afa2ba5458aae106fcd1ea746a22176f8ec13f5e3823d5405e651e94438ec
+  checksum: 10c0/64adad0bcce8856d1855e2da153af9429c8a6ae759fb510933163e523db83a70eeceded9d8e50d108f269f7129f143b5f401509aa3ab0331f5fd14eea3295d66
   languageName: node
   linkType: hard
 
@@ -6976,7 +6977,7 @@ __metadata:
     "@emotion/styled": "npm:^11.14.0"
     "@mdx-js/react": "npm:^3.0.0"
     "@mui/material": "npm:^7.1.0"
-    "@swmansion/t-rex-ui": "npm:1.3.2"
+    "@swmansion/t-rex-ui": "npm:1.3.4"
     clsx: "npm:^2.1.0"
     copy-text-to-clipboard: "npm:3.2.2"
     prettier: "npm:^3.6.2"
