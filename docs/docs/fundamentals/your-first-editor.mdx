@@ -1,0 +1,201 @@
+---
+sidebar_position: 2
+---
+
+import InteractiveExample from '@site/src/components/InteractiveExample';
+import FirstEditor from '@site/src/examples/FirstEditor';
+import FirstEditorSrc from '!!raw-loader!@site/src/examples/FirstEditor';
+
+# Your first editor
+
+Let's build a small editor with a button that toggles bold and lights up when
+the current selection is bold. It's just enough to see the two moving parts of
+the library: **calling methods on the input** and **reading its state back**.
+
+## Rendering the input
+
+Start by dropping an `EnrichedTextInput` on the screen. It behaves like a
+regular `TextInput` - give it a `style` and a `placeholder` and you have a
+working editor.
+
+```tsx
+import { EnrichedTextInput } from 'react-native-enriched-html';
+import { View, StyleSheet } from 'react-native';
+
+export default function App() {
+  return (
+    <View style={styles.container}>
+      <EnrichedTextInput
+        style={styles.input}
+        placeholder="Type something here..."
+      />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { gap: 12 },
+  input: {
+    fontSize: 18,
+    color: '#232736',
+    padding: 12,
+    borderRadius: 12,
+    minHeight: 96,
+    backgroundColor: '#eef0ff',
+  },
+});
+```
+
+## Toggling a style
+
+The input is uncontrolled - you don't change its content through props. Instead
+you call methods on it through a `ref` of type `EnrichedTextInputInstance`.
+
+Add a ref and a button that calls `toggleBold`. Each call flips bold on the
+current selection, or arms it for the next characters you type if nothing is
+selected.
+
+```tsx {2-4,7,12,16-18,33-44}
+import { EnrichedTextInput } from 'react-native-enriched-html';
+import type { EnrichedTextInputInstance } from 'react-native-enriched-html';
+import { useRef } from 'react';
+import { View, StyleSheet, Pressable, Text } from 'react-native';
+
+export default function App() {
+  const ref = useRef<EnrichedTextInputInstance>(null);
+
+  return (
+    <View style={styles.container}>
+      <EnrichedTextInput
+        ref={ref}
+        style={styles.input}
+        placeholder="Type something here..."
+      />
+      <Pressable style={styles.button} onPress={() => ref.current?.toggleBold()}>
+        <Text style={styles.text}>Bold</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { gap: 12 },
+  input: {
+    fontSize: 18,
+    color: '#232736',
+    padding: 12,
+    borderRadius: 12,
+    minHeight: 96,
+    backgroundColor: '#eef0ff',
+  },
+  button: {
+    alignSelf: 'center',
+    width: 100,
+    padding: 8,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: '#919fcf',
+  },
+  text: {
+    textAlign: 'center',
+    color: '#919fcf',
+  },
+});
+```
+
+Every other style is toggled similarly via `ref` - there's a `toggleItalic`,
+`toggleUnderline`, `toggleH1`, `toggleOrderedList`, and so on.
+
+## Reading the state back
+
+A toolbar button should also show whether bold is _currently_ active, so the
+user knows what they're about to change. The input reports this through the
+`onChangeState` event, which fires whenever the active styles change.
+
+The payload holds an entry per style. Use `bold.isActive` to drive the button:
+
+```tsx {4,6,11,19,22,24,50-53,58-60}
+import { EnrichedTextInput } from 'react-native-enriched-html';
+import type {
+  EnrichedTextInputInstance,
+  OnChangeStateEvent,
+} from 'react-native-enriched-html';
+import { useRef, useState } from 'react';
+import { View, StyleSheet, Pressable, Text } from 'react-native';
+
+export default function App() {
+  const ref = useRef<EnrichedTextInputInstance>(null);
+  const [state, setState] = useState<OnChangeStateEvent | null>(null);
+
+  return (
+    <View style={styles.container}>
+      <EnrichedTextInput
+        ref={ref}
+        style={styles.input}
+        placeholder="Type something here..."
+        onChangeState={e => setState(e.nativeEvent)}
+      />
+      <Pressable
+        style={[styles.button, state?.bold.isActive && styles.buttonActive]}
+        onPress={() => ref.current?.toggleBold()}>
+        <Text style={[styles.text, state?.bold.isActive && styles.textActive]}>
+          Bold
+        </Text>
+      </Pressable>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { gap: 12 },
+  input: {
+    fontSize: 18,
+    color: '#232736',
+    padding: 12,
+    borderRadius: 12,
+    minHeight: 96,
+    backgroundColor: '#eef0ff',
+  },
+  button: {
+    alignSelf: 'center',
+    width: 100,
+    padding: 8,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: '#919fcf',
+  },
+  buttonActive: {
+    borderColor: '#57b495',
+    backgroundColor: '#57b495',
+  },
+  text: {
+    textAlign: 'center',
+    color: '#919fcf',
+  },
+  textActive: {
+    color: '#eef0ff',
+  },
+});
+```
+
+That's the full loop: the button **acts** on the input with `toggleBold`, and
+the input **reports** the result through `onChangeState`. A real toolbar is just
+this repeated for every style.
+
+:::tip
+
+Each `onChangeState` entry carries more than `isActive`. `isBlocking` and
+`isConflicting` tell you when a style can't be applied on top of the current
+one. [Core concepts](/fundamentals/core-concepts) explains the full state model,
+and [Supported tags](/fundamentals/html-format-and-supported-tags)
+lists which styles clash with each other.
+
+:::
+
+## Try it out
+
+Here's that editor running live on this page. Select some text and hit **Bold** -
+notice the button turns green whenever the cursor sits on bold text. Switch to
+the **Code** tab to see the exact source.
+
+<InteractiveExample src={FirstEditorSrc} component={FirstEditor} />

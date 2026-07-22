@@ -7,6 +7,20 @@ import { TOP_BAR_BANNER } from './src/components/topbarBanner.config.ts';
 const lightCodeTheme = require('./src/theme/CodeBlock/highlighting-light.js');
 const darkCodeTheme = require('./src/theme/CodeBlock/highlighting-dark.js');
 
+function reactNativeWebPlugin() {
+  return {
+    name: 'react-native-web',
+    configureWebpack() {
+      return {
+        mergeStrategy: { 'resolve.extensions': 'prepend' },
+        resolve: {
+          alias: { 'react-native$': 'react-native-web' },
+          extensions: ['.web.js', '...'],
+        },
+      };
+    },
+  };
+}
 
 const firstBannerZone = TOP_BAR_BANNER.zones[0];
 const bannerReservationHeadTags = firstBannerZone
@@ -88,6 +102,7 @@ const config = {
   clientModules: [require.resolve('./src/clientModules/topbarBannerRefresh.ts')],
 
   plugins: [
+    reactNativeWebPlugin,
     function transpileTRexUiTheme() {
       return {
         name: 'transpile-t-rex-ui-theme',
