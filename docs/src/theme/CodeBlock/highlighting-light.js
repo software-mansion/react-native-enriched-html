@@ -60,13 +60,13 @@ module.exports = {
         'attr-value',
       ],
       style: {
-        color: 'var(--swm-red-light-100)',
+        color: 'var(--swm-purple-light-100)',
       },
     },
     {
       types: ['function', 'function-variable'],
       style: {
-        color: 'var(--swm-purple-light-100)',
+        color: 'var(--swm-orange-light-100)',
       },
     },
     {
