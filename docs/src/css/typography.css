@@ -171,6 +171,10 @@ code {
   border-bottom: 1px solid var(--ifm-font-color-base);
 }
 
+.eti-editor a {
+  border-bottom: none;
+}
+
 /* Sidebar */
 [class*='menu__list-item-collapsible'] a {
   font-family: var(--swm-title-font);
