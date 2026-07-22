@@ -11,7 +11,10 @@ appId: swmansion.enriched.example
 
 - tapOn:
     id: 'toolbar-inline-code'
-- inputText: 'code'
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: 'code'
 - tapOn:
     id: 'toolbar-inline-code'
 
@@ -19,7 +22,10 @@ appId: swmansion.enriched.example
 - tapOn:
     id: 'toolbar-code-block'
 
-- doubleTapOn:
+- tapOn:
+    id: 'editor-input'
+    point: '10%, 30%'
+- tapOn:
     id: 'editor-input'
     point: '10%, 30%'
 

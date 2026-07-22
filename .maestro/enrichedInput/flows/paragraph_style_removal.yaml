@@ -14,11 +14,20 @@ appId: swmansion.enriched.example
 - tapOn:
     id: "toolbar-quote"
 
-- inputText: "A"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "A"
 - pressKey: Enter
-- inputText: "B"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "B"
 - pressKey: Enter
-- inputText: "C"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "C"
 
 # Tap on the second line
 - tapOn:

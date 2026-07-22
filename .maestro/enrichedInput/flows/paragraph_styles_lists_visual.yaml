@@ -11,33 +11,57 @@ appId: swmansion.enriched.example
 
 - tapOn:
     id: "toolbar-ordered-list"
-- inputText: "First"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "First"
 - pressKey: Enter
-- inputText: "Second"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "Second"
 - pressKey: Enter
 - tapOn:
     id: "toolbar-ordered-list"
 
-- inputText: "Normal"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "Normal"
 - pressKey: Enter
 
 - tapOn:
     id: "toolbar-unordered-list"
-- inputText: "First"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "First"
 - pressKey: Enter
-- inputText: "Second"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "Second"
 - pressKey: Enter
 - tapOn:
     id: "toolbar-unordered-list"
 
-- inputText: "Normal"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "Normal"
 - pressKey: Enter
 
 - tapOn:
     id: "toolbar-checkbox-list"
-- inputText: "First"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "First"
 - pressKey: Enter
-- inputText: "Second"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "Second"
 
 - tapOn:
     id: "size-max-button"

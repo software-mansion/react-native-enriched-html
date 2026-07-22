@@ -10,7 +10,10 @@ appId: swmansion.enriched.example
 - tapOn:
     id: "editor-input"
 
-- inputText: "mentions #gen @J"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "mentions #gen @J"
 
 # user popup visible
 - runFlow:

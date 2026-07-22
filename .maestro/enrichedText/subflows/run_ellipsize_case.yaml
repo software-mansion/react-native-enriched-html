@@ -1,16 +1,17 @@
 appId: swmansion.enriched.example
 ---
 - tapOn:
-    id: "number-of-lines-${NOL_BUTTON}-button"
+    id: 'number-of-lines-${NOL_BUTTON}-button'
 
-- assertVisible: "numberOfLines: ${NOL_LABEL}"
+- assertVisible: 'numberOfLines: ${NOL_LABEL}'
 
 - tapOn:
-    id: "ellipsize-${ELLIPSIZE_MODE}-button"
+    id: 'ellipsize-${ELLIPSIZE_MODE}-button'
 
-- assertVisible: "ellipsizeMode: ${ELLIPSIZE_MODE}"
+- assertVisible: 'ellipsizeMode: ${ELLIPSIZE_MODE}'
 
+- waitForAnimationToEnd
 - runFlow:
-    file: "./capture_or_assert_screenshot.yaml"
+    file: './capture_or_assert_screenshot.yaml'
     env:
-      SCREENSHOT_NAME: "${SCREENSHOT_NAME}"
+      SCREENSHOT_NAME: '${SCREENSHOT_NAME}'

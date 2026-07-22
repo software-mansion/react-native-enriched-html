@@ -10,15 +10,30 @@ appId: swmansion.enriched.example
     id: 'editor-input'
 
 - pressKey: Enter
-- inputText: 'Line one'
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: 'Line one'
 - pressKey: Enter
-- inputText: 'Line two'
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: 'Line two'
 - pressKey: Enter
-- inputText: 'Line three'
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: 'Line three'
 - pressKey: Enter
-- inputText: 'Line four'
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: 'Line four'
 - pressKey: Enter
-- inputText: 'Line five'
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: 'Line five'
 
 # Tap on the first line to position cursor there
 - tapOn:
@@ -28,11 +43,17 @@ appId: swmansion.enriched.example
 - tapOn:
     id: 'toolbar-bold'
 
-- inputText: 'bold'
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: 'bold'
 - pressKey: Enter
 - pressKey: Enter
 - pressKey: Enter
-- inputText: 'bold2'
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: 'bold2'
 
 - runFlow:
     file: '../subflows/capture_or_assert_screenshot.yaml'

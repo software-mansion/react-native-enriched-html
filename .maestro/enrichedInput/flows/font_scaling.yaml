@@ -15,39 +15,69 @@ tags:
 - tapOn:
     id: "editor-input"
 
-- inputText: "Plain "
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "Plain "
 
 - tapOn:
     id: "toolbar-bold"
-- inputText: "bold"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "bold"
 - tapOn:
     id: "toolbar-bold"
-- inputText: " "
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: " "
 
 - tapOn:
     id: "toolbar-italic"
-- inputText: "italic"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "italic"
 - tapOn:
     id: "toolbar-italic"
-- inputText: " "
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: " "
 
 - tapOn:
     id: "toolbar-underline"
-- inputText: "underline"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "underline"
 - tapOn:
     id: "toolbar-underline"
-- inputText: " "
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: " "
 
 - tapOn:
     id: "toolbar-strikethrough"
-- inputText: "strike-through"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "strike-through"
 - tapOn:
     id: "toolbar-strikethrough"
-- inputText: " "
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: " "
 
 - tapOn:
     id: "toolbar-inline-code"
-- inputText: "code"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "code"
 - tapOn:
     id: "toolbar-inline-code"
 

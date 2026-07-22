@@ -1,19 +1,26 @@
 appId: swmansion.enriched.example
 ---
-
 - tapOn:
-    id: "set-enriched-text-button"
+    id: 'set-enriched-text-button'
 
 - waitForAnimationToEnd
 - extendedWaitUntil:
     visible:
-      id: "value-modal-input"
+      id: 'value-modal-input'
     timeout: 10000
 
 - tapOn:
-    id: "value-modal-input"
+    id: 'value-modal-input'
 
 - inputText: ${VALUE}
 
 - tapOn:
-    id: "value-modal-submit-button"
+    id: 'value-modal-submit-button'
+
+# Wait until the modal is gone
+- extendedWaitUntil:
+    notVisible:
+      id: 'value-modal-submit-button'
+    timeout: 10000
+
+- waitForAnimationToEnd

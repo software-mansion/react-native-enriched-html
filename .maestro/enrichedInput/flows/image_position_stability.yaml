@@ -14,11 +14,17 @@ appId: swmansion.enriched.example
 - tapOn:
     id: "editor-input"
 
-- inputText: "Paragraph one"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "Paragraph one"
 - pressKey: Enter
 - pressKey: Enter
 
-- inputText:  "Paragraph two"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT:  "Paragraph two"
 
 - tapOn:
     id: "editor-input"
@@ -37,7 +43,10 @@ appId: swmansion.enriched.example
 - tapOn:
     id: "editor-input"
     point: "50%,50%"
-- inputText: "Paragraph in the middle"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "Paragraph in the middle"
 
 - runFlow:
     file: "../subflows/capture_or_assert_screenshot.yaml"
