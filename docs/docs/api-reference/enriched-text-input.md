@@ -685,8 +685,8 @@ trigger is the delimiter string (e.g. `**`, `*`, `~~`). Supported styles:
 Style rules still apply to shortcut-triggered styles: if the target style is
 **blocked** by another currently active style (e.g. bold inside a codeblock),
 the shortcut has no effect. If the target style **conflicts** with another
-active style, the conflicting style is removed when the new one is applied. See
-[Supported tags](/fundamentals/html-format-and-supported-tags) for the full
+active inline style, the conflicting style is removed when the new one is
+applied. See [Supported tags](/fundamentals/html-format-and-supported-tags) for the full
 conflict and blocking rules.
 
 :::
