@@ -1,0 +1,118 @@
+---
+sidebar_position: 2
+---
+
+import InteractiveExample from '@site/src/components/InteractiveExample';
+import LinksEditor from '@site/src/examples/LinksEditor';
+import LinksEditorSrc from '!!raw-loader!@site/src/examples/LinksEditor';
+
+# Links
+
+A link is a piece of text with a URL attached to it. The editor creates links in
+two ways - **automatically**, as the user types something that looks like a URL,
+and **manually**, when you call `setLink` on a range of text. The two produce
+links that behave differently, so it's worth understanding both.
+
+## Automatic links
+
+By default the editor watches what the user types and turns anything that looks
+like a URL into a link on its own - no code required. These are **autolinks**.
+
+Because an autolink is tied to the text that produced it, it stays a link only as
+long as that text still matches. The moment the user edits the words, the pattern
+no longer holds and the link naturally breaks.
+
+### Customizing detection
+
+You control what counts as a link with the
+`linkRegex` prop. Pass your own `RegExp`
+to recognize custom patterns - for example, only `https://` URLs or a custom
+scheme that detects references like `issue-123`:
+
+```tsx
+// Detect "issue-123" style tokens as links.
+const linkRegex = /issue-\d+/g;
+
+<EnrichedTextInput linkRegex={linkRegex} /* ... */ />;
+```
+
+:::note
+
+On iOS and Android the pattern is matched by the platform's native regex engine,
+so not every JavaScript regex feature is available there - variable-width
+lookbehinds, for instance, won't work. Pass `null` to turn automatic detection
+off entirely.
+
+:::
+
+## Manual links
+
+Manual links are applied explicitly with the
+`setLink` ref method:
+
+```ts
+setLink(start: number, end: number, text: string, url: string)
+```
+
+It sets a link over the range from `start` to `end`, showing `text` and pointing
+at `url`. Unlike an autolink, a manual link is a real, standalone style - the
+user can keep editing its text and it stays a link.
+
+:::tip
+
+The three positional arguments line up exactly with the
+`onChangeSelection` event payload, which reports
+the current `start`, `end`, and the `text` it spans. So "link the current
+selection" can be implemented quite simply:
+
+:::
+
+```tsx
+const [selection, setSelection] = useState<OnChangeSelectionEvent | null>(null);
+
+// ...
+<EnrichedTextInput
+  onChangeSelection={e => setSelection(e.nativeEvent)}
+  /* ... */
+/>;
+
+const addLink = () => {
+  if (!selection) return;
+  ref.current?.setLink(
+    selection.start,
+    selection.end,
+    selection.text,
+    'https://swmansion.com',
+  );
+};
+```
+
+:::tip
+
+Passing a different `text` than what's selected replaces the selected text before
+applying the link. To strip a link while keeping its text, call
+`removeLink(start, end)`.
+
+:::
+
+## Try it out
+
+The editor below uses a custom `linkRegex` that autolinks `issue-123` tokens - type them and watch it become a link. Then
+select some words and hit **Link the selection** to attach a URL manually.
+Notice the difference afterward: editing the manual link's text keeps it a link,
+while editing an autolinked token breaks it.
+
+<InteractiveExample src={LinksEditorSrc} component={LinksEditor} />
+
+## Handling links with events
+
+There is an event that allows you to handle user's interaction with links inside `EnrichedTextInput`.
+
+- **`onLinkDetected`** fires when the cursor enters or leaves a created link.
+
+:::info
+
+This page covers creating and detecting links. To change how
+they look, see [Styling the input](/core-functionalities/styling-the-input).
+
+:::

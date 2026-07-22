@@ -1,0 +1,98 @@
+---
+sidebar_position: 3
+---
+
+import InteractiveExample from '@site/src/components/InteractiveExample';
+import MentionEditor from '@site/src/examples/MentionEditor';
+import MentionEditorSrc from '!!raw-loader!@site/src/examples/MentionEditor';
+
+# Mentions
+
+This is a powerful feature allowing for a customizable inline style for a "mentioning" phrase - `@someone`,
+`#some-channel`, or whatever pattern fits your app. Each mention is able to carry any custom data you attach to it, so it's more than
+styled text: it's a reference you can act on later.
+
+## Mention indicators
+
+A mention begins with an **indicator** - a single character that tells the editor
+"a mention starts here". The set of recognized indicators is controlled by the
+`mentionIndicators` prop, which defaults to
+`['@']`:
+
+```tsx
+// Recognize both @user and #channel mentions.
+<EnrichedTextInput mentionIndicators={['@', '#']} /* ... */ />;
+```
+
+Typing one of these characters starts a mention. You can also start one
+programmatically with `startMention(indicator)`.
+
+## Inserting a mention with `setMention`
+
+Once a mention is being edited - the user has typed an indicator, or you've
+called `startMention` - you insert the finished mention with `setMention`:
+
+```ts
+setMention(
+  indicator: string,
+  text: string,
+  attributes?: Record<string, string>,
+)
+```
+
+`setMention` replaces whatever the user has typed including the indicator with
+`text`. It also stores any `attributes` you pass - this is useful if you want to associate a mention with some data. Those attributes are preserved through the HTML, so they
+survive a round-trip through `getHTML` and `setValue`.
+
+```tsx
+const insertMention = (user: { id: string; name: string }) => {
+  ref.current?.setMention('@', `@${user.name}`, { id: user.id });
+};
+```
+
+:::note
+
+`setMention` is only operational when an actual mention preceded by an indicator is being edited. Otherwise it does nothing.
+
+:::
+
+## Try it out
+
+Type `@`, then tap the button to turn it
+into a completed `@mention`. Notice how you can type a part of a mention, e.g. `@Jo`, move the cursor inside its range and the mention insertion will properly replace it. The result is a single styled unit - try deleting one of its characters and see how it's removed.
+
+<InteractiveExample src={MentionEditorSrc} component={MentionEditor} />
+
+:::note
+
+A mention query spans up to two words - the editor keeps tracking the mention after one
+space, and a second space ends it. That makes `@John Doe` a valid mention.
+
+:::
+
+## Driving mentions with events
+
+This example is deliberately bare-bones - one hard-coded user behind a button.
+A real app watches what the user types after the
+indicator and shows a picker. Four events give you everything you need for
+that:
+
+- **`onStartMention`** fires when a mention starts - a good moment to open your suggestion list.
+- **`onChangeMention`** fires on every edit to the query, handing you the text
+  typed after the indicator - use it to filter the list.
+- **`onEndMention`** fires when the mention stops being edited - the cursor
+  moved away, or the query was closed - so you can dismiss the list.
+- **`onMentionDetected`** fires when the cursor enters or leaves a created mention.
+
+You'd open the list on `onStartMention`, filter it on `onChangeMention`, and
+call `setMention` when the user picks someone. This example doesn't wire up any
+of that; the full picker flow is covered end-to-end in the
+[Mention-only input](/guides/mention-only-input) guide.
+
+:::tip
+
+Prefix your custom attribute names with `data-` (e.g. `{ 'data-profile-url': user.profileUrl }`).
+Non-standard attributes can be dropped when the HTML passes through a sanitizer -
+this library's, or one on your own backend - whereas `data-*` attributes are the HTML standard for persisting custom data and are kept.
+
+:::

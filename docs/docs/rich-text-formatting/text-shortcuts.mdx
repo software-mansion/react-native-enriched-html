@@ -1,0 +1,82 @@
+---
+sidebar_position: 7
+---
+
+import InteractiveExample from '@site/src/components/InteractiveExample';
+import TextShortcutsEditor from '@site/src/examples/TextShortcutsEditor';
+import TextShortcutsEditorSrc from '!!raw-loader!@site/src/examples/TextShortcutsEditor';
+
+# Text shortcuts
+
+Text shortcuts let users format as they type, the way Markdown editors do -
+typing `#` turns a line into a heading, wrapping a word in `**` makes it bold.
+You configure them with the `textShortcuts` prop, an array that maps a `trigger`
+string to a `style`:
+
+```tsx
+<EnrichedTextInput
+  textShortcuts={[
+    { trigger: '# ', style: 'h1' },
+    { trigger: '**', style: 'bold' },
+  ]}
+  /* ... */
+/>;
+```
+
+The `style` values are the same rich text styles you met in
+[Basic styles](/rich-text-formatting/basic-styles) - and the inline vs. paragraph
+distinction is exactly what decides how a shortcut fires.
+
+## Paragraph vs. inline shortcuts
+
+The two families of styles trigger differently, because they format different
+things:
+
+- **Paragraph shortcuts** (`h1`–`h6`, `blockquote`, `codeblock`,
+  `unordered_list`, `ordered_list`, `checkbox_list`) fire at the **start of a
+  paragraph**. The trigger is the prefix you type before the line's content -
+  e.g. `#` for a heading, `-` for a bulleted list. Since a paragraph can only hold
+  one paragraph style, these only fire on a **plain** paragraph: if the line is
+  already a heading or a list item, typing the prefix does nothing.
+
+- **Inline shortcuts** (`bold`, `italic`, `underline`, `strikethrough`,
+  `inline_code`) fire when you type a **closing delimiter** around some text, so
+  typing `**word**` bolds `word`.
+
+:::note
+
+The usual [style rules](/rich-text-formatting/basic-styles#paragraph-styles) still
+apply to shortcut-triggered styles. If the target style is **blocked** by an
+active one (e.g. bold inside a code block), the shortcut has no effect.
+
+:::
+
+## Defaults
+
+Even without the prop, two shortcuts are active out of the box:
+
+```ts
+[
+  { trigger: '- ', style: 'unordered_list' },
+  { trigger: '1. ', style: 'ordered_list' },
+];
+```
+
+Passing your own array replaces these defaults entirely, and passing an empty
+array (`textShortcuts={[]}`) disables shortcuts altogether.
+
+## Try it out
+
+The editor below wires up one shortcut of each kind - a paragraph one (`#` → H1)
+and an inline one (`**` → bold). Start a line with `#` and watch it become a
+heading, then wrap a word in `**stars**` to bold it.
+
+<InteractiveExample src={TextShortcutsEditorSrc} component={TextShortcutsEditor} />
+
+:::info
+
+On Web, the same styles are also reachable through
+[keyboard shortcuts](/api-reference/enriched-text-input) like ⌘B / Ctrl+B,
+independent of the `textShortcuts` prop.
+
+:::
