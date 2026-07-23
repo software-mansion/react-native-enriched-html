@@ -105,6 +105,8 @@ export const EnrichedText = memo(
       ellipsizeMode,
       numberOfLines,
       setClampedHtml,
+      style,
+      htmlStyle,
     });
 
     const onLinkPressRef = useStableRef(onLinkPress);

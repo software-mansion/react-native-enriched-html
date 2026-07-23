@@ -18,7 +18,13 @@ const sel = {
     `[data-testid="test-ellipsize-mode-${mode}"]`,
   modeOutput: '[data-testid="test-ellipsize-mode-output"]',
   valueOutput: '[data-testid="test-ellipsize-value-output"]',
+  toggleButton: (key: OverrideKey) =>
+    `[data-testid="test-ellipsize-toggle-${key}"]`,
+  overrideOutput: (key: OverrideKey) =>
+    `[data-testid="test-ellipsize-${key}-override-output"]`,
 } as const;
+
+type OverrideKey = 'style' | 'headings' | 'ol' | 'blockquote';
 
 function displayLocator(page: Page): Locator {
   return page.locator(sel.display);
@@ -56,6 +62,17 @@ async function setMode(page: Page, mode: EllipsizeMode): Promise<void> {
         (await page.locator(sel.modeOutput).textContent())?.trim() ?? ''
     )
     .toBe(mode);
+}
+
+async function toggleOverride(page: Page, key: OverrideKey): Promise<void> {
+  await page.click(sel.toggleButton(key));
+  await expect
+    .poll(
+      async () =>
+        (await page.locator(sel.overrideOutput(key)).textContent())?.trim() ??
+        ''
+    )
+    .toContain('true');
 }
 
 const SHARED_MODES: EllipsizeMode[] = ['tail', 'head', 'clip'];
@@ -307,6 +324,59 @@ test.describe('EnrichedText ellipsize - middle', () => {
 
       await expect(displayLocator(page)).toHaveScreenshot(
         `ellipsize-${c.slug}-middle.png`
+      );
+    });
+  }
+});
+
+test.describe('EnrichedText ellipsize - recomputes on style change', () => {
+  type StyleChangeCase = EllipsizeCase & { override: OverrideKey };
+
+  const styleChangeCases: StyleChangeCase[] = [
+    {
+      name: 'recomputes when the text style (fontSize, lineHeight) changes',
+      slug: 'style-fontsize',
+      override: 'style',
+      html: LOREM_IPSUM,
+      numberOfLines: 3,
+    },
+    {
+      name: 'recomputes when the heading font sizes in htmlStyle change',
+      slug: 'htmlstyle-heading-fontsize',
+      override: 'headings',
+      html: `<html><h4>A fairly long level four heading that wraps onto more lines</h4></html>`,
+      numberOfLines: 2,
+    },
+    {
+      name: 'recomputes when the ordered list marginLeft in htmlStyle changes',
+      slug: 'htmlstyle-ol-marginleft',
+      override: 'ol',
+      html:
+        `<html><ol><li>first item that is reasonably long and wraps to a new line</li>` +
+        `<li>second item also long enough to wrap onto another line</li>` +
+        `<li>third item that is long enough to overflow the given lines</li></ol></html>`,
+      numberOfLines: 3,
+    },
+    {
+      name: 'recomputes when the blockquote gapWidth in htmlStyle changes',
+      slug: 'htmlstyle-blockquote-gapwidth',
+      override: 'blockquote',
+      html: `<html><blockquote><p>this is a pretty long blockquote - a different block style paragraph, long enough to overflow in the given number of lines.</p></blockquote></html>`,
+      numberOfLines: 3,
+    },
+  ];
+
+  for (const c of styleChangeCases) {
+    test(c.name, async ({ page }) => {
+      await gotoTestEllipsize(page);
+      await setValue(page, c.html);
+      await setNumberOfLines(page, c.numberOfLines);
+      await setMode(page, 'tail');
+
+      await toggleOverride(page, c.override);
+
+      await expect(displayLocator(page)).toHaveScreenshot(
+        `ellipsize-${c.slug}-recompute.png`
       );
     });
   }

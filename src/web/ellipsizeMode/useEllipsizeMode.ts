@@ -3,7 +3,8 @@ import { headEllipsize } from './headEllipsize';
 import { clip } from './clip';
 import { tailEllipsize } from './tailEllipsize';
 import { middleEllipsize } from './middleEllipsize';
-import type { EnrichedTextProps } from '../../';
+import type { EnrichedTextHtmlStyle, EnrichedTextProps } from '../../';
+import type { TextStyle } from 'react-native';
 
 type EllipsizeMode = NonNullable<EnrichedTextProps['ellipsizeMode']>;
 
@@ -13,6 +14,8 @@ interface EllipsizeOptions {
   ellipsizeMode: EllipsizeMode;
   numberOfLines: number;
   setClampedHtml: (html: string) => void;
+  style?: TextStyle;
+  htmlStyle?: EnrichedTextHtmlStyle;
 }
 
 export function useEllipsizeMode({
@@ -21,6 +24,8 @@ export function useEllipsizeMode({
   ellipsizeMode,
   numberOfLines,
   setClampedHtml,
+  style,
+  htmlStyle,
 }: EllipsizeOptions) {
   useLayoutEffect(() => {
     const container = containerRef.current;
@@ -45,5 +50,13 @@ export function useEllipsizeMode({
         clip(container, finalHtml, numberOfLines, setClampedHtml);
         break;
     }
-  }, [containerRef, finalHtml, ellipsizeMode, numberOfLines, setClampedHtml]);
+  }, [
+    containerRef,
+    finalHtml,
+    ellipsizeMode,
+    numberOfLines,
+    setClampedHtml,
+    style,
+    htmlStyle,
+  ]);
 }
