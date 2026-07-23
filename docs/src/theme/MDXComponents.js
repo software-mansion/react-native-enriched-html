@@ -9,7 +9,7 @@ import Indent from '@site/src/components/Indent';
 import Row from '@site/src/components/Row';
 import Grid from '@site/src/components/Grid';
 import { Yes, No, Version, Spacer } from '@site/src/components/Compatibility';
-import EnrichedHtmlCompatibility from '@site/src/components/Compatibility/EnrichedHtmlCompatibility';
+import EnrichedCompatibility from '@site/src/components/Compatibility/EnrichedCompatibility';
 import { Badges } from '@swmansion/t-rex-ui';
 
 export default {
@@ -27,6 +27,6 @@ export default {
   No,
   Version,
   Spacer,
-  EnrichedHtmlCompatibility,
+  EnrichedCompatibility,
   Badges,
 };
