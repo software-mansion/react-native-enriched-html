@@ -56,10 +56,10 @@ export function middleEllipsize(
   const { lineStarts, lastLine: originalLastLine } = scanLines(
     sandbox,
     lineTolerance,
-    ({ currentLine, node, index, rect }) => {
+    ({ currentLine, node, index, nodeX }) => {
       if (currentLine === numberOfLines) {
         marks.fallback = { node, index };
-        if (!marks.centre && rect.right >= midX) {
+        if (!marks.centre && nodeX >= midX) {
           marks.centre = { node, index };
         }
       }

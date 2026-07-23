@@ -249,7 +249,7 @@ export function scanLines(
     currentLine: number;
     node: Node;
     index: number;
-    rect: DOMRect;
+    nodeX: number;
   }) => void
 ): LineScan {
   const walker = document.createTreeWalker(
@@ -283,7 +283,12 @@ export function scanLines(
         }
         lineBottoms[currentLine] = rect.bottom;
 
-        onMeasure?.({ currentLine, node: textNode, index: i, rect });
+        onMeasure?.({
+          currentLine,
+          node: textNode,
+          index: i,
+          nodeX: rect.left,
+        });
 
         lastBottom = rect.bottom;
       }
@@ -303,7 +308,7 @@ export function scanLines(
       }
       lineBottoms[currentLine] = rect.bottom;
 
-      onMeasure?.({ currentLine, node: el, index: 0, rect });
+      onMeasure?.({ currentLine, node: el, index: 0, nodeX: rect.right });
 
       lastBottom = rect.bottom;
     }
