@@ -407,10 +407,12 @@ typedef struct {
 
     input->blockEmitting = NO;
 
-    // Drop conflicting inline typing attrs (e.g. italic) at the cursor before
-    // applying the codeblock style.
+    // Drop conflicting inline styles (e.g. italic) across the whole paragraph
+    // before applying the block style.
+    NSRange paragraphRange = [input->textView.textStorage.string
+        paragraphRangeForRange:input->textView.selectedRange];
     [StyleUtils handleStyleBlocksAndConflicts:type
-                                        range:input->textView.selectedRange
+                                        range:paragraphRange
                                       forHost:input];
 
     [ParagraphAttributesUtils resetTypingAttributes:input
