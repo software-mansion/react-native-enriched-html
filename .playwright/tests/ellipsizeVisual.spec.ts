@@ -306,7 +306,7 @@ test.describe('EnrichedText ellipsize - middle', () => {
       await setMode(page, 'middle');
 
       await expect(displayLocator(page)).toHaveScreenshot(
-        `ellipsize-middle-${c.slug}.png`
+        `ellipsize-${c.slug}-middle.png`
       );
     });
   }
