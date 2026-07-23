@@ -121,16 +121,16 @@ function App() {
 
   const handleUserMentionSelected = (item: MentionItem) => {
     ref.current?.setMention('@', `@${item.name}`, {
-      id: item.id,
-      type: 'user',
+      'id': item.id,
+      'data-type': 'user',
     });
     closeUserMentionPopup();
   };
 
   const handleChannelMentionSelected = (item: MentionItem) => {
     ref.current?.setMention('#', `#${item.name}`, {
-      id: item.id,
-      type: 'channel',
+      'id': item.id,
+      'data-type': 'channel',
     });
     closeChannelMentionPopup();
   };

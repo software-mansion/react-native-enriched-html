@@ -81,6 +81,10 @@ import { returnKeyTypeToEnterKeyHint } from './returnKeyTypeToEnterKeyHint';
 import { ENRICHED_TEXT_INPUT_CLASSNAME } from './constants/classNames';
 import { AutolinkPlugin } from './pmPlugins/AutolinkPlugin';
 import { useStableRef } from './useStableRef';
+import {
+  checkMentionAttributes,
+  sanitizeMentionAttributes,
+} from './sanitization/htmlSanitizer';
 
 function runFocused(
   editor: Editor,
@@ -362,7 +366,15 @@ export const EnrichedTextInput = ({
         indicator: string,
         text: string,
         attributes?: Record<string, string>
-      ) => setMention(editor, indicator, text, attributes),
+      ) => {
+        checkMentionAttributes(attributes);
+        setMention(
+          editor,
+          indicator,
+          text,
+          sanitizeMentionAttributes(attributes)
+        );
+      },
       setImage: (src: string, width: number, height: number) =>
         runFocused(editor, (c) => c.setImage({ src, width, height })),
       measure: () => {},

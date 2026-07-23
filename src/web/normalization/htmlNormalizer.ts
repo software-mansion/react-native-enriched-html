@@ -286,11 +286,11 @@ function emitAttributes(el: Element, name: string): string {
         el.getAttribute('data-leveltext') === ''; // MS Word checked box
       return isChecked ? ' checked' : '';
     case 'mention':
-      return (
-        emitOneAttr(el, 'id') +
-        emitOneAttr(el, 'text') +
-        emitOneAttr(el, 'indicator')
-      );
+      let out = '';
+      for (const attr of Array.from(el.attributes)) {
+        out += emitOneAttr(el, attr.name);
+      }
+      return out;
     default:
       // preserve text-align
       return emitAlignment(el, name);
