@@ -2,6 +2,7 @@ import {
   BLOCK_TAGS,
   createSandbox,
   eatForwardUntilFits,
+  ELLIPSIS_CHAR,
   fitsWithin,
   getBlockParent,
   innermostEmptyBlock,
@@ -131,7 +132,7 @@ export function headEllipsize(
     }
 
     // now we append the ellipsis and start the truncation at the targetNode
-    const ellipsisNode = document.createTextNode('...');
+    const ellipsisNode = document.createTextNode(ELLIPSIS_CHAR);
 
     if (targetNode) {
       // if we have an empty block, eg. <li></li>, we append the ellipsis inside it

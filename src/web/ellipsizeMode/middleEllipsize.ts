@@ -2,6 +2,7 @@ import { headEllipsize } from './headEllipsize';
 import {
   createSandbox,
   eatForwardUntilFits,
+  ELLIPSIS_CHAR,
   fitsWithin,
   getBlockParent,
   removeAndCleanUp,
@@ -180,7 +181,7 @@ export function middleEllipsize(
     targetNode = backRightSplit;
   }
 
-  const ellipsisNode = document.createTextNode('...');
+  const ellipsisNode = document.createTextNode(ELLIPSIS_CHAR);
   targetNode.parentNode?.insertBefore(ellipsisNode, targetNode);
 
   // everything after the ellipsis has to fit on the front line (the Nth line)

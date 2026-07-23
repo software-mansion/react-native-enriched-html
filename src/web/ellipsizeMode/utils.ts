@@ -1,5 +1,7 @@
 import { ENRICHED_TEXT_CLASSNAME } from '../constants/classNames';
 
+export const ELLIPSIS_CHAR = '\u2026';
+
 // Attribute used to persist the last <li>'s original ordinal before truncation
 const ORDINAL_ATTR = 'data-et-ellipsize-ordinal';
 
@@ -372,7 +374,8 @@ export function eatBackwardUntilFits(
     if (lastNode.nodeType === Node.TEXT_NODE) {
       const textNode = lastNode as Text;
       let text = textNode.nodeValue || '';
-      if (withEllipsis && text.endsWith('...')) text = text.slice(0, -3);
+      if (withEllipsis && text.endsWith(ELLIPSIS_CHAR))
+        text = text.slice(0, -3);
 
       // drop whitespace-only nodes
       if (text.trim().length === 0) {
@@ -382,7 +385,7 @@ export function eatBackwardUntilFits(
 
       if (withEllipsis) {
         // append the ellipsis and measure its last character
-        textNode.nodeValue = text + '...';
+        textNode.nodeValue = text + ELLIPSIS_CHAR;
         range.setStart(textNode, textNode.nodeValue.length - 1);
         range.setEnd(textNode, textNode.nodeValue.length);
       } else {
@@ -412,7 +415,7 @@ export function eatBackwardUntilFits(
     }
 
     // tail mode: re-anchor the ellipsis onto the trailing unit
-    const ellipsisNode = document.createTextNode('...');
+    const ellipsisNode = document.createTextNode(ELLIPSIS_CHAR);
 
     if (lastNode.nodeName === 'IMG') {
       // place the ellipsis right after the image
