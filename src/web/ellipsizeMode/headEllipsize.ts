@@ -27,9 +27,9 @@ import {
 //
 // When the last two lines live in different blocks we can still safely drop
 // that second-to-last line. We then insert the "..." at the start of the surviving tail
-// (adding a <br> to make sure it sits at the absolute line start). We then finally
-// eat forward one unit at a time until the ellipsis and the content after it fit
-// together on that single ellipsis line.
+// (adding a <br> to make sure it sits at the absolute line start). We then perform
+// binary-search to find the place to cut the content, so it fits together on that
+// single ellipsis line.
 export function headEllipsize(
   container: HTMLDivElement,
   finalHtml: string,

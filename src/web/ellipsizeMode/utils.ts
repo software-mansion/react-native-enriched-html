@@ -375,7 +375,8 @@ export function eatBackwardUntilFits(
     const lastNode = lastRenderedNode(sandbox);
     if (!lastNode) break;
 
-    // handling text nodes: trim one character at a time (re-appending "..." each iteration)
+    // handling text nodes: keep the longest prefix that still fits (re-appending
+    // "..." in ellipsis mode). With find the maximum amount of content to keep with binary-search.
     if (lastNode.nodeType === Node.TEXT_NODE) {
       const textNode = lastNode as Text;
       let text = textNode.nodeValue || '';
@@ -388,22 +389,47 @@ export function eatBackwardUntilFits(
         continue;
       }
 
-      if (withEllipsis) {
-        // append the ellipsis and measure its last character
-        textNode.nodeValue = text + ELLIPSIS_CHAR;
-        range.setStart(textNode, textNode.nodeValue.length - 1);
-        range.setEnd(textNode, textNode.nodeValue.length);
-      } else {
-        range.setStart(textNode, 0);
-        range.setEnd(textNode, text.length);
+      // measures whether keeping the first `keep` characters (plus the ellipsis)
+      // still fits. Mutates the analyzed text node in place.
+      const prefixFits = (keep: number) => {
+        if (withEllipsis) {
+          // append the ellipsis and measure its last character
+          textNode.nodeValue = text.slice(0, keep) + ELLIPSIS_CHAR;
+          range.setStart(textNode, textNode.nodeValue.length - 1);
+          range.setEnd(textNode, textNode.nodeValue.length);
+        } else {
+          textNode.nodeValue = text.slice(0, keep);
+          range.setStart(textNode, 0);
+          range.setEnd(textNode, keep);
+        }
+        return !overflows(range.getBoundingClientRect().bottom);
+      };
+
+      // start the search just past the first non-white-space character.
+      const minKeep = text.search(/\S/) + 1;
+
+      if (!prefixFits(minKeep)) {
+        // even the shortest non-blank prefix overflows: remove the node
+        removeBlankTextAndPrune(textNode, sandbox);
+        continue;
       }
 
-      if (overflows(range.getBoundingClientRect().bottom)) {
-        // drop one more character
-        textNode.nodeValue = text.slice(0, -1);
-      } else {
-        isOverflowing = false;
+      // we perform the binary-search
+      let lo = minKeep;
+      let hi = text.length;
+      let best = minKeep;
+      while (lo <= hi) {
+        const mid = Math.floor((lo + hi) / 2);
+        if (prefixFits(mid)) {
+          best = mid;
+          lo = mid + 1;
+        } else {
+          hi = mid - 1;
+        }
       }
+
+      prefixFits(best);
+      isOverflowing = false;
       continue;
     }
 
@@ -479,11 +505,47 @@ export function eatForwardUntilFits(
       BLOCK_TAGS.has(nextNode.nodeName)
     ) {
       removeAndCleanUp(nextNode, sandbox);
-    } else {
-      const t = nextNode as Text;
-      if (t.length > 1) t.nodeValue = t.nodeValue!.slice(1);
-      else removeAndCleanUp(t, sandbox);
+      continue;
     }
+
+    const t = nextNode as Text;
+    const orig = t.nodeValue || '';
+
+    // the content still overflows and a single leading character
+    // or an empty node) can't be trimmed further, so drop the whole node.
+    if (orig.length <= 1) {
+      removeAndCleanUp(t, sandbox);
+      continue;
+    }
+
+    // we check if after removing `drop` number of characters
+    // makes the content fit.
+    const removedFits = (drop: number) => {
+      t.nodeValue = orig.slice(drop);
+      return checkFits();
+    };
+
+    // if even keeping just the final character overflows,
+    // we perform an early-exit and drop the node entirely.
+    if (!removedFits(orig.length - 1)) {
+      removeAndCleanUp(t, sandbox);
+      continue;
+    }
+
+    let lo = 1;
+    let hi = orig.length - 1;
+    let best = orig.length - 1;
+    while (lo <= hi) {
+      const mid = Math.floor((lo + hi) / 2);
+      if (removedFits(mid)) {
+        best = mid;
+        hi = mid - 1;
+      } else {
+        lo = mid + 1;
+      }
+    }
+
+    t.nodeValue = orig.slice(best);
   }
 }
 

@@ -10,9 +10,9 @@ import {
 // forward line scan to learn where each rendered line begins. If the content
 // fits, we keep it as it is. Otherwise we take the first node on the first
 // forbidden line (line N+1) as the target, drop everything "to the right" of it
-// in the document context, then trim backwards one unit at a time
-// (character / img / br / empty block) until what remains fits within line N.
-// This works almost the same as tail, only without re-anchoring an ellipsis as we shrink.
+// in the document context, then we perform binary-search to find where to cut the
+// content, so everything fits within line N. This works almost the same as tail,
+// only without re-anchoring an ellipsis as we are truncating.
 export function clip(
   container: HTMLDivElement,
   finalHtml: string,

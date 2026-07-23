@@ -9,10 +9,10 @@ import {
 // the full HTML into a hidden sandbox and do a single forward line scan to learn
 // where each rendered line begins. If the content fits, we keep it as it is.
 // Otherwise we take the first node on the first forbidden line (line N+1) as the
-// target, drop everything "to the right" of it in the document context, then trim
-// backwards one unit at a time (character / img / br / empty block) - re-anchoring
-// the "..." onto the current trailing content each iteration - until the ellipsis fits
-// within line N. Conceptually similar as clip, but with the trailing ellipsis.
+// target, drop everything "to the right" of it in the document context, then we
+// perform binary-search to find where to cut the content, so everything fits within
+// line N - re-anchoring the "..." onto the current trailing content each
+// iteration. Conceptually similar as clip, but with the trailing ellipsis.
 export function tailEllipsize(
   container: HTMLDivElement,
   finalHtml: string,
