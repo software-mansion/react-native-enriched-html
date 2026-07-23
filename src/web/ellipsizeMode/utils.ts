@@ -380,7 +380,7 @@ export function eatBackwardUntilFits(
       const textNode = lastNode as Text;
       let text = textNode.nodeValue || '';
       if (withEllipsis && text.endsWith(ELLIPSIS_CHAR))
-        text = text.slice(0, -3);
+        text = text.slice(0, -1);
 
       // drop whitespace-only nodes
       if (text.trim().length === 0) {
