@@ -1,0 +1,77 @@
+---
+sidebar_position: 1
+---
+
+# Compatibility
+
+This page is the single source of truth for the React Native versions the
+library supports and for the small set of behaviours that differ between
+platforms.
+
+:::info
+
+React Native Enriched HTML works **only** with the
+[React Native New Architecture (Fabric)](https://reactnative.dev/architecture/landing-page).
+The New Architecture is enabled by default on recent React Native versions. If
+your app still runs the old architecture, you'll need to switch before
+installing.
+
+:::
+
+## Supported React Native versions
+
+The table assumes you're using the latest patch of each library minor version.
+
+<EnrichedCompatibility />
+
+## Platform differences
+
+Android, iOS and Web are built on different text systems, so a few APIs
+behave differently depending on the platform. These are platform
+characteristics, not library bugs, and they're collected here. For limitations that affect
+every platform, see [Known limitations](/misc/known-limitations) instead.
+
+### Justified text alignment (Android)
+
+On Android, `'justify'` is accepted in the type signature but has no justified
+layout effect - the paragraph is shown with its natural alignment, the same as
+`'auto'`. This applies both to `setTextAlignment('justify')` and to the `justify` value reported by
+`onChangeState`.
+
+### `ellipsizeMode` with multiple lines (Android)
+
+On Android, when `numberOfLines` is set to a value higher than `1`, only the
+`'tail'` value of `ellipsizeMode` works correctly.
+
+### Custom context menu (iOS 16+, ordering)
+
+Custom context-menu items (`contextMenuItems`) require **iOS 16 or newer** on
+iOS. On iOS, items appear in array order, before the system items
+(Copy/Paste/Cut). On Android there is no guaranteed order, and custom items may
+be shown in a submenu depending on the device manufacturer. On the Web the
+native editing menu isn't available at all, so the prop is ignored - build your
+own UI instead.
+
+### Return key behaviour
+
+- **`returnKeyType`** on Android it's accepted but ignored, because
+  `returnKeyType` doesn't work with multiline inputs. On the Web it maps to the
+  browser's [`enterkeyhint`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/enterkeyhint).
+- **`returnKeyLabel`** is supported on Android but not on iOS, and can't be set
+  inside a browser, so it's ignored on the Web.
+
+### Cursor / selection color
+
+The `cursorColor` prop is applied on Android and Web. On iOS the caret and
+selection color follow the system tint.
+
+### HTML is not sanitized (Mobile)
+
+On iOS and Android, the library does not sanitize HTML. It makes no guarantees that the markup it accepts or produces is safe. You are fully responsible for sanitizing any HTML you persist, render elsewhere, or accept from untrusted sources.
+
+Sanitization _is_ enforced on the web, as injecting unsafe HTML directly into the DOM poses severe security risks (like XSS).
+
+### React Native layout ref methods
+
+On Web those methods are no-ops. These include: `measure`,
+`measureInWindow`, `measureLayout`, and `setNativeProps`.
