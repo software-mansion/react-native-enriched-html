@@ -1,3 +1,4 @@
+import React from 'react';
 import { No, Version, Yes } from './index';
 
 const REACT_NATIVE_VERSIONS = [
@@ -37,9 +38,11 @@ export default function EnrichedCompatibility() {
       <table>
         <thead>
           <tr>
-            <th></th>
+            <th scope="col"></th>
             {REACT_NATIVE_VERSIONS.map(version => (
-              <th key={version}>{version}</th>
+              <th key={version} scope="col">
+                {version}
+              </th>
             ))}
           </tr>
         </thead>

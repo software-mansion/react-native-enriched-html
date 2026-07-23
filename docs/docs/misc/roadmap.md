@@ -20,4 +20,4 @@ Natively integrated right-to-left text direction for RTL languages.
 
 Support for screen readers and accessibility APIs,
 delivering a rich, inclusive text editing experience while aligning with WCAG
-and ACA standards.
+and ADA standards.

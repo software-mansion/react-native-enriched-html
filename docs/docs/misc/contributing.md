@@ -18,7 +18,7 @@ packages:
 - this documentation site, in `docs/` (a standalone project with its own
   dependencies - see [Documentation](#documentation)).
 
-Install dependencies for every package by running `yarn` in the root directory:
+Install dependencies for the monorepo workspaces by running `yarn` in the root directory:
 
 ```sh
 yarn
