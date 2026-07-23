@@ -40,7 +40,6 @@ export const EnrichedText = memo(
     onMentionPress,
   }: EnrichedTextProps) => {
     const containerRef = useRef<HTMLDivElement>(null);
-    const [clampedHtml, setClampedHtml] = useState<string | null>(null);
 
     useImperativeHandle(ref, () => ({
       measureInWindow: () => {},
@@ -59,6 +58,10 @@ export const EnrichedText = memo(
     const finalHtml = useMemo(
       () => prepareHtmlForWeb(sanitizedHtml, useHtmlNormalizer),
       [sanitizedHtml, useHtmlNormalizer]
+    );
+
+    const [clampedHtml, setClampedHtml] = useState<string | null>(
+      numberOfLines <= 0 ? finalHtml : null
     );
 
     const resolvedHtmlStyle = useMemo(
