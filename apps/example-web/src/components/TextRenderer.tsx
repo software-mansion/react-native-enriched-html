@@ -1,5 +1,5 @@
-import { useRef } from 'react';
-import type { TextStyle } from 'react-native';
+import { useRef, useState } from 'react';
+import type { TextProps, TextStyle } from 'react-native';
 import {
   EnrichedText,
   type BlurEvent,
@@ -9,6 +9,7 @@ import {
   type OnMentionPressEvent,
 } from 'react-native-enriched-html';
 import { WEB_DEFAULT_HTML_STYLE } from '../defaultHtmlStyle';
+import { EnrichedTextActions } from './EnrichedTextActions';
 
 interface TextRendererProps {
   htmlValue: string;
@@ -16,6 +17,10 @@ interface TextRendererProps {
 
 export function TextRenderer({ htmlValue }: TextRendererProps) {
   const ref = useRef<EnrichedTextInstance>(null);
+
+  const [ellipsizeMode, setEllipsizeMode] =
+    useState<TextProps['ellipsizeMode']>('tail');
+  const [numberOfLines, setNumberOfLines] = useState(2);
 
   const handleTextFocus = (e: FocusEvent) => {
     console.log('[EnrichedText] onFocus', e.nativeEvent);
@@ -44,25 +49,24 @@ export function TextRenderer({ htmlValue }: TextRendererProps) {
         onBlur={handleTextBlur}
         onLinkPress={handleLinkPress}
         onMentionPress={handleMentionPress}
+        numberOfLines={numberOfLines}
+        ellipsizeMode={ellipsizeMode}
       >
         {htmlValue}
       </EnrichedText>
-      <div className="btn-row" data-testid="editor-actions-row">
-        <button
-          className="btn"
-          data-testid="focus-button"
-          onClick={() => ref.current?.focus()}
-        >
-          Focus
-        </button>
-        <button
-          className="btn"
-          data-testid="blur-button"
-          onClick={() => ref.current?.blur()}
-        >
-          Blur
-        </button>
-      </div>
+      <EnrichedTextActions
+        ellipsizeMode={ellipsizeMode ?? 'tail'}
+        numberOfLines={numberOfLines}
+        onChangeEllipsizeMode={setEllipsizeMode}
+        onChangeNumberOfLines={setNumberOfLines}
+      />
+      {/*temporary second component to make testing easier*/}
+      <EnrichedText
+        style={enrichedTextStyle}
+        htmlStyle={WEB_DEFAULT_HTML_STYLE}
+      >
+        {htmlValue}
+      </EnrichedText>
     </div>
   );
 }

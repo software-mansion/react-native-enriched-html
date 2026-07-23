@@ -234,7 +234,8 @@ function App() {
       ?.getHTML()
       .then((html) => {
         setEnrichedTextValue(html);
-        ref.current?.setValue('');
+        // temporary for making the testing easier
+        // ref.current?.setValue('');
       })
       .catch((error: unknown) => {
         setEnrichedTextValue('');

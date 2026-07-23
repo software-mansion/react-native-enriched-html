@@ -42,11 +42,13 @@ See [Web Keyboard Shortcuts](./INPUT_API_REFERENCE.md#web-keyboard-shortcuts) fo
 - `selectable` prop
 - `useHtmlNormalizer`
 - `onLinkPress` and `onMentionPress` callbacks
+- Truncation via `numberOfLines` and `ellipsizeMode` (`head`, `middle`, `tail`, `clip`).
+
+> [!NOTE]
+> Truncation measures the rendered DOM in a layout effect, so it only runs on the client. Under SSR the server renders no text and the clamped content appears after hydration - expect a flash / layout shift on first paint when combining `numberOfLines` with `ellipsizeMode`.
 
 ### Unsupported
 
-- **`ellipsizeMode`**: ignored on web.
-- **`numberOfLines`**: ignored on web.
 - **RN layout ref methods**: `measure`, `measureInWindow`, `measureLayout`, and `setNativeProps` are no-ops.
 
 ## HTML sanitization
