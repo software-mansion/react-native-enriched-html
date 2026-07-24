@@ -401,7 +401,11 @@ function flattenBqNode(
   }
   if (!isElement(node)) return;
   if (isBrNode(node)) {
-    flushInlineP(ib, out);
+    // Emit the canonical <br> so it is not silently dropped.
+    // With buffered inline content it just terminates the current paragraph.
+    if (!flushInlineP(ib, out)) {
+      out.buf += '<br>';
+    }
     return;
   }
   if (isBlockProducing(node) || isBlockquoteNode(node)) {

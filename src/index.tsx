@@ -23,5 +23,6 @@ export type {
   EnrichedTextHtmlStyle,
   OnMentionPressEvent,
   OnLinkPressEvent,
+  TextShortcut,
   OnImagePressEvent,
 } from './types';

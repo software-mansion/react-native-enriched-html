@@ -401,7 +401,7 @@ TEST(GumboParserTest, DivRemappings) {
           "</b>hello<div><br></div><div>hi</div></li></ul></div></div></"
           "blockquote></span>"),
       "<p>what do you think of this craziness</p><blockquote><p><b>another one "
-      "</b>hello</p><p>hi</p></blockquote>");
+      "</b>hello</p><br><p>hi</p></blockquote>");
 }
 
 TEST(GumboParserTest, ListFlattening) {
@@ -508,6 +508,13 @@ TEST(GumboParserTest, BrRemappings) {
                 "href='https://google.com'>Net</a></p>"),
             "<p><b>Asdasdasd</b></p><br><br><p>Sent with <a "
             "href=\"https://google.com\">Net</a></p>");
+  // A <br> between blockquote paragraphs is preserved.
+  EXPECT_EQ(
+      GumboParser::normalizeHtml(
+          "<blockquote><p>this is a pretty short blockquote.</p><br><p>This is "
+          "a line after an empty line.</p></blockquote>"),
+      "<blockquote><p>this is a pretty short blockquote.</p><br><p>This is a "
+      "line after an empty line.</p></blockquote>");
 }
 
 // Preserve text alignment
