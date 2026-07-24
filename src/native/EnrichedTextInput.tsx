@@ -1,11 +1,11 @@
 import {
-  type Component,
+  useCallback,
   useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
+  type ComponentRef,
 } from 'react';
-import { useCallback } from 'react';
 import EnrichedTextInputNativeComponent, {
   Commands,
   type NativeProps,
@@ -15,11 +15,11 @@ import EnrichedTextInputNativeComponent, {
   type OnRequestHtmlResultEvent,
 } from '../spec/EnrichedTextInputNativeComponent';
 import type {
+  HostComponent,
   HostInstance,
   MeasureInWindowOnSuccessCallback,
   MeasureLayoutOnSuccessCallback,
   MeasureOnSuccessCallback,
-  NativeMethods,
   NativeSyntheticEvent,
 } from 'react-native';
 import { normalizeHtmlStyle } from '../utils/normalizeHtmlStyle';
@@ -39,7 +39,7 @@ const warnMentionIndicators = (indicator: string) => {
   );
 };
 
-type ComponentType = (Component<NativeProps, {}, any> & NativeMethods) | null;
+type ComponentType = ComponentRef<HostComponent<NativeProps>>;
 
 type HtmlRequest = {
   resolve: (html: string) => void;
@@ -48,7 +48,7 @@ type HtmlRequest = {
 
 export const EnrichedTextInput = ({
   ref,
-  autoFocus,
+  autoFocus = false,
   editable = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.editable,
   mentionIndicators = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.mentionIndicators.slice(),
   defaultValue,
@@ -77,9 +77,11 @@ export const EnrichedTextInput = ({
   returnKeyLabel,
   submitBehavior,
   contextMenuItems,
+  textShortcuts = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.textShortcuts,
   androidExperimentalSynchronousEvents = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.androidExperimentalSynchronousEvents,
   useHtmlNormalizer = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.useHtmlNormalizer,
   scrollEnabled = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.scrollEnabled,
+  allowFontScaling = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.allowFontScaling,
   ...rest
 }: EnrichedTextInputProps) => {
   const nativeRef = useRef<ComponentType | null>(null);
@@ -270,6 +272,11 @@ export const EnrichedTextInput = ({
     setSelection: (start: number, end: number) => {
       Commands.setSelection(nullthrows(nativeRef.current), start, end);
     },
+    setTextAlignment: (
+      alignment: 'left' | 'center' | 'right' | 'justify' | 'auto'
+    ) => {
+      Commands.setTextAlignment(nullthrows(nativeRef.current), alignment);
+    },
     insertValue: (value: string, start: number, end: number) => {
       Commands.insertValue(nullthrows(nativeRef.current), value, start, end);
     },
@@ -352,6 +359,7 @@ export const EnrichedTextInput = ({
       onRequestHtmlResult={handleRequestHtmlResult}
       onInputKeyPress={onKeyPress}
       contextMenuItems={nativeContextMenuItems}
+      textShortcuts={textShortcuts}
       onContextMenuItemPress={handleContextMenuItemPress}
       onSubmitEditing={onSubmitEditing}
       returnKeyType={returnKeyType}
@@ -362,6 +370,7 @@ export const EnrichedTextInput = ({
       }
       useHtmlNormalizer={useHtmlNormalizer}
       scrollEnabled={scrollEnabled}
+      allowFontScaling={allowFontScaling}
       {...rest}
     />
   );

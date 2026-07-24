@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
-import { EnrichedTextInput } from 'react-native-enriched';
+import { EnrichedTextInput } from 'react-native-enriched-html';
 import { Button } from '../components/Button';
 import { Toolbar } from '../components/Toolbar';
 import { LinkModal } from '../components/LinkModal';
@@ -16,17 +16,22 @@ import {
 
 interface TestScreenProps {
   onSwitch: () => void;
+  onSwitchEnrichedText: () => void;
 }
 
-export function TestScreen({ onSwitch }: TestScreenProps) {
+export function TestScreen({
+  onSwitch,
+  onSwitchEnrichedText,
+}: TestScreenProps) {
   const editor = useEditorState();
   const [sizeMode, setSizeMode] = useState<'base' | 'max'>('base');
 
   return (
-    <>
+    <View style={styles.container}>
       <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.content}
+        style={styles.scrollContainer}
+        contentContainerStyle={styles.scrollContent}
+        testID="full-screen"
       >
         <View style={styles.buttonStack}>
           <Button
@@ -91,7 +96,6 @@ export function TestScreen({ onSwitch }: TestScreenProps) {
               ANDROID_EXPERIMENTAL_SYNCHRONOUS_EVENTS
             }
             onPasteImages={(e) => editor.handlePasteImagesEvent(e.nativeEvent)}
-            useHtmlNormalizer
             testID="editor-input"
           />
           <Toolbar
@@ -114,6 +118,14 @@ export function TestScreen({ onSwitch }: TestScreenProps) {
             onPress={onSwitch}
             style={styles.rowButton}
             testID="toggle-screen-button"
+          />
+        </View>
+        <View style={styles.buttonRow}>
+          <Button
+            title="Enriched Text Screen"
+            onPress={onSwitchEnrichedText}
+            style={styles.rowButton}
+            testID="toggle-enriched-text-screen-button"
           />
         </View>
       </ScrollView>
@@ -153,7 +165,7 @@ export function TestScreen({ onSwitch }: TestScreenProps) {
         isOpen={editor.isChannelPopupOpen}
         onItemPress={editor.handleChannelMentionSelected}
       />
-    </>
+    </View>
   );
 }
 
@@ -161,11 +173,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'white',
+    paddingTop: 100,
   },
-  content: {
+  scrollContainer: {
+    flex: 1,
+  },
+  scrollContent: {
     flexGrow: 1,
     padding: 16,
-    paddingTop: 100,
     alignItems: 'center',
   },
   editor: {

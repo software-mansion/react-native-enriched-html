@@ -1,5 +1,7 @@
-export { EnrichedTextInput } from './native/EnrichedTextInput';
+export { EnrichedTextInput } from './web/EnrichedTextInput';
+export { EnrichedText } from './web/EnrichedText';
 export type {
+  EnrichedInputStyle,
   EnrichedTextInputProps,
   OnChangeTextEvent,
   OnChangeHtmlEvent,
@@ -15,6 +17,11 @@ export type {
   FocusEvent,
   BlurEvent,
   EnrichedTextInputInstance,
+  EnrichedTextInstance,
   ContextMenuItem,
   OnChangeMentionEvent,
+  EnrichedTextHtmlStyle,
+  OnMentionPressEvent,
+  OnLinkPressEvent,
+  TextShortcut,
 } from './types';

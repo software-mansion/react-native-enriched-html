@@ -10,7 +10,7 @@ import {
   type OnKeyPressEvent,
   type OnPasteImagesEvent,
   type OnSubmitEditing,
-} from 'react-native-enriched';
+} from 'react-native-enriched-html';
 import { useRef, useState } from 'react';
 import { type MentionItem } from '../components/MentionPopup';
 import { useUserMention } from './useUserMention';
@@ -105,6 +105,7 @@ export function useEditorState() {
   };
 
   const handleStartMention = (indicator: string) => {
+    console.log('Start Mention', indicator);
     if (indicator === '@') {
       userMention.onMentionChange('');
       openUserMentionPopup();
@@ -115,6 +116,7 @@ export function useEditorState() {
   };
 
   const handleEndMention = (indicator: string) => {
+    console.log('End Mention', indicator);
     if (indicator === '@') {
       closeUserMentionPopup();
       userMention.onMentionChange('');
@@ -125,12 +127,10 @@ export function useEditorState() {
   };
 
   const handleChangeMention = ({ indicator, text }: OnChangeMentionEvent) => {
+    console.log('Change Mention', indicator, text);
     indicator === '@'
       ? userMention.onMentionChange(text)
       : channelMention.onMentionChange(text);
-    indicator === '@'
-      ? !isUserPopupOpen && setIsUserPopupOpen(true)
-      : !isChannelPopupOpen && setIsChannelPopupOpen(true);
   };
 
   const handleUserMentionSelected = (item: MentionItem) => {

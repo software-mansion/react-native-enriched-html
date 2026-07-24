@@ -1,14 +1,14 @@
 package com.swmansion.enriched.common.parser;
 
 import android.text.Editable;
-import android.text.Layout;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextUtils;
-import android.text.style.AlignmentSpan;
 import android.text.style.ParagraphStyle;
 import com.swmansion.enriched.common.EnrichedConstants;
+import com.swmansion.enriched.common.EnrichedSpanFlags;
+import com.swmansion.enriched.common.spans.EnrichedAlignmentSpan;
 import com.swmansion.enriched.common.spans.EnrichedBoldSpan;
 import com.swmansion.enriched.common.spans.EnrichedCheckboxListSpan;
 import com.swmansion.enriched.common.spans.EnrichedCodeBlockSpan;
@@ -30,11 +30,14 @@ import com.swmansion.enriched.common.spans.EnrichedUnorderedListSpan;
 import com.swmansion.enriched.common.spans.interfaces.EnrichedBlockSpan;
 import com.swmansion.enriched.common.spans.interfaces.EnrichedInlineSpan;
 import com.swmansion.enriched.common.spans.interfaces.EnrichedParagraphSpan;
+import com.swmansion.enriched.common.spans.interfaces.EnrichedSpan;
 import com.swmansion.enriched.common.spans.interfaces.EnrichedZeroWidthSpaceSpan;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.ccil.cowan.tagsoup.HTMLSchema;
 import org.ccil.cowan.tagsoup.Parser;
 import org.xml.sax.Attributes;
@@ -64,6 +67,11 @@ public class EnrichedParser {
   }
 
   public static <T> Spanned fromHtml(String source, T style, EnrichedSpanFactory<T> spanFactory) {
+    return fromHtml(source, style, spanFactory, null);
+  }
+
+  public static <T> Spanned fromHtml(
+      String source, T style, EnrichedSpanFactory<T> spanFactory, Pattern linkRegex) {
     Parser parser = new Parser();
     try {
       parser.setProperty(Parser.schemaProperty, HtmlParser.schema);
@@ -72,7 +80,7 @@ public class EnrichedParser {
       throw new RuntimeException(e);
     }
     HtmlToSpannedConverter converter =
-        new HtmlToSpannedConverter(source, style, parser, spanFactory);
+        new HtmlToSpannedConverter(source, style, parser, spanFactory, linkRegex);
     return converter.convert();
   }
 
@@ -80,11 +88,16 @@ public class EnrichedParser {
     StringBuilder out = new StringBuilder();
     withinHtml(out, text);
     String outString = out.toString();
+
     // Codeblocks and blockquotes appends a newline character by default, so we have to remove it
     String normalizedCodeBlock = outString.replaceAll("</codeblock>\\n<br>", "</codeblock>");
     String normalizedBlockQuote =
         normalizedCodeBlock.replaceAll("</blockquote>\\n<br>", "</blockquote>");
-    return "<html>\n" + normalizedBlockQuote + "</html>";
+
+    // Replace empty <p> tags (with or without style attributes) with <br>
+    String normalizedHtml = normalizedBlockQuote.replaceAll("<p[^>]*></p>", "<br>");
+
+    return "<html>\n" + normalizedHtml + "</html>";
   }
 
   public static String toHtmlWithDefault(CharSequence text) {
@@ -129,6 +142,14 @@ public class EnrichedParser {
         out.append("</").append(tag).append(">\n");
       }
     }
+  }
+
+  private static String getAlignmentStyleAttr(Spanned text, int start, int end) {
+    EnrichedAlignmentSpan[] spans = text.getSpans(start, end, EnrichedAlignmentSpan.class);
+    if (spans.length == 0) return "";
+    String cssValue = spans[0].getCssValue();
+    if (cssValue.equals("auto")) return "";
+    return " style=\"text-align: " + cssValue + "\"";
   }
 
   private static String getBlockTag(EnrichedParagraphSpan[] spans) {
@@ -208,15 +229,17 @@ public class EnrichedParser {
         if (isUlListItem && !isInUlList) {
           // Current paragraph is the first item in a list
           isInUlList = true;
-          out.append("<ul").append(">\n");
+          out.append("<ul").append(getAlignmentStyleAttr(text, i, next)).append(">\n");
         } else if (isOlListItem && !isInOlList) {
           // Current paragraph is the first item in a list
           isInOlList = true;
-          out.append("<ol").append(">\n");
+          out.append("<ol").append(getAlignmentStyleAttr(text, i, next)).append(">\n");
         } else if (isCheckboxListItem && !isInCheckboxList) {
           // Current paragraph is the first item in a list
           isInCheckboxList = true;
-          out.append("<ul data-type=\"checkbox\">\n");
+          out.append("<ul data-type=\"checkbox\"")
+              .append(getAlignmentStyleAttr(text, i, next))
+              .append(">\n");
         }
 
         boolean isList = isUlListItem || isOlListItem || isCheckboxListItem;
@@ -224,6 +247,11 @@ public class EnrichedParser {
 
         out.append("<");
         out.append(tagType);
+
+        // Add alignment style to non-list paragraph/heading tags
+        if (!isList) {
+          out.append(getAlignmentStyleAttr(text, i, next));
+        }
 
         if (isCheckboxListItem) {
           EnrichedCheckboxListSpan[] checkboxSpans =
@@ -386,18 +414,42 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
   private final String mSource;
   private final XMLReader mReader;
   private final SpannableStringBuilder mSpannableStringBuilder;
+  private final Pattern mLinkRegex;
   private static Integer currentOrderedListItemIndex = 0;
   private static Boolean isInOrderedList = false;
   private static Boolean isInCheckboxList = false;
   private static Boolean isEmptyTag = false;
+  private static String currentListAlignmentCssValue = null;
+
+  private static final Pattern CSS_ALIGNMENT_PATTERN =
+      Pattern.compile("text-align\\s*:\\s*(left|center|right)", Pattern.CASE_INSENSITIVE);
+
+  private static String parseCssAlignmentValue(Attributes attributes) {
+    String style = attributes.getValue("", "style");
+    if (style == null) return null;
+    Matcher m = CSS_ALIGNMENT_PATTERN.matcher(style);
+    return m.find() ? m.group(1).toLowerCase() : null;
+  }
+
+  private static void pushAlignmentMark(Editable text, Attributes attributes) {
+    String cssValue = parseCssAlignmentValue(attributes);
+    if (cssValue != null) {
+      start(text, new Alignment(cssValue));
+    }
+  }
 
   public HtmlToSpannedConverter(
-      String source, T style, Parser parser, EnrichedSpanFactory<T> spanFactory) {
+      String source,
+      T style,
+      Parser parser,
+      EnrichedSpanFactory<T> spanFactory,
+      Pattern linkRegex) {
     mStyle = style;
     mSource = source;
     mSpannableStringBuilder = new SpannableStringBuilder();
     mReader = parser;
     mSpanFactory = spanFactory;
+    mLinkRegex = linkRegex;
   }
 
   public Spanned convert() {
@@ -427,10 +479,7 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
       if (end == start) {
         mSpannableStringBuilder.removeSpan(obj[i]);
       } else {
-        // TODO: verify if Spannable.SPAN_EXCLUSIVE_EXCLUSIVE does not break anything.
-        // Previously it was SPAN_PARAGRAPH. I've changed that in order to fix ranges for list
-        // items.
-        mSpannableStringBuilder.setSpan(obj[i], start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        mSpannableStringBuilder.setSpan(obj[i], start, end, EnrichedSpanFlags.forSpan(obj[i]));
       }
     }
 
@@ -443,14 +492,29 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
       int end = mSpannableStringBuilder.getSpanEnd(zeroWidthSpaceSpan);
 
       if (mSpannableStringBuilder.charAt(start) != EnrichedConstants.ZWS) {
-        // Insert zero-width space character at the start if it's not already present.
+        // Collect spans before inserting ZWS. SPAN_EXCLUSIVE_EXCLUSIVE spans will
+        // shift to start+1. We must re-anchor them back to `start` to prevent
+        // the loop from processing them again and inserting duplicate ZWS.
+        EnrichedSpan[] colocated =
+            mSpannableStringBuilder.getSpans(start, start + 1, EnrichedSpan.class);
+
         mSpannableStringBuilder.insert(start, EnrichedConstants.ZWS_STRING);
-        end++; // Adjust end position due to insertion.
+        end++;
+
+        for (EnrichedSpan span : colocated) {
+          if (span == zeroWidthSpaceSpan) continue;
+          // Only re-anchor spans that actually shifted.
+          // Skip overlapping or INCLUSIVE spans that kept their original start.
+          if (mSpannableStringBuilder.getSpanStart(span) != start + 1) continue;
+          int spanEnd = mSpannableStringBuilder.getSpanEnd(span);
+          mSpannableStringBuilder.removeSpan(span);
+          mSpannableStringBuilder.setSpan(span, start, spanEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
       }
 
       mSpannableStringBuilder.removeSpan(zeroWidthSpaceSpan);
       mSpannableStringBuilder.setSpan(
-          zeroWidthSpaceSpan, start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+          zeroWidthSpaceSpan, start, end, EnrichedSpanFlags.forSpan(zeroWidthSpaceSpan));
     }
 
     return mSpannableStringBuilder;
@@ -463,14 +527,17 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
     } else if (tag.equalsIgnoreCase("p")) {
       isEmptyTag = true;
       startBlockElement(mSpannableStringBuilder);
+      pushAlignmentMark(mSpannableStringBuilder, attributes);
     } else if (tag.equalsIgnoreCase("ul")) {
       isInOrderedList = false;
       String dataType = attributes.getValue("", "data-type");
       isInCheckboxList = "checkbox".equals(dataType);
+      currentListAlignmentCssValue = parseCssAlignmentValue(attributes);
       startBlockElement(mSpannableStringBuilder);
     } else if (tag.equalsIgnoreCase("ol")) {
       isInOrderedList = true;
       currentOrderedListItemIndex = 0;
+      currentListAlignmentCssValue = parseCssAlignmentValue(attributes);
       startBlockElement(mSpannableStringBuilder);
     } else if (tag.equalsIgnoreCase("li")) {
       isEmptyTag = true;
@@ -495,17 +562,25 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
       start(mSpannableStringBuilder, new Strikethrough());
     } else if (tag.equalsIgnoreCase("h1")) {
       startHeading(mSpannableStringBuilder, 1);
+      pushAlignmentMark(mSpannableStringBuilder, attributes);
     } else if (tag.equalsIgnoreCase("h2")) {
       startHeading(mSpannableStringBuilder, 2);
+      pushAlignmentMark(mSpannableStringBuilder, attributes);
     } else if (tag.equalsIgnoreCase("h3")) {
       startHeading(mSpannableStringBuilder, 3);
+      pushAlignmentMark(mSpannableStringBuilder, attributes);
     } else if (tag.equalsIgnoreCase("h4")) {
       startHeading(mSpannableStringBuilder, 4);
+      pushAlignmentMark(mSpannableStringBuilder, attributes);
     } else if (tag.equalsIgnoreCase("h5")) {
       startHeading(mSpannableStringBuilder, 5);
+      pushAlignmentMark(mSpannableStringBuilder, attributes);
     } else if (tag.equalsIgnoreCase("h6")) {
       startHeading(mSpannableStringBuilder, 6);
+      pushAlignmentMark(mSpannableStringBuilder, attributes);
     } else if (tag.equalsIgnoreCase("img")) {
+      // Image content means the current tag is not empty (e.g. <li><img .../></li>).
+      isEmptyTag = false;
       startImg(mSpannableStringBuilder, attributes, mSpanFactory);
     } else if (tag.equalsIgnoreCase("code")) {
       start(mSpannableStringBuilder, new Code());
@@ -518,9 +593,13 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
     if (tag.equalsIgnoreCase("br")) {
       handleBr(mSpannableStringBuilder);
     } else if (tag.equalsIgnoreCase("p")) {
-      endBlockElement(mSpannableStringBuilder);
+      endBlockElement(mSpannableStringBuilder, mSpanFactory);
     } else if (tag.equalsIgnoreCase("ul")) {
-      endBlockElement(mSpannableStringBuilder);
+      currentListAlignmentCssValue = null;
+      endBlockElement(mSpannableStringBuilder, mSpanFactory);
+    } else if (tag.equalsIgnoreCase("ol")) {
+      currentListAlignmentCssValue = null;
+      endBlockElement(mSpannableStringBuilder, mSpanFactory);
     } else if (tag.equalsIgnoreCase("li")) {
       endLi(mSpannableStringBuilder, mStyle, mSpanFactory);
     } else if (tag.equalsIgnoreCase("b")) {
@@ -532,7 +611,7 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
     } else if (tag.equalsIgnoreCase("codeblock")) {
       endCodeBlock(mSpannableStringBuilder, mStyle, mSpanFactory);
     } else if (tag.equalsIgnoreCase("a")) {
-      endA(mSpannableStringBuilder, mStyle, mSpanFactory);
+      endA(mSpannableStringBuilder, mStyle, mSpanFactory, mLinkRegex);
     } else if (tag.equalsIgnoreCase("u")) {
       end(mSpannableStringBuilder, Underline.class, mSpanFactory.createUnderlineSpan(mStyle));
     } else if (tag.equalsIgnoreCase("s")) {
@@ -578,7 +657,7 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
     start(text, new Newline(1));
   }
 
-  private static void endBlockElement(Editable text) {
+  private static <T> void endBlockElement(Editable text, EnrichedSpanFactory<T> spanFactory) {
     Newline n = getLast(text, Newline.class);
     if (n != null) {
       appendNewlines(text, n.mNumNewlines);
@@ -586,7 +665,7 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
     }
     Alignment a = getLast(text, Alignment.class);
     if (a != null) {
-      setSpanFromMark(text, a, new AlignmentSpan.Standard(a.mAlignment));
+      setParagraphSpanFromMark(text, a, spanFactory.createAlignmentSpan(a.mCssValue));
     }
   }
 
@@ -596,6 +675,10 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
 
   private void startLi(Editable text, Attributes attributes) {
     startBlockElement(text);
+
+    if (currentListAlignmentCssValue != null) {
+      start(text, new Alignment(currentListAlignmentCssValue));
+    }
 
     if (isInOrderedList) {
       currentOrderedListItemIndex++;
@@ -609,7 +692,7 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
   }
 
   private static <T> void endLi(Editable text, T style, EnrichedSpanFactory<T> spanFactory) {
-    endBlockElement(text);
+    endBlockElement(text, spanFactory);
 
     List l = getLast(text, List.class);
     if (l != null) {
@@ -622,7 +705,7 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
       }
     }
 
-    endBlockElement(text);
+    endBlockElement(text, spanFactory);
   }
 
   private void startBlockquote(Editable text) {
@@ -632,7 +715,7 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
 
   private static <T> void endBlockquote(
       Editable text, T style, EnrichedSpanFactory<T> spanFactory) {
-    endBlockElement(text);
+    endBlockElement(text, spanFactory);
     Blockquote last = getLast(text, Blockquote.class);
     setParagraphSpanFromMark(text, last, spanFactory.createBlockQuoteSpan(style));
   }
@@ -643,7 +726,7 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
   }
 
   private static <T> void endCodeBlock(Editable text, T style, EnrichedSpanFactory<T> spanFactory) {
-    endBlockElement(text);
+    endBlockElement(text, spanFactory);
     CodeBlock last = getLast(text, CodeBlock.class);
     setParagraphSpanFromMark(text, last, spanFactory.createCodeBlockSpan(style));
   }
@@ -677,7 +760,7 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
 
   private static <T> void endHeading(
       Editable text, T style, EnrichedSpanFactory<T> spanFactory, int level) {
-    endBlockElement(text);
+    endBlockElement(text, spanFactory);
 
     switch (level) {
       case 1:
@@ -728,7 +811,7 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
     int len = text.length();
     if (where != len) {
       for (Object span : spans) {
-        text.setSpan(span, where, len, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        text.setSpan(span, where, len, EnrichedSpanFlags.forSpan(span));
       }
     }
   }
@@ -751,7 +834,7 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
 
     if (where != len) {
       for (Object span : spans) {
-        text.setSpan(span, where, len, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        text.setSpan(span, where, len, EnrichedSpanFlags.forSpan(span));
       }
     }
   }
@@ -776,11 +859,19 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
 
     int len = text.length();
     text.append("￼");
-    text.setSpan(
-        spanFactory.createImageSpan(src, Integer.parseInt(width), Integer.parseInt(height)),
-        len,
-        text.length(),
-        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+    Object imageSpan =
+        spanFactory.createImageSpan(src, parseDimension(width), parseDimension(height));
+    text.setSpan(imageSpan, len, text.length(), EnrichedSpanFlags.forSpan(imageSpan));
+  }
+
+  private static int parseDimension(String value) {
+    if (value == null) return 0;
+    try {
+      int parsed = (int) Math.floor(Float.parseFloat(value));
+      return Math.max(parsed, 0);
+    } catch (NumberFormatException e) {
+      return 0;
+    }
   }
 
   private static void startA(Editable text, Attributes attributes) {
@@ -788,12 +879,18 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
     start(text, new Href(href));
   }
 
-  private static <T> void endA(Editable text, T style, EnrichedSpanFactory<T> spanFactory) {
+  private static boolean urlMatchesLinkRegex(String url, Pattern linkRegex) {
+    if (linkRegex == null) return false;
+    return linkRegex.matcher(url).matches();
+  }
+
+  private static <T> void endA(
+      Editable text, T style, EnrichedSpanFactory<T> spanFactory, Pattern linkRegex) {
     Href h = getLast(text, Href.class);
-    if (h != null) {
-      if (h.mHref != null) {
-        setSpanFromMark(text, h, spanFactory.createLinkSpan(h.mHref, style));
-      }
+    if (h != null && h.mHref != null) {
+      String linkText = text.subSequence(text.getSpanStart(h), text.length()).toString();
+      boolean isManual = !linkText.equals(h.mHref) || !urlMatchesLinkRegex(h.mHref, linkRegex);
+      setSpanFromMark(text, h, spanFactory.createLinkSpan(h.mHref, style, isManual));
     }
   }
 
@@ -843,7 +940,6 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
 
   public void characters(char[] ch, int start, int length) {
     StringBuilder sb = new StringBuilder();
-    if (length > 0) isEmptyTag = false;
 
     /*
      * Ignore whitespace that immediately follows other whitespace;
@@ -871,6 +967,11 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
         sb.append(c);
       }
     }
+    // Only mark the tag as non-empty if content was actually appended after
+    // whitespace collapsing. A space-only list item (e.g. <li> </li>) would
+    // have its space dropped when the preceding char is a newline, leaving
+    // nothing to anchor a span — the ZWS placeholder must still be inserted.
+    if (sb.length() > 0) isEmptyTag = false;
     mSpannableStringBuilder.append(sb);
   }
 
@@ -947,10 +1048,10 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
   }
 
   private static class Alignment {
-    private final Layout.Alignment mAlignment;
+    final String mCssValue;
 
-    public Alignment(Layout.Alignment alignment) {
-      mAlignment = alignment;
+    public Alignment(String cssValue) {
+      this.mCssValue = cssValue;
     }
   }
 }

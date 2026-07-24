@@ -1,6 +1,7 @@
 #import "EnrichedTextInputView.h"
 #import "RangeUtils.h"
 #import "StyleHeaders.h"
+#import "StyleUtils.h"
 #import "TextInsertionUtils.h"
 
 @implementation OrderedListStyle
@@ -24,10 +25,10 @@
 - (void)applyStyling:(NSRange)range {
   // lists are drawn manually
   // margin before marker + gap between marker and paragraph
-  CGFloat listHeadIndent = [self.input->config orderedListMarginLeft] +
-                           [self.input->config orderedListGapWidth];
+  CGFloat listHeadIndent = [self.host.config orderedListMarginLeft] +
+                           [self.host.config orderedListGapWidth];
 
-  [self.input->textView.textStorage
+  [self.host.textView.textStorage
       enumerateAttribute:NSParagraphStyleAttributeName
                  inRange:range
                  options:0
@@ -37,50 +38,11 @@
                     [(NSParagraphStyle *)value mutableCopy];
                 pStyle.headIndent = listHeadIndent;
                 pStyle.firstLineHeadIndent = listHeadIndent;
-                [self.input->textView.textStorage
+                [self.host.textView.textStorage
                     addAttribute:NSParagraphStyleAttributeName
                            value:pStyle
                            range:range];
               }];
-}
-
-- (BOOL)tryHandlingListShorcutInRange:(NSRange)range
-                      replacementText:(NSString *)text {
-  NSRange paragraphRange =
-      [self.input->textView.textStorage.string paragraphRangeForRange:range];
-  // a dot was added - check if we are both at the paragraph beginning + 1
-  // character (which we want to be a digit '1')
-  if ([text isEqualToString:@"."] &&
-      range.location - 1 == paragraphRange.location) {
-    unichar charBefore = [self.input->textView.textStorage.string
-        characterAtIndex:range.location - 1];
-    if (charBefore == '1') {
-      // we got a match - add a list if possible
-      if ([self.input handleStyleBlocksAndConflicts:[[self class] getType]
-                                              range:paragraphRange]) {
-        // don't emit during the replacing
-        self.input->blockEmitting = YES;
-
-        // remove the number
-        [TextInsertionUtils replaceText:@""
-                                     at:NSMakeRange(paragraphRange.location, 1)
-                   additionalAttributes:nullptr
-                                  input:self.input
-                          withSelection:YES];
-
-        self.input->blockEmitting = NO;
-
-        // add attributes on the paragraph
-        [self add:NSMakeRange(paragraphRange.location,
-                              paragraphRange.length - 1)
-                withTyping:YES
-            withDirtyRange:YES];
-
-        return YES;
-      }
-    }
-  }
-  return NO;
 }
 
 @end

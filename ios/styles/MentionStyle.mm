@@ -13,6 +13,8 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
   NSValue *_activeMentionRange;
   NSString *_activeMentionIndicator;
   BOOL _blockMentionEditing;
+  NSString *_lastEmittedMentionIndicator;
+  NSString *_lastEmittedMentionText;
 }
 
 + (StyleType)getType {
@@ -27,8 +29,8 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
   return NO;
 }
 
-- (instancetype)initWithInput:(id)input {
-  self = [super initWithInput:(EnrichedTextInputView *)input];
+- (instancetype)initWithHost:(id<EnrichedViewHost>)host {
+  self = [super initWithHost:host];
   if (self) {
     _activeMentionRange = nullptr;
     _activeMentionIndicator = nullptr;
@@ -47,21 +49,21 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
   }
 
   MentionStyleProps *styleProps =
-      [self.input->config mentionStylePropsForIndicator:params.indicator];
+      [self.host.config mentionStylePropsForIndicator:params.indicator];
 
   NSMutableDictionary *newAttrs = [@{
     NSForegroundColorAttributeName : styleProps.color,
     NSUnderlineColorAttributeName : styleProps.color,
     NSStrikethroughColorAttributeName : styleProps.color,
     NSBackgroundColorAttributeName :
-        [styleProps.backgroundColor colorWithAlphaIfNotTransparent:0.4],
+        [styleProps.backgroundColor colorWithResolvedAlpha],
   } mutableCopy];
 
   if (styleProps.decorationLine == DecorationUnderline) {
     newAttrs[NSUnderlineStyleAttributeName] = @(NSUnderlineStyleSingle);
   }
 
-  [self.input->textView.textStorage addAttributes:newAttrs range:range];
+  [self.host.textView.textStorage addAttributes:newAttrs range:range];
 }
 
 - (void)reapplyFromStylePair:(StylePair *)pair {
@@ -82,24 +84,24 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
   // no-op for mentions
 }
 
-// Strip meta only, AttributesManager dirty pass resets visuals and reapplies
-// other styles
+// Strip meta only, InputAttributesManager dirty pass resets visuals and
+// reapplies other styles
 - (void)remove:(NSRange)range withDirtyRange:(BOOL)withDirtyRange {
   NSArray<StylePair *> *mentions = [self all:range];
-  [self.input->textView.textStorage beginEditing];
+  [self.host.textView.textStorage beginEditing];
   for (StylePair *pair in mentions) {
     NSRange mentionRange =
         [self getFullMentionRangeAt:[pair.rangeValue rangeValue].location];
     if (mentionRange.length == 0) {
       continue;
     }
-    [self.input->textView.textStorage removeAttribute:MentionAttributeName
-                                                range:mentionRange];
+    [self.host.textView.textStorage removeAttribute:MentionAttributeName
+                                              range:mentionRange];
     if (withDirtyRange) {
-      [self.input->attributesManager addDirtyRange:mentionRange];
+      [self.host.attributesManager addDirtyRange:mentionRange];
     }
   }
-  [self.input->textView.textStorage endEditing];
+  [self.host.textView.textStorage endEditing];
 
   [super removeTyping];
 }
@@ -107,13 +109,13 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
 // used for conflicts, we have to remove the whole mention
 - (void)removeTyping {
   NSRange mentionRange =
-      [self getFullMentionRangeAt:self.input->textView.selectedRange.location];
+      [self getFullMentionRangeAt:self.host.textView.selectedRange.location];
   if (mentionRange.length > 0) {
-    [self.input->textView.textStorage beginEditing];
-    [self.input->textView.textStorage removeAttribute:MentionAttributeName
-                                                range:mentionRange];
-    [self.input->textView.textStorage endEditing];
-    [self.input->attributesManager addDirtyRange:mentionRange];
+    [self.host.textView.textStorage beginEditing];
+    [self.host.textView.textStorage removeAttribute:MentionAttributeName
+                                              range:mentionRange];
+    [self.host.textView.textStorage endEditing];
+    [self.host.attributesManager addDirtyRange:mentionRange];
   }
   [super removeTyping];
 }
@@ -131,9 +133,9 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
 }
 
 - (void)applyMentionMeta:(MentionParams *)params range:(NSRange)range {
-  [self.input->textView.textStorage addAttribute:MentionAttributeName
-                                           value:params
-                                           range:range];
+  [self.host.textView.textStorage addAttribute:MentionAttributeName
+                                         value:params
+                                         range:range];
 }
 
 // MARK: - Public non-standard methods
@@ -142,7 +144,11 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
               text:(NSString *)text
         attributes:(NSString *)attributes {
   if (_activeMentionRange == nullptr) {
-    return;
+    // No draft mention (indicator not typed) - fall back to the current
+    // selection.
+    _activeMentionRange =
+        [NSValue valueWithRange:self.host.textView.selectedRange];
+    _activeMentionIndicator = indicator;
   }
 
   _blockMentionEditing = YES;
@@ -152,19 +158,42 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
   params.indicator = indicator;
   params.attributes = attributes;
 
-  // add a single space after the mention
-  NSString *newText = [NSString stringWithFormat:@"%@ ", text];
   NSRange rangeToBeReplaced = [_activeMentionRange rangeValue];
+
+  // add a single space after the mention if there isn't one already
+  BOOL hasSpaceAfter = NO;
+  NSUInteger nextCharIndex =
+      rangeToBeReplaced.location + rangeToBeReplaced.length;
+
+  if (nextCharIndex < self.host.textView.textStorage.string.length) {
+    unichar nextChar =
+        [self.host.textView.textStorage.string characterAtIndex:nextCharIndex];
+    if ([[NSCharacterSet whitespaceCharacterSet] characterIsMember:nextChar]) {
+      hasSpaceAfter = YES;
+    }
+  }
+
+  NSString *newText =
+      hasSpaceAfter ? text : [NSString stringWithFormat:@"%@ ", text];
+
   [TextInsertionUtils replaceText:newText
                                at:rangeToBeReplaced
              additionalAttributes:nullptr
-                            input:self.input
+                             host:self.host
                     withSelection:YES];
+
+  // we always want the cursor to end up after the trailing space, so when we
+  // reused an existing space (and didn't insert our own) move it one to the
+  // right
+  if (hasSpaceAfter) {
+    NSRange selection = self.host.textView.selectedRange;
+    self.host.textView.selectedRange = NSMakeRange(selection.location + 1, 0);
+  }
 
   // THEN, add the attributes to not apply them on the space
   NSRange mentionRange = NSMakeRange(rangeToBeReplaced.location, text.length);
   [self applyMentionMeta:params range:mentionRange];
-  [self.input->attributesManager addDirtyRange:mentionRange];
+  [self.host.attributesManager addDirtyRange:mentionRange];
   // mention editing should finish
   [self removeActiveMentionRange];
 
@@ -175,19 +204,19 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
   _blockMentionEditing = YES;
 
   [self applyMentionMeta:params range:range];
-  [self.input->attributesManager addDirtyRange:range];
+  [self.host.attributesManager addDirtyRange:range];
 
   _blockMentionEditing = NO;
 }
 
 - (void)startMentionWithIndicator:(NSString *)indicator {
-  NSRange currentRange = self.input->textView.selectedRange;
+  NSRange currentRange = self.host.textView.selectedRange;
 
   BOOL addSpaceBefore = NO;
   BOOL addSpaceAfter = NO;
 
   if (currentRange.location > 0) {
-    unichar charBefore = [self.input->textView.textStorage.string
+    unichar charBefore = [self.host.textView.textStorage.string
         characterAtIndex:(currentRange.location - 1)];
     if (![[NSCharacterSet whitespaceAndNewlineCharacterSet]
             characterIsMember:charBefore]) {
@@ -196,8 +225,8 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
   }
 
   if (currentRange.location + currentRange.length <
-      self.input->textView.textStorage.string.length) {
-    unichar charAfter = [self.input->textView.textStorage.string
+      self.host.textView.textStorage.string.length) {
+    unichar charAfter = [self.host.textView.textStorage.string
         characterAtIndex:(currentRange.location + currentRange.length)];
     if (![[NSCharacterSet whitespaceAndNewlineCharacterSet]
             characterIsMember:charAfter]) {
@@ -216,18 +245,18 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
     [TextInsertionUtils insertText:finalString
                                 at:currentRange.location
               additionalAttributes:nullptr
-                             input:self.input
+                              host:self.host
                      withSelection:NO];
   } else {
     [TextInsertionUtils replaceText:finalString
                                  at:currentRange
                additionalAttributes:nullptr
-                              input:self.input
+                               host:self.host
                       withSelection:NO];
   }
 
-  [self.input->textView reactFocus];
-  self.input->textView.selectedRange = newSelect;
+  [self.host.textView reactFocus];
+  self.host.textView.selectedRange = newSelect;
 }
 
 // handles removing no longer valid mentions
@@ -237,7 +266,7 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
   // any number of spaces, which makes one mention any number of words long
 
   NSRange wholeText =
-      NSMakeRange(0, self.input->textView.textStorage.string.length);
+      NSMakeRange(0, self.host.textView.textStorage.string.length);
   // get mentions in ascending range.location order
   NSArray<StylePair *> *mentions = [[self all:wholeText]
       sortedArrayUsingComparator:^NSComparisonResult(id _Nonnull obj1,
@@ -271,8 +300,8 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
     }
 
     // check for text, any modifications to it makes mention invalid
-    NSString *existingText = [self.input->textView.textStorage.string
-        substringWithRange:currentRange];
+    NSString *existingText =
+        [self.host.textView.textStorage.string substringWithRange:currentRange];
     if (![existingText isEqualToString:currentText]) {
       [rangesToRemove addObject:[NSValue valueWithRange:currentRange]];
     }
@@ -291,7 +320,7 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
   }
 
   // we don't take longer selections into consideration
-  if (self.input->textView.selectedRange.length > 0) {
+  if (self.host.textView.selectedRange.length > 0) {
     [self removeActiveMentionRange];
     return;
   }
@@ -307,14 +336,14 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
 
   // get style classes that the mention shouldn't be recognized in, together
   // with other mentions
-  NSArray *conflicts = self.input->conflictingStyles[@([MentionStyle getType])];
-  NSArray *blocks = self.input->blockingStyles[@([MentionStyle getType])];
+  NSArray *conflicts = self.host.conflictingStyles[@([MentionStyle getType])];
+  NSArray *blocks = self.host.blockingStyles[@([MentionStyle getType])];
   NSArray *allConflicts = [[conflicts arrayByAddingObjectsFromArray:blocks]
       arrayByAddingObject:@([MentionStyle getType])];
   BOOL conflictingStyle = NO;
 
   for (NSNumber *styleType in allConflicts) {
-    StyleBase *styleInst = self.input->stylesDict[styleType];
+    StyleBase *styleInst = self.host.stylesDict[styleType];
     if (styleInst != nullptr && [styleInst any:candidateRange]) {
       conflictingStyle = YES;
       break;
@@ -334,19 +363,19 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
 // returns mention params if it exists
 - (MentionParams *)getMentionParamsAt:(NSUInteger)location {
   NSRange mentionRange = NSMakeRange(0, 0);
-  NSRange inputRange = NSMakeRange(0, self.input->textView.textStorage.length);
+  NSRange inputRange = NSMakeRange(0, self.host.textView.textStorage.length);
 
   // don't search at the very end of input
   NSUInteger searchLocation = location;
-  if (searchLocation == self.input->textView.textStorage.length) {
+  if (searchLocation == self.host.textView.textStorage.length) {
     return nullptr;
   }
 
   MentionParams *value =
-      [self.input->textView.textStorage attribute:MentionAttributeName
-                                          atIndex:searchLocation
-                            longestEffectiveRange:&mentionRange
-                                          inRange:inputRange];
+      [self.host.textView.textStorage attribute:MentionAttributeName
+                                        atIndex:searchLocation
+                          longestEffectiveRange:&mentionRange
+                                        inRange:inputRange];
   return value;
 }
 
@@ -357,26 +386,26 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
 // returns full range of a mention at some location
 - (NSRange)getFullMentionRangeAt:(NSUInteger)location {
   NSRange mentionRange = NSMakeRange(0, 0);
-  NSRange inputRange = NSMakeRange(0, self.input->textView.textStorage.length);
+  NSRange inputRange = NSMakeRange(0, self.host.textView.textStorage.length);
 
   // get the previous index if possible when at the very end of input
   NSUInteger searchLocation = location;
-  if (searchLocation == self.input->textView.textStorage.length) {
+  if (searchLocation == self.host.textView.textStorage.length) {
     if (searchLocation == 0) {
       return mentionRange;
     }
     searchLocation = searchLocation - 1;
   }
 
-  [self.input->textView.textStorage attribute:MentionAttributeName
-                                      atIndex:searchLocation
-                        longestEffectiveRange:&mentionRange
-                                      inRange:inputRange];
+  [self.host.textView.textStorage attribute:MentionAttributeName
+                                    atIndex:searchLocation
+                      longestEffectiveRange:&mentionRange
+                                    inRange:inputRange];
   return mentionRange;
 }
 
 - (MentionStyleProps *)stylePropsWithParams:(MentionParams *)params {
-  return [self.input->config mentionStylePropsForIndicator:params.indicator];
+  return [self.host.config mentionStylePropsForIndicator:params.indicator];
 }
 
 // finds if any word/words around current selection are eligible to be edited as
@@ -389,9 +418,8 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
   NSRange finalRange;
 
   // word at the current selection
-  currentWord =
-      [WordsUtils getCurrentWord:self.input->textView.textStorage.string
-                           range:self.input->textView.selectedRange];
+  currentWord = [WordsUtils getCurrentWord:self.host.textView.textStorage.string
+                                     range:self.host.textView.selectedRange];
   if (currentWord != nullptr) {
     currentWordText = (NSString *)[currentWord objectForKey:@"word"];
     currentWordRange = (NSValue *)[currentWord objectForKey:@"range"];
@@ -401,7 +429,7 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
     // current word exists
     unichar currentFirstChar = [currentWordText characterAtIndex:0];
 
-    if ([[self.input->config mentionIndicators]
+    if ([[self.host.config mentionIndicators]
             containsObject:@(currentFirstChar)]) {
       // current word exists and has a mention indicator; no need to check for
       // the previous word
@@ -418,7 +446,7 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
         return nullptr;
       }
 
-      unichar separatorChar = [self.input->textView.textStorage.string
+      unichar separatorChar = [self.host.textView.textStorage.string
           characterAtIndex:previousWordSearchLocation];
       if (![[NSCharacterSet whitespaceCharacterSet]
               characterIsMember:separatorChar]) {
@@ -428,7 +456,7 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
       }
 
       previousWord = [WordsUtils
-          getCurrentWord:self.input->textView.textStorage.string
+          getCurrentWord:self.host.textView.textStorage.string
                    range:NSMakeRange(previousWordSearchLocation, 0)];
 
       if (previousWord != nullptr) {
@@ -439,7 +467,7 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
         // check for the mention indicators in the previous word
         unichar previousFirstChar = [previousWordText characterAtIndex:0];
 
-        if ([[self.input->config mentionIndicators]
+        if ([[self.host.config mentionIndicators]
                 containsObject:@(previousFirstChar)]) {
           // previous word has a proper mention indicator: treat both words as
           // an editable mention
@@ -464,13 +492,13 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
     // current word doesn't exist; try getting the previous one
 
     NSInteger previousWordSearchLocation =
-        self.input->textView.selectedRange.location - 1;
+        self.host.textView.selectedRange.location - 1;
     if (previousWordSearchLocation < 0) {
       // previous word can't exist
       return nullptr;
     }
 
-    unichar separatorChar = [self.input->textView.textStorage.string
+    unichar separatorChar = [self.host.textView.textStorage.string
         characterAtIndex:previousWordSearchLocation];
     if (![[NSCharacterSet whitespaceCharacterSet]
             characterIsMember:separatorChar]) {
@@ -480,7 +508,7 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
     }
 
     previousWord =
-        [WordsUtils getCurrentWord:self.input->textView.textStorage.string
+        [WordsUtils getCurrentWord:self.host.textView.textStorage.string
                              range:NSMakeRange(previousWordSearchLocation, 0)];
 
     if (previousWord != nullptr) {
@@ -491,7 +519,7 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
       // check for the mention indicators in the previous word
       unichar previousFirstChar = [previousWordText characterAtIndex:0];
 
-      if ([[self.input->config mentionIndicators]
+      if ([[self.host.config mentionIndicators]
               containsObject:@(previousFirstChar)]) {
         // previous word has a proper mention indicator; treat previous word + a
         // space as a editable mention
@@ -519,9 +547,24 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
       [NSString stringWithFormat:@"%C", [text characterAtIndex:0]];
   NSString *textString =
       [text substringWithRange:NSMakeRange(1, text.length - 1)];
+
+  BOOL startMention = NO;
+
+  // switching directly to an active mention
+  if (![_activeMentionIndicator isEqualToString:indicatorString]) {
+    startMention = YES;
+    [self removeActiveMentionRange];
+  }
+
+  // explicit startMention event before changeMention event
+  if (startMention && textString.length > 0) {
+    [self emitOnMentionEvent:indicatorString text:@""];
+  }
+
+  [self emitOnMentionEvent:indicatorString text:textString];
+
   _activeMentionIndicator = indicatorString;
   _activeMentionRange = [NSValue valueWithRange:range];
-  [self.input emitOnMentionEvent:indicatorString text:textString];
 }
 
 // removes stored mention range + indicator, which means that we no longer edit
@@ -531,7 +574,18 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
     NSString *indicatorCopy = [_activeMentionIndicator copy];
     _activeMentionIndicator = nullptr;
     _activeMentionRange = nullptr;
-    [self.input emitOnMentionEvent:indicatorCopy text:nullptr];
+    [self emitOnMentionEvent:indicatorCopy text:nullptr];
+  }
+}
+
+- (void)emitOnMentionEvent:(NSString *)indicator text:(NSString *)text {
+  BOOL sameText = (_lastEmittedMentionText == nullptr && text == nullptr) ||
+                  [_lastEmittedMentionText isEqualToString:text];
+
+  if (![_lastEmittedMentionIndicator isEqualToString:indicator] || !sameText) {
+    [self.host emitOnMentionEvent:indicator text:text];
+    _lastEmittedMentionIndicator = indicator;
+    _lastEmittedMentionText = text;
   }
 }
 

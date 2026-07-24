@@ -23,9 +23,9 @@ The [example app](/apps/example/) demonstrates usage of the library. You need to
 
 It is configured to use the local version of the library, so any changes you make to the library's source code will be reflected in the example app. Changes to the library's JavaScript code will be reflected in the example app without a rebuild, but native code changes will require a rebuild of the example app.
 
-If you want to use Android Studio or Xcode to edit the native code, you can open the `apps/example/android` or `apps/example/ios` directories respectively in those editors. To edit the Objective-C or Swift files, open `apps/example/ios/EnrichedTextInputExample.xcworkspace` in Xcode and find the source files at `Pods > Development Pods > ReactNativeEnriched`.
+If you want to use Android Studio or Xcode to edit the native code, you can open the `apps/example/android` or `apps/example/ios` directories respectively in those editors. To edit the Objective-C or Swift files, open `apps/example/ios/EnrichedTextInputExample.xcworkspace` in Xcode and find the source files at `Pods > Development Pods > ReactNativeEnrichedHtml`.
 
-To edit the Java or Kotlin files, open `apps/example/android` in Android studio and find the source files at `react-native-enriched` under `Android`.
+To edit the Java or Kotlin files, open `apps/example/android` in Android studio and find the source files at `react-native-enriched-html` under `Android`.
 
 You can use various commands from the root directory to work with the project.
 
@@ -76,7 +76,7 @@ yarn test
 
 ### E2E tests
 
-We use [Maestro](https://maestro.mobile.dev/) for end-to-end testing. Flows live in `.maestro/flows/` and shared subflows in `.maestro/subflows/`.
+We use [Maestro](https://maestro.mobile.dev/) for end-to-end testing. Flows live in `.maestro/enrichedInput/flows/` and `.maestro/enrichedText/flows/`. Shared subflows live in `.maestro/subflows/`, with component-specific subflows in `.maestro/enrichedInput/subflows/` and `.maestro/enrichedText/subflows/`.
 
 #### Prerequisites
 
@@ -117,7 +117,7 @@ You can target specific flows or force a rebuild:
 
 ```sh
 # Run a single flow
-yarn test:e2e:ios .maestro/flows/core_controls_smoke.yaml
+yarn test:e2e:ios .maestro/enrichedInput/flows/core_controls_smoke.yaml
 
 # Force a fresh build even if the app is already installed
 yarn test:e2e:android --rebuild
@@ -125,7 +125,7 @@ yarn test:e2e:android --rebuild
 
 #### Visual regression tests
 
-Some flows compare a screenshot of the editor against a saved baseline in `.maestro/screenshots/`. By default the baseline is asserted. Pass `--update-screenshots` to capture new baselines instead:
+Some flows compare a screenshot of the editor against a saved baseline in `.maestro/enrichedInput/screenshots/` or `.maestro/enrichedText/screenshots/`. By default the baseline is asserted. Pass `--update-screenshots` to capture new baselines instead:
 
 ```sh
 # Update baselines on both platforms
@@ -133,10 +133,10 @@ yarn test:e2e:mobile --update-screenshots
 
 # Single platform
 yarn test:e2e:ios --update-screenshots
-yarn test:e2e:android --update-screenshots .maestro/flows/inline_styles_visual.yaml
+yarn test:e2e:android --update-screenshots .maestro/enrichedInput/flows/inline_styles_visual.yaml
 ```
 
-Always review newly saved screenshots in `.maestro/screenshots/` before committing them.
+Always review newly saved screenshots in `.maestro/enrichedInput/screenshots/` and `.maestro/enrichedText/screenshots/` before committing them.
 
 #### Troubleshooting: flaky Android tests on macOS
 
@@ -165,6 +165,8 @@ Run the web E2E suite from the root directory:
 yarn test:e2e:web
 ```
 
+Append `--ui` for Playwright’s [UI mode](https://playwright.dev/docs/test-ui-mode) (pick tests, watch runs, inspect traces). Example: `yarn test:e2e:web --ui`.
+
 The Playwright config starts the Vite dev server automatically, so you do not need to run `yarn example-web dev` separately.
 
 ### Commit message convention
@@ -188,16 +190,6 @@ We use [TypeScript](https://www.typescriptlang.org/) for type checking, [ESLint]
 
 Our pre-commit hooks verify that the linter and tests pass when committing.
 
-### Publishing to npm
-
-We use [release-it](https://github.com/release-it/release-it) to make it easier to publish new versions. It handles common tasks like bumping version based on semver, creating tags and releases etc.
-
-To publish new versions, run the following:
-
-```sh
-yarn release
-```
-
 ### Scripts
 
 The `package.json` file contains various scripts for common tasks:
@@ -213,7 +205,7 @@ The `package.json` file contains various scripts for common tasks:
 - `yarn test:e2e:mobile`: run E2E tests on iOS and Android sequentially.
 - `yarn test:e2e:android`: run E2E tests on Android.
 - `yarn test:e2e:ios`: run E2E tests on iOS.
-- `yarn test:e2e:web`: run E2E tests on the web example with Playwright.
+- `yarn test:e2e:web`: run E2E tests on the web example with Playwright (add `--ui` for the interactive runner).
 
 ### Sending a pull request
 

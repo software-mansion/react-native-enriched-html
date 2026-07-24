@@ -1,19 +1,20 @@
 #pragma once
 #import "AttributeEntry.h"
+#import "EnrichedViewHost.h"
 #import "StylePair.h"
 #import "StyleTypeEnum.h"
 #import <UIKit/UIKit.h>
 
-@class EnrichedTextInputView;
-
 @interface StyleBase : NSObject
-@property(nonatomic, weak) EnrichedTextInputView *input;
+@property(nonatomic, weak) id<EnrichedViewHost> host;
 + (StyleType)getType;
 - (NSString *)getKey;
 - (NSString *)getValue;
+- (NSString *)getMarkerPrefix;
 - (BOOL)isParagraph;
 - (BOOL)needsZWS;
-- (instancetype)initWithInput:(EnrichedTextInputView *)input;
+- (BOOL)appliesStylingToTyping;
+- (instancetype)initWithHost:(id<EnrichedViewHost>)host;
 - (NSRange)actualUsedRange:(NSRange)range;
 - (void)toggle:(NSRange)range;
 - (void)add:(NSRange)range
@@ -31,6 +32,7 @@
 - (BOOL)any:(NSRange)range;
 - (NSArray<StylePair *> *)all:(NSRange)range;
 - (void)applyStyling:(NSRange)range;
+- (void)applyStylingToTypingAttrs:(NSMutableDictionary *)attributes;
 - (void)reapplyFromStylePair:(StylePair *)pair;
 - (AttributeEntry *)getEntryIfPresent:(NSRange)range;
 @end

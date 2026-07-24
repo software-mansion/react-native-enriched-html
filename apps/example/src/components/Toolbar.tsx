@@ -3,7 +3,7 @@ import { ToolbarButton } from './ToolbarButton';
 import type {
   OnChangeStateEvent,
   EnrichedTextInputInstance,
-} from 'react-native-enriched';
+} from 'react-native-enriched-html';
 import type { FC } from 'react';
 
 const GRID_COLUMNS = 8;
@@ -84,6 +84,18 @@ const STYLE_ITEMS = [
   {
     name: 'checkbox-list',
     icon: 'check-square-o',
+  },
+  {
+    name: 'align-left',
+    icon: 'align-left',
+  },
+  {
+    name: 'align-center',
+    icon: 'align-center',
+  },
+  {
+    name: 'align-right',
+    icon: 'align-right',
   },
 ] as const;
 
@@ -167,6 +179,15 @@ export const Toolbar: FC<ToolbarProps> = ({
         break;
       case 'mention':
         editorRef.current?.startMention('@');
+        break;
+      case 'align-left':
+        editorRef.current?.setTextAlignment('left');
+        break;
+      case 'align-center':
+        editorRef.current?.setTextAlignment('center');
+        break;
+      case 'align-right':
+        editorRef.current?.setTextAlignment('right');
         break;
     }
   };
@@ -256,6 +277,12 @@ export const Toolbar: FC<ToolbarProps> = ({
         return stylesState.mention.isActive;
       case 'checkbox-list':
         return stylesState.checkboxList.isActive;
+      case 'align-left':
+        return stylesState.alignment === 'left';
+      case 'align-center':
+        return stylesState.alignment === 'center';
+      case 'align-right':
+        return stylesState.alignment === 'right';
       default:
         return false;
     }

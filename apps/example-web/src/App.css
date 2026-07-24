@@ -21,12 +21,16 @@ body {
 }
 
 .container {
-  max-width: 720px;
+  max-width: 760px;
   margin: 0 auto;
   padding: 60px 16px 40px;
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.enriched-text-container {
+  width: 100%;
 }
 
 .app-title {
@@ -37,37 +41,14 @@ body {
   margin: 0 0 24px;
 }
 
-.editor-wrapper {
+.editor-mention-host {
+  position: relative;
   width: 100%;
-  background: var(--editor-bg);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  cursor: text;
-  margin-bottom: 16px;
+  align-self: stretch;
 }
 
-.editor-content {
-  padding: 12px 14px;
-  min-height: 120px;
-  font-size: 18px;
-  line-height: 1.5;
-  outline: none;
-  display: flex;
-  flex-direction: column;
-}
-
-.editor-content .tiptap {
-  outline: none;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.editor-content .tiptap .ProseMirror {
-  outline: none;
-  flex: 1;
-  min-height: 120px;
-  cursor: text;
+.editor-mention-host--mention-open {
+  z-index: 100;
 }
 
 .btn {

@@ -5,9 +5,14 @@ const port = process.env.PW_PORT ?? '5173';
 export default defineConfig({
   testDir: './tests',
   outputDir: './test-results',
+  snapshotDir: './screenshots',
+  snapshotPathTemplate: '{snapshotDir}/{arg}{ext}',
   timeout: 30_000,
   expect: {
     timeout: 5_000,
+    toHaveScreenshot: {
+      maxDiffPixels: 0,
+    },
   },
   retries: process.env.CI ? 2 : 0,
   reporter: [
@@ -21,6 +26,7 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
+    permissions: ['clipboard-read', 'clipboard-write'],
   },
 
   webServer: {

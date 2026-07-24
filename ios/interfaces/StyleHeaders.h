@@ -4,6 +4,8 @@
 #import "MentionParams.h"
 #import "StyleBase.h"
 
+@class EnrichedConfig;
+
 @interface BoldStyle : StyleBase
 @end
 
@@ -27,6 +29,9 @@
 - (NSRange)getFullLinkRangeAt:(NSUInteger)location;
 - (void)handleAutomaticLinks:(NSString *)word inRange:(NSRange)wordRange;
 - (void)handleManualLinks:(NSString *)word inRange:(NSRange)wordRange;
+- (void)applyLinkMetaWithData:(LinkData *)linkData range:(NSRange)range;
++ (BOOL)matchesLinkRegexWithConfig:(NSString *)url
+                            config:(EnrichedConfig *)config;
 @end
 
 @interface MentionStyle : StyleBase
@@ -40,6 +45,7 @@
 - (MentionParams *)getMentionParamsAt:(NSUInteger)location;
 - (NSRange)getFullMentionRangeAt:(NSUInteger)location;
 - (NSValue *)getActiveMentionRange;
+- (void)applyMentionMeta:(MentionParams *)params range:(NSRange)range;
 @end
 
 @interface HeadingStyleBase : StyleBase
@@ -67,13 +73,9 @@
 @end
 
 @interface UnorderedListStyle : StyleBase
-- (BOOL)tryHandlingListShorcutInRange:(NSRange)range
-                      replacementText:(NSString *)text;
 @end
 
 @interface OrderedListStyle : StyleBase
-- (BOOL)tryHandlingListShorcutInRange:(NSRange)range
-                      replacementText:(NSString *)text;
 @end
 
 @interface CheckboxListStyle : StyleBase
@@ -82,9 +84,18 @@
                  range:(NSRange)range
             withTyping:(BOOL)withTyping
         withDirtyRange:(BOOL)withDirtyRange;
-- (void)toggleCheckedAt:(NSUInteger)location;
+- (void)toggleCheckedAt:(NSUInteger)location
+         withDirtyRange:(BOOL)withDirtyRange;
 - (BOOL)getCheckboxStateAt:(NSUInteger)location;
 - (BOOL)handleNewlinesInRange:(NSRange)range replacementText:(NSString *)text;
+@end
+
+@interface AlignmentStyle : StyleBase
+- (void)addAlignment:(NSTextAlignment)alignment
+               range:(NSRange)range
+          withTyping:(BOOL)withTyping
+      withDirtyRange:(BOOL)withDirtyRange;
+- (NSString *)getStyleState;
 @end
 
 @interface BlockQuoteStyle : StyleBase
@@ -97,6 +108,7 @@
 - (void)addImage:(NSString *)uri width:(CGFloat)width height:(CGFloat)height;
 - (void)addImageAtRange:(NSRange)range
               imageData:(ImageData *)imageData
-          withSelection:(BOOL)withSelection;
+          withSelection:(BOOL)withSelection
+         withDirtyRange:(BOOL)withDirtyRange;
 - (ImageData *)getImageDataAt:(NSUInteger)location;
 @end
