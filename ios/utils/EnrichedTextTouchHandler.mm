@@ -1,6 +1,7 @@
 #import "EnrichedTextTouchHandler.h"
 #import "ColorExtension.h"
 #import "EnrichedTextView.h"
+#import "ImageAttachment.h"
 #import "LinkData.h"
 #import "MentionParams.h"
 #import "MentionStyleProps.h"
@@ -78,8 +79,10 @@
   if (idx == NSNotFound || idx >= self.view.textView.textStorage.length)
     return nil;
 
-  NSArray *keys =
-      @[ @"EnrichedManualLink", @"EnrichedAutomaticLink", @"EnrichedMention" ];
+  NSArray *keys = @[
+    @"EnrichedManualLink", @"EnrichedAutomaticLink", @"EnrichedMention",
+    @"EnrichedImage"
+  ];
   for (NSString *k in keys) {
     id val = [self.view.textView.textStorage attribute:k
                                                atIndex:idx
@@ -93,6 +96,10 @@
 }
 
 - (void)updateVisualsPressed:(BOOL)pressed {
+  if ([_activeAttrKey isEqualToString:@"EnrichedImage"]) {
+    return;
+  }
+
   if (pressed) {
     UIColor *color = nil;
     UIColor *bgColor = nil;
@@ -141,6 +148,15 @@
     [self.view emitOnLinkPressEvent:((LinkData *)_activeValue).url];
   } else if ([_activeAttrKey isEqualToString:@"EnrichedMention"]) {
     [self.view emitOnMentionPressEvent:(MentionParams *)_activeValue];
+  } else if ([_activeAttrKey isEqualToString:@"EnrichedImage"]) {
+    NSRange attachmentRange = _activeRange;
+    ImageAttachment *attachment =
+        [self.view.textView.textStorage attribute:NSAttachmentAttributeName
+                                          atIndex:attachmentRange.location
+                                   effectiveRange:NULL];
+    if ([attachment isKindOfClass:[ImageAttachment class]]) {
+      [self.view emitOnImagePressEvent:attachment];
+    }
   }
 }
 

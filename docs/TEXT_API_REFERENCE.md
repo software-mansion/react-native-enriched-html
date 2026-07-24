@@ -114,6 +114,27 @@ interface OnMentionPressEvent {
 | -------------------------------------- | ------------- | ----------------- |
 | `(event: OnMentionPressEvent) => void` | -             | iOS, Android, Web |
 
+### `onImagePress`
+
+Called when the user presses an inline image. Receives an `OnImagePressEvent` with the image uri and dimensions.
+
+```ts
+interface OnImagePressEvent {
+  image: {
+    uri: string;
+    width: number;
+    height: number;
+  };
+}
+```
+
+| Type                                 | Default Value | Platform          |
+| ------------------------------------ | ------------- | ----------------- |
+| `(event: OnImagePressEvent) => void` | -             | iOS, Android, Web |
+
+> [!NOTE]
+> No visual feedback is applied on press.
+
 ## EnrichedTextHtmlStyle type
 
 Extends [`HtmlStyle`](API_REFERENCE.md#htmlstyle-type) with additional press-state styling for interactive elements. All properties from `HtmlStyle` are supported except `a` and `mention`, which are replaced by the extended versions below.

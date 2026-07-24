@@ -34,6 +34,7 @@ export const EnrichedText = memo(
     onBlur,
     onLinkPress,
     onMentionPress,
+    onImagePress,
   }: EnrichedTextProps) => {
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -97,9 +98,15 @@ export const EnrichedText = memo(
 
     const onLinkPressRef = useStableRef(onLinkPress);
     const onMentionPressRef = useStableRef(onMentionPress);
+    const onImagePressRef = useStableRef(onImagePress);
 
     useImageErrorFallback(containerRef);
-    usePressInteractions(containerRef, onLinkPressRef, onMentionPressRef);
+    usePressInteractions(
+      containerRef,
+      onLinkPressRef,
+      onMentionPressRef,
+      onImagePressRef
+    );
 
     return (
       <>

@@ -16,6 +16,7 @@ import EnrichedTextNativeComponent, {
   type NativeProps,
   type OnLinkPressEvent,
   type OnMentionPressEventInternal,
+  type OnImagePressEvent,
 } from '../spec/EnrichedTextNativeComponent';
 import { nullthrows } from '../utils/nullthrows';
 import { normalizeEnrichedTextHtmlStyle } from '../utils/normalizeHtmlStyle';
@@ -37,6 +38,7 @@ export const EnrichedText = ({
   allowFontScaling = true,
   onLinkPress: _onLinkPress,
   onMentionPress: _onMentionPress,
+  onImagePress: _onImagePress,
   ...rest
 }: EnrichedTextProps) => {
   const nativeRef = useRef<ComponentType | null>(null);
@@ -65,6 +67,13 @@ export const EnrichedText = ({
       },
       [_onMentionPress]
     );
+
+  const onImagePress: DirectEventHandler<OnImagePressEvent> = useCallback(
+    (e) => {
+      _onImagePress?.(e.nativeEvent);
+    },
+    [_onImagePress]
+  );
 
   useImperativeHandle(ref, () => ({
     measureInWindow: (callback: MeasureInWindowOnSuccessCallback) => {
@@ -109,6 +118,7 @@ export const EnrichedText = ({
       allowFontScaling={allowFontScaling}
       onLinkPress={onLinkPress}
       onMentionPress={onMentionPress}
+      onImagePress={onImagePress}
       {...rest}
     />
   );

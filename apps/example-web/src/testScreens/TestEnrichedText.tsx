@@ -1,6 +1,7 @@
 import { useState, type ChangeEvent } from 'react';
 import {
   EnrichedText,
+  type OnImagePressEvent,
   type OnLinkPressEvent,
   type OnMentionPressEvent,
 } from 'react-native-enriched-html';
@@ -12,6 +13,8 @@ const INITIAL_VALUE = '<html><p></p></html>';
 export function TestEnrichedText() {
   const [htmlInput, setHtmlInput] = useState(INITIAL_VALUE);
   const [value, setValue] = useState(INITIAL_VALUE);
+  const [lastImagePress, setLastImagePress] =
+    useState<OnImagePressEvent | null>(null);
   const [lastLinkPress, setLastLinkPress] = useState<OnLinkPressEvent | null>(
     null
   );
@@ -30,6 +33,7 @@ export function TestEnrichedText() {
           htmlStyle={WEB_DEFAULT_HTML_STYLE}
           onLinkPress={setLastLinkPress}
           onMentionPress={setLastMentionPress}
+          onImagePress={setLastImagePress}
         >
           {value}
         </EnrichedText>
@@ -65,6 +69,9 @@ export function TestEnrichedText() {
 
       <pre data-testid="test-enriched-text-value-output">{value}</pre>
 
+      <pre data-testid="test-enriched-text-image-press-output">
+        {JSON.stringify(lastImagePress)}
+      </pre>
       <pre data-testid="test-enriched-text-link-press-output">
         {JSON.stringify(lastLinkPress)}
       </pre>
