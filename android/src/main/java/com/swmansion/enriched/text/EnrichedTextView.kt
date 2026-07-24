@@ -30,6 +30,7 @@ import com.swmansion.enriched.common.pixelFromSpOrDp
 import com.swmansion.enriched.text.spans.EnrichedTextImageSpan
 import com.swmansion.enriched.text.spans.interfaces.EnrichedTextClickableSpan
 import com.swmansion.enriched.text.spans.interfaces.EnrichedTextSpan
+import com.swmansion.enriched.textinput.spans.EnrichedLineHeightSpan
 import kotlin.math.ceil
 
 class EnrichedTextView : AppCompatTextView {
@@ -41,6 +42,7 @@ class EnrichedTextView : AppCompatTextView {
   private var fontWeight: Int = ReactConstants.UNSET
   private var fontSize: Float = EnrichedConstants.TEXT_DEFAULT_FONT_SIZE
   private var fontSizeRaw: Float? = null
+  private var lineHeight: Float? = null
   private var htmlStyleMap: ReadableMap? = null
   var allowFontScaling: Boolean = EnrichedConstants.ALLOW_FONT_SCALING_DEFAULT
     set(value) {
@@ -48,6 +50,7 @@ class EnrichedTextView : AppCompatTextView {
       field = value
       fontSizeRaw?.let { setFontSize(it) }
       htmlStyleMap?.let { setHtmlStyle(it) }
+      applyLineSpacing()
     }
 
   private var enrichedStyle: EnrichedTextStyle? = null
@@ -185,6 +188,7 @@ class EnrichedTextView : AppCompatTextView {
       parsedText = null
       this.text = text
     }
+    applyLineSpacing()
   }
 
   private fun parseText(
@@ -303,6 +307,33 @@ class EnrichedTextView : AppCompatTextView {
     val sizeInt = ceil(pixelFromSpOrDp(size, allowFontScaling))
     fontSize = sizeInt
     setTextSize(TypedValue.COMPLEX_UNIT_PX, sizeInt)
+  }
+
+  fun setLineHeight(height: Float) {
+    lineHeight = if (height == 0f) null else height
+    applyLineSpacing()
+  }
+
+  private fun applyLineSpacing() {
+    val currentText = text ?: return
+    val spannable =
+      currentText as? Spannable ?: SpannableString(currentText)
+    spannable
+      .getSpans(0, spannable.length, EnrichedLineHeightSpan::class.java)
+      .forEach { spannable.removeSpan(it) }
+
+    lineHeight?.let {
+      spannable.setSpan(
+        EnrichedLineHeightSpan(it, allowFontScaling),
+        0,
+        spannable.length,
+        Spannable.SPAN_INCLUSIVE_INCLUSIVE,
+      )
+    }
+
+    if (spannable !== currentText) {
+      setText(spannable, BufferType.SPANNABLE)
+    }
   }
 
   fun setFontFamily(family: String?) {
