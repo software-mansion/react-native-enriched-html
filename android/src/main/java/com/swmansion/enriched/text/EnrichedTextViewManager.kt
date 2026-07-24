@@ -53,6 +53,13 @@ class EnrichedTextViewManager :
     view?.setFontSize(value)
   }
 
+  override fun setLineHeight(
+    view: EnrichedTextView?,
+    value: Float,
+  ) {
+    view?.setLineHeight(value)
+  }
+
   override fun setFontFamily(
     view: EnrichedTextView?,
     value: String?,

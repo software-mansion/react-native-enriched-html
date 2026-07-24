@@ -4,6 +4,8 @@ import android.content.Context
 import android.graphics.Typeface
 import android.graphics.text.LineBreaker
 import android.os.Build
+import android.text.Spannable
+import android.text.SpannableString
 import android.text.StaticLayout
 import android.text.TextPaint
 import android.text.TextUtils
@@ -21,6 +23,7 @@ import com.swmansion.enriched.common.GumboNormalizer
 import com.swmansion.enriched.common.allowFontScalingFromProps
 import com.swmansion.enriched.common.parser.EnrichedParser
 import com.swmansion.enriched.common.pixelFromSpOrDp
+import com.swmansion.enriched.textinput.spans.EnrichedLineHeightSpan
 import kotlin.math.ceil
 
 object MeasurementStore {
@@ -134,6 +137,13 @@ object MeasurementStore {
     return props.getBoolean("useHtmlNormalizer")
   }
 
+  private fun lineHeightFromProps(props: ReadableMap?): Float {
+    if (props == null || !props.hasKey("lineHeight") || props.isNull("lineHeight")) {
+      return 0f
+    }
+    return props.getDouble("lineHeight").toFloat()
+  }
+
   private fun getInitialFontSize(props: ReadableMap?): Float {
     val propsFontSize = props?.getDouble("fontSize")?.toFloat() ?: EnrichedConstants.TEXT_DEFAULT_FONT_SIZE
     val fontSize =
@@ -151,7 +161,23 @@ object MeasurementStore {
     props: ReadableMap?,
   ): Long {
     val fontSize = getInitialFontSize(props)
-    val text = getInitialText(context, fontSize.toInt(), props)
+    val rawText = getInitialText(context, fontSize.toInt(), props)
+    val lineHeight = lineHeightFromProps(props)
+    val allowFontScaling = allowFontScalingFromProps(props)
+
+    val measuredText: CharSequence =
+      if (lineHeight > 0f) {
+        val spannable = SpannableString(rawText)
+        spannable.setSpan(
+          EnrichedLineHeightSpan(lineHeight, allowFontScaling),
+          0,
+          spannable.length,
+          Spannable.SPAN_INCLUSIVE_INCLUSIVE,
+        )
+        spannable
+      } else {
+        rawText
+      }
 
     val fontFamily = props?.getString("fontFamily")
     val numberOfLines = props?.getInt("numberOfLines") ?: 0
@@ -159,7 +185,7 @@ object MeasurementStore {
     val fontStyle = parseFontStyle(props?.getString("fontStyle"))
     val fontWeight = parseFontWeight(props?.getString("fontWeight"))
     val typeface = applyStyles(null, fontStyle, fontWeight, fontFamily, context.assets)
-    val size = measure(width, text, typeface, fontSize, numberOfLines, ellipsizeMode)
+    val size = measure(width, measuredText, typeface, fontSize, numberOfLines, ellipsizeMode)
 
     return size
   }

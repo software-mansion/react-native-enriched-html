@@ -29,11 +29,6 @@ class EnrichedLineHeightSpan(
     v: Int,
     fm: Paint.FontMetricsInt,
   ) {
-    val spannable = text as? Spannable ?: return
-    // Do not modify line height for headings
-    // In the future we may consider adding custom lineHeight support for each paragraph style
-    if (spannable.getSpans(start, end, EnrichedHeadingSpan::class.java).isNotEmpty()) return
-
     val lineHeightPx = pixelFromSpOrDp(lineHeight, allowFontScaling)
     val currentHeight = (fm.descent - fm.ascent).toFloat()
     if (lineHeightPx <= currentHeight) return
