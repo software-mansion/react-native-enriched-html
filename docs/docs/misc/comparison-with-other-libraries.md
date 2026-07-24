@@ -28,7 +28,7 @@ which can be a deal-breaker for proprietary apps.
 ### React Native Enriched Markdown
 
 [React Native Enriched Markdown](https://github.com/software-mansion/react-native-enriched-markdown)
-is another fully native library from Software Mansion (MIT-licensed, New
+is another fully native library from [Software Mansion](https://swmansion.com) (MIT-licensed, New
 Architecture required). It focuses on **Markdown** rather than HTML:
 
 - **Text component** - renders a wide range of Markdown features natively,
