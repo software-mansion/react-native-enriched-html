@@ -73,15 +73,6 @@ yarn example android
 yarn example ios
 ```
 
-To confirm the app is running with the New Architecture, look for a line like
-this in the Metro logs:
-
-```sh
-Running "EnrichedTextInputExample" with {"fabric":true,"initialProps":{"concurrentRoot":true},"rootTag":1}
-```
-
-Note the `"fabric":true` and `"concurrentRoot":true` properties.
-
 ### Running the web example app
 
 Start the Vite dev server:
