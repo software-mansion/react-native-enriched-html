@@ -10,11 +10,12 @@ Contributions are always welcome, no matter how large or small. This page will w
 ## Development workflow
 
 The project is a monorepo managed with
-[Yarn workspaces](https://yarnpkg.com/features/workspaces). It contains three
+[Yarn workspaces](https://yarnpkg.com/features/workspaces). It contains four
 packages:
 
 - the library package, in the root directory;
-- an example app, in `apps/example/`;
+- a native example app, in `apps/example/`;
+- a web example app, in `apps/example-web/`;
 - this documentation site, in `docs/` (a standalone project with its own
   dependencies - see [Documentation](#documentation)).
 
@@ -31,14 +32,18 @@ development.
 
 :::
 
-The [example app](https://github.com/software-mansion/react-native-enriched-html/tree/main/apps/example)
-demonstrates the library and is how you test any changes you make. It's
-configured to use the local version of the library, so your source changes are
-reflected there:
+The [native example app](https://github.com/software-mansion/react-native-enriched-html/tree/main/apps/example)
+demonstrates the library on iOS and Android and is how you test any changes you
+make there. The [web example app](https://github.com/software-mansion/react-native-enriched-html/tree/main/apps/example-web)
+does the same for the web. Both are configured to use the local version of the
+library, so your source changes are reflected there:
 
 - **JavaScript** changes show up without a rebuild.
 - **Native** changes (Objective-C, Swift, Java, Kotlin) require rebuilding the
-  example app.
+  native example app.
+
+The web example is a [Vite](https://vite.dev/) + [React](https://react.dev/)
+app; changes to the library's web source are hot-reloaded by its dev server.
 
 ### Editing native code
 
@@ -50,7 +55,7 @@ To edit the native code in an IDE:
 - **Android** - open `apps/example/android` in Android Studio. Find the sources
   under **react-native-enriched-html** in the **Android** view.
 
-### Running the example app
+### Running the native example app
 
 Start the Metro bundler:
 
@@ -76,6 +81,16 @@ Running "EnrichedTextInputExample" with {"fabric":true,"initialProps":{"concurre
 ```
 
 Note the `"fabric":true` and `"concurrentRoot":true` properties.
+
+### Running the web example app
+
+Start the Vite dev server:
+
+```sh
+yarn example-web dev
+```
+
+The app is then served at `http://localhost:5173`.
 
 ## Linting, types, and tests
 
@@ -277,9 +292,10 @@ The `package.json` file contains scripts for common tasks:
 - `yarn typecheck` - type-check files with TypeScript.
 - `yarn lint` - lint files with ESLint.
 - `yarn test` - run unit tests with Jest.
-- `yarn example start` - start the Metro server for the example app.
-- `yarn example android` - run the example app on Android.
-- `yarn example ios` - run the example app on iOS.
+- `yarn example start` - start the Metro server for the native example app.
+- `yarn example android` - run the native example app on Android.
+- `yarn example ios` - run the native example app on iOS.
+- `yarn example-web dev` - start the Vite dev server for the web example app.
 - `yarn test:e2e` - run all E2E tests (mobile + web) sequentially.
 - `yarn test:e2e:mobile` - run mobile E2E tests on iOS and Android sequentially.
 - `yarn test:e2e:android` - run E2E tests on Android.
