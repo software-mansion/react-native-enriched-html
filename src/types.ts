@@ -448,6 +448,7 @@ export interface EnrichedTextInputInstance extends NativeMethods {
    * The promise resolves once the native layer has completed HTML parsing.
    */
   getHTML: () => Promise<string>;
+  insertValue: (value: string, start: number, end: number) => void;
 
   /** Toggles bold on the current selection (or toggles it for future typing if nothing is selected). */
   toggleBold: () => void;

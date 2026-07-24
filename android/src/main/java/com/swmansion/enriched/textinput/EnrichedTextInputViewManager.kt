@@ -354,6 +354,15 @@ class EnrichedTextInputViewManager :
     view?.setCustomSelection(start, end)
   }
 
+  override fun insertValue(
+    view: EnrichedTextInputView?,
+    value: String,
+    start: Int,
+    end: Int,
+  ) {
+    view?.insertValue(value, start, end)
+  }
+
   override fun toggleBold(view: EnrichedTextInputView?) {
     view?.verifyAndToggleStyle(EnrichedSpans.BOLD)
   }

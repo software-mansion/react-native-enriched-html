@@ -369,6 +369,7 @@ export const EnrichedTextInput = ({
       measureInWindow: () => {},
       measureLayout: () => {},
       setNativeProps: () => {},
+      insertValue: () => {},
       setTextAlignment: (alignment) => {
         if (alignment === 'auto') {
           runFocused(editor, (c) => c.unsetTextAlign());
