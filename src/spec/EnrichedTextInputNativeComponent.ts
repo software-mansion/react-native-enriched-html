@@ -161,6 +161,15 @@ export interface OnRequestHtmlResultEvent {
   html: UnsafeMixed;
 }
 
+export interface OnCaretRectEvent {
+  requestId: Int32;
+  x: Float;
+  y: Float;
+  width: Float;
+  height: Float;
+  valid: boolean;
+}
+
 export interface OnSubmitEditing {
   text: string;
 }
@@ -389,6 +398,7 @@ export interface NativeProps extends ViewProps {
   onMention?: DirectEventHandler<OnMentionEvent>;
   onChangeSelection?: DirectEventHandler<OnChangeSelectionEvent>;
   onRequestHtmlResult?: DirectEventHandler<OnRequestHtmlResultEvent>;
+  onCaretRect?: DirectEventHandler<OnCaretRectEvent>;
   onInputKeyPress?: DirectEventHandler<OnKeyPressEvent>;
   onPasteImages?: DirectEventHandler<OnPasteImagesEvent>;
   onContextMenuItemPress?: DirectEventHandler<OnContextMenuItemPressEvent>;
@@ -478,6 +488,10 @@ interface NativeCommands {
     viewRef: React.ElementRef<ComponentType>,
     requestId: Int32
   ) => void;
+  requestCaretRect: (
+    viewRef: React.ElementRef<ComponentType>,
+    requestId: Int32
+  ) => void;
   setTextAlignment: (
     viewRef: React.ElementRef<ComponentType>,
     alignment: string
@@ -515,6 +529,7 @@ export const Commands: NativeCommands = codegenNativeCommands<NativeCommands>({
     'startMention',
     'addMention',
     'requestHTML',
+    'requestCaretRect',
     'setTextAlignment',
   ],
 });

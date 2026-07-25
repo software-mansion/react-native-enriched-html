@@ -25,6 +25,7 @@ import com.swmansion.enriched.textinput.events.OnInputFocusEvent
 import com.swmansion.enriched.textinput.events.OnInputKeyPressEvent
 import com.swmansion.enriched.textinput.events.OnLinkDetectedEvent
 import com.swmansion.enriched.textinput.events.OnMentionDetectedEvent
+import com.swmansion.enriched.textinput.events.OnCaretRectEvent
 import com.swmansion.enriched.textinput.events.OnMentionEvent
 import com.swmansion.enriched.textinput.events.OnPasteImagesEvent
 import com.swmansion.enriched.textinput.events.OnRequestHtmlResultEvent
@@ -72,6 +73,7 @@ class EnrichedTextInputViewManager :
     map.put(OnMentionEvent.EVENT_NAME, mapOf("registrationName" to OnMentionEvent.EVENT_NAME))
     map.put(OnChangeSelectionEvent.EVENT_NAME, mapOf("registrationName" to OnChangeSelectionEvent.EVENT_NAME))
     map.put(OnRequestHtmlResultEvent.EVENT_NAME, mapOf("registrationName" to OnRequestHtmlResultEvent.EVENT_NAME))
+    map.put(OnCaretRectEvent.EVENT_NAME, mapOf("registrationName" to OnCaretRectEvent.EVENT_NAME))
     map.put(OnInputKeyPressEvent.EVENT_NAME, mapOf("registrationName" to OnInputKeyPressEvent.EVENT_NAME))
     map.put(OnPasteImagesEvent.EVENT_NAME, mapOf("registrationName" to OnPasteImagesEvent.EVENT_NAME))
     map.put(OnContextMenuItemPressEvent.EVENT_NAME, mapOf("registrationName" to OnContextMenuItemPressEvent.EVENT_NAME))
@@ -470,6 +472,13 @@ class EnrichedTextInputViewManager :
     requestId: Int,
   ) {
     view?.requestHTML(requestId)
+  }
+
+  override fun requestCaretRect(
+    view: EnrichedTextInputView?,
+    requestId: Int,
+  ) {
+    view?.requestCaretRect(requestId)
   }
 
   override fun setTextAlignment(
