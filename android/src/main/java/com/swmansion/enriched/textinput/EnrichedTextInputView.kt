@@ -1005,6 +1005,19 @@ class EnrichedTextInputView :
     selection?.validateStyles()
   }
 
+  fun deleteAtSelection() {
+    runAsATransaction {
+      val start = selectionStart
+      val end = selectionEnd
+
+      if (start != end) {
+        text?.delete(start, end)
+      } else if (start > 0) {
+        text?.delete(start - 1, start)
+      }
+    }
+  }
+
   fun requestHTML(requestId: Int) {
     val html =
       try {

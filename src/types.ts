@@ -564,6 +564,8 @@ export interface EnrichedTextInputInstance extends NativeMethods {
   setTextAlignment: (
     alignment: 'left' | 'center' | 'right' | 'justify' | 'auto'
   ) => void;
+
+  deleteAtSelection: () => void;
 }
 
 export interface ContextMenuItem {

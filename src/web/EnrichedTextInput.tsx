@@ -376,6 +376,17 @@ export const EnrichedTextInput = ({
           runFocused(editor, (c) => c.setTextAlign(alignment));
         }
       },
+      deleteAtSelection: () => {
+        runFocused(editor, (c) => {
+          const { from, to } = editor.state.selection;
+
+          if (from !== to) {
+            return c.deleteSelection();
+          } else {
+            return c.deleteRange({ from: from - 1, to });
+          }
+        });
+      },
     }),
     [editor, mentionIndicatorsRef, useHtmlNormalizerRef]
   );
