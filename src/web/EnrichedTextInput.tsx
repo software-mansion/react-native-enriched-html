@@ -81,6 +81,11 @@ import { returnKeyTypeToEnterKeyHint } from './returnKeyTypeToEnterKeyHint';
 import { ENRICHED_TEXT_INPUT_CLASSNAME } from './constants/classNames';
 import { AutolinkPlugin } from './pmPlugins/AutolinkPlugin';
 import { useStableRef } from './useStableRef';
+import {
+  checkMentionAttributes,
+  sanitizeMentionAttributes,
+} from './sanitization/htmlSanitizer';
+import { assertBrowserEnvironment } from './assertBrowserEnvironment';
 
 function runFocused(
   editor: Editor,
@@ -121,11 +126,18 @@ export const EnrichedTextInput = ({
   linkRegex,
   htmlStyle,
   useHtmlNormalizer = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.useHtmlNormalizer,
+  sanitizationConfig,
   textShortcuts = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.textShortcuts,
 }: EnrichedTextInputProps) => {
+  assertBrowserEnvironment('EnrichedTextInput');
+
   const tiptapContent =
     defaultValue != null
-      ? prepareHtmlForTiptap(defaultValue, useHtmlNormalizer)
+      ? prepareHtmlForTiptap(
+          defaultValue,
+          useHtmlNormalizer,
+          sanitizationConfig
+        )
       : defaultValue;
 
   const resolvedHtmlStyle = useMemo(
@@ -149,6 +161,7 @@ export const EnrichedTextInput = ({
   const onSubmitEditingRef = useStableRef(onSubmitEditing);
   const onKeyPressRef = useStableRef(onKeyPress);
   const useHtmlNormalizerRef = useStableRef(useHtmlNormalizer);
+  const sanitizationConfigRef = useStableRef(sanitizationConfig);
   const mentionCallbacksRef = useStableRef(mentionCallbacks);
   const textShortcutsRef = useStableRef(textShortcuts);
 
@@ -274,7 +287,11 @@ export const EnrichedTextInput = ({
           enterkeyhint: returnKeyTypeToEnterKeyHint(returnKeyType),
         },
         transformPastedHTML: (html) => {
-          return prepareHtmlForTiptap(html, useHtmlNormalizerRef.current);
+          return prepareHtmlForTiptap(
+            html,
+            useHtmlNormalizerRef.current,
+            sanitizationConfigRef.current
+          );
         },
       },
     },
@@ -309,7 +326,7 @@ export const EnrichedTextInput = ({
   );
 
   useMentionEvents(editor, getMentionCallbacks);
-  useOnChangeHtml(editor, onChangeHtml);
+  useOnChangeHtml(editor, onChangeHtml, sanitizationConfig);
   useOnChangeText(editor, onChangeText);
   useOnChangeState(editor, resolvedHtmlStyle, onChangeState);
   useOnLinkDetected(editor, linkEmitterRef);
@@ -321,7 +338,11 @@ export const EnrichedTextInput = ({
       blur: () => editor.commands.blur(),
       setValue: (value: string) =>
         editor.commands.setContent(
-          prepareHtmlForTiptap(value, useHtmlNormalizerRef.current)
+          prepareHtmlForTiptap(
+            value,
+            useHtmlNormalizerRef.current,
+            sanitizationConfigRef.current
+          )
         ),
       setSelection: (start, end) => {
         const doc = editor.state.doc;
@@ -332,7 +353,13 @@ export const EnrichedTextInput = ({
           })
         );
       },
-      getHTML: () => Promise.resolve(normalizeHtmlFromTiptap(editor.getHTML())),
+      getHTML: () =>
+        Promise.resolve(
+          normalizeHtmlFromTiptap(
+            editor.getHTML(),
+            sanitizationConfigRef.current
+          )
+        ),
       toggleBold: () => runFocused(editor, (c) => c.toggleBold()),
       toggleItalic: () => runFocused(editor, (c) => c.toggleItalic()),
       toggleUnderline: () => runFocused(editor, (c) => c.toggleUnderline()),
@@ -362,7 +389,15 @@ export const EnrichedTextInput = ({
         indicator: string,
         text: string,
         attributes?: Record<string, string>
-      ) => setMention(editor, indicator, text, attributes),
+      ) => {
+        checkMentionAttributes(attributes);
+        setMention(
+          editor,
+          indicator,
+          text,
+          sanitizeMentionAttributes(attributes)
+        );
+      },
       setImage: (src: string, width: number, height: number) =>
         runFocused(editor, (c) => c.setImage({ src, width, height })),
       measure: () => {},
@@ -377,7 +412,7 @@ export const EnrichedTextInput = ({
         }
       },
     }),
-    [editor, mentionIndicatorsRef, useHtmlNormalizerRef]
+    [editor, mentionIndicatorsRef, useHtmlNormalizerRef, sanitizationConfigRef]
   );
 
   const editorStyle: CSSProperties = useMemo(

@@ -11,6 +11,13 @@ import {
 import { WEB_DEFAULT_HTML_STYLE } from '../defaultHtmlStyle';
 import { EnrichedTextActions } from './EnrichedTextActions';
 
+const LINK_REGEX =
+  /^(?:enriched:\/\/\S+|(?:https?:\/\/)?(?:www\.)?swmansion\.com(?:\/\S*)?)$/i;
+
+const SANITIZATION_CONFIG = {
+  linkRegex: LINK_REGEX,
+};
+
 interface TextRendererProps {
   htmlValue: string;
 }
@@ -51,6 +58,7 @@ export function TextRenderer({ htmlValue }: TextRendererProps) {
         onMentionPress={handleMentionPress}
         numberOfLines={numberOfLines}
         ellipsizeMode={ellipsizeMode}
+        sanitizationConfig={SANITIZATION_CONFIG}
       >
         {htmlValue}
       </EnrichedText>
@@ -64,6 +72,7 @@ export function TextRenderer({ htmlValue }: TextRendererProps) {
       <EnrichedText
         style={enrichedTextStyle}
         htmlStyle={WEB_DEFAULT_HTML_STYLE}
+        sanitizationConfig={SANITIZATION_CONFIG}
       >
         {htmlValue}
       </EnrichedText>

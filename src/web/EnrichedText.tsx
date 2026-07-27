@@ -22,6 +22,7 @@ import { usePressInteractions } from './usePressInteractions';
 import { useEllipsizeMode } from './ellipsizeMode/useEllipsizeMode';
 import { adaptWebToNativeEvent } from './adaptWebToNativeEvent';
 import { useStableRef } from './useStableRef';
+import { assertBrowserEnvironment } from './assertBrowserEnvironment';
 
 export const EnrichedText = memo(
   ({
@@ -34,11 +35,14 @@ export const EnrichedText = memo(
     numberOfLines = 0,
     selectable = false,
     useHtmlNormalizer = true,
+    sanitizationConfig,
     onFocus,
     onBlur,
     onLinkPress,
     onMentionPress,
   }: EnrichedTextProps) => {
+    assertBrowserEnvironment('EnrichedText');
+
     const containerRef = useRef<HTMLDivElement>(null);
 
     useImperativeHandle(ref, () => ({
@@ -54,7 +58,11 @@ export const EnrichedText = memo(
       },
     }));
 
-    const sanitizedHtml = useMemo(() => sanitizeHtml(children), [children]);
+    const sanitizedHtml = useMemo(
+      () => sanitizeHtml(children, sanitizationConfig),
+      [children, sanitizationConfig]
+    );
+
     const finalHtml = useMemo(
       () => prepareHtmlForWeb(sanitizedHtml, useHtmlNormalizer),
       [sanitizedHtml, useHtmlNormalizer]
