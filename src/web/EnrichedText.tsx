@@ -20,6 +20,7 @@ import { useImageErrorFallback } from './useImageErrorFallback';
 import { usePressInteractions } from './usePressInteractions';
 import { adaptWebToNativeEvent } from './adaptWebToNativeEvent';
 import { useStableRef } from './useStableRef';
+import { assertBrowserEnvironment } from './assertBrowserEnvironment';
 
 export const EnrichedText = memo(
   ({
@@ -35,6 +36,8 @@ export const EnrichedText = memo(
     onLinkPress,
     onMentionPress,
   }: EnrichedTextProps) => {
+    assertBrowserEnvironment('EnrichedText');
+
     const containerRef = useRef<HTMLDivElement>(null);
 
     useImperativeHandle(ref, () => ({
