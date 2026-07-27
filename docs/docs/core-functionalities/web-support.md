@@ -79,10 +79,10 @@ Unlike the native platforms, the web build sanitizes HTML for you. It runs
 on `EnrichedTextInput`. Sanitization is also run on the input component's **output** - `getHTML()`.
 This ensures untrusted markup can't inject scripts or unsafe attributes into the DOM.
 
-:::tip
+:::note
 
 Sanitization can be customized with the `sanitizationConfig` prop. It allows to set a `linkRegex` that
-will define, which `href` attributes will actually be preserved by the sanitizer.
+will define which `href` attributes will actually be preserved by the sanitizer.
 
 :::
 
