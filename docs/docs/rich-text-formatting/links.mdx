@@ -98,8 +98,7 @@ applying the link. To strip a link while keeping its text, call
 :::caution
 
 If you are using links with custom URL schemes, e.g. `custom://`, the `linkRegex` used
-for auto-detection might not be enough. On web the built-in
-[sanitization](/core-functionalities/web-support#sanitization)
+for auto-detection might not be enough. On web the built-in sanitization
 will strip your `href` attributes. To prevent this, you also need
 to use `sanitizationConfig` to whitelist your custom scheme.
 
