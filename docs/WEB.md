@@ -56,6 +56,28 @@ On web, HTML is sanitized automatically with [DOMPurify](https://github.com/cure
 - **`EnrichedText`** sanitizes its `children` before rendering.
 - **`EnrichedTextInput`** sanitizes every HTML entry point — `defaultValue`, the `setValue` ref method, and pasted HTML — as well as its output from `getHTML` and the `onChangeHtml` callback.
 
+### Allowing custom link protocols
+
+By default, sanitization strips links with non-standard protocols (e.g. `custom://…`). Both `EnrichedText` and `EnrichedTextInput` accept a web-only `sanitizationConfig` prop whose `linkRegex` field lets you control which link URIs survive.
+
+`linkRegex` maps directly to DOMPurify's [`ALLOWED_URI_REGEXP`](https://github.com/cure53/DOMPurify#can-i-configure-dompurify), so it **replaces** the default allow-list rather than extending it — remember to keep the standard protocols you still want to permit:
+
+```tsx
+<EnrichedText
+  sanitizationConfig={{
+    // Permit the usual protocols plus a custom "custom://" scheme.
+    linkRegex:
+      /^(?:(?:(?:f|ht)tps?|mailto|tel|custom):|[^a-z]|[a-z+.-]+(?:[^a-z+.:-]|$))/i,
+  }}
+>
+  {html}
+</EnrichedText>
+```
+
+When `sanitizationConfig` is omitted, DOMPurify's built-in default is used.
+
+> Note: `sanitizationConfig.linkRegex` only controls what sanitization keeps. It is independent of the top-level `linkRegex` prop, which controls autolink detection while typing. To both autolink and preserve a custom protocol, configure both.
+
 ### Custom mention attributes
 
 To attach custom data to a mention, use the `data-` prefix (e.g. `data-user-id`) to make sure they survive sanitization. Attributes passed to the `setMention` ref method are properly sanitized.

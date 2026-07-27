@@ -278,6 +278,9 @@ function App() {
           mentionIndicators={['@', '#']}
           htmlStyle={WEB_DEFAULT_HTML_STYLE}
           linkRegex={LINK_REGEX}
+          sanitizationConfig={{
+            linkRegex: LINK_REGEX,
+          }}
         />
         <MentionPopup
           variant="user"

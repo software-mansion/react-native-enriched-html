@@ -31,6 +31,7 @@ export const EnrichedText = memo(
     selectionColor,
     selectable = false,
     useHtmlNormalizer = true,
+    sanitizationConfig,
     onFocus,
     onBlur,
     onLinkPress,
@@ -53,7 +54,10 @@ export const EnrichedText = memo(
       },
     }));
 
-    const sanitizedHtml = useMemo(() => sanitizeHtml(children), [children]);
+    const sanitizedHtml = useMemo(
+      () => sanitizeHtml(children, sanitizationConfig),
+      [children, sanitizationConfig]
+    );
 
     const finalHtml = useMemo(
       () => prepareHtmlForWeb(sanitizedHtml, useHtmlNormalizer),

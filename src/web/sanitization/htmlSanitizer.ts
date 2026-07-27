@@ -1,14 +1,17 @@
 import DOMPurify from 'dompurify';
+import type { SanitizationConfig } from '../../types';
 
 const MENTION_ATTRS = ['text', 'indicator'];
 
 // Attributes DOMPurify keeps by default and are commonly used, so we don't emit an unnecessary warning
 const COMMONLY_ALLOWED_ATTRS = ['id', 'class', 'style'];
 
-export function sanitizeHtml(html: string) {
+export function sanitizeHtml(html: string, config?: SanitizationConfig) {
   return DOMPurify.sanitize(html, {
     ADD_TAGS: ['mention', 'codeblock'],
     ADD_ATTR: MENTION_ATTRS,
+    // if not supplied, fall back to DOMPurify's built-in default.
+    ...(config?.linkRegex ? { ALLOWED_URI_REGEXP: config.linkRegex } : {}),
   });
 }
 
