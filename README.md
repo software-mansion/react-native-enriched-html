@@ -40,7 +40,6 @@ We can help you build your next dream product –
 - [EnrichedText component](#enrichedtext-component)
 - [API Reference](#api-reference)
 - [Known limitations](#known-limitations)
-- [Future Plans](#future-plans)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -290,7 +289,7 @@ You can find some examples in the [usage section](#usage) or in the example app.
 - [onFocus](docs/INPUT_API_REFERENCE.md#onfocus) - emits whenever input focuses.
 - [onBlur](docs/INPUT_API_REFERENCE.md) - emits whenever input blurs.
 - [onChangeText](docs/INPUT_API_REFERENCE.md#onchangetext) - returns the input's text anytime it changes.
-- [onChangeHtml](docs/INPUT_API_REFERENCE.md#onchangehtml) - returns HTML string parsed from current input text and styles anytime it would change. As parsing the HTML on each input change is a pretty expensive operation, not assigning the event's callback will speed up iOS input a bit. We are considering adding some API to improve it, see [future plans](#future-plans).
+- [onChangeHtml](docs/INPUT_API_REFERENCE.md#onchangehtml) - returns HTML string parsed from current input text and styles anytime it would change. As parsing the HTML on each input change is a pretty expensive operation, not assigning the event's callback will speed up iOS input a bit.
 - [onChangeSelection](docs/INPUT_API_REFERENCE.md#onchangeselection) - returns all the data needed for working with selections (as of now it's mainly useful for [links](#links)).
 - [onLinkDetected](docs/INPUT_API_REFERENCE.md#onlinkdetected) - returns link's detailed info whenever user selection is near one.
 - [onMentionDetected](docs/INPUT_API_REFERENCE.md#onmentiondetected) - returns mention's detailed info whenever user selection is near one.
