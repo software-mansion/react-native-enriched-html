@@ -38,9 +38,9 @@ lists exactly what it produces and accepts.
 
 :::caution
 
-Sanitizing HTML is your responsibility. The library doesn't guarantee safe HTML, so
+Sanitizing HTML is your responsibility. The library doesn't guarantee safe HTML on mobile, so
 sanitize anything you persist, render elsewhere, or accept from untrusted
-sources.
+sources. To learn how sanitization is handled on Web, see [Web support](/core-functionalities/web-support)
 
 :::
 
