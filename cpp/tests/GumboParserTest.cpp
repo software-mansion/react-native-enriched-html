@@ -307,13 +307,20 @@ TEST(GumboParserTest, EnrichedTagRemappings) {
   EXPECT_EQ(
       GumboParser::normalizeHtml(
           "<mention text='@John Doe' indicator='@' id='1'>@John Doe</mention>"),
-      "<mention id=\"1\" text=\"@John Doe\" indicator=\"@\">@John "
+      "<mention text=\"@John Doe\" indicator=\"@\" id=\"1\">@John "
       "Doe</mention>");
   EXPECT_EQ(
       GumboParser::normalizeHtml("<mention text=\"@John Doe\" indicator=\"@\" "
                                  "id=\"1\">@John Doe</mention>"),
-      "<mention id=\"1\" text=\"@John Doe\" indicator=\"@\">@John "
+      "<mention text=\"@John Doe\" indicator=\"@\" id=\"1\">@John "
       "Doe</mention>");
+  // Custom mention attributes are preserved
+  EXPECT_EQ(
+      GumboParser::normalizeHtml(
+          "<mention id=\"1\" text=\"@John Doe\" indicator=\"@\" type=\"user\" "
+          "data-custom=\"custom data\">@John Doe</mention>"),
+      "<mention id=\"1\" text=\"@John Doe\" indicator=\"@\" type=\"user\" "
+      "data-custom=\"custom data\">@John Doe</mention>");
 
   // Link
   EXPECT_EQ(GumboParser::normalizeHtml(
@@ -401,7 +408,7 @@ TEST(GumboParserTest, DivRemappings) {
           "</b>hello<div><br></div><div>hi</div></li></ul></div></div></"
           "blockquote></span>"),
       "<p>what do you think of this craziness</p><blockquote><p><b>another one "
-      "</b>hello</p><p>hi</p></blockquote>");
+      "</b>hello</p><br><p>hi</p></blockquote>");
 }
 
 TEST(GumboParserTest, ListFlattening) {
@@ -508,6 +515,13 @@ TEST(GumboParserTest, BrRemappings) {
                 "href='https://google.com'>Net</a></p>"),
             "<p><b>Asdasdasd</b></p><br><br><p>Sent with <a "
             "href=\"https://google.com\">Net</a></p>");
+  // A <br> between blockquote paragraphs is preserved.
+  EXPECT_EQ(
+      GumboParser::normalizeHtml(
+          "<blockquote><p>this is a pretty short blockquote.</p><br><p>This is "
+          "a line after an empty line.</p></blockquote>"),
+      "<blockquote><p>this is a pretty short blockquote.</p><br><p>This is a "
+      "line after an empty line.</p></blockquote>");
 }
 
 // Preserve text alignment
@@ -581,9 +595,10 @@ TEST(GumboParserTest, InterBlockWhitespace) {
   EXPECT_EQ(GumboParser::normalizeHtml(
                 "<p>Asdasd</p>\n\n<p>Asdasd</p>\n\n<p>Asdasda</p>"),
             "<p>Asdasd</p><p>Asdasd</p><p>Asdasda</p>");
-  EXPECT_EQ(GumboParser::normalizeHtml(
-                "<html>\n<p>Asdasd</p>\n<p>Asdasd</p>\n<p>Asdasda</p>\n</html>"),
-            "<p>Asdasd</p><p>Asdasd</p><p>Asdasda</p>");
+  EXPECT_EQ(
+      GumboParser::normalizeHtml(
+          "<html>\n<p>Asdasd</p>\n<p>Asdasd</p>\n<p>Asdasda</p>\n</html>"),
+      "<p>Asdasd</p><p>Asdasd</p><p>Asdasda</p>");
   EXPECT_EQ(GumboParser::normalizeHtml("<p>Asdasd</p> <p>Asdasd</p>"),
             "<p>Asdasd</p><p>Asdasd</p>");
 

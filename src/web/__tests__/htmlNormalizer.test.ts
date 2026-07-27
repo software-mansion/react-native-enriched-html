@@ -285,14 +285,19 @@ describe('htmlNormalizer', () => {
         '<ul data-type="checkbox"><li checked>x</li></ul>',
       ],
 
-      // Mentions (note: cpp reorders attrs to id, text, indicator)
+      // Mentions
       [
         "<mention text='@John Doe' indicator='@' id='1'>@John Doe</mention>",
-        '<mention id="1" text="@John Doe" indicator="@">@John Doe</mention>',
+        '<mention text="@John Doe" indicator="@" id="1">@John Doe</mention>',
       ],
       [
         '<mention text="@John Doe" indicator="@" id="1">@John Doe</mention>',
-        '<mention id="1" text="@John Doe" indicator="@">@John Doe</mention>',
+        '<mention text="@John Doe" indicator="@" id="1">@John Doe</mention>',
+      ],
+      // Custom mention attributes are preserved
+      [
+        '<mention id="1" text="@John Doe" indicator="@" type="user" data-custom="custom data">@John Doe</mention>',
+        '<mention id="1" text="@John Doe" indicator="@" type="user" data-custom="custom data">@John Doe</mention>',
       ],
 
       // Link
@@ -359,7 +364,7 @@ describe('htmlNormalizer', () => {
       ],
       [
         '<div>what do you think of this craziness</div><span><blockquote><div><div><ul><li><b>another one </b>hello<div><br></div><div>hi</div></li></ul></div></div></blockquote></span>',
-        '<p>what do you think of this craziness</p><blockquote><p><b>another one </b>hello</p><p>hi</p></blockquote>',
+        '<p>what do you think of this craziness</p><blockquote><p><b>another one </b>hello</p><br><p>hi</p></blockquote>',
       ],
     ])('%s → %s', (input, expected) => {
       expect(normalizeHtml(input)).toBe(expected);
@@ -475,6 +480,16 @@ describe('htmlNormalizer', () => {
         )
       ).toBe(
         '<p><b>Asdasdasd</b></p><br><br><p>Sent with <a href="https://google.com">Net</a></p>'
+      );
+    });
+
+    test('<br> between blockquote paragraphs is preserved', () => {
+      expect(
+        normalizeHtml(
+          '<blockquote><p>this is a pretty short blockquote.</p><br><p>This is a line after an empty line.</p></blockquote>'
+        )
+      ).toBe(
+        '<blockquote><p>this is a pretty short blockquote.</p><br><p>This is a line after an empty line.</p></blockquote>'
       );
     });
   });
