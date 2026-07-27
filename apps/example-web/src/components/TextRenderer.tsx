@@ -13,6 +13,10 @@ import { WEB_DEFAULT_HTML_STYLE } from '../defaultHtmlStyle';
 const LINK_REGEX =
   /^(?:enriched:\/\/\S+|(?:https?:\/\/)?(?:www\.)?swmansion\.com(?:\/\S*)?)$/i;
 
+const SANITIZATION_CONFIG = {
+  linkRegex: LINK_REGEX,
+};
+
 interface TextRendererProps {
   htmlValue: string;
 }
@@ -47,9 +51,7 @@ export function TextRenderer({ htmlValue }: TextRendererProps) {
         onBlur={handleTextBlur}
         onLinkPress={handleLinkPress}
         onMentionPress={handleMentionPress}
-        sanitizationConfig={{
-          linkRegex: LINK_REGEX,
-        }}
+        sanitizationConfig={SANITIZATION_CONFIG}
       >
         {htmlValue}
       </EnrichedText>
