@@ -11,7 +11,7 @@
 - ⚡ Fully native input and display components (Supports New Architecture only)
 - 💻 HTML-based parsing with live, synchronous text styling
 - 🎨 Fully customizable styles for seamless UI integration
-- 🌐 Solid mobile support with an experimental Web implementation
+- 🌐 Solid mobile and web support
 
 `EnrichedTextInput`, the rich text input component is an uncontrolled input. This means that it doesn't use any state or props to store its value, but instead directly interacts with the underlying platform-specific components. Thanks to this, the component is really performant and simple to use while offering complex and advanced features no other solution has.
 
@@ -46,7 +46,7 @@ We can help you build your next dream product –
 
 ## Prerequisites
 
-- `react-native-enriched-html` currently supports Android and iOS, Web implementation is still experimental.
+- `react-native-enriched-html` currently supports Android, iOS and Web.
 - It works only with [the React Native New Architecture (Fabric)](https://reactnative.dev/architecture/landing-page) and supports following React Native releases: `0.81`, `0.82`, `0.83`, `0.84`, `0.85` and `0.86`.
 
 ## Installation
@@ -378,10 +378,6 @@ See the [EnrichedText API Reference](docs/TEXT_API_REFERENCE.md) for the `Enrich
 ## Known limitations
 
 - Only one level of lists is supported. We currently do not support nested lists.
-
-## Future Plans
-
-- Web support: currently in the experimental stage. Details in [docs/WEB.md](docs/WEB.md).
 
 ## Contributing
 

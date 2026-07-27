@@ -1,7 +1,5 @@
 # EnrichedText API Reference
 
-> **Web support is experimental.** Behavior may change without a major version bump.
-
 ## Props
 
 ### `allowFontScaling`
