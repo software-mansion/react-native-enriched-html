@@ -28,8 +28,7 @@ The interactive examples throughout these docs are the web build running live.
 ## Keyboard shortcuts
 
 The web editor ships desktop-style formatting shortcuts out of the box, along
-with native browser **undo/redo**. `Mod` is `⌘` on macOS and `Ctrl` on
-Windows/Linux.
+with native browser **undo/redo**.
 
 | Action              | macOS          | Windows / Linux             |
 | ------------------- | -------------- | --------------------------- |
