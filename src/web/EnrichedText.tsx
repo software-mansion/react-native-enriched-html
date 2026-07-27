@@ -20,6 +20,7 @@ import { useImageErrorFallback } from './useImageErrorFallback';
 import { usePressInteractions } from './usePressInteractions';
 import { adaptWebToNativeEvent } from './adaptWebToNativeEvent';
 import { useStableRef } from './useStableRef';
+import { assertBrowserEnvironment } from './assertBrowserEnvironment';
 
 export const EnrichedText = memo(
   ({
@@ -30,11 +31,14 @@ export const EnrichedText = memo(
     selectionColor,
     selectable = false,
     useHtmlNormalizer = true,
+    sanitizationConfig,
     onFocus,
     onBlur,
     onLinkPress,
     onMentionPress,
   }: EnrichedTextProps) => {
+    assertBrowserEnvironment('EnrichedText');
+
     const containerRef = useRef<HTMLDivElement>(null);
 
     useImperativeHandle(ref, () => ({
@@ -50,7 +54,10 @@ export const EnrichedText = memo(
       },
     }));
 
-    const sanitizedHtml = useMemo(() => sanitizeHtml(children), [children]);
+    const sanitizedHtml = useMemo(
+      () => sanitizeHtml(children, sanitizationConfig),
+      [children, sanitizationConfig]
+    );
 
     const finalHtml = useMemo(
       () => prepareHtmlForWeb(sanitizedHtml, useHtmlNormalizer),

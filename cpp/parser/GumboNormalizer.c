@@ -513,9 +513,10 @@ static void emit_attributes(GumboElement *el, const char *tag_name,
       buffer_append_str(out, " checked");
     }
   } else if (strcmp(tag_name, "mention") == 0) {
-    emit_one_attr(out, el, "id");
-    emit_one_attr(out, el, "text");
-    emit_one_attr(out, el, "indicator");
+    for (unsigned int i = 0; i < el->attributes.length; i++) {
+      GumboAttribute *attr = (GumboAttribute *)el->attributes.data[i];
+      emit_one_attr(out, el, attr->name);
+    }
   } else {
     /* preserve text-align */
     emit_alignment(el, tag_name, out);
@@ -598,7 +599,11 @@ static void flatten_bq_node(GumboNode *node, buffer_t *ib, buffer_t *out) {
     return;
   }
   if (is_br_node(node)) {
-    flush_inline_p(ib, out, NULL);
+    // Emit the canonical <br> so it is not silently dropped.
+    // With buffered inline content it just terminates the current paragraph.
+    if (!flush_inline_p(ib, out, NULL)) {
+      buffer_append_str(out, "<br>");
+    }
     return;
   }
   if (is_block_producing(node) || is_blockquote_node(node)) {

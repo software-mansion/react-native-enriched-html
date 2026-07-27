@@ -286,11 +286,11 @@ function emitAttributes(el: Element, name: string): string {
         el.getAttribute('data-leveltext') === ''; // MS Word checked box
       return isChecked ? ' checked' : '';
     case 'mention':
-      return (
-        emitOneAttr(el, 'id') +
-        emitOneAttr(el, 'text') +
-        emitOneAttr(el, 'indicator')
-      );
+      let out = '';
+      for (const attr of Array.from(el.attributes)) {
+        out += emitOneAttr(el, attr.name);
+      }
+      return out;
     default:
       // preserve text-align
       return emitAlignment(el, name);
@@ -401,7 +401,11 @@ function flattenBqNode(
   }
   if (!isElement(node)) return;
   if (isBrNode(node)) {
-    flushInlineP(ib, out);
+    // Emit the canonical <br> so it is not silently dropped.
+    // With buffered inline content it just terminates the current paragraph.
+    if (!flushInlineP(ib, out)) {
+      out.buf += '<br>';
+    }
     return;
   }
   if (isBlockProducing(node) || isBlockquoteNode(node)) {
@@ -696,8 +700,6 @@ function walkNode(node: Node, out: { buf: string }): void {
 }
 
 export function normalizeHtml(html: string): string {
-  if (typeof DOMParser === 'undefined') return html;
-
   const parser = new DOMParser();
   const doc = parser.parseFromString(`<body>${html}</body>`, 'text/html');
   const body = doc.body;
