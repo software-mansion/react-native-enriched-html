@@ -1378,12 +1378,12 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
     range.length > 0 ? [TextInsertionUtils replaceText:value
                                                     at:range
                                   additionalAttributes:nil
-                                                 input:self
+                                                  host:self
                                          withSelection:YES]
                      : [TextInsertionUtils insertText:value
                                                    at:range.location
                                  additionalAttributes:nil
-                                                input:self
+                                                 host:self
                                         withSelection:YES];
   } else {
     // we've got some seemingly proper html

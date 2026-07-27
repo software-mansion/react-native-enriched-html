@@ -482,24 +482,26 @@ class EnrichedTextInputView :
       return
     }
 
-    val actualStart = getActualIndex(start)
-    val actualEnd = getActualIndex(end)
-
     // Use coerceIn to ensure indices are within [0, textLength] and that start <= end
-    val safeStart = actualStart.coerceIn(0, textLength)
-    val safeEnd = actualEnd.coerceIn(safeStart, textLength)
+    val safeStart = getActualIndex(start).coerceIn(0, textLength)
+    val safeEnd = getActualIndex(end).coerceIn(safeStart, textLength)
 
-    runAsATransaction {
-      val newText = parseText(value) as Spannable
-
-      val finalText = currentText.mergeSpannables(safeStart, safeEnd, newText)
-      setValue(finalText, false)
-
-      // replacement-safe: oldLength - removed + inserted
-      val insertedLength = finalText.length - (textLength - (safeEnd - safeStart))
-      val insertedEnd = (safeStart + insertedLength).coerceIn(0, finalText.length)
-      setSelection(insertedEnd)
+    // Skip past ZWS anchors so inserted text lands inside paragraph spans rather than before them.
+    var adjustedStart = safeStart
+    while (adjustedStart < currentText.length && currentText[adjustedStart] == EnrichedConstants.ZWS) {
+      adjustedStart++
     }
+    val adjustedEnd = safeEnd + (adjustedStart - safeStart)
+
+    val newText = parseText(value) as Spannable
+
+    val finalText = currentText.mergeSpannables(adjustedStart, adjustedEnd, newText)
+    setValue(finalText, false)
+
+    // replacement-safe: oldLength - removed + inserted
+    val insertedLength = finalText.length - (textLength - (adjustedEnd - adjustedStart))
+    val insertedEnd = (adjustedStart + insertedLength).coerceIn(0, finalText.length)
+    setSelection(insertedEnd)
   }
 
   // Helper: Walks through the string skipping ZWSPs to find the Nth visible character
