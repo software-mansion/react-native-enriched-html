@@ -375,8 +375,8 @@ export function eatBackwardUntilFits(
     const lastNode = lastRenderedNode(sandbox);
     if (!lastNode) break;
 
-    // handling text nodes: keep the longest prefix that still fits (re-appending
-    // "..." in ellipsis mode). With find the maximum amount of content to keep with binary-search.
+    // handling text nodes: uses binary search to find the longest
+    // string prefix that still fits (re-appending "..." in ellipsis mode).
     if (lastNode.nodeType === Node.TEXT_NODE) {
       const textNode = lastNode as Text;
       let text = textNode.nodeValue || '';
@@ -479,10 +479,8 @@ export function eatBackwardUntilFits(
   }
 }
 
-// Repeatedly removes content immediately after the ellipsis - a single
-// character, or a whole img / br / empty block - until `checkFits` reports the
-// trailing content fits on the ellipsis line.
-// Shared by the head and middle modes.
+// Uses binary search to find the exact cut-off point after the ellipsis
+// where the remaining trailing content fits on the line. Shared by the head and middle modes.
 export function eatForwardUntilFits(
   sandbox: HTMLElement,
   ellipsisNode: Node,
