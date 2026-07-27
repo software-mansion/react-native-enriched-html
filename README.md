@@ -47,7 +47,7 @@ We can help you build your next dream product –
 ## Prerequisites
 
 - `react-native-enriched-html` currently supports Android and iOS, Web implementation is still experimental.
-- It works only with [the React Native New Architecture (Fabric)](https://reactnative.dev/architecture/landing-page) and supports following React Native releases: `0.81`, `0.82`, `0.83`, `0.84` and `0.85`.
+- It works only with [the React Native New Architecture (Fabric)](https://reactnative.dev/architecture/landing-page) and supports following React Native releases: `0.81`, `0.82`, `0.83`, `0.84`, `0.85` and `0.86`.
 
 ## Installation
 

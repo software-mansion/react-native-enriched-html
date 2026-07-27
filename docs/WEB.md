@@ -21,6 +21,7 @@ Web support is still experimental. APIs and behavior can change in future releas
 - Keyboard shortcuts for formatting
 - `useHtmlNormalizer`
 - Setting text alignment via `setTextAlignment()`
+- `textShortcuts`
 
 ### Keyboard shortcuts
 
@@ -32,7 +33,6 @@ See [Web Keyboard Shortcuts](./INPUT_API_REFERENCE.md#web-keyboard-shortcuts) fo
 - **Context menu**: `contextMenuItems` is ignored.
 - **RN layout ref methods**: `measure`, `measureInWindow`, `measureLayout`, and `setNativeProps` are no-ops.
 - **`ViewProps`**: Props inherited from `View` beyond the implemented subset are not forwarded.
-- **`textShortcuts`**: ignored on web.
 
 ## Enriched Text
 

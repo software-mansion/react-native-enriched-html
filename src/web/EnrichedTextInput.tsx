@@ -76,6 +76,7 @@ import {
 } from './pmPlugins/MentionPlugin';
 import { StripMarksOnImagePlugin } from './pmPlugins/StripMarksOnImagePlugin';
 import { ShortcutPlugin } from './pmPlugins/ShortcutPlugin';
+import { TextShortcutsPlugin } from './pmPlugins/TextShortcutsPlugin';
 import { returnKeyTypeToEnterKeyHint } from './returnKeyTypeToEnterKeyHint';
 import { ENRICHED_TEXT_INPUT_CLASSNAME } from './constants/classNames';
 import { AutolinkPlugin } from './pmPlugins/AutolinkPlugin';
@@ -96,7 +97,7 @@ function runFocused(
 export const EnrichedTextInput = ({
   ref,
   defaultValue,
-  autoFocus,
+  autoFocus = false,
   editable = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.editable,
   placeholder = '',
   placeholderTextColor,
@@ -125,6 +126,7 @@ export const EnrichedTextInput = ({
   linkRegex,
   htmlStyle,
   useHtmlNormalizer = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.useHtmlNormalizer,
+  textShortcuts = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.textShortcuts,
 }: EnrichedTextInputProps) => {
   assertBrowserEnvironment('EnrichedTextInput');
 
@@ -155,6 +157,7 @@ export const EnrichedTextInput = ({
   const onKeyPressRef = useStableRef(onKeyPress);
   const useHtmlNormalizerRef = useStableRef(useHtmlNormalizer);
   const mentionCallbacksRef = useStableRef(mentionCallbacks);
+  const textShortcutsRef = useStableRef(textShortcuts);
 
   const editorInstanceRef = useRef<Editor | null>(null);
 
@@ -226,6 +229,10 @@ export const EnrichedTextInput = ({
       ShortcutPlugin.configure({
         getHtmlStyle: () => htmlStyleRef.current,
       }),
+      TextShortcutsPlugin.configure({
+        getTextShortcuts: () => textShortcutsRef.current,
+        getHtmlStyle: () => htmlStyleRef.current,
+      }),
       AutolinkPlugin.configure({
         getLinkEmitter: () => linkEmitterRef.current,
       }),
@@ -234,7 +241,7 @@ export const EnrichedTextInput = ({
         showOnlyWhenEditable: true,
       }),
     ],
-    [placeholder, htmlStyleRef, mentionIndicatorsRef]
+    [placeholder, htmlStyleRef, mentionIndicatorsRef, textShortcutsRef]
   );
 
   const editor = useEditor(

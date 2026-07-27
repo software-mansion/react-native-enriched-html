@@ -364,7 +364,7 @@ describe('htmlNormalizer', () => {
       ],
       [
         '<div>what do you think of this craziness</div><span><blockquote><div><div><ul><li><b>another one </b>hello<div><br></div><div>hi</div></li></ul></div></div></blockquote></span>',
-        '<p>what do you think of this craziness</p><blockquote><p><b>another one </b>hello</p><p>hi</p></blockquote>',
+        '<p>what do you think of this craziness</p><blockquote><p><b>another one </b>hello</p><br><p>hi</p></blockquote>',
       ],
     ])('%s → %s', (input, expected) => {
       expect(normalizeHtml(input)).toBe(expected);
@@ -482,6 +482,16 @@ describe('htmlNormalizer', () => {
         '<p><b>Asdasdasd</b></p><br><br><p>Sent with <a href="https://google.com">Net</a></p>'
       );
     });
+
+    test('<br> between blockquote paragraphs is preserved', () => {
+      expect(
+        normalizeHtml(
+          '<blockquote><p>this is a pretty short blockquote.</p><br><p>This is a line after an empty line.</p></blockquote>'
+        )
+      ).toBe(
+        '<blockquote><p>this is a pretty short blockquote.</p><br><p>This is a line after an empty line.</p></blockquote>'
+      );
+    });
   });
 
   describe('character escaping', () => {
@@ -576,6 +586,34 @@ describe('htmlNormalizer', () => {
           '<p style="text-align: center">c</p>' +
           '<p style="text-align: right">r</p></blockquote>',
       ],
+    ])('%s → %s', (input, expected) => {
+      expect(normalizeHtml(input)).toBe(expected);
+    });
+  });
+
+  describe('InterBlockWhitespace', () => {
+    // Pretty-printed consecutive paragraphs must not gain empty <p>s from the
+    // newlines between them (those would later serialize as extra <br>s).
+    test.each([
+      [
+        '<p>Asdasd</p>\n<p>Asdasd</p>\n<p>Asdasda</p>',
+        '<p>Asdasd</p><p>Asdasd</p><p>Asdasda</p>',
+      ],
+      [
+        '<p>Asdasd</p>\n\n<p>Asdasd</p>\n\n<p>Asdasda</p>',
+        '<p>Asdasd</p><p>Asdasd</p><p>Asdasda</p>',
+      ],
+      [
+        '<html>\n<p>Asdasd</p>\n<p>Asdasd</p>\n<p>Asdasda</p>\n</html>',
+        '<p>Asdasd</p><p>Asdasd</p><p>Asdasda</p>',
+      ],
+      ['<p>Asdasd</p> <p>Asdasd</p>', '<p>Asdasd</p><p>Asdasd</p>'],
+      // Significant inline content between blocks is still wrapped in <p>.
+      ['<p>a</p> hello <p>b</p>', '<p>a</p><p> hello </p><p>b</p>'],
+      // Spaces inside text / between inlines must be preserved.
+      ['hello world', 'hello world'],
+      ['<p>hello world</p>', '<p>hello world</p>'],
+      ['<b>hello</b> <i>world</i>', '<b>hello</b> <i>world</i>'],
     ])('%s → %s', (input, expected) => {
       expect(normalizeHtml(input)).toBe(expected);
     });
