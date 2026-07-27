@@ -31,6 +31,7 @@ interface EnrichedTextProps extends ViewProps {
   style?: TextStyle;
   htmlStyle?: EnrichedTextHtmlStyle;
   useHtmlNormalizer?: boolean;
+  sanitizationConfig?: SanitizationConfig;
   ellipsizeMode?: 'head' | 'middle' | 'tail' | 'clip';
   numberOfLines?: number;
   selectable?: boolean;
@@ -90,6 +91,40 @@ tag subset that the enriched parser understands. See
 | Type      | Default | Platforms         |
 | --------- | ------- | ----------------- |
 | `boolean` | `true`  | Android, iOS, Web |
+
+### `sanitizationConfig` <Optional /> {#sanitizationconfig}
+
+Web-only configuration for the HTML sanitization step applied to `children`
+before rendering.
+
+```ts
+interface SanitizationConfig {
+  linkRegex?: RegExp;
+}
+```
+
+- `linkRegex` - a regular expression deciding which link URIs survive
+  sanitization. It maps directly to DOMPurify's
+  [`ALLOWED_URI_REGEXP`](https://github.com/cure53/DOMPurify#can-i-configure-dompurify),
+  so it **replaces** the default allow-list rather than extending it. Include the
+  standard protocols you still want to permit alongside any custom scheme. When omitted,
+  DOMPurify's built-in default is used.
+
+```tsx
+<EnrichedText
+  sanitizationConfig={{
+    // Permit the usual protocols plus a custom "custom://" scheme.
+    linkRegex:
+      /^(?:(?:(?:f|ht)tps?|mailto|tel|custom):|[^a-z]|[a-z+.-]+(?:[^a-z+.:-]|$))/i,
+  }}
+>
+  {'<p><a href="custom://item/42">link</a></p>'}
+</EnrichedText>
+```
+
+| Type                 | Default | Platforms |
+| -------------------- | ------- | --------- |
+| `SanitizationConfig` | -       | Web       |
 
 ### `ellipsizeMode` <Optional /> {#ellipsizemode}
 

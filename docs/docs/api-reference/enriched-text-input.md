@@ -49,6 +49,7 @@ interface EnrichedTextInputProps extends Omit<ViewProps, 'children'> {
   style?: EnrichedInputStyle;
   scrollEnabled?: boolean;
   linkRegex?: RegExp | null;
+  sanitizationConfig?: SanitizationConfig;
   returnKeyType?: ReturnKeyTypeOptions;
   returnKeyLabel?: string;
   submitBehavior?: 'submit' | 'blurAndSubmit' | 'newline';
@@ -216,6 +217,13 @@ won't work.
 :::tip
 
 Pass `null` to disable link detection completely.
+
+:::
+
+:::caution
+
+Links might get stripped if sanitization is not configured properly.
+For details, see [sanitization](/core-functionalities/web-support#sanitization).
 
 :::
 
@@ -584,6 +592,47 @@ attribute on the editor element. Only the values the browser recognises
 (`'enter'`, `'done'`, `'go'`, `'next'`, `'previous'`, `'search'`, `'send'`) have
 a visible effect; unsupported values are silently ignored and fall back to
 `'enter'`.
+
+:::
+
+### `sanitizationConfig` <Optional /> {#sanitizationconfig}
+
+Web-only configuration for the HTML sanitization step, which runs on every HTML
+entry and exit point — `defaultValue`, `.setValue()`, pasted HTML, `.getHTML()`,
+and [`onChangeHtml`](#onchangehtml).
+
+```ts
+interface SanitizationConfig {
+  linkRegex?: RegExp;
+}
+```
+
+- `linkRegex` - a regular expression deciding which link URIs survive
+  sanitization. It maps directly to DOMPurify's
+  [`ALLOWED_URI_REGEXP`](https://github.com/cure53/DOMPurify#can-i-configure-dompurify),
+  so it **replaces** the default allow-list rather than extending it. Include the
+  standard protocols you still want to permit alongside any custom scheme. When omitted,
+  DOMPurify's built-in default is used.
+
+```tsx
+<EnrichedTextInput
+  sanitizationConfig={{
+    // Permit the usual protocols plus a custom "custom://" scheme.
+    linkRegex:
+      /^(?:(?:(?:f|ht)tps?|mailto|tel|custom):|[^a-z]|[a-z+.-]+(?:[^a-z+.:-]|$))/i,
+  }}
+/>
+```
+
+| Type                 | Default | Platforms |
+| -------------------- | ------- | --------- |
+| `SanitizationConfig` | -       | Web       |
+
+:::note
+
+This only controls what sanitization keeps. It is independent of the
+[`linkRegex`](#linkregex) prop, which controls autolink detection while typing.
+To both autolink and preserve a custom protocol, configure both.
 
 :::
 
