@@ -46,13 +46,11 @@ capabilities** and a matching display component. The two libraries can coexist i
 
 [10tap Editor](https://github.com/10play/10tap-editor) wraps
 [TipTap](https://tiptap.dev) (ProseMirror) inside a React Native WebView.
-It offers a keyboard-aware toolbar and a familiar ProseMirror plugin system.
 
 ### React Native Pell Rich Editor
 
 [React Native Pell Rich Editor](https://github.com/wxik/react-native-rich-editor)
-is a lightweight WebView-based editor that uses `contentEditable` and
-`document.execCommand`.
+is a lightweight WebView-based editor.
 
 ### Why native matters
 
