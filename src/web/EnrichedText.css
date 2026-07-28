@@ -309,7 +309,9 @@
   margin: 0;
   list-style: none;
   padding-left: calc(
-    var(--et-checkbox-margin-left, 16px) + var(--et-checkbox-gap-width, 16px)
+    var(--et-checkbox-margin-left, 16px) +
+    var(--et-checkbox-checkbox-size, 24px) +
+    var(--et-checkbox-gap-width, 16px)
   );
 }
 
@@ -336,7 +338,7 @@
 
   margin-top: 0;
   position: relative;
-  top: 0.15em;
+  top: calc(var(--et-checkbox-box-size) * 0.5 - 0.35em);
 }
 
 .et-view ul[data-type="checkbox"] > li > label {
