@@ -262,7 +262,11 @@
 .eti-editor ul[data-type='checkboxList'] {
   margin: 0;
   list-style: none;
-  padding-left: calc(var(--et-checkbox-margin-left, 16px) + var(--et-checkbox-gap-width, 16px));
+  padding-left: calc(
+    var(--et-checkbox-margin-left, 16px) +
+    var(--et-checkbox-box-size, 24px) +
+    var(--et-checkbox-gap-width, 16px)
+  );
 }
 
 .eti-editor ul[data-type='checkboxList'] > li {
@@ -283,7 +287,7 @@
 
   margin-top: 0;
   position: relative;
-  top: 0.15em;
+  top: calc(var(--et-checkbox-box-size) * 0.5 - 0.3em);
 }
 
 .eti-editor ul[data-type='checkboxList'] > li > label input[type='checkbox'] {
