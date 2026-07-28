@@ -156,7 +156,11 @@
 .et-view ul:not([data-type]) {
   margin: 0;
   list-style: none;
-  padding-left: calc(var(--et-ul-margin-left, 16px) + var(--et-ul-gap-width, 16px));
+  padding-left: calc(
+    var(--et-ul-margin-left, 16px) +
+    var(--et-ul-bullet-size, 8px) +
+    var(--et-ul-gap-width, 16px)
+  );
 }
 
 .eti-editor ul:not([data-type]) > li,
@@ -179,7 +183,7 @@
   margin-right: var(--et-ul-gap-width, 16px);
 
   position: relative;
-  top: -0.1em;
+  top: calc(var(--et-ul-bullet-size) * 0.5 - 0.3em);
 }
 
 .eti-editor ol,
