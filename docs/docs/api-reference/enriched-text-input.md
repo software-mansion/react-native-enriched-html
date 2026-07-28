@@ -223,7 +223,7 @@ Pass `null` to disable link detection completely.
 :::caution
 
 Links might get stripped if sanitization is not configured properly.
-For details, see [sanitization](/core-functionalities/web-support#sanitization).
+For details, see [sanitization](/core-functionalities/web-support).
 
 :::
 
