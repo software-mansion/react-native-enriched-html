@@ -26,10 +26,14 @@
   return YES;
 }
 
+- (CGFloat)headIndent {
+  return [self.host.config checkboxListMarginLeft] +
+         [self.host.config checkboxListGapWidth] +
+         [self.host.config checkboxListBoxSize];
+}
+
 - (void)applyStyling:(NSRange)range {
-  CGFloat listHeadIndent = [self.host.config checkboxListMarginLeft] +
-                           [self.host.config checkboxListGapWidth] +
-                           [self.host.config checkboxListBoxSize];
+  CGFloat listHeadIndent = [self headIndent];
 
   [self.host.textView.textStorage
       enumerateAttribute:NSParagraphStyleAttributeName
@@ -46,6 +50,21 @@
                            value:pStyle
                            range:range];
               }];
+}
+
+- (BOOL)appliesStylingToTyping {
+  return YES;
+}
+
+- (void)applyStylingToTypingAttrs:(NSMutableDictionary *)attributes {
+  NSMutableParagraphStyle *pStyle =
+      [attributes[NSParagraphStyleAttributeName] mutableCopy];
+  if (pStyle == nil)
+    return;
+  CGFloat indent = [self headIndent];
+  pStyle.headIndent = indent;
+  pStyle.firstLineHeadIndent = indent;
+  attributes[NSParagraphStyleAttributeName] = pStyle;
 }
 
 - (BOOL)styleCondition:(id)value range:(NSRange)range {
