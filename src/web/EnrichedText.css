@@ -344,7 +344,7 @@
 
   margin-top: 0;
   position: relative;
-  top: calc(var(--et-checkbox-box-size) * 0.5 - 0.35em);
+  top: calc(var(--et-checkbox-box-size, 24px) * 0.5 - 0.35em);
 }
 
 .et-view ul[data-type="checkbox"] > li > label {
