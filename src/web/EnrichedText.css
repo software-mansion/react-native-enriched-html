@@ -183,7 +183,7 @@
   margin-right: var(--et-ul-gap-width, 16px);
 
   position: relative;
-  top: calc(var(--et-ul-bullet-size) * 0.5 - 0.3em);
+  top: calc(var(--et-ul-bullet-size) * 0.5 - 0.35em);
 }
 
 .eti-editor ol,
@@ -287,7 +287,7 @@
 
   margin-top: 0;
   position: relative;
-  top: calc(var(--et-checkbox-box-size) * 0.5 - 0.3em);
+  top: calc(var(--et-checkbox-box-size) * 0.5 - 0.35em);
 }
 
 .eti-editor ul[data-type='checkboxList'] > li > label input[type='checkbox'] {
