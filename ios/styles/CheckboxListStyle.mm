@@ -32,6 +32,11 @@
          [self.host.config checkboxListBoxSize];
 }
 
+- (CGFloat)calculateMinimumLineHeight:(CGFloat)currentLineHeight {
+  CGFloat boxSize = [self.host.config checkboxListBoxSize];
+  return MAX(currentLineHeight, boxSize);
+}
+
 - (void)applyStyling:(NSRange)range {
   CGFloat listHeadIndent = [self headIndent];
 
@@ -45,6 +50,8 @@
                     [(NSParagraphStyle *)value mutableCopy];
                 pStyle.headIndent = listHeadIndent;
                 pStyle.firstLineHeadIndent = listHeadIndent;
+                pStyle.minimumLineHeight =
+                    [self calculateMinimumLineHeight:pStyle.minimumLineHeight];
                 [self.host.textView.textStorage
                     addAttribute:NSParagraphStyleAttributeName
                            value:pStyle
@@ -64,6 +71,8 @@
   CGFloat indent = [self headIndent];
   pStyle.headIndent = indent;
   pStyle.firstLineHeadIndent = indent;
+  pStyle.minimumLineHeight =
+      [self calculateMinimumLineHeight:pStyle.minimumLineHeight];
   attributes[NSParagraphStyleAttributeName] = pStyle;
 }
 
