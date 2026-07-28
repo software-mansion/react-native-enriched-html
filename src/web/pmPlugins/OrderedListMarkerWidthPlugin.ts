@@ -20,7 +20,9 @@ export const OrderedListMarkerWidthPlugin = Extension.create({
                 return true;
               }
 
-              const maxNumber = Math.max(0, node.childCount);
+              const start =
+                typeof node.attrs.start === 'number' ? node.attrs.start : 1;
+              const maxNumber = start + Math.max(0, node.childCount - 1);
               const digits = String(maxNumber).length;
 
               decorations.push(
