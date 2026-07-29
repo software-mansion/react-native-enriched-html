@@ -4,9 +4,7 @@
 #import "StyleUtils.h"
 #import "TextInsertionUtils.h"
 
-@implementation OrderedListStyle {
-  CGFloat _appliedHeadIndent;
-}
+@implementation OrderedListStyle
 
 + (StyleType)getType {
   return OrderedList;
@@ -24,10 +22,77 @@
   return YES;
 }
 
-- (CGFloat)applyHeadIndent:(NSInteger)itemCount {
-  // the largest marker value equals the item count (numbering starts at 1).
+- (void)applyStyling:(NSRange)range {
+  // lists are drawn manually
+
+  // if the widest counter ("N.") width overflows the initially given margin,
+  // we expand that margin. Every item in the same contiguous list must share
+  // the same column width, so we expand to the full ordered list occurrence and
+  // re-indent all of it - even when only a single paragraph is dirty (e.g. an
+  // item was just added)
+  NSInteger itemCount = 0;
+  NSRange listRange = [self contiguousOrderedListRangeContaining:range
+                                                       itemCount:&itemCount];
+
+  [self applyIndentForListRange:listRange itemCount:itemCount];
+}
+
+// re-styling is normally run only on dirty-ranges, but a dirty-range
+// may change an ordered list structure and those lists need to be
+// re-styled. E.g. it happens when we remove an ordered list
+// element - it affects the adjacent lists, as their ordinals are different
+// and the computed margin might be stale
+- (void)recalculateListsAroundEditedRange:(NSRange)range {
+  NSUInteger length = self.host.textView.textStorage.string.length;
+  NSUInteger start = range.location;
+  NSUInteger end = NSMaxRange(range);
+
+  // look for ordered lists in adjacent locations
+  NSMutableArray<NSNumber *> *seeds = [NSMutableArray array];
+  if (start > 0) {
+    [seeds addObject:@(start - 1)];
+  }
+  [seeds addObject:@(start)];
+  [seeds addObject:@(end)];
+
+  // dedupe so each surviving contiguous list is recomputed at most once
+  NSMutableArray<NSValue *> *handled = [NSMutableArray array];
+
+  for (NSNumber *seedNum in seeds) {
+    NSUInteger seed = seedNum.unsignedIntegerValue;
+    if (seed >= length) {
+      continue;
+    }
+    if (![self detect:NSMakeRange(seed, 0)]) {
+      continue;
+    }
+
+    BOOL alreadyHandled = NO;
+    for (NSValue *handledRange in handled) {
+      if (NSLocationInRange(seed, [handledRange rangeValue])) {
+        alreadyHandled = YES;
+        break;
+      }
+    }
+    if (alreadyHandled) {
+      continue;
+    }
+
+    NSInteger itemCount = 0;
+    NSRange listRange =
+        [self contiguousOrderedListRangeContaining:NSMakeRange(seed, 0)
+                                         itemCount:&itemCount];
+    [handled addObject:[NSValue valueWithRange:listRange]];
+    [self applyIndentForListRange:listRange itemCount:itemCount];
+  }
+}
+
+// computes the shared marker-column indent for a list of the given item
+// count. The largest marker value equals the item count (numbering starts at 1);
+// if its width overflows the configured margin we expand to fit it
+- (CGFloat)headIndentForItemCount:(NSInteger)itemCount {
   NSString *widestMarker =
-      [NSString stringWithFormat:@"%d.", MAX(itemCount, 1)];
+      [NSString stringWithFormat:@"%d.", (int)MAX(itemCount, 1)];
   CGFloat widestMarkerWidth =
       [widestMarker sizeWithAttributes:@{
         NSFontAttributeName : [self.host.config orderedListMarkerFont]
@@ -36,24 +101,12 @@
 
   CGFloat markerColumnWidth =
       MAX([self.host.config orderedListMarginLeft], widestMarkerWidth);
-  CGFloat listHeadIndent =
-      markerColumnWidth + [self.host.config orderedListGapWidth];
-
-  _appliedHeadIndent = [self.host.config orderedListMarginLeft] +
-         [self.host.config orderedListGapWidth];
+  return markerColumnWidth + [self.host.config orderedListGapWidth];
 }
 
-- (void)applyStyling:(NSRange)range {
-  // lists are drawn manually
-
-  // if the widest counter ("N.") width overflows the initially given margin,
-  // we expand that margin. Every item in the same contiguous list must share
-  // the same column width, so we expand to the full ordered list occurrence and
-  // re-indent all of it - even when only a single paragraph is dirty (e.g. an
-  // item was just added).
-  NSInteger itemCount = 0;
-  NSRange listRange = [self contiguousOrderedListRangeContaining:range
-                                                       itemCount:&itemCount];
+- (void)applyIndentForListRange:(NSRange)listRange
+                      itemCount:(NSInteger)itemCount {
+  CGFloat listHeadIndent = [self headIndentForItemCount:itemCount];
 
   [self.host.textView.textStorage
       enumerateAttribute:NSParagraphStyleAttributeName
@@ -61,10 +114,16 @@
                  options:0
               usingBlock:^(id _Nullable value, NSRange range,
                            BOOL *_Nonnull stop) {
-                NSMutableParagraphStyle *pStyle =
-                    [(NSParagraphStyle *)value mutableCopy];
-                pStyle.headIndent = _appliedHeadIndent;
-                pStyle.firstLineHeadIndent = _appliedHeadIndent;
+                NSParagraphStyle *existing = (NSParagraphStyle *)value;
+                // skip re-styling paragraphs that don't require it
+                if (existing != nullptr &&
+                    existing.headIndent == listHeadIndent &&
+                    existing.firstLineHeadIndent == listHeadIndent) {
+                  return;
+                }
+                NSMutableParagraphStyle *pStyle = [existing mutableCopy];
+                pStyle.headIndent = listHeadIndent;
+                pStyle.firstLineHeadIndent = listHeadIndent;
                 [self.host.textView.textStorage
                     addAttribute:NSParagraphStyleAttributeName
                            value:pStyle
@@ -81,13 +140,19 @@
       [attributes[NSParagraphStyleAttributeName] mutableCopy];
   if (pStyle == nil)
     return;
-  pStyle.headIndent = _appliedHeadIndent;
-  pStyle.firstLineHeadIndent = _appliedHeadIndent;
+
+  NSInteger itemCount = 0;
+  [self contiguousOrderedListRangeContaining:self.host.textView.selectedRange
+                                   itemCount:&itemCount];
+  CGFloat listHeadIndent = [self headIndentForItemCount:itemCount];
+
+  pStyle.headIndent = listHeadIndent;
+  pStyle.firstLineHeadIndent = listHeadIndent;
   attributes[NSParagraphStyleAttributeName] = pStyle;
 }
 
 // walks paragraphs backward and forward from the given range to find the full
-// contiguous run of ordered-list items it belongs to, and counts them.
+// contiguous run of ordered-list items it belongs to, and counts them
 - (NSRange)contiguousOrderedListRangeContaining:(NSRange)range
                                       itemCount:(NSInteger *)outCount {
   NSString *fullText = self.host.textView.textStorage.string;
@@ -106,7 +171,7 @@
 
   NSInteger precedingCount = 0;
 
-  // seek backward over preceding ordered-list paragraphs, counting items.
+  // seek backward over preceding ordered-list paragraphs, counting items
   while (firstParagraph.location > 0) {
     NSRange previous = [fullText
         paragraphRangeForRange:NSMakeRange(firstParagraph.location - 1, 0)];
@@ -117,7 +182,7 @@
     precedingCount += 1;
   }
 
-  // seek forward over following ordered-list paragraphs, counting items.
+  // seek forward over following ordered-list paragraphs, counting items
   NSInteger followingCount = 0;
   NSRange lastParagraph = initialParagraph;
   NSRange cursor = initialParagraph;
