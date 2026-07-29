@@ -10,6 +10,7 @@ export function sanitizeHtml(html: string, config?: SanitizationConfig) {
   return DOMPurify.sanitize(html, {
     ADD_TAGS: ['mention', 'codeblock'],
     ADD_ATTR: MENTION_ATTRS,
+    ADD_URI_SAFE_ATTR: MENTION_ATTRS,
     // if not supplied, fall back to DOMPurify's built-in default.
     ...(config?.linkRegex ? { ALLOWED_URI_REGEXP: config.linkRegex } : {}),
   });

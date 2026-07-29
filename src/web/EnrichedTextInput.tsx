@@ -326,7 +326,7 @@ export const EnrichedTextInput = ({
   );
 
   useMentionEvents(editor, getMentionCallbacks);
-  useOnChangeHtml(editor, onChangeHtml, sanitizationConfig);
+  useOnChangeHtml(editor, () => sanitizationConfigRef.current, onChangeHtml);
   useOnChangeText(editor, onChangeText);
   useOnChangeState(editor, resolvedHtmlStyle, onChangeState);
   useOnLinkDetected(editor, linkEmitterRef);
@@ -357,7 +357,7 @@ export const EnrichedTextInput = ({
         Promise.resolve(
           normalizeHtmlFromTiptap(
             editor.getHTML(),
-            sanitizationConfigRef.current
+            () => sanitizationConfigRef.current
           )
         ),
       toggleBold: () => runFocused(editor, (c) => c.toggleBold()),

@@ -147,4 +147,16 @@ describe('sanitizeHtml with a custom linkRegex', () => {
     // eslint-disable-next-line no-script-url
     expect(out).not.toContain('javascript:');
   });
+
+  it('keeps mention attributes when a custom config is provided', () => {
+    const out = sanitizeHtml(
+      '<mention text="Joe" indicator="@" data-user-id="42">@Joe</mention>',
+      {
+        linkRegex,
+      }
+    );
+    expect(out).toContain('text="Joe"');
+    expect(out).toContain('indicator="@"');
+    expect(out).toContain('data-user-id="42"');
+  });
 });
