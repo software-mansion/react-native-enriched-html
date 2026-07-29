@@ -30,7 +30,7 @@ On web, HTML is sanitized automatically with [DOMPurify](https://github.com/cure
 
 By default, sanitization strips links with non-standard protocols (e.g. `custom://…`). Both `EnrichedText` and `EnrichedTextInput` accept a web-only `sanitizationConfig` prop whose `linkRegex` field lets you control which link URIs survive.
 
-`linkRegex` maps directly to DOMPurify's [`ALLOWED_URI_REGEXP`](https://github.com/cure53/DOMPurify#can-i-configure-dompurify), so it **replaces** the default allow-list rather than extending it — remember to keep the standard protocols you still want to permit:
+`linkRegex` maps directly to DOMPurify's [`ALLOWED_URI_REGEXP`](https://github.com/cure53/DOMPurify#can-i-configure-dompurify), so it **replaces** the default allow-list rather than extending it. Because this regex affects all URI-containing attributes (e.g. `src` in `<img>`), remember to keep the standard protocols you still want to permit:
 
 ```tsx
 <EnrichedText
