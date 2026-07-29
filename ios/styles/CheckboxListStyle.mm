@@ -26,10 +26,19 @@
   return YES;
 }
 
+- (CGFloat)headIndent {
+  return [self.host.config checkboxListMarginLeft] +
+         [self.host.config checkboxListGapWidth] +
+         [self.host.config checkboxListBoxSize];
+}
+
+- (CGFloat)calculateMinimumLineHeight:(CGFloat)currentLineHeight {
+  CGFloat boxSize = [self.host.config checkboxListBoxSize];
+  return MAX(currentLineHeight, boxSize);
+}
+
 - (void)applyStyling:(NSRange)range {
-  CGFloat listHeadIndent = [self.host.config checkboxListMarginLeft] +
-                           [self.host.config checkboxListGapWidth] +
-                           [self.host.config checkboxListBoxSize];
+  CGFloat listHeadIndent = [self headIndent];
 
   [self.host.textView.textStorage
       enumerateAttribute:NSParagraphStyleAttributeName
@@ -41,11 +50,30 @@
                     [(NSParagraphStyle *)value mutableCopy];
                 pStyle.headIndent = listHeadIndent;
                 pStyle.firstLineHeadIndent = listHeadIndent;
+                pStyle.minimumLineHeight =
+                    [self calculateMinimumLineHeight:pStyle.minimumLineHeight];
                 [self.host.textView.textStorage
                     addAttribute:NSParagraphStyleAttributeName
                            value:pStyle
                            range:range];
               }];
+}
+
+- (BOOL)appliesStylingToTyping {
+  return YES;
+}
+
+- (void)applyStylingToTypingAttrs:(NSMutableDictionary *)attributes {
+  NSMutableParagraphStyle *pStyle =
+      [attributes[NSParagraphStyleAttributeName] mutableCopy];
+  if (pStyle == nil)
+    return;
+  CGFloat indent = [self headIndent];
+  pStyle.headIndent = indent;
+  pStyle.firstLineHeadIndent = indent;
+  pStyle.minimumLineHeight =
+      [self calculateMinimumLineHeight:pStyle.minimumLineHeight];
+  attributes[NSParagraphStyleAttributeName] = pStyle;
 }
 
 - (BOOL)styleCondition:(id)value range:(NSRange)range {

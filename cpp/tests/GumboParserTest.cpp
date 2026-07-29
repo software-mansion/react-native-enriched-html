@@ -307,13 +307,20 @@ TEST(GumboParserTest, EnrichedTagRemappings) {
   EXPECT_EQ(
       GumboParser::normalizeHtml(
           "<mention text='@John Doe' indicator='@' id='1'>@John Doe</mention>"),
-      "<mention id=\"1\" text=\"@John Doe\" indicator=\"@\">@John "
+      "<mention text=\"@John Doe\" indicator=\"@\" id=\"1\">@John "
       "Doe</mention>");
   EXPECT_EQ(
       GumboParser::normalizeHtml("<mention text=\"@John Doe\" indicator=\"@\" "
                                  "id=\"1\">@John Doe</mention>"),
-      "<mention id=\"1\" text=\"@John Doe\" indicator=\"@\">@John "
+      "<mention text=\"@John Doe\" indicator=\"@\" id=\"1\">@John "
       "Doe</mention>");
+  // Custom mention attributes are preserved
+  EXPECT_EQ(
+      GumboParser::normalizeHtml(
+          "<mention id=\"1\" text=\"@John Doe\" indicator=\"@\" type=\"user\" "
+          "data-custom=\"custom data\">@John Doe</mention>"),
+      "<mention id=\"1\" text=\"@John Doe\" indicator=\"@\" type=\"user\" "
+      "data-custom=\"custom data\">@John Doe</mention>");
 
   // Link
   EXPECT_EQ(GumboParser::normalizeHtml(
