@@ -285,14 +285,19 @@ describe('htmlNormalizer', () => {
         '<ul data-type="checkbox"><li checked>x</li></ul>',
       ],
 
-      // Mentions (note: cpp reorders attrs to id, text, indicator)
+      // Mentions
       [
         "<mention text='@John Doe' indicator='@' id='1'>@John Doe</mention>",
-        '<mention id="1" text="@John Doe" indicator="@">@John Doe</mention>',
+        '<mention text="@John Doe" indicator="@" id="1">@John Doe</mention>',
       ],
       [
         '<mention text="@John Doe" indicator="@" id="1">@John Doe</mention>',
-        '<mention id="1" text="@John Doe" indicator="@">@John Doe</mention>',
+        '<mention text="@John Doe" indicator="@" id="1">@John Doe</mention>',
+      ],
+      // Custom mention attributes are preserved
+      [
+        '<mention id="1" text="@John Doe" indicator="@" type="user" data-custom="custom data">@John Doe</mention>',
+        '<mention id="1" text="@John Doe" indicator="@" type="user" data-custom="custom data">@John Doe</mention>',
       ],
 
       // Link

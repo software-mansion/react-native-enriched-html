@@ -17,6 +17,10 @@
   margin-bottom: 0;
 }
 
+.et-view p:empty::before {
+  content: '\200B';
+}
+
 .eti-editor p.is-editor-empty:first-child::before {
   color: var(--et-placeholder-text-color, #adb5bd);
   content: attr(data-placeholder);
