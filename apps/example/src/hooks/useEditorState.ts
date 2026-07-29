@@ -43,6 +43,7 @@ export function useEditorState() {
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [isValueModalOpen, setIsValueModalOpen] = useState(false);
+  const [isInsertValueModalOpen, setIsInsertValueModalOpen] = useState(false);
   const [currentHtml, setCurrentHtml] = useState('');
   const [selection, setSelection] = useState<Selection>();
   const [stylesState, setStylesState] = useState<StylesState>(DEFAULT_STYLES);
@@ -91,6 +92,8 @@ export function useEditorState() {
   const closeImageModal = () => setIsImageModalOpen(false);
   const openValueModal = () => setIsValueModalOpen(true);
   const closeValueModal = () => setIsValueModalOpen(false);
+  const openInsertValueModal = () => setIsInsertValueModalOpen(true);
+  const closeInsertValueModal = () => setIsInsertValueModalOpen(false);
 
   const openUserMentionPopup = () => setIsUserPopupOpen(true);
   const closeUserMentionPopup = () => {
@@ -198,6 +201,11 @@ export function useEditorState() {
     closeValueModal();
   };
 
+  const submitInsertValue = (value: string) => {
+    ref.current?.insertValue(value, selection?.start ?? 0, selection?.end ?? 0);
+    closeInsertValueModal();
+  };
+
   const selectImage = async (
     width: number | undefined,
     height: number | undefined,
@@ -247,6 +255,7 @@ export function useEditorState() {
     isLinkModalOpen,
     isImageModalOpen,
     isValueModalOpen,
+    isInsertValueModalOpen,
     isUserPopupOpen,
     isChannelPopupOpen,
     userMention,
@@ -257,6 +266,8 @@ export function useEditorState() {
     closeImageModal,
     openValueModal,
     closeValueModal,
+    openInsertValueModal,
+    closeInsertValueModal,
     handleFocus,
     handleBlur,
     handleClear,
@@ -277,6 +288,7 @@ export function useEditorState() {
     handleSubmitEditingEvent,
     submitLink,
     submitSetValue,
+    submitInsertValue,
     selectImage,
   };
 }
