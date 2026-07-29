@@ -1,3 +1,4 @@
+#import "ColorExtension.h"
 #import "CustomStyleData.h"
 #import "EnrichedTextInputView.h"
 #import "RangeUtils.h"
@@ -55,13 +56,16 @@ static NSString *const CustomStyleAttributeName = @"EnrichedCustomStyle";
 
                 NSMutableDictionary *attrs = [NSMutableDictionary dictionary];
                 if (data.foregroundColor != nil) {
-                  attrs[NSForegroundColorAttributeName] = data.foregroundColor;
-                  attrs[NSUnderlineColorAttributeName] = data.foregroundColor;
+                  attrs[NSForegroundColorAttributeName] =
+                      [data.foregroundColor colorWithResolvedAlpha];
+                  attrs[NSUnderlineColorAttributeName] =
+                      [data.foregroundColor colorWithResolvedAlpha];
                   attrs[NSStrikethroughColorAttributeName] =
-                      data.foregroundColor;
+                      [data.foregroundColor colorWithResolvedAlpha];
                 }
                 if (data.backgroundColor != nil) {
-                  attrs[NSBackgroundColorAttributeName] = data.backgroundColor;
+                  attrs[NSBackgroundColorAttributeName] =
+                      [data.backgroundColor colorWithResolvedAlpha];
                 }
                 if (attrs.count == 0)
                   return;
