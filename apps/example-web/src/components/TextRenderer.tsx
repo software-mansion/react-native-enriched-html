@@ -68,14 +68,6 @@ export function TextRenderer({ htmlValue }: TextRendererProps) {
         onChangeEllipsizeMode={setEllipsizeMode}
         onChangeNumberOfLines={setNumberOfLines}
       />
-      {/*temporary second component to make testing easier*/}
-      <EnrichedText
-        style={enrichedTextStyle}
-        htmlStyle={WEB_DEFAULT_HTML_STYLE}
-        sanitizationConfig={SANITIZATION_CONFIG}
-      >
-        {htmlValue}
-      </EnrichedText>
     </div>
   );
 }
