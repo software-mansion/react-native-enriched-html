@@ -70,6 +70,7 @@ import com.swmansion.enriched.textinput.utils.EnrichedSelection
 import com.swmansion.enriched.textinput.utils.EnrichedSpanState
 import com.swmansion.enriched.textinput.utils.RichContentReceiver
 import com.swmansion.enriched.textinput.utils.ShortcutsHandler
+import com.swmansion.enriched.textinput.utils.isStyleBlockedOnRange
 import com.swmansion.enriched.textinput.utils.mergeSpannables
 import com.swmansion.enriched.textinput.utils.setCheckboxClickListener
 import com.swmansion.enriched.textinput.utils.zwsCountBefore
@@ -477,8 +478,13 @@ class EnrichedTextInputView :
     val currentText = text as Editable
     val textLength = currentText.length
 
+    // Capture active inline styles before setValue, which runs as a transaction and skips the
+    // text watcher style pass that would otherwise materialise them.
+    val activeInlineStyles = EnrichedSpans.inlineSpans.keys.filter { spanState?.getStart(it) != null }
+
     if (textLength == 0) {
       setValue(value)
+      applyActiveInlineStyles(activeInlineStyles, 0, text?.length ?: 0)
       return
     }
 
@@ -488,20 +494,42 @@ class EnrichedTextInputView :
 
     // Skip past ZWS anchors so inserted text lands inside paragraph spans rather than before them.
     var adjustedStart = safeStart
-    while (adjustedStart < currentText.length && currentText[adjustedStart] == EnrichedConstants.ZWS) {
+    while (adjustedStart < textLength && currentText[adjustedStart] == EnrichedConstants.ZWS) {
       adjustedStart++
     }
-    val adjustedEnd = safeEnd + (adjustedStart - safeStart)
+    val adjustedEnd = safeEnd.coerceAtLeast(adjustedStart)
 
     val newText = parseText(value) as Spannable
 
-    val finalText = currentText.mergeSpannables(adjustedStart, adjustedEnd, newText)
+    val finalText = currentText.mergeSpannables(adjustedStart, adjustedEnd, newText, htmlStyle)
     setValue(finalText, false)
 
     // replacement-safe: oldLength - removed + inserted
     val insertedLength = finalText.length - (textLength - (adjustedEnd - adjustedStart))
     val insertedEnd = (adjustedStart + insertedLength).coerceIn(0, finalText.length)
     setSelection(insertedEnd)
+
+    applyActiveInlineStyles(activeInlineStyles, adjustedStart, insertedEnd)
+  }
+
+  /**
+   * Re-applies inline styles that were active before an insertion onto the inserted range,
+   * mirroring what InlineStyles.afterTextChanged does for regularly typed text.
+   */
+  private fun applyActiveInlineStyles(
+    styles: List<String>,
+    start: Int,
+    end: Int,
+  ) {
+    if (styles.isEmpty() || start >= end) return
+    val spannable = text as? Spannable ?: return
+
+    for (style in styles) {
+      if (isStyleBlockedOnRange(style, start, end, spannable, htmlStyle)) continue
+      inlineStyles?.applyStyleOnRange(style, start, end)
+    }
+
+    selection?.validateStyles()
   }
 
   // Helper: Walks through the string skipping ZWSPs to find the Nth visible character
