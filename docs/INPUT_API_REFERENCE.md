@@ -675,6 +675,21 @@ getHTML: () => Promise<string>;
 
 Returns a Promise that resolves with the current HTML content of the input. This is useful when you need to get the HTML on-demand (e.g., when saving) without the performance overhead of continuous HTML parsing via `onChangeHtml`.
 
+### `.insertValue()`
+
+```ts
+insertValue: (value: string, start: number, end: number) => void;
+```
+
+Inserts (or replaces) content at the visible character range `[start, end)`.
+
+- `value: string` - the content to insert. Can be a plain text string or an HTML string wrapped in `<html>…</html>` (e.g. `<html><h2>Hello</h2></html>`).
+- `start: number` - starting index of the range to replace (inclusive). If `start` equals `end`, the content is inserted at that position without replacing anything.
+- `end: number` - ending index of the range to replace (exclusive).
+
+> [!NOTE]
+> Style rules apply to inserted content: if the target style is **blocked** by another currently active style (e.g. bold inside a codeblock), the incoming style is stripped. If the incoming content brings a style that **conflicts** with an existing one, the existing conflicting style is removed. See the [inline](../README.md#inline-tags) and [paragraph](../README.md#paragraph-tags) tag tables for the full conflict and blocking rules.
+
 ### `.setImage()`
 
 ```ts
