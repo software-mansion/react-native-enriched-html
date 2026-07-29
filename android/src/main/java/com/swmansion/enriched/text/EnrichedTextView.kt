@@ -27,6 +27,7 @@ import com.swmansion.enriched.common.EnrichedSpanFlags
 import com.swmansion.enriched.common.GumboNormalizer
 import com.swmansion.enriched.common.parser.EnrichedParser
 import com.swmansion.enriched.common.pixelFromSpOrDp
+import com.swmansion.enriched.common.updateOrderedListColumnMargins
 import com.swmansion.enriched.text.spans.EnrichedTextImageSpan
 import com.swmansion.enriched.text.spans.interfaces.EnrichedTextClickableSpan
 import com.swmansion.enriched.text.spans.interfaces.EnrichedTextSpan
@@ -179,6 +180,7 @@ class EnrichedTextView : AppCompatTextView {
     val parsed = parseText(text, style)
     if (parsed != null) {
       parsedText = parsed
+      (parsed as? Spanned)?.let { updateOrderedListColumnMargins(it, paint) }
       setText(parsed, BufferType.NORMAL)
       observeAsyncImages()
     } else {
@@ -283,6 +285,7 @@ class EnrichedTextView : AppCompatTextView {
     }
 
     if (modified) {
+      updateOrderedListColumnMargins(spannable, paint)
       this.text = spannable
     }
   }

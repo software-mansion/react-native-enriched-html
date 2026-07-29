@@ -4,8 +4,10 @@ import android.text.Editable
 import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.Spanned
+import android.text.style.ParagraphStyle
 import com.swmansion.enriched.common.EnrichedConstants
 import com.swmansion.enriched.common.EnrichedSpanFlags
+import com.swmansion.enriched.common.updateOrderedListColumnMargins
 import com.swmansion.enriched.textinput.EnrichedTextInputView
 import com.swmansion.enriched.textinput.spans.EnrichedInputCheckboxListSpan
 import com.swmansion.enriched.textinput.spans.EnrichedInputOrderedListSpan
@@ -108,13 +110,35 @@ class ListStyles(
     text: Spannable,
     position: Int,
   ) {
-    val spans = text.getSpans(position + 1, text.length, EnrichedInputOrderedListSpan::class.java)
+    val spans = text.getSpans(0, text.length, EnrichedInputOrderedListSpan::class.java)
     val sortedSpans = spans.sortedBy { text.getSpanStart(it) }
     for (span in sortedSpans) {
       val spanStart = text.getSpanStart(span)
       val index = getOrderedListIndex(text, spanStart)
       span.setListIndex(index)
     }
+
+    val marginsChanged = updateOrderedListColumnMargins(text, view.paint)
+
+    // Ordered list margins got updated, so we need to force a re-layout of that list.
+    // Uses the same empty ParagraphStyle trick as EnrichedSpanWatcher.updateNextLineLayout.
+    if (marginsChanged) {
+      forceOrderedListRelayout(text, sortedSpans)
+    }
+  }
+
+  private fun forceOrderedListRelayout(
+    text: Spannable,
+    sortedSpans: List<EnrichedInputOrderedListSpan>,
+  ) {
+    if (sortedSpans.isEmpty()) return
+
+    class EmptySpan : ParagraphStyle
+
+    val start = text.getSpanStart(sortedSpans.first())
+    val end = text.getSpanEnd(sortedSpans.last())
+    val (safeStart, safeEnd) = text.getSafeSpanBoundaries(start, end)
+    text.setSpan(EmptySpan(), safeStart, safeEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
   }
 
   private fun toggleStyle(
