@@ -448,7 +448,6 @@ export interface EnrichedTextInputInstance extends NativeMethods {
    * The promise resolves once the native layer has completed HTML parsing.
    */
   getHTML: () => Promise<string>;
-  insertValue: (value: string, start: number, end: number) => void;
 
   /** Toggles bold on the current selection (or toggles it for future typing if nothing is selected). */
   toggleBold: () => void;
@@ -565,6 +564,13 @@ export interface EnrichedTextInputInstance extends NativeMethods {
   setTextAlignment: (
     alignment: 'left' | 'center' | 'right' | 'justify' | 'auto'
   ) => void;
+
+  /** Inserts (or replaces) content at the visible character range `[start, end)`.
+   * @param value - Content to insert.
+   * @param start - Start index of the range to insert the content at.
+   * @param end - End index of the range to insert the content at.
+   */
+  insertValue: (value: string, start: number, end: number) => void;
 }
 
 export interface ContextMenuItem {

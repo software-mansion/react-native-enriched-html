@@ -1357,19 +1357,21 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
     return;
   }
 
-  NSString *currentText = textView.text;
+  NSString *currentText = textView.textStorage.string;
   NSInteger textLength = currentText.length;
 
   if (textLength == 0) {
     [self setValue:value];
-
     return;
   }
 
+  NSUInteger actualStart = [self getActualIndex:visibleStart text:currentText];
+  NSUInteger actualEnd = [self getActualIndex:visibleEnd text:currentText];
+
   // Use MIN/MAX to ensure indices are within [0, textLength]
   // and that start <= end.
-  NSUInteger start = MIN(MAX(0, (NSUInteger)visibleStart), textLength);
-  NSUInteger end = MIN(MAX(start, (NSUInteger)visibleEnd), textLength);
+  NSUInteger start = MIN(actualStart, textLength);
+  NSUInteger end = MIN(MAX(start, actualEnd), textLength);
   NSRange range = NSMakeRange(start, end - start);
 
   NSString *initiallyProcessedHtml = [parser initiallyProcessHtml:value];
