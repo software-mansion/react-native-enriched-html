@@ -27,7 +27,7 @@ class EnrichedSpanWatcher(
     end: Int,
   ) {
     updateNextLineLayout(what, text, end)
-    updateUnorderedListSpans(what, text, end)
+    updateUnorderedListSpans(what, text)
     emitEvent(text, what)
   }
 
@@ -38,7 +38,7 @@ class EnrichedSpanWatcher(
     end: Int,
   ) {
     updateNextLineLayout(what, text, end)
-    updateUnorderedListSpans(what, text, end)
+    updateUnorderedListSpans(what, text)
     emitEvent(text, what)
   }
 
@@ -56,10 +56,9 @@ class EnrichedSpanWatcher(
   private fun updateUnorderedListSpans(
     what: Any,
     text: Spannable,
-    end: Int,
   ) {
     if (what is EnrichedInputOrderedListSpan) {
-      view.listStyles?.updateOrderedListIndexes(text, end)
+      view.listStyles?.updateOrderedListIndexes(text)
     }
   }
 

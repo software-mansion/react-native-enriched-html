@@ -106,10 +106,7 @@ class ListStyles(
     return true
   }
 
-  fun updateOrderedListIndexes(
-    text: Spannable,
-    position: Int,
-  ) {
+  fun updateOrderedListIndexes(text: Spannable) {
     val spans = text.getSpans(0, text.length, EnrichedInputOrderedListSpan::class.java)
     val sortedSpans = spans.sortedBy { text.getSpanStart(it) }
     for (span in sortedSpans) {
