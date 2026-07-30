@@ -7,7 +7,7 @@ appId: swmansion.enriched.example
     id: 'toggle-screen-button'
 
 - tapOn:
-    id: "editor-input"
+    id: 'editor-input'
 
 # autolinks break on text change or paste
 - runFlow:
@@ -15,7 +15,10 @@ appId: swmansion.enriched.example
     env:
       TEXT: 'swmansion.com'
 
-- doubleTapOn:
+- tapOn:
+    id: 'editor-input'
+    point: '20%, 50%'
+- tapOn:
     id: 'editor-input'
     point: '20%, 50%'
 - tapOn:
@@ -31,10 +34,6 @@ appId: swmansion.enriched.example
     point: '50%, 70%'
 - tapOn:
     text: 'Paste'
-- runFlow:
-    file: '../../subflows/input_text.yaml'
-    env:
-      TEXT: 'm'
 
 - pressKey: Enter
 - runFlow:
@@ -58,7 +57,10 @@ appId: swmansion.enriched.example
     env:
       VALUE: '<html><p><a href="example.com">example.com</a></p></html>'
 
-- doubleTapOn:
+- tapOn:
+    id: 'editor-input'
+    point: '20%, 50%'
+- tapOn:
     id: 'editor-input'
     point: '20%, 50%'
 - tapOn:

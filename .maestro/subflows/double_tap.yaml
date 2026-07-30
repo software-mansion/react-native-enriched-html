@@ -1,0 +1,23 @@
+appId: swmansion.enriched.example
+---
+# Double-taps on an element to trigger word selection / context menu.
+# iOS supports doubleTapOn natively; Android requires two consecutive taps.
+
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - doubleTapOn:
+          id: ${ID}
+          point: ${POINT}
+
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - tapOn:
+          id: ${ID}
+          point: ${POINT}
+      - tapOn:
+          id: ${ID}
+          point: ${POINT}

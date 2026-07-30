@@ -22,12 +22,11 @@ appId: swmansion.enriched.example
 - tapOn:
     id: 'toolbar-code-block'
 
-- tapOn:
-    id: 'editor-input'
-    point: '10%, 30%'
-- tapOn:
-    id: 'editor-input'
-    point: '10%, 30%'
+- runFlow:
+    file: '../../subflows/double_tap.yaml'
+    env:
+      ID: 'editor-input'
+      POINT: '10%, 30%'
 
 - tapOn:
     text: 'Copy'

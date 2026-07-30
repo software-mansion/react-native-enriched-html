@@ -13,12 +13,11 @@ tags:
     file: '../../subflows/input_text.yaml'
     env:
       TEXT: 'EADING'
-- tapOn:
-    id: 'editor-input'
-    point: '10%, 50%'
-- tapOn:
-    id: 'editor-input'
-    point: '10%, 50%'
+- runFlow:
+    file: '../../subflows/double_tap.yaml'
+    env:
+      ID: 'editor-input'
+      POINT: '10%, 50%'
 
 - tapOn:
     id: 'android:id/floating_toolbar_menu_item_text'
