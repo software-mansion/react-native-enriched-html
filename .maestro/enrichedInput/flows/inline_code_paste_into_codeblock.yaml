@@ -15,6 +15,31 @@ appId: swmansion.enriched.example
     file: '../../subflows/input_text.yaml'
     env:
       TEXT: 'code'
+
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - doubleTapOn:
+          id: 'editor-input'
+          point: '10%, 30%'
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - tapOn:
+          id: 'editor-input'
+          point: '10%, 30%'
+      - tapOn:
+          id: 'editor-input'
+          point: '10%, 30%'
+
+- tapOn:
+    text: 'Copy'
+- tapOn:
+    id: 'editor-input'
+    point: '70%, 30%'
+
 - tapOn:
     id: 'toolbar-inline-code'
 
@@ -23,21 +48,19 @@ appId: swmansion.enriched.example
     id: 'toolbar-code-block'
 
 - runFlow:
-    file: '../../subflows/double_tap.yaml'
-    env:
-      ID: 'editor-input'
-      POINT: '10%, 30%'
-
-- tapOn:
-    text: 'Copy'
-
-- tapOn:
-    id: 'editor-input'
-    point: '10%, 70%'
-
-- longPressOn:
-    id: 'editor-input'
-    point: '10%, 70%'
+    when:
+      platform: iOS
+    commands:
+      - doubleTapOn:
+          id: 'editor-input'
+          point: '10%, 70%'
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - longPressOn:
+          id: 'editor-input'
+          point: '10%, 70%'
 
 - tapOn:
     text: 'Paste'

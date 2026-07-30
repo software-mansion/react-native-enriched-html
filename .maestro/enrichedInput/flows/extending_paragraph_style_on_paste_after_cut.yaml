@@ -14,10 +14,22 @@ tags:
     env:
       TEXT: 'EADING'
 - runFlow:
-    file: '../../subflows/double_tap.yaml'
-    env:
-      ID: 'editor-input'
-      POINT: '10%, 50%'
+    when:
+      platform: iOS
+    commands:
+      - doubleTapOn:
+          id: 'editor-input'
+          point: '10%, 50%'
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - tapOn:
+          id: 'editor-input'
+          point: '10%, 50%'
+      - tapOn:
+          id: 'editor-input'
+          point: '10%, 50%'
 
 - tapOn:
     id: 'android:id/floating_toolbar_menu_item_text'

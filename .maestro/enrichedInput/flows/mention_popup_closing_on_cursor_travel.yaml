@@ -5,44 +5,49 @@ appId: swmansion.enriched.example
 - launchApp
 
 - tapOn:
-    id: "toggle-screen-button"
+    id: 'toggle-screen-button'
 
 - tapOn:
-    id: "editor-input"
+    id: 'editor-input'
 
 - runFlow:
-    file: '../../subflows/input_text.yaml'
+    file: '../subflows/set_editor_value.yaml'
     env:
-      TEXT: "mentions #gen @J"
+      VALUE: 'mentions #gen @J'
+
+- waitForAnimationToEnd
 
 # user popup visible
 - runFlow:
-    file: "../subflows/capture_or_assert_fullscreen_screenshot.yaml"
+    file: '../subflows/capture_or_assert_fullscreen_screenshot.yaml'
     env:
-      SCREENSHOT_NAME: "mention_popup_closing_on_cursor_travel_1"
+      SCREENSHOT_NAME: 'mention_popup_closing_on_cursor_travel_1'
 
 - tapOn:
-    id: "focus-button"
+    id: 'focus-button'
 
 - tapOn:
-    id: "editor-input"
-    point: "30%, 50%"
+    id: 'editor-input'
+    point: '30%, 50%'
+
+- waitForAnimationToEnd
 
 # channel popup visible
 - runFlow:
-    file: "../subflows/capture_or_assert_fullscreen_screenshot.yaml"
+    file: '../subflows/capture_or_assert_fullscreen_screenshot.yaml'
     env:
-      SCREENSHOT_NAME: "mention_popup_closing_on_cursor_travel_2"
+      SCREENSHOT_NAME: 'mention_popup_closing_on_cursor_travel_2'
 
 - tapOn:
-    id: "focus-button"
+    id: 'focus-button'
 
 - tapOn:
-    id: "editor-input"
-    point: "10%, 50%"
+    id: 'editor-input'
+    point: '10%, 50%'
 
+- waitForAnimationToEnd
 # no popup visible
 - runFlow:
-    file: "../subflows/capture_or_assert_fullscreen_screenshot.yaml"
+    file: '../subflows/capture_or_assert_fullscreen_screenshot.yaml'
     env:
-      SCREENSHOT_NAME: "mention_popup_closing_on_cursor_travel_3"
+      SCREENSHOT_NAME: 'mention_popup_closing_on_cursor_travel_3'

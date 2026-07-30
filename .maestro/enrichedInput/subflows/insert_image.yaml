@@ -1,20 +1,20 @@
-appId: swmansion.enriched.example
----
+# TODO: uncomment when bug: https://github.com/devicelab-dev/maestro-runner/issues/131 will be fixed
+# appId: swmansion.enriched.example
+# ---
+# - tapOn:
+#     id: 'toolbar-image'
 
-- tapOn:
-    id: "toolbar-image"
+# - waitForAnimationToEnd
+# - extendedWaitUntil:
+#     visible:
+#       id: 'image-modal-submit-button'
+#     timeout: 10000
 
-- waitForAnimationToEnd
-- extendedWaitUntil:
-    visible:
-      id: "image-modal-submit-button"
-    timeout: 10000
+# - addMedia:
+#     - "../../assets/sample_image.jpg"
 
-- addMedia:
-    - "../../assets/sample_image.jpg"
+# - tapOn:
+#     id: 'image-modal-submit-button'
 
-- tapOn:
-    id: "image-modal-submit-button"
-
-- runFlow:
-    file: "pick_first_image.yaml"
+# - runFlow:
+#     file: 'pick_first_image.yaml'

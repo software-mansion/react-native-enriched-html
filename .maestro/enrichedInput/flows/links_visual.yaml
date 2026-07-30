@@ -15,12 +15,23 @@ appId: swmansion.enriched.example
     env:
       TEXT: 'swmansion.com'
 
-- tapOn:
-    id: 'editor-input'
-    point: '20%, 50%'
-- tapOn:
-    id: 'editor-input'
-    point: '20%, 50%'
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - doubleTapOn:
+          id: 'editor-input'
+          point: '20%, 50%'
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - tapOn:
+          id: 'editor-input'
+          point: '20%, 50%'
+      - tapOn:
+          id: 'editor-input'
+          point: '20%, 50%'
 - tapOn:
     text: 'Copy'
 
@@ -35,16 +46,10 @@ appId: swmansion.enriched.example
 - tapOn:
     text: 'Paste'
 
-- pressKey: Enter
 - runFlow:
     file: '../../subflows/input_text.yaml'
     env:
-      TEXT: 'swm'
-- longPressOn:
-    id: 'editor-input'
-    point: '50%, 75%'
-- tapOn:
-    text: 'Paste'
+      TEXT: 'm'
 
 - runFlow:
     file: '../subflows/capture_or_assert_screenshot.yaml'
@@ -57,12 +62,23 @@ appId: swmansion.enriched.example
     env:
       VALUE: '<html><p><a href="example.com">example.com</a></p></html>'
 
-- tapOn:
-    id: 'editor-input'
-    point: '20%, 50%'
-- tapOn:
-    id: 'editor-input'
-    point: '20%, 50%'
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - doubleTapOn:
+          id: 'editor-input'
+          point: '20%, 50%'
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - tapOn:
+          id: 'editor-input'
+          point: '20%, 50%'
+      - tapOn:
+          id: 'editor-input'
+          point: '20%, 50%'
 - tapOn:
     text: 'Copy'
 
