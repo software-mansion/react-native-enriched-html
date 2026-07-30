@@ -81,8 +81,8 @@ This ensures untrusted markup can't inject scripts or unsafe attributes into the
 
 :::note
 
-Sanitization can be customized with the `sanitizationConfig` prop. It allows to set a `linkRegex` that
-will define which `href` attributes will actually be preserved by the sanitizer.
+Sanitization can be customized with the `sanitizationConfig` prop. It allows you to set a `linkRegex` that
+will define, which URI-containing attributes will actually be preserved by the sanitizer.
 
 :::
 
