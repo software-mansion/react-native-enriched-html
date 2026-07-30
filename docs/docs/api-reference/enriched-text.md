@@ -104,11 +104,13 @@ interface SanitizationConfig {
 ```
 
 - `linkRegex` - a regular expression deciding which link URIs survive
-  sanitization. It maps directly to DOMPurify's
-  [`ALLOWED_URI_REGEXP`](https://github.com/cure53/DOMPurify#can-i-configure-dompurify),
-  so it **replaces** the default allow-list rather than extending it. Include the
-  standard protocols you still want to permit alongside any custom scheme. When omitted,
-  DOMPurify's built-in default is used.
+  sanitization.
+
+:::caution
+
+`linkRegex` maps directly to DOMPurify's [`ALLOWED_URI_REGEXP`](https://github.com/cure53/DOMPurify#can-i-configure-dompurify), so it **replaces** the default allow-list rather than extending it. Because this regex affects all URI-containing attributes (e.g. `src` in `<img>`), remember to keep the standard protocols you still want to permit.
+
+:::
 
 ```tsx
 <EnrichedText
