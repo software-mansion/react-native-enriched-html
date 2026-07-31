@@ -88,8 +88,8 @@
 }
 
 // computes the shared marker-column indent for a list of the given item
-// count. The largest marker value equals the item count (numbering starts at 1);
-// if its width overflows the configured margin we expand to fit it
+// count. The largest marker value equals the item count (numbering starts
+// at 1); if its width overflows the configured margin we expand to fit it
 - (CGFloat)headIndentForItemCount:(NSInteger)itemCount {
   NSString *widestMarker =
       [NSString stringWithFormat:@"%d.", (int)MAX(itemCount, 1)];
@@ -141,13 +141,27 @@
   if (pStyle == nil)
     return;
 
-  NSInteger itemCount = 0;
-  [self contiguousOrderedListRangeContaining:self.host.textView.selectedRange
-                                   itemCount:&itemCount];
-  CGFloat listHeadIndent = [self headIndentForItemCount:itemCount];
+  NSUInteger location = self.host.textView.selectedRange.location;
+  NSUInteger length = self.host.textView.textStorage.length;
 
-  pStyle.headIndent = listHeadIndent;
-  pStyle.firstLineHeadIndent = listHeadIndent;
+  if (location < length) {
+    // applying styling to typing attributes always happen after applying
+    // the styles, so we can lookup the existing style for the indent
+    NSParagraphStyle *existingStyle =
+        [self.host.textView.textStorage attribute:NSParagraphStyleAttributeName
+                                          atIndex:location
+                                   effectiveRange:NULL];
+
+    if (existingStyle) {
+      pStyle.headIndent = existingStyle.headIndent;
+      pStyle.firstLineHeadIndent = existingStyle.firstLineHeadIndent;
+    }
+  } else {
+    CGFloat fallbackIndent = [self headIndentForItemCount:1];
+    pStyle.headIndent = fallbackIndent;
+    pStyle.firstLineHeadIndent = fallbackIndent;
+  }
+
   attributes[NSParagraphStyleAttributeName] = pStyle;
 }
 
