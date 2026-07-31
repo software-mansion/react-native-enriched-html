@@ -7,7 +7,13 @@ import {
   type CSSProperties,
 } from 'react';
 import './EnrichedText.css';
-import type { Node } from '@tiptap/pm/model';
+import type { Fragment, Node } from '@tiptap/pm/model';
+import { createNodeFromContent } from '@tiptap/core';
+import {
+  insertBlockContent,
+  applyMarksToContent,
+  isPlainEmptyDoc,
+} from './insertBlockContent';
 import type {
   EnrichedTextInputInstance,
   EnrichedTextInputProps,
@@ -369,7 +375,61 @@ export const EnrichedTextInput = ({
       measureInWindow: () => {},
       measureLayout: () => {},
       setNativeProps: () => {},
-      insertValue: () => {},
+      insertValue: (value: string, start: number, end: number) => {
+        if (!value) return;
+
+        const doc = editor.state.doc;
+        const docLength = nativeLeafText(doc, 0, doc.content.size).length;
+
+        if (docLength === 0 && isPlainEmptyDoc(doc)) {
+          editor.commands.setContent(
+            prepareHtmlForTiptap(value, useHtmlNormalizerRef.current)
+          );
+          return;
+        }
+
+        const from = nativePosToTiptapPos(doc, Math.min(start, docLength));
+        const to = nativePosToTiptapPos(
+          doc,
+          Math.min(Math.max(start, end), docLength)
+        );
+        const content = prepareHtmlForTiptap(
+          value,
+          useHtmlNormalizerRef.current
+        );
+
+        const parsedRaw = createNodeFromContent(content, editor.schema, {
+          parseOptions: { preserveWhitespace: 'full' as const },
+        }) as Fragment;
+
+        // Inherit the editor's active inline styles (toggled marks or the marks at the
+        // caret) so inserted text picks them up.
+        const activeMarks =
+          editor.state.storedMarks ?? editor.state.selection.$head.marks();
+        const parsed = applyMarksToContent(parsedRaw, activeMarks);
+
+        const blocks: Node[] = [];
+        parsed.forEach((node) => blocks.push(node));
+
+        const hasBlockContent = blocks.some((n) => n.isBlock);
+
+        // Inline-only content (plain text, marks) inserts cleanly at the caret.
+        if (!hasBlockContent) {
+          editor.chain().focus().insertContentAt({ from, to }, parsed).run();
+          return;
+        }
+
+        // Block content merges the incoming blocks with the current line.
+        // Fall back to TipTap's insertion when the surrounding
+        // structure can't accept the reconstructed blocks.
+        const tr = editor.state.tr;
+        if (insertBlockContent(tr, from, to, blocks)) {
+          editor.view.focus();
+          editor.view.dispatch(tr);
+        } else {
+          editor.chain().focus().insertContentAt({ from, to }, parsed).run();
+        }
+      },
       setTextAlignment: (alignment) => {
         if (alignment === 'auto') {
           runFocused(editor, (c) => c.unsetTextAlign());
