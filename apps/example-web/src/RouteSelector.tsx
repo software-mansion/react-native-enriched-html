@@ -5,6 +5,7 @@ import { TestSetSelection } from './testScreens/TestSetSelection';
 import { VisualRegression } from './testScreens/VisualRegression';
 import { TestSubmitProps } from './testScreens/TestSubmitProps';
 import { TestEnrichedText } from './testScreens/TestEnrichedText';
+import { TestInsertValue } from './testScreens/TestInsertValue';
 import { useEffect, useState } from 'react';
 
 export default function RouteSelector() {
@@ -43,6 +44,10 @@ export default function RouteSelector() {
 
   if (path === '/test-enriched-text') {
     return <TestEnrichedText />;
+  }
+
+  if (path === '/test-insert-value') {
+    return <TestInsertValue />;
   }
 
   return <App />;
