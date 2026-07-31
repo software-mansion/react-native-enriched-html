@@ -1,97 +1,90 @@
 appId: swmansion.enriched.example
-# Tests basic scrollability 
+# Tests basic scrollability
 ---
-
 - launchApp
 
 - tapOn:
-    id: "toggle-screen-button"
+    id: 'toggle-screen-button'
 
 - tapOn:
-    id: "editor-input"
+    id: 'editor-input'
 
 - runFlow:
     file: '../../subflows/input_text.yaml'
     env:
-      TEXT: "Line one"
+      TEXT: 'Line one'
 - pressKey: Enter
 - runFlow:
     file: '../../subflows/input_text.yaml'
     env:
-      TEXT: "Line two"
+      TEXT: 'Line two'
 - pressKey: Enter
 - runFlow:
     file: '../../subflows/input_text.yaml'
     env:
-      TEXT: "Line three"
+      TEXT: 'Line three'
 - pressKey: Enter
 - runFlow:
     file: '../../subflows/input_text.yaml'
     env:
-      TEXT: "Line four"
+      TEXT: 'Line four'
 - pressKey: Enter
 - runFlow:
     file: '../../subflows/input_text.yaml'
     env:
-      TEXT: "Line five"
+      TEXT: 'Line five'
 - pressKey: Enter
 - runFlow:
     file: '../../subflows/input_text.yaml'
     env:
-      TEXT: "Line six"
+      TEXT: 'Line six'
 - pressKey: Enter
 - runFlow:
     file: '../../subflows/input_text.yaml'
     env:
-      TEXT: "Line seven"
+      TEXT: 'Line seven'
 - pressKey: Enter
 - runFlow:
     file: '../../subflows/input_text.yaml'
     env:
-      TEXT: "Line eight"
+      TEXT: 'Line eight'
 - pressKey: Enter
 - runFlow:
     file: '../../subflows/input_text.yaml'
     env:
-      TEXT: "Line nine"
+      TEXT: 'Line nine'
 - pressKey: Enter
 - runFlow:
     file: '../../subflows/input_text.yaml'
     env:
-      TEXT: "Line ten"
-
-- runFlow:
-    file: "../subflows/capture_or_assert_screenshot.yaml"
-    env:
-      SCREENSHOT_NAME: "scroll_after_typing_long_content_bottom"
-
-- tapOn:
-    id: "focus-button"
+      TEXT: 'Line ten'
 
 - swipe:
     from:
-      id: "editor-input"
+      id: 'editor-input'
     direction: DOWN
 
 - waitForAnimationToEnd
 
 - runFlow:
-    file: "../subflows/capture_or_assert_screenshot.yaml"
+    file: '../subflows/capture_or_assert_screenshot.yaml'
     env:
-      SCREENSHOT_NAME: "scroll_after_typing_long_content_top"
+      SCREENSHOT_NAME: 'scroll_after_typing_long_content_top'
 
 - tapOn:
-    id: "editor-input"
-    point: "0%,0%"
+    id: 'editor-input'
+    point: '0%,0%'
 
 - swipe:
     from:
-      id: "editor-input"
+      id: 'editor-input'
     direction: UP
 
+- tapOn:
+    id: 'blur-button'
 - waitForAnimationToEnd
 
 - runFlow:
-    file: "../subflows/capture_or_assert_screenshot.yaml"
+    file: '../subflows/capture_or_assert_screenshot.yaml'
     env:
-      SCREENSHOT_NAME: "scroll_after_typing_long_content_bottom"
+      SCREENSHOT_NAME: 'scroll_after_typing_long_content_bottom'
