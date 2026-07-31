@@ -4,8 +4,6 @@ export function prepareHtmlForWeb(
   html: string,
   useHtmlNormalizer: boolean | undefined
 ): string {
-  if (typeof DOMParser === 'undefined') return html;
-
   if (useHtmlNormalizer) {
     html = normalizeHtml(html);
   }

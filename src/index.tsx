@@ -3,6 +3,7 @@ export { EnrichedText } from './web/EnrichedText';
 export type {
   EnrichedInputStyle,
   EnrichedTextInputProps,
+  EnrichedTextProps,
   OnChangeTextEvent,
   OnChangeHtmlEvent,
   OnChangeStateEvent,
@@ -23,4 +24,5 @@ export type {
   EnrichedTextHtmlStyle,
   OnMentionPressEvent,
   OnLinkPressEvent,
+  TextShortcut,
 } from './types';

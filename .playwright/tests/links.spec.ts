@@ -479,7 +479,7 @@ test.describe('test-links copy-paste', () => {
 
     await setTestLinksEditorHtml(
       page,
-      '<html><p><a href="custom://link">custom://link</a></p></html>'
+      '<html><p><a href="/custom-link">/custom-link</a></p></html>'
     );
 
     await copyWholeContent(editor);
@@ -488,7 +488,7 @@ test.describe('test-links copy-paste', () => {
 
     await expect
       .poll(async () => getTestLinksSerializedHtml(page))
-      .toContain('<a href="custom://link">custom://link</a>');
+      .toContain('<a href="/custom-link">/custom-link</a>');
   });
 });
 
