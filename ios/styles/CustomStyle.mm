@@ -56,12 +56,10 @@ static NSString *const CustomStyleAttributeName = @"EnrichedCustomStyle";
 
                 NSMutableDictionary *attrs = [NSMutableDictionary dictionary];
                 if (data.foregroundColor != nil) {
-                  attrs[NSForegroundColorAttributeName] =
-                      [data.foregroundColor colorWithResolvedAlpha];
-                  attrs[NSUnderlineColorAttributeName] =
-                      [data.foregroundColor colorWithResolvedAlpha];
+                  attrs[NSForegroundColorAttributeName] = data.foregroundColor;
+                  attrs[NSUnderlineColorAttributeName] = data.foregroundColor;
                   attrs[NSStrikethroughColorAttributeName] =
-                      [data.foregroundColor colorWithResolvedAlpha];
+                      data.foregroundColor;
                 }
                 if (data.backgroundColor != nil) {
                   attrs[NSBackgroundColorAttributeName] =
