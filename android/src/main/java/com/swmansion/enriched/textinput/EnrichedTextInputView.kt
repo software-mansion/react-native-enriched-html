@@ -146,6 +146,7 @@ class EnrichedTextInputView :
   private var defaultValueDirty: Boolean = false
 
   private var inputMethodManager: InputMethodManager? = null
+  private var enrichedInputConnection: EnrichedTextInputConnectionWrapper? = null
   private val spannableFactory = EnrichedTextInputSpannableFactory()
   private var contextMenuItems: List<Pair<Int, String>> = emptyList()
 
@@ -199,6 +200,7 @@ class EnrichedTextInputView :
         )
     }
 
+    enrichedInputConnection = inputConnection as? EnrichedTextInputConnectionWrapper
     return inputConnection
   }
 
@@ -932,6 +934,10 @@ class EnrichedTextInputView :
   fun verifyAndToggleStyle(name: String) {
     val isValid = verifyStyle(name)
     if (!isValid) return
+
+    if (name in EnrichedSpans.inlineSpans) {
+      enrichedInputConnection?.preserveInlineStylesForCurrentComposition()
+    }
 
     val (rangeStart, rangeEnd) = getTargetRange(name)
 
