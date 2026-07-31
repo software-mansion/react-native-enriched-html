@@ -140,7 +140,7 @@ set_font_scale default
 
 # maestro-runner exits non-zero when the tag filter matches zero flows. That's
 # not a real failure for us (e.g. running a single flow that has no
-# accessibility variant), and letting it propagate aborts latter test suites.
+# accessibility variant), and letting it propagate aborts later test suites.
 run_maestro() {
   local tmp rc
   tmp=$(mktemp)
