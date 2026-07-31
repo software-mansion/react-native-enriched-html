@@ -593,6 +593,25 @@ export interface OnChangeMentionEvent {
 }
 
 /**
+ * Web-only configuration for the HTML sanitization step.
+ *
+ * @platform web
+ */
+export interface SanitizationConfig {
+  /**
+   * Regular expression used to decide which link URIs survive sanitization.
+   * Maps directly to DOMPurify's `ALLOWED_URI_REGEXP`, so it fully replaces
+   * the default allow-list rather than extending it — include the standard
+   * protocols you still want to permit in addition to any custom ones.
+   *
+   * When omitted, DOMPurify's built-in default is used.
+   *
+   * @platform web
+   */
+  linkRegex?: RegExp;
+}
+
+/**
  * Props for the `<EnrichedTextInput />` rich-text editor component.
  */
 export interface EnrichedTextInputProps extends Omit<ViewProps, 'children'> {
@@ -770,6 +789,13 @@ export interface EnrichedTextInputProps extends Omit<ViewProps, 'children'> {
   useHtmlNormalizer?: boolean;
 
   /**
+   * Web-only configuration for the HTML sanitization step.
+   *
+   * @platform web
+   */
+  sanitizationConfig?: SanitizationConfig;
+
+  /**
    * If true, fonts will scale to respect the system's accessibility text size.
    * Enabled by default.
    */
@@ -810,6 +836,13 @@ export interface EnrichedTextProps extends ViewProps {
    * before being rendered. Enabled by default.
    */
   useHtmlNormalizer?: boolean;
+
+  /**
+   * Web-only configuration for the HTML sanitization step.
+   *
+   * @platform web
+   */
+  sanitizationConfig?: SanitizationConfig;
 
   /**
    * How to truncate text when it overflows `numberOfLines`.

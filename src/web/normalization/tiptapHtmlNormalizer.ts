@@ -1,3 +1,5 @@
+import { sanitizeHtml } from '../sanitization/htmlSanitizer';
+import type { SanitizationConfig } from '../../types';
 import {
   checkboxHtmlForTiptap,
   checkboxHtmlFromTiptap,
@@ -6,8 +8,10 @@ import { normalizeHtml } from './htmlNormalizer';
 
 export function prepareHtmlForTiptap(
   html: string,
-  useHtmlNormalizer: boolean | undefined
+  useHtmlNormalizer: boolean | undefined,
+  sanitizationConfig?: SanitizationConfig
 ): string {
+  html = sanitizeHtml(html, sanitizationConfig);
   if (useHtmlNormalizer) {
     html = normalizeHtml(html);
   }
@@ -16,7 +20,12 @@ export function prepareHtmlForTiptap(
   return html;
 }
 
-export function normalizeHtmlFromTiptap(html: string): string {
+export function normalizeHtmlFromTiptap(
+  html: string,
+  getSanitizationConfig: () => SanitizationConfig | undefined
+): string {
+  const sanitizationConfig = getSanitizationConfig();
+  html = sanitizeHtml(html, sanitizationConfig);
   html = checkboxHtmlFromTiptap(html);
 
   // Strip <p> wrappers inside <li> elements.

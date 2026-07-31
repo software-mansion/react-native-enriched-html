@@ -124,6 +124,27 @@ test.describe('visual: complex lists and layouts', () => {
   });
 });
 
+test.describe('visual: extended ordered list margin', () => {
+  test('ordered list adds a necessary margin to fit larger marker values', async ({
+    page,
+  }) => {
+    const htmlBefore = `<html><ol>${'<li>*</li>'.repeat(9)}</ol></html>`;
+
+    await gotoTestEnrichedText(page);
+    await setEnrichedTextValue(page, htmlBefore);
+    await expect(displayLocator(page)).toHaveScreenshot(
+      'enriched-text-ordered-list-extended-margin-before.png'
+    );
+
+    const htmlAfter = `<html><ol>${'<li>*</li>'.repeat(10)}</ol></html>`;
+
+    await setEnrichedTextValue(page, htmlAfter);
+    await expect(displayLocator(page)).toHaveScreenshot(
+      'enriched-text-ordered-list-extended-margin-after.png'
+    );
+  });
+});
+
 test.describe('visual: typography, blocks, and wrapping', () => {
   const cases = [
     {

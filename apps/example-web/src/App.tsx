@@ -38,6 +38,10 @@ const DEFAULT_LINK_STATE: OnLinkDetected = {
 const LINK_REGEX =
   /^(?:enriched:\/\/\S+|(?:https?:\/\/)?(?:www\.)?swmansion\.com(?:\/\S*)?)$/i;
 
+const SANITIZATION_CONFIG = {
+  linkRegex: LINK_REGEX,
+};
+
 function App() {
   const ref = useRef<EnrichedTextInputInstance>(null);
   const [currentHtml, setCurrentHtml] = useState('');
@@ -121,16 +125,16 @@ function App() {
 
   const handleUserMentionSelected = (item: MentionItem) => {
     ref.current?.setMention('@', `@${item.name}`, {
-      id: item.id,
-      type: 'user',
+      'id': item.id,
+      'data-type': 'user',
     });
     closeUserMentionPopup();
   };
 
   const handleChannelMentionSelected = (item: MentionItem) => {
     ref.current?.setMention('#', `#${item.name}`, {
-      id: item.id,
-      type: 'channel',
+      'id': item.id,
+      'data-type': 'channel',
     });
     closeChannelMentionPopup();
   };
@@ -278,6 +282,7 @@ function App() {
           mentionIndicators={['@', '#']}
           htmlStyle={WEB_DEFAULT_HTML_STYLE}
           linkRegex={LINK_REGEX}
+          sanitizationConfig={SANITIZATION_CONFIG}
         />
         <MentionPopup
           variant="user"
