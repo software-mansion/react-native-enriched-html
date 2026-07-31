@@ -110,7 +110,7 @@ export const htmlStyle = {
     },
   },
   ol: {
-    gapWidth: 32,
+    gapWidth: 16,
     marginLeft: 16,
     markerColor: 'navy',
     markerFontWeight: 'bold',
