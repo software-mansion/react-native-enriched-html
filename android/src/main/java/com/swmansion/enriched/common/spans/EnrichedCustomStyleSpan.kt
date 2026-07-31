@@ -15,7 +15,7 @@ open class EnrichedCustomStyleSpan(
   fun getBackgroundColor(): Int? = backgroundColor
 
   override fun updateDrawState(textPaint: TextPaint) {
-    foregroundColor?.let { textPaint.color = withOpacity(it, 80) }
+    foregroundColor?.let { textPaint.color = it }
     backgroundColor?.let { textPaint.bgColor = withOpacity(it, 80) }
   }
 
