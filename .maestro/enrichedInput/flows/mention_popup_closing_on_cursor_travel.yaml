@@ -15,8 +15,6 @@ appId: swmansion.enriched.example
     env:
       VALUE: 'mentions #gen @J'
 
-- waitForAnimationToEnd
-
 # user popup visible
 - runFlow:
     file: '../subflows/capture_or_assert_fullscreen_screenshot.yaml'
@@ -29,8 +27,6 @@ appId: swmansion.enriched.example
 - tapOn:
     id: 'editor-input'
     point: '30%, 50%'
-
-- waitForAnimationToEnd
 
 # channel popup visible
 - runFlow:
@@ -45,7 +41,6 @@ appId: swmansion.enriched.example
     id: 'editor-input'
     point: '10%, 50%'
 
-- waitForAnimationToEnd
 # no popup visible
 - runFlow:
     file: '../subflows/capture_or_assert_fullscreen_screenshot.yaml'
