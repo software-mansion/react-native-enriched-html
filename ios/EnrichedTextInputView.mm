@@ -1338,7 +1338,11 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
 }
 
 - (void)deleteAtSelection {
-  UITextRange *selectedRange = self.textView.selectedTextRange;
+  UITextRange *selectedRange = textView.selectedTextRange;
+
+  if (selectedRange == nil) {
+    return;
+  }
 
   if (selectedRange.empty) {
     [self.textView deleteBackward];

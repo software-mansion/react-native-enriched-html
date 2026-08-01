@@ -1007,8 +1007,8 @@ class EnrichedTextInputView :
 
   fun deleteAtSelection() {
     runAsATransaction {
-      val start = selectionStart
-      val end = selectionEnd
+      val start = selectionStart.coerceAtLeast(0)
+      val end = selectionEnd.coerceAtLeast(0)
 
       if (start != end) {
         text?.delete(start, end)
