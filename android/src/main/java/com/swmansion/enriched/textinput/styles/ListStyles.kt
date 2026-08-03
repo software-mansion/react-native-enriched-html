@@ -4,7 +4,6 @@ import android.text.Editable
 import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.Spanned
-import android.text.style.ParagraphStyle
 import com.swmansion.enriched.common.EnrichedConstants
 import com.swmansion.enriched.common.EnrichedSpanFlags
 import com.swmansion.enriched.common.updateOrderedListColumnMargins

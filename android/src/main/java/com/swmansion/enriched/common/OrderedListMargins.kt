@@ -7,7 +7,6 @@ import com.swmansion.enriched.common.spans.EnrichedOrderedListSpan
 import com.swmansion.enriched.textinput.utils.getSafeSpanBoundaries
 
 // Recomputes the shared marker column width for every ordered-list item.
-// Returns true when any item's column width changed, so callers can force a relayout.
 fun updateOrderedListColumnMargins(
   text: Spannable,
   paint: Paint,
@@ -15,36 +14,59 @@ fun updateOrderedListColumnMargins(
   val spans = text.getSpans(0, text.length, EnrichedOrderedListSpan::class.java)
   val sortedSpans = spans.sortedBy { text.getSpanStart(it) }
 
-  var changed = false
+  val changedLists = mutableSetOf<MutableList<EnrichedOrderedListSpan>>()
+  var currentList = mutableListOf<EnrichedOrderedListSpan>()
+  var currentListChanged = false
   var previousIndex = 0
   var highestIndex = 0
-  for (span in sortedSpans.reversed()) {
-    val currentIndex = span.index
-    if (currentIndex > previousIndex) {
-      highestIndex = currentIndex
-    }
-    if (span.updateColumnMargin(paint, highestIndex)) changed = true
 
-    previousIndex = currentIndex
+  for (span in sortedSpans.reversed()) {
+    if (span.index > previousIndex) {
+      if (currentListChanged) {
+        // we'll re-layout that list
+        changedLists.add(currentList)
+      }
+
+      // we entered a new distinct list
+      currentList = mutableListOf()
+      currentListChanged = false
+      highestIndex = span.index
+    }
+
+    currentList.add(span)
+    if (span.updateColumnMargin(paint, highestIndex)) {
+      currentListChanged = true
+    }
+
+    previousIndex = span.index
   }
 
-  // Ordered list margins got updated, so we need to force a re-layout of that list.
-  // Uses the same empty ParagraphStyle trick as EnrichedSpanWatcher.updateNextLineLayout.
-  if (changed) {
-    forceOrderedListRelayout(text, sortedSpans)
+  if (currentListChanged) {
+    changedLists.add(currentList)
+  }
+
+  // A single empty ParagraphStyle over the whole list forces one re-layout of it.
+  // Uses the same trick as EnrichedSpanWatcher.updateNextLineLayout.
+  for (list in changedLists) {
+    forceOrderedListRelayout(text, list)
   }
 }
 
 private fun forceOrderedListRelayout(
   text: Spannable,
-  sortedSpans: List<EnrichedOrderedListSpan>,
+  listSpans: List<EnrichedOrderedListSpan>,
 ) {
-  if (sortedSpans.isEmpty()) return
+  if (listSpans.isEmpty()) return
+
+  // Because the list was populated during a reversed() loop, the elements
+  // are in descending order. last() is the start of the list, first() is the end.
+  val start = text.getSpanStart(listSpans.last())
+  val end = text.getSpanEnd(listSpans.first())
+
+  if (start < 0 || end < 0 || start > end) return
 
   class EmptySpan : ParagraphStyle
 
-  val start = text.getSpanStart(sortedSpans.first())
-  val end = text.getSpanEnd(sortedSpans.last())
   val (safeStart, safeEnd) = text.getSafeSpanBoundaries(start, end)
   text.getSpans(safeStart, safeEnd, EmptySpan::class.java).forEach { text.removeSpan(it) }
   text.setSpan(EmptySpan(), safeStart, safeEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)

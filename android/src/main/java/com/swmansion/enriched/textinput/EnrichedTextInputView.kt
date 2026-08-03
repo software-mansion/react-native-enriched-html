@@ -13,7 +13,6 @@ import android.text.Editable
 import android.text.InputType
 import android.text.Spannable
 import android.text.SpannableString
-import android.text.Spanned
 import android.util.AttributeSet
 import android.util.Log
 import android.util.Patterns
