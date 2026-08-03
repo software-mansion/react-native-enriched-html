@@ -65,7 +65,9 @@ case "$PLATFORM" in
   *)       echo "Error: --platform must be ios or android" >&2; exit 1 ;;
 esac
 
-DEVICE_ID=$("$SETUP" | tee /dev/tty | grep "^DEVICE_ID=" | cut -d= -f2)
+SETUP_OUTPUT=$("$SETUP")
+echo "$SETUP_OUTPUT"
+DEVICE_ID=$(echo "$SETUP_OUTPUT" | grep "^DEVICE_ID=" | cut -d= -f2)
 
 # Android uses DeviceLab; iOS keeps the runner default driver.
 DRIVER_ARGS=""
