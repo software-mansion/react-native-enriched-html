@@ -66,6 +66,12 @@ appId: swmansion.enriched.example
 
 - waitForAnimationToEnd
 
+# Force a delay to ensure the scrollbar is invisible
+- extendedWaitUntil:
+    visible: 'fake_element_to_force_delay'
+    optional: true
+    timeout: 200
+
 - runFlow:
     file: '../subflows/capture_or_assert_screenshot.yaml'
     env:
@@ -79,6 +85,8 @@ appId: swmansion.enriched.example
     from:
       id: 'editor-input'
     direction: UP
+
+- waitForAnimationToEnd
 
 - tapOn:
     id: 'blur-button'
