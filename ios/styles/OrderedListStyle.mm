@@ -121,7 +121,9 @@
                     existing.firstLineHeadIndent == listHeadIndent) {
                   return;
                 }
-                NSMutableParagraphStyle *pStyle = [existing mutableCopy];
+                NSMutableParagraphStyle *pStyle =
+                    existing ? [existing mutableCopy]
+                             : [[NSMutableParagraphStyle alloc] init];
                 pStyle.headIndent = listHeadIndent;
                 pStyle.firstLineHeadIndent = listHeadIndent;
                 [self.host.textView.textStorage
