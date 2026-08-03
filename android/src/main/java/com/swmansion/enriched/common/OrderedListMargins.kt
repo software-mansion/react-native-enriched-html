@@ -21,7 +21,7 @@ fun updateOrderedListColumnMargins(
   var highestIndex = 0
 
   for (span in sortedSpans.reversed()) {
-    if (span.index > previousIndex) {
+    if (span.index >= previousIndex) {
       if (currentListChanged) {
         // we'll re-layout that list
         changedLists.add(currentList)
