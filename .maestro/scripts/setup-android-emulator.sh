@@ -20,6 +20,11 @@ if [ -z "$ANDROID_HOME" ]; then
   exit 1
 fi
 
+# Ensure avdmanager and emulator use the same AVD directory regardless of
+# what ANDROID_SDK_HOME is set to on the host (e.g. GitHub Actions runners).
+export ANDROID_AVD_HOME="$HOME/.android/avd"
+mkdir -p "$ANDROID_AVD_HOME"
+
 for tool in sdkmanager avdmanager emulator adb; do
   if ! command -v "$tool" &>/dev/null; then
     echo "Error: '$tool' not found. Ensure Android SDK tools are installed and in PATH."
@@ -41,24 +46,20 @@ fi
 
 if ! avdmanager list avd -c | grep -qx "${AVD_NAME}"; then
   echo "Creating AVD '$AVD_NAME'..."
-  echo "no" | avdmanager create avd \
-    --name "$AVD_NAME" \
-    --device "$DEVICE_ID" \
-    --package "$SYSTEM_IMAGE" \
-    --skin "$DEVICE_ID"
+  CREATE_CMD=(avdmanager create avd --name "$AVD_NAME" --device "$DEVICE_ID" --package "$SYSTEM_IMAGE")
+  # Skin is cosmetic (phone frame). Skip it on CI since the runner has no skin files
+  # and the emulator runs headless anyway.
+  [ -z "${CI:-}" ] && CREATE_CMD+=(--skin "$DEVICE_ID")
+  echo "no" | "${CREATE_CMD[@]}"
 fi
 
 AVD_CONFIG="$HOME/.android/avd/${AVD_NAME}.avd/config.ini"
 if [ -f "$AVD_CONFIG" ]; then
-  if [ "$(uname)" = "Darwin" ]; then
-    SED_INPLACE=(-i '')
-  else
-    SED_INPLACE=(-i)
-  fi
-  sed "${SED_INPLACE[@]}" 's/^hw\.keyboard=.*/hw.keyboard=yes/' "$AVD_CONFIG"
+  sed -i.bak 's/^hw\.keyboard=.*/hw.keyboard=yes/' "$AVD_CONFIG"
   grep -q "^hw.keyboard=" "$AVD_CONFIG" || echo "hw.keyboard=yes" >> "$AVD_CONFIG"
-  sed "${SED_INPLACE[@]}" 's/^hw\.mainKeys=.*/hw.mainKeys=yes/' "$AVD_CONFIG"
+  sed -i.bak 's/^hw\.mainKeys=.*/hw.mainKeys=yes/' "$AVD_CONFIG"
   grep -q "^hw.mainKeys=" "$AVD_CONFIG" || echo "hw.mainKeys=yes" >> "$AVD_CONFIG"
+  rm -f "$AVD_CONFIG.bak"
 fi
 
 if pgrep -f "emulator.*${AVD_NAME}" > /dev/null 2>&1; then
@@ -68,11 +69,12 @@ if pgrep -f "emulator.*${AVD_NAME}" > /dev/null 2>&1; then
 fi
 
 echo "Starting emulator '$AVD_NAME'..."
-EMULATOR_ARGS=(-port "$PORT")
-if [ "${CI:-}" = "true" ]; then
-  EMULATOR_ARGS+=(-no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect)
+EMULATOR_ARGS=("@${AVD_NAME}" -port "$PORT")
+if [ -n "${CI:-}" ]; then
+  EMULATOR_ARGS+=(-no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim)
 fi
-emulator "@${AVD_NAME}" "${EMULATOR_ARGS[@]}" > /dev/null 2>&1 &
+
+emulator "${EMULATOR_ARGS[@]}" > /dev/null 2>&1 &
 
 echo "Waiting for emulator ($SERIAL) to connect to ADB..."
 if ! timeout 120 adb -s "$SERIAL" wait-for-device; then
