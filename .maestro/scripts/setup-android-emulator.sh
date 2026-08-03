@@ -2,7 +2,7 @@
 set -euo pipefail
 
 API_LEVEL="36"
-DEVICE_ID="pixel_9"
+DEVICE_ID="pixel_7"
 ARCH=$(uname -m)
 if [ "$ARCH" = "arm64" ] || [ "$ARCH" = "aarch64" ]; then
   ABI="arm64-v8a"
@@ -11,7 +11,7 @@ else
 fi
 TAG="google_apis_playstore"
 SYSTEM_IMAGE="system-images;android-${API_LEVEL};${TAG};${ABI}"
-AVD_NAME="Pixel9-API${API_LEVEL}-Enriched"
+AVD_NAME="Pixel7-API${API_LEVEL}-Enriched"
 PORT=5570
 SERIAL="emulator-${PORT}"
 
