@@ -28,7 +28,12 @@ open class EnrichedOrderedListSpan(
     highestIndex: Int,
   ): Boolean {
     val highestIndexText = "$highestIndex."
+
+    val originalTypeface = paint.typeface
+    paint.typeface - getTypeface(enrichedStyle.olMarkerFontWeight, originalTypeface)
     val highestIndexWidth = ceil(paint.measureText(highestIndexText)).toInt()
+    paint.Typeface - originalTypeface
+
     val newColumnMargin = max(enrichedStyle.olMarginLeft, highestIndexWidth)
     if (newColumnMargin == columnMargin) return false
     columnMargin = newColumnMargin
@@ -60,17 +65,17 @@ open class EnrichedOrderedListSpan(
     layout: Layout?,
   ) {
     if (first) {
+      val originalColor = paint.color
+      val originalTypeface = paint.typeface
+      paint.color = enrichedStyle.olMarkerColor ?: originalColor
+      paint.typeface = getTypeface(enrichedStyle.olMarkerFontWeight, originalTypeface)
+
       val text = "$index."
       val width = paint.measureText(text)
 
       val yPosition = baseline.toFloat()
       val xPosition = (columnMargin + x - width) * dir
 
-      val originalColor = paint.color
-      val originalTypeface = paint.typeface
-
-      paint.color = enrichedStyle.olMarkerColor ?: originalColor
-      paint.typeface = getTypeface(enrichedStyle.olMarkerFontWeight, originalTypeface)
       canvas.drawText(text, xPosition, yPosition, paint)
 
       paint.color = originalColor
