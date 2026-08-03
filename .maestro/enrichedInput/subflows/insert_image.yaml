@@ -1,3 +1,8 @@
+appId: swmansion.enriched.example
+---
+- tapOn:
+    id: 'toolbar-image'
+
 - waitForAnimationToEnd
 - extendedWaitUntil:
     visible:
