@@ -184,7 +184,6 @@ jobs:
           JAVA_OPTS: '-XX:MaxHeapSize=6g'
 
       - name: Upload test artifacts
-        if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: e2e-android-artifacts
