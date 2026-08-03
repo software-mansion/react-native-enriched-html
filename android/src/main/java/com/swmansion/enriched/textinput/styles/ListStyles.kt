@@ -106,8 +106,11 @@ class ListStyles(
     return true
   }
 
-  fun updateOrderedListIndexes(text: Spannable) {
-    val spans = text.getSpans(0, text.length, EnrichedInputOrderedListSpan::class.java)
+  fun updateOrderedListIndexes(
+    text: Spannable,
+    position: Int,
+  ) {
+    val spans = text.getSpans(position + 1, text.length, EnrichedInputOrderedListSpan::class.java)
     val sortedSpans = spans.sortedBy { text.getSpanStart(it) }
     for (span in sortedSpans) {
       val spanStart = text.getSpanStart(span)
@@ -115,28 +118,7 @@ class ListStyles(
       span.setListIndex(index)
     }
 
-    val marginsChanged = updateOrderedListColumnMargins(sortedSpans, view.paint)
-
-    // Ordered list margins got updated, so we need to force a re-layout of that list.
-    // Uses the same empty ParagraphStyle trick as EnrichedSpanWatcher.updateNextLineLayout.
-    if (marginsChanged) {
-      forceOrderedListRelayout(text, sortedSpans)
-    }
-  }
-
-  private fun forceOrderedListRelayout(
-    text: Spannable,
-    sortedSpans: List<EnrichedInputOrderedListSpan>,
-  ) {
-    if (sortedSpans.isEmpty()) return
-
-    class EmptySpan : ParagraphStyle
-
-    val start = text.getSpanStart(sortedSpans.first())
-    val end = text.getSpanEnd(sortedSpans.last())
-    val (safeStart, safeEnd) = text.getSafeSpanBoundaries(start, end)
-    text.getSpans(safeStart, safeEnd, EmptySpan::class.java).forEach { text.removeSpan(it) }
-    text.setSpan(EmptySpan(), safeStart, safeEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+    updateOrderedListColumnMargins(text, view.paint)
   }
 
   private fun toggleStyle(

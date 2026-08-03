@@ -452,7 +452,7 @@ class EnrichedTextInputView :
       val newText = if (shouldParseHtml) parseText(value) else value
       // Compute ordered-list marker column widths before setText so the first layout reserves
       // the correct leading margin (getLeadingMargin runs during layout, before drawing).
-      (newText as? Spanned)?.let { updateOrderedListColumnMargins(it, paint) }
+      (newText as? Spannable)?.let { updateOrderedListColumnMargins(it, paint) }
       setText(newText)
       applyLineSpacing()
 

@@ -180,7 +180,7 @@ class EnrichedTextView : AppCompatTextView {
     val parsed = parseText(text, style)
     if (parsed != null) {
       parsedText = parsed
-      (parsed as? Spanned)?.let { updateOrderedListColumnMargins(it, paint) }
+      (parsed as? Spannable)?.let { updateOrderedListColumnMargins(it, paint) }
       setText(parsed, BufferType.NORMAL)
       observeAsyncImages()
     } else {

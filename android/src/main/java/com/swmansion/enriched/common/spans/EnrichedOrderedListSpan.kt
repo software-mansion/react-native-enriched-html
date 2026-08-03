@@ -30,9 +30,9 @@ open class EnrichedOrderedListSpan(
     val highestIndexText = "$highestIndex."
 
     val originalTypeface = paint.typeface
-    paint.typeface - getTypeface(enrichedStyle.olMarkerFontWeight, originalTypeface)
+    paint.typeface = getTypeface(enrichedStyle.olMarkerFontWeight, originalTypeface)
     val highestIndexWidth = ceil(paint.measureText(highestIndexText)).toInt()
-    paint.Typeface - originalTypeface
+    paint.typeface = originalTypeface
 
     val newColumnMargin = max(enrichedStyle.olMarginLeft, highestIndexWidth)
     if (newColumnMargin == columnMargin) return false
