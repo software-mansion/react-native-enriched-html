@@ -125,8 +125,9 @@ jobs:
         with:
           name: e2e-ios-artifacts
           path: |
-            .maestro/enrichedInput/screenshots/ios/*_diff.png
-            .maestro/enrichedText/screenshots/ios/*_diff.png
+            reports/
+            .maestro/enrichedInput/screenshots/android/*_diff.png
+            .maestro/enrichedText/screenshots/android/*_diff.png
 
   e2e-android:
     needs: [changes]
