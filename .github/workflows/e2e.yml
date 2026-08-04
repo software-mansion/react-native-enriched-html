@@ -120,12 +120,12 @@ jobs:
           key: ${{ steps.derived-data-cache.outputs.cache-primary-key }}
 
       - name: Upload test artifacts
-        if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: e2e-ios-artifacts
           path: |
-            .maestro/screenshots/ios/*_diff.png
+            .maestro/enrichedInput/screenshots/ios/*_diff.png
+            .maestro/enrichedText/screenshots/ios/*_diff.png
 
   e2e-android:
     needs: [changes]
@@ -151,14 +151,6 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Finalize Android SDK
-        run: |
-          /bin/bash -c "yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null"
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "emulator" "platform-tools"
-          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
-          echo "$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
-          echo "$ANDROID_HOME/emulator" >> $GITHUB_PATH
-
       - name: Install Maestro CLI
         run: |
           curl -Ls "https://get.maestro.mobile.dev" | bash
@@ -174,18 +166,52 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
+      - name: AVD cache
+        uses: actions/cache@v4
+        id: avd-cache
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-api-36-x86_64
+
+      - name: Create AVD and generate snapshot for caching
+        if: steps.avd-cache.outputs.cache-hit != 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 36
+          target: google_apis_playstore
+          arch: x86_64
+          profile: pixel_7
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          disable-animations: false
+          enable-hw-keyboard: true
+          script: echo "Generated AVD snapshot for caching."
+
       - name: Start Metro
         run: yarn example start &
 
       - name: Run E2E tests
-        run: yarn test:e2e:android
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 36
+          target: google_apis_playstore
+          arch: x86_64
+          profile: pixel_7
+          force-avd-creation: false
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          disable-animations: true
+          disable-spellchecker: true
+          enable-hw-keyboard: true
+          script: EMULATOR_SERIAL=emulator-5554 .maestro/scripts/run-tests-ci-android.sh
         env:
           JAVA_OPTS: '-XX:MaxHeapSize=6g'
 
       - name: Upload test artifacts
-        if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: e2e-android-artifacts
           path: |
-            .maestro/screenshots/android/*_diff.png
+            .maestro/enrichedInput/screenshots/android/*_diff.png
+            .maestro/enrichedText/screenshots/android/*_diff.png
