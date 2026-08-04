@@ -22,11 +22,15 @@
   return YES;
 }
 
+- (CGFloat)headIndent {
+  return [self.host.config orderedListMarginLeft] +
+         [self.host.config orderedListGapWidth];
+}
+
 - (void)applyStyling:(NSRange)range {
   // lists are drawn manually
   // margin before marker + gap between marker and paragraph
-  CGFloat listHeadIndent = [self.host.config orderedListMarginLeft] +
-                           [self.host.config orderedListGapWidth];
+  CGFloat listHeadIndent = [self headIndent];
 
   [self.host.textView.textStorage
       enumerateAttribute:NSParagraphStyleAttributeName
@@ -43,6 +47,21 @@
                            value:pStyle
                            range:range];
               }];
+}
+
+- (BOOL)appliesStylingToTyping {
+  return YES;
+}
+
+- (void)applyStylingToTypingAttrs:(NSMutableDictionary *)attributes {
+  NSMutableParagraphStyle *pStyle =
+      [attributes[NSParagraphStyleAttributeName] mutableCopy];
+  if (pStyle == nil)
+    return;
+  CGFloat indent = [self headIndent];
+  pStyle.headIndent = indent;
+  pStyle.firstLineHeadIndent = indent;
+  attributes[NSParagraphStyleAttributeName] = pStyle;
 }
 
 @end
