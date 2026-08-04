@@ -194,6 +194,7 @@ jobs:
         run: yarn example start &
 
       - name: Run E2E tests
+        id: e2e-tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 36
@@ -210,9 +211,12 @@ jobs:
           JAVA_OPTS: '-XX:MaxHeapSize=6g'
 
       - name: Upload test artifacts
+        if: ${{ !cancelled() && (steps.e2e-tests.outcome == 'success' || steps.e2e-tests.outcome == 'failure') }}
         uses: actions/upload-artifact@v4
         with:
           name: e2e-android-artifacts
+          if-no-files-found: warn
           path: |
+            reports/
             .maestro/enrichedInput/screenshots/android/*_diff.png
             .maestro/enrichedText/screenshots/android/*_diff.png
