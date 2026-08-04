@@ -39,7 +39,8 @@ const LINK_REGEX =
   /^(?:enriched:\/\/\S+|(?:https?:\/\/)?(?:www\.)?swmansion\.com(?:\/\S*)?)$/i;
 
 const SANITIZATION_CONFIG = {
-  linkRegex: /^(?:enriched:\/\/\S+|https?:\/\/\S+)$/i,
+  linkRegex:
+    /^(?:enriched:\/\/\S+|(?:https?:\/\/)?(?:www\.)?swmansion\.com(?:\/\S*)?|https?:\/\/\S+)$/i,
 };
 
 function App() {
