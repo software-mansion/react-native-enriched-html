@@ -366,7 +366,9 @@
   vertical-align: text-bottom;
 }
 
-.et-view img.error {
+.et-view img.error,
+.et-view img:not([src]),
+.et-view img[src=""] {
   content: linear-gradient(transparent, transparent);
   background-color: currentColor;
   -webkit-mask: var(--et-broken-image-glyph) no-repeat center / contain;
