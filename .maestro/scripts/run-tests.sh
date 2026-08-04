@@ -183,7 +183,7 @@ run_maestro() {
       local cmd
       # shellcheck disable=SC2086
       cmd=$(printf '%q ' "$MAESTRO_BIN" --platform "$PLATFORM" --device "$DEVICE_ID" $DRIVER_ARGS $EXTRA "$@" test $FLOWS)
-      script -qc "$cmd" /dev/null 2>&1 | tee "$tmp"
+      script -qec "$cmd" /dev/null 2>&1 | tee "$tmp"
     fi
     rc=${PIPESTATUS[0]}
 
