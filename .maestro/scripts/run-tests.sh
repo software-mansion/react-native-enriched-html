@@ -20,6 +20,8 @@
 # Uses the local maestro-runner binary:
 #   Android → --driver devicelab
 #   iOS     → default driver
+#
+# In CI on Android, driver startup crashes are retried twice (3 runs total).
 
 set -euo pipefail
 
@@ -141,28 +143,66 @@ set_font_scale default
 # maestro-runner exits non-zero when the tag filter matches zero flows. That's
 # not a real failure for us (e.g. running a single flow that has no
 # accessibility variant), and letting it propagate aborts later test suites.
+is_driver_startup_crash() {
+  grep -Eqi 'failed to create driver|driver crashed on startup|DeviceLab driver crashed' "$1"
+}
+
+cleanup_devicelab_driver() {
+  [ "$PLATFORM" != android ] && return 0
+  local sock="/tmp/devicelab-driver-${DEVICE_ID}.sock"
+  adb -s "$DEVICE_ID" forward --remove "localfilesystem:$sock" 2>/dev/null || true
+  adb -s "$DEVICE_ID" shell am force-stop dev.devicelab.driver.android.test 2>/dev/null || true
+  sleep 3
+}
+
 run_maestro() {
-  local tmp rc
-  tmp=$(mktemp)
-  # `script` allocates a pseudo-TTY so the runner keeps
-  # ANSI colors when piped through `tee`.
-  # Global flags (--device, --driver, --env, tags) come before `test`.
-  if [[ "$OSTYPE" == darwin* ]]; then
-    # shellcheck disable=SC2086
-    script -q /dev/null "$MAESTRO_BIN" --platform "$PLATFORM" --device "$DEVICE_ID" $DRIVER_ARGS $EXTRA "$@" test $FLOWS 2>&1 | tee "$tmp"
+  local max_attempts rc tmp attempt=1
+  if [ -n "${MAESTRO_MAX_RETRIES:-}" ]; then
+    max_attempts="$MAESTRO_MAX_RETRIES"
+  elif [ -n "${CI:-}" ] && [ "$PLATFORM" = android ]; then
+    max_attempts=3 # 1 initial run + 2 retries
   else
-    local cmd
-    # shellcheck disable=SC2086
-    cmd=$(printf '%q ' "$MAESTRO_BIN" --platform "$PLATFORM" --device "$DEVICE_ID" $DRIVER_ARGS $EXTRA "$@" test $FLOWS)
-    script -qc "$cmd" /dev/null 2>&1 | tee "$tmp"
+    max_attempts=1
   fi
-  rc=${PIPESTATUS[0]}
-  if [ "$rc" -ne 0 ] && grep -Eqi "did not match any [Ff]lows|no flows matched" "$tmp"; then
-    echo "warn: no flows matched the tag filter — treating as success" >&2
-    rc=0
-  fi
-  rm -f "$tmp"
-  return "$rc"
+
+  while [ "$attempt" -le "$max_attempts" ]; do
+    tmp=$(mktemp)
+    # `script` allocates a pseudo-TTY so the runner keeps
+    # ANSI colors when piped through `tee`.
+    # Global flags (--device, --driver, --env, tags) come before `test`.
+    if [[ "$OSTYPE" == darwin* ]]; then
+      # shellcheck disable=SC2086
+      script -q /dev/null "$MAESTRO_BIN" --platform "$PLATFORM" --device "$DEVICE_ID" $DRIVER_ARGS $EXTRA "$@" test $FLOWS 2>&1 | tee "$tmp"
+    else
+      local cmd
+      # shellcheck disable=SC2086
+      cmd=$(printf '%q ' "$MAESTRO_BIN" --platform "$PLATFORM" --device "$DEVICE_ID" $DRIVER_ARGS $EXTRA "$@" test $FLOWS)
+      script -qc "$cmd" /dev/null 2>&1 | tee "$tmp"
+    fi
+    rc=${PIPESTATUS[0]}
+
+    if [ "$rc" -eq 0 ]; then
+      rm -f "$tmp"
+      return 0
+    fi
+
+    if grep -Eqi "did not match any [Ff]lows|no flows matched" "$tmp"; then
+      echo "warn: no flows matched the tag filter — treating as success" >&2
+      rm -f "$tmp"
+      return 0
+    fi
+
+    if [ "$attempt" -lt "$max_attempts" ] && is_driver_startup_crash "$tmp"; then
+      echo "warn: driver crashed on startup (attempt $attempt/$max_attempts), retrying..." >&2
+      cleanup_devicelab_driver
+      attempt=$((attempt + 1))
+      rm -f "$tmp"
+      continue
+    fi
+
+    rm -f "$tmp"
+    return "$rc"
+  done
 }
 
 set +e
