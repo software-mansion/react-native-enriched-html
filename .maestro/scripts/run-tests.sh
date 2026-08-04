@@ -148,7 +148,9 @@ is_ci_android() {
 }
 
 is_driver_startup_crash() {
-  grep -Eqi 'failed to create driver|driver crashed on startup|DeviceLab driver crashed' "$1"
+  # Strip ANSI escape sequences and carriage returns before matching — `script`
+  # wraps output in terminal control codes that can trip up grep.
+  sed 's/\x1b\[[0-9;]*[a-zA-Z]//g; s/\r//g' "$1" | grep -Eqi 'failed to create driver|driver crashed on startup|DeviceLab driver crashed'
 }
 
 cleanup_devicelab_driver() {
@@ -190,7 +192,7 @@ run_maestro() {
       return 0
     fi
 
-    if grep -Eqi "did not match any [Ff]lows|no flows matched" "$tmp"; then
+    if sed 's/\x1b\[[0-9;]*[a-zA-Z]//g; s/\r//g' "$tmp" | grep -Eqi "did not match any [Ff]lows|no flows matched"; then
       echo "warn: no flows matched the tag filter — treating as success" >&2
       rm -f "$tmp"
       return 0
