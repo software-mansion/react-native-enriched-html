@@ -143,6 +143,10 @@ set_font_scale default
 # maestro-runner exits non-zero when the tag filter matches zero flows. That's
 # not a real failure for us (e.g. running a single flow that has no
 # accessibility variant), and letting it propagate aborts later test suites.
+is_ci_android() {
+  [ "$PLATFORM" = android ] && { [ -n "${CI:-}" ] || [ -n "${GITHUB_ACTIONS:-}" ]; }
+}
+
 is_driver_startup_crash() {
   grep -Eqi 'failed to create driver|driver crashed on startup|DeviceLab driver crashed' "$1"
 }
@@ -152,20 +156,20 @@ cleanup_devicelab_driver() {
   local sock="/tmp/devicelab-driver-${DEVICE_ID}.sock"
   adb -s "$DEVICE_ID" forward --remove "localfilesystem:$sock" 2>/dev/null || true
   adb -s "$DEVICE_ID" shell am force-stop dev.devicelab.driver.android.test 2>/dev/null || true
-  sleep 3
+  sleep 8
 }
 
 run_maestro() {
-  local max_attempts rc tmp attempt=1
+  local max_attempts rc tmp attempt=1 delayed_retry=0
   if [ -n "${MAESTRO_MAX_RETRIES:-}" ]; then
     max_attempts="$MAESTRO_MAX_RETRIES"
-  elif [ -n "${CI:-}" ] && [ "$PLATFORM" = android ]; then
+  elif is_ci_android; then
     max_attempts=3 # 1 initial run + 2 retries
   else
     max_attempts=1
   fi
 
-  while [ "$attempt" -le "$max_attempts" ]; do
+  while true; do
     tmp=$(mktemp)
     # `script` allocates a pseudo-TTY so the runner keeps
     # ANSI colors when piped through `tee`.
@@ -192,12 +196,22 @@ run_maestro() {
       return 0
     fi
 
-    if [ "$attempt" -lt "$max_attempts" ] && is_driver_startup_crash "$tmp"; then
-      echo "warn: driver crashed on startup (attempt $attempt/$max_attempts), retrying..." >&2
-      cleanup_devicelab_driver
-      attempt=$((attempt + 1))
-      rm -f "$tmp"
-      continue
+    if is_driver_startup_crash "$tmp"; then
+      if [ "$attempt" -lt "$max_attempts" ]; then
+        echo "warn: driver crashed on startup (attempt $attempt/$max_attempts), retrying..." >&2
+        cleanup_devicelab_driver
+        attempt=$((attempt + 1))
+        rm -f "$tmp"
+        continue
+      fi
+      if [ "$delayed_retry" -eq 0 ] && is_ci_android; then
+        echo "warn: driver still failing, waiting before delayed retry..." >&2
+        delayed_retry=1
+        cleanup_devicelab_driver
+        sleep 10
+        rm -f "$tmp"
+        continue
+      fi
     fi
 
     rm -f "$tmp"
