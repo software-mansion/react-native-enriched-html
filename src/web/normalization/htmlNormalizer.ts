@@ -267,7 +267,7 @@ function emitAttributes(el: Element, name: string): string {
       return emitOneAttr(el, 'href');
     case 'img':
       return (
-        emitOneAttr(el, 'src') +
+        (el.getAttribute('src') ? emitOneAttr(el, 'src') : ' src=""') +
         emitOneAttr(el, 'alt') +
         emitOneAttr(el, 'width') +
         emitOneAttr(el, 'height')
