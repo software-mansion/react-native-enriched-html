@@ -35,17 +35,7 @@ class EnrichedTextInputConnectionWrapper(
   )
 
   private var isBatchEdit = false
-  private var shouldPreserveInlineStyles = false
   private var key: String? = null
-
-  fun preserveInlineStylesForCurrentComposition() {
-    val editable = editText.text
-    val composingStart = editable?.let(BaseInputConnection::getComposingSpanStart) ?: -1
-    val composingEnd = editable?.let(BaseInputConnection::getComposingSpanEnd) ?: -1
-    shouldPreserveInlineStyles =
-      composingStart >= 0 &&
-      composingEnd > composingStart
-  }
 
   override fun beginBatchEdit(): Boolean {
     isBatchEdit = true
@@ -67,22 +57,13 @@ class EnrichedTextInputConnectionWrapper(
   ): Boolean {
     val previousSelectionStart = editText.selectionStart
     val previousSelectionEnd = editText.selectionEnd
-    val composingTextSnapshot =
-      if (shouldPreserveInlineStyles) {
-        captureComposingText()
-      } else {
-        null
-      }
-    if (shouldPreserveInlineStyles && composingTextSnapshot == null) {
-      shouldPreserveInlineStyles = false
-    }
+    val composingTextSnapshot = captureComposingText()
 
     val consumed = super.setComposingText(text, newCursorPosition)
 
     if (consumed && composingTextSnapshot != null) {
       restoreInlineSpans(composingTextSnapshot)
     }
-    clearPreservationIfCompositionFinished()
 
     val currentSelectionStart = editText.selectionStart
     val noPreviousSelection = previousSelectionStart == previousSelectionEnd
@@ -103,18 +84,23 @@ class EnrichedTextInputConnectionWrapper(
     return consumed
   }
 
+  // Snapshots the inline styles carried by the text the IME is about to replace. Returns null
+  // whenever there is nothing to preserve, which keeps plain typing down to a single span lookup.
   private fun captureComposingText(): ComposingTextSnapshot? {
     val editable = editText.text ?: return null
     val composingStart = BaseInputConnection.getComposingSpanStart(editable)
     val composingEnd = BaseInputConnection.getComposingSpanEnd(editable)
     if (composingStart < 0 || composingEnd <= composingStart) return null
 
+    val inlineSpans = captureInlineSpans(editable, composingStart, composingEnd)
+    if (inlineSpans.isEmpty()) return null
+
     return ComposingTextSnapshot(
       start = composingStart,
       end = composingEnd,
       editableLength = editable.length,
       text = editable.substring(composingStart, composingEnd),
-      inlineSpans = captureInlineSpans(editable, composingStart, composingEnd),
+      inlineSpans = inlineSpans,
     )
   }
 
@@ -140,17 +126,6 @@ class EnrichedTextInputConnectionWrapper(
           null
         }
       }
-
-  private fun clearPreservationIfCompositionFinished() {
-    val editable = editText.text
-    if (
-      editable == null ||
-      BaseInputConnection.getComposingSpanStart(editable) < 0 ||
-      BaseInputConnection.getComposingSpanEnd(editable) < 0
-    ) {
-      shouldPreserveInlineStyles = false
-    }
-  }
 
   private fun restoreInlineSpans(snapshot: ComposingTextSnapshot) {
     val editable = editText.text ?: return
@@ -259,23 +234,11 @@ class EnrichedTextInputConnectionWrapper(
       dispatchKeyEventOrEnqueue(inputKey)
     }
 
-    val composingTextSnapshot =
-      if (shouldPreserveInlineStyles) {
-        captureComposingText()
-      } else {
-        null
-      }
+    val composingTextSnapshot = captureComposingText()
     val consumed = super.commitText(text, newCursorPosition)
     if (consumed && composingTextSnapshot != null) {
       restoreInlineSpans(composingTextSnapshot)
     }
-    shouldPreserveInlineStyles = false
-    return consumed
-  }
-
-  override fun finishComposingText(): Boolean {
-    val consumed = super.finishComposingText()
-    shouldPreserveInlineStyles = false
     return consumed
   }
 
