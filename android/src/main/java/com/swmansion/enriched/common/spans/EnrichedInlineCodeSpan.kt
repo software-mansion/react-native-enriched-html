@@ -21,7 +21,7 @@ open class EnrichedInlineCodeSpan(
   }
 
   // When switching to a monospace font, we need to remember
-  // and apply other current styles, as bold or italic
+  // and apply other current styles, such as bold or italic.
   private fun applyMonospace(textPaint: TextPaint) {
     val currentStyle = textPaint.typeface?.style ?: Typeface.NORMAL
     val typeface = Typeface.create(Typeface.MONOSPACE, currentStyle)
