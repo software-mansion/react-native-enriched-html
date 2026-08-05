@@ -15,8 +15,8 @@ typedef NS_ENUM(NSInteger, ItalicKind) {
   ItalicKindOblique,
 };
 
-static NSCharacterSet *NeutralCharacters(void) {
-  static NSCharacterSet *neutral = nil;
+static NSCharacterSet *NonNeutralCharacters(void) {
+  static NSCharacterSet *nonNeutral = nil;
   static dispatch_once_t onceToken;
   dispatch_once(&onceToken, ^{
     NSMutableCharacterSet *set =
@@ -25,9 +25,9 @@ static NSCharacterSet *NeutralCharacters(void) {
     // ZWS
     [set addCharactersInString:[NSString
                                    stringWithFormat:@"%C", (unichar)0x200B]];
-    neutral = [set copy];
+    nonNeutral = [[set invertedSet] copy];
   });
-  return neutral;
+  return nonNeutral;
 }
 
 // returns YES when the font renders the given UTF-16 sequence itself
@@ -123,8 +123,8 @@ static BOOL FontCoversCharacters(UIFont *font, const unichar *chars,
                         font:(UIFont *)font
                   italicFont:(UIFont *)italicFont
                hasItalicFace:(BOOL)hasItalicFace {
-  if ([cluster rangeOfCharacterFromSet:[NeutralCharacters() invertedSet]]
-          .location == NSNotFound) {
+  if ([cluster rangeOfCharacterFromSet:NonNeutralCharacters()].location ==
+      NSNotFound) {
     return ItalicKindNone;
   }
 
