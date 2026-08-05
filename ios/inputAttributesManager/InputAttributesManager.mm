@@ -114,8 +114,9 @@
                      [self stylingOrderFor:_input->stylesDict[a]];
                  NSInteger bOrder =
                      [self stylingOrderFor:_input->stylesDict[b]];
-                 if (aOrder == bOrder)
-                   return NSOrderedSame;
+                 if (aOrder == bOrder) {
+                   return [a compare:b];
+                 }
                  return aOrder < bOrder ? NSOrderedAscending
                                         : NSOrderedDescending;
                }];

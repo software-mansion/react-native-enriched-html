@@ -6,10 +6,8 @@
 static const CGFloat kObliquenessFallback = 0.2;
 
 typedef NS_ENUM(NSInteger, ItalicKind) {
-  // whitespace and other invisible characters - takes over the kind of its
-  // neighbours
-  ItalicKindNeutral,
-  // character must not be slanted at all (text attachments)
+  // character must not be slanted at all (whitespace, control characters,
+  // text attachments)
   ItalicKindNone,
   // font has a real italic glyph for the character
   ItalicKindFont,
@@ -97,8 +95,6 @@ static BOOL FontCoversCharacters(UIFont *font, const unichar *chars,
                                                hasItalicFace:hasItalicFace])];
                       }];
 
-  [self resolveNeutralKinds:clusterKinds];
-
   // merge neighbouring clusters of the same kind and apply the style
   NSUInteger index = 0;
   while (index < clusterKinds.count) {
@@ -129,7 +125,7 @@ static BOOL FontCoversCharacters(UIFont *font, const unichar *chars,
                hasItalicFace:(BOOL)hasItalicFace {
   if ([cluster rangeOfCharacterFromSet:[NeutralCharacters() invertedSet]]
           .location == NSNotFound) {
-    return ItalicKindNeutral;
+    return ItalicKindNone;
   }
 
   // we just need to analyze the first unicode character to classify the whole
@@ -154,21 +150,8 @@ static BOOL FontCoversCharacters(UIFont *font, const unichar *chars,
     return ItalicKindFont;
   }
 
-  // italic is not supported, we use the slate instead
+  // italic is not supported, we use the slant instead
   return ItalicKindOblique;
-}
-
-// neutral clusters take over the preceding kind
-+ (void)resolveNeutralKinds:(NSMutableArray<NSNumber *> *)kinds {
-  ItalicKind previous = ItalicKindNeutral;
-  for (NSUInteger i = 0; i < kinds.count; i += 1) {
-    ItalicKind kind = (ItalicKind)[kinds[i] integerValue];
-    if (kind == ItalicKindNeutral) {
-      kinds[i] = @(previous);
-    } else {
-      previous = kind;
-    }
-  }
 }
 
 + (void)applyKind:(ItalicKind)kind
@@ -188,7 +171,6 @@ static BOOL FontCoversCharacters(UIFont *font, const unichar *chars,
                         range:segment];
     break;
   case ItalicKindNone:
-  case ItalicKindNeutral:
     [textStorage removeAttribute:NSObliquenessAttributeName range:segment];
     break;
   }

@@ -45,7 +45,7 @@
   return NO;
 }
 
-// determines the order of which the styles are applied
+// determines the order in which the styles are applied
 - (NSInteger)stylingPriority {
   return 0;
 }
