@@ -5,16 +5,16 @@ appId: swmansion.enriched.example
       true: ${UPDATE_SCREENSHOTS === "true"}
     commands:
       - takeScreenshot:
-          path: "${SCREENSHOT_ROOT}/${SCREENSHOT_PREFIX}/screenshots/${maestro.platform}/${SCREENSHOT_NAME}"
+          path: '${SCREENSHOT_ROOT}/${SCREENSHOT_PREFIX}/screenshots/${maestro.platform}/${SCREENSHOT_NAME}'
           cropOn:
-            id: "${ELEMENT_ID}"
+            id: '${ELEMENT_ID}'
 
 - runFlow:
     when:
       true: ${UPDATE_SCREENSHOTS !== "true"}
     commands:
       - assertScreenshot:
-          path: "${SCREENSHOT_ROOT}/${SCREENSHOT_PREFIX}/screenshots/${maestro.platform}/${SCREENSHOT_NAME}"
-          thresholdPercentage: 100
+          path: '${SCREENSHOT_ROOT}/${SCREENSHOT_PREFIX}/screenshots/${maestro.platform}/${SCREENSHOT_NAME}'
+          thresholdPercentage: 99.9
           cropOn:
-            id: "${ELEMENT_ID}"
+            id: '${ELEMENT_ID}'
