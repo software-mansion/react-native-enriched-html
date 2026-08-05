@@ -10,6 +10,7 @@ import com.swmansion.enriched.common.spans.EnrichedMentionSpan
 import com.swmansion.enriched.common.spans.interfaces.EnrichedBlockSpan
 import com.swmansion.enriched.common.spans.interfaces.EnrichedParagraphSpan
 import com.swmansion.enriched.common.spans.interfaces.EnrichedSpan
+import com.swmansion.enriched.textinput.spans.EnrichedInputAlignmentSpan
 import com.swmansion.enriched.textinput.spans.EnrichedSpans
 import com.swmansion.enriched.textinput.spans.interfaces.EnrichedInputSpan
 import com.swmansion.enriched.textinput.styles.HtmlStyle
@@ -188,11 +189,14 @@ fun Spannable.mergeSpannables(
     spannable.getSpans(0, spannable.length, EnrichedBlockSpan::class.java).isNotEmpty() ||
       spannable.getSpans(0, spannable.length, EnrichedParagraphSpan::class.java).isNotEmpty()
 
+  val incomingHasAlignmentStyles =
+    spannable.getSpans(0, spannable.length, EnrichedInputAlignmentSpan::class.java).isNotEmpty()
+
   // ZWS anchors are not content, so a line holding nothing else still counts as empty
   val hasContentBefore = (paragraphStart until start).any { this[it] != EnrichedConstants.ZWS }
   val hasContentAfter = (end until paragraphEnd).any { this[it] != EnrichedConstants.ZWS }
 
-  if (incomingHasOwnBlockStyles && !hasContentBefore && !hasContentAfter) {
+  if ((incomingHasOwnBlockStyles || incomingHasAlignmentStyles) && !hasContentBefore && !hasContentAfter) {
     finalStart = paragraphStart
     finalEnd = paragraphEnd
   }
@@ -242,6 +246,66 @@ fun Spannable.mergeSpannables(
       val flags = builder.getSpanFlags(span)
       builder.removeSpan(span)
       builder.setSpan(span, spanStart, newParagraphEnd, EnrichedSpanFlags.forSpan(span, flags))
+    }
+  }
+
+  // Stretch incoming alignment spans to paragraph bounds and remove existing alignments
+  // in the same paragraphs.
+  if (incomingHasAlignmentStyles) {
+    val insertEnd = finalStart + spannable.length
+    val incomingAlignments = builder.getSpans(finalStart, insertEnd, EnrichedInputAlignmentSpan::class.java)
+
+    for (span in incomingAlignments) {
+      val spanStart = builder.getSpanStart(span)
+      val spanEnd = builder.getSpanEnd(span)
+      if (spanStart == -1) continue
+
+      val (spanParaStart, spanParaEnd) = builder.getParagraphBounds(spanStart, spanEnd)
+
+      // Remove/trim existing alignment spans in this paragraph that aren't from the incoming content
+      val allAlignments = builder.getSpans(spanParaStart, spanParaEnd, EnrichedInputAlignmentSpan::class.java)
+      for (existing in allAlignments) {
+        if (existing === span) continue
+        val exStart = builder.getSpanStart(existing)
+        if (exStart == -1 || exStart in finalStart until insertEnd) continue
+        val exEnd = builder.getSpanEnd(existing)
+        builder.removeSpan(existing)
+
+        if (exStart < spanParaStart) {
+          val topEnd = if (spanParaStart > 0 && builder[spanParaStart - 1] == '\n') spanParaStart - 1 else spanParaStart
+          if (exStart < topEnd) {
+            builder.setSpan(
+              EnrichedInputAlignmentSpan(existing.cssValue),
+              exStart,
+              topEnd,
+              EnrichedSpanFlags.forSpan(existing, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE),
+            )
+          }
+        }
+        if (exEnd > spanParaEnd) {
+          val bottomStart = if (spanParaEnd < builder.length && builder[spanParaEnd] == '\n') spanParaEnd + 1 else spanParaEnd
+          if (bottomStart < exEnd) {
+            builder.setSpan(
+              EnrichedInputAlignmentSpan(existing.cssValue),
+              bottomStart,
+              exEnd,
+              EnrichedSpanFlags.forSpan(existing, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE),
+            )
+          }
+        }
+      }
+
+      // Stretch the incoming alignment span to cover the full paragraph
+      if (spanStart > spanParaStart || spanEnd < spanParaEnd) {
+        val flags = builder.getSpanFlags(span)
+        builder.removeSpan(span)
+        builder.setSpan(
+          span,
+          spanParaStart,
+          spanParaEnd,
+          EnrichedSpanFlags.forSpan(span, flags),
+        )
+      }
     }
   }
 
