@@ -52,3 +52,26 @@ export async function pastePlainTextIntoEditor(
     );
   }, text);
 }
+
+/**
+ * Dispatches a plain-text paste event without first clicking (which would
+ * collapse the current selection). Use when the paste must land over an
+ * existing selection, e.g. to exercise `linkOnPaste`.
+ */
+export async function pastePlainTextOverSelection(
+  editorInnerLocator: Locator,
+  text: string
+): Promise<void> {
+  const pm = editorInnerLocator.locator('.ProseMirror');
+  await pm.evaluate((el, t) => {
+    const dt = new DataTransfer();
+    dt.setData('text/plain', t);
+    el.dispatchEvent(
+      new ClipboardEvent('paste', {
+        clipboardData: dt,
+        bubbles: true,
+        cancelable: true,
+      })
+    );
+  }, text);
+}

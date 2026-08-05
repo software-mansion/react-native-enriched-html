@@ -282,6 +282,7 @@ function App() {
           mentionIndicators={['@', '#']}
           htmlStyle={WEB_DEFAULT_HTML_STYLE}
           linkRegex={LINK_REGEX}
+          linkOnPaste
           sanitizationConfig={SANITIZATION_CONFIG}
         />
         <MentionPopup

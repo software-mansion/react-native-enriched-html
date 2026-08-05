@@ -36,11 +36,18 @@ NS_ASSUME_NONNULL_BEGIN
 @public
   BOOL useHtmlNormalizer;
 @public
+  BOOL linkOnPaste;
+@public
   NSValue *dotReplacementRange;
 @public
   NSArray<NSDictionary *> *textShortcuts;
 }
 - (CGSize)measureSize:(CGFloat)maxWidth;
+- (BOOL)tryAddLinkAt:(NSInteger)start
+                 end:(NSInteger)end
+                text:(NSString *)text
+                 url:(NSString *)url;
+- (nullable NSString *)linkURLIfEntireString:(NSString *)text;
 - (void)emitOnLinkDetectedEvent:(LinkData *)linkData range:(NSRange)range;
 - (void)emitOnMentionEvent:(NSString *)indicator text:(nullable NSString *)text;
 - (void)emitOnPasteImagesEvent:(NSArray<NSDictionary *> *)images;

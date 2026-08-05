@@ -120,6 +120,10 @@ class EnrichedTextInputView :
     }
 
   var linkRegex: Pattern? = Patterns.WEB_URL
+
+  // Unlike linkRegex (wrapped for substring detection), this pattern must
+  // match the entire string; used to detect a bare-URL paste over a selection.
+  var linkExactRegex: Pattern? = Patterns.WEB_URL
   var spanWatcher: EnrichedSpanWatcher? = null
   var layoutManager: EnrichedTextInputViewLayoutManager = EnrichedTextInputViewLayoutManager(this)
 
@@ -127,6 +131,7 @@ class EnrichedTextInputView :
   var shouldEmitOnChangeText: Boolean = false
   var experimentalSynchronousEvents: Boolean = false
   var useHtmlNormalizer: Boolean = false
+  var linkOnPaste: Boolean = false
 
   // Pair: (trigger, style)
   var textShortcuts: List<Pair<String, String>> = emptyList()
@@ -376,6 +381,10 @@ class EnrichedTextInputView :
     val end = selectionEnd.coerceAtLeast(0)
     val lengthBefore = currentText.length
 
+    if (linkOnPaste && start < end && linkifySelectionOnPaste(currentText, start, end, item)) {
+      return
+    }
+
     val pastedSpannable: Spannable =
       when {
         item.htmlText != null -> {
@@ -403,6 +412,43 @@ class EnrichedTextInputView :
     // Update links and mentions in the newly pasted range
     val editable = text as? Editable ?: return
     parametrizedStyles?.afterTextChanged(editable, start.coerceAtMost(pasteEnd), pasteEnd)
+  }
+
+  // Pasting a bare URL over selected text turns the selection into a link
+  // pointing to that URL instead of replacing it (the linkOnPaste prop).
+  private fun linkifySelectionOnPaste(
+    currentText: Spannable,
+    start: Int,
+    end: Int,
+    item: ClipData.Item,
+  ): Boolean {
+    val regex = linkExactRegex ?: return false
+    val pasted = item.text?.toString()?.trim() ?: return false
+    if (pasted.isEmpty() || !regex.matcher(pasted).matches()) return false
+
+    if (currentText.substring(start, end).isBlank()) return false
+
+    val styles = parametrizedStyles ?: return false
+    if (!verifyStyle(EnrichedSpans.LINK)) return false
+
+    // verifyStyle may remove conflicting styles and shift the selection
+    val freshStart = selectionStart.coerceAtLeast(0)
+    val freshEnd = selectionEnd.coerceAtLeast(0)
+    if (freshStart >= freshEnd) return false
+
+    val selectedText = (text as Spannable).substring(freshStart, freshEnd)
+    if (selectedText.isBlank()) return false
+
+    val href =
+      if (pasted.startsWith("http://", ignoreCase = true) || pasted.startsWith("https://", ignoreCase = true)) {
+        pasted
+      } else {
+        "https://$pasted"
+      }
+
+    styles.setLinkSpan(freshStart, freshEnd, selectedText, href)
+    setSelection((freshStart + selectedText.length).coerceIn(0, text?.length ?: 0))
+    return true
   }
 
   fun requestFocusProgrammatically() {
@@ -636,16 +682,19 @@ class EnrichedTextInputView :
     val patternStr = config?.getString("pattern")
     if (patternStr == null) {
       linkRegex = Patterns.WEB_URL
+      linkExactRegex = Patterns.WEB_URL
       return
     }
 
     if (config.getBoolean("isDefault")) {
       linkRegex = Patterns.WEB_URL
+      linkExactRegex = Patterns.WEB_URL
       return
     }
 
     if (config.getBoolean("isDisabled")) {
       linkRegex = null
+      linkExactRegex = null
       return
     }
 
@@ -655,9 +704,11 @@ class EnrichedTextInputView :
 
     try {
       linkRegex = Pattern.compile("(?s).*?($patternStr).*", flags)
+      linkExactRegex = Pattern.compile(patternStr, flags)
     } catch (_: PatternSyntaxException) {
       Log.w(TAG, "Invalid link regex pattern: $patternStr")
       linkRegex = Patterns.WEB_URL
+      linkExactRegex = Patterns.WEB_URL
     }
   }
 

@@ -381,6 +381,32 @@ static NSString *const AutomaticLinkAttributeName = @"EnrichedAutomaticLink";
   return [userRegex numberOfMatchesInString:url options:0 range:range] > 0;
 }
 
++ (BOOL)matchesEntireLinkRegexWithConfig:(NSString *)url
+                                  config:(EnrichedConfig *)config {
+  LinkRegexConfig *linkRegexConfig = [config linkRegexConfig];
+  if (linkRegexConfig == nullptr || linkRegexConfig.isDisabled) {
+    return NO;
+  }
+  NSRange range = NSMakeRange(0, url.length);
+  BOOL (^matchesWholeString)(NSRegularExpression *) =
+      ^BOOL(NSRegularExpression *regex) {
+        if (regex == nullptr) {
+          return NO;
+        }
+        NSRange match = [regex rangeOfFirstMatchInString:url
+                                                 options:0
+                                                   range:range];
+        return match.location == 0 && match.length == url.length;
+      };
+  NSRegularExpression *userRegex = [config parsedLinkRegex];
+  if (linkRegexConfig.isDefault || userRegex == nullptr) {
+    return matchesWholeString([self fullRegex]) ||
+           matchesWholeString([self wwwRegex]) ||
+           matchesWholeString([self bareRegex]);
+  }
+  return matchesWholeString(userRegex);
+}
+
 // handles refreshing manual links
 - (void)handleManualLinks:(NSString *)word inRange:(NSRange)wordRange {
   // look for manual links within the word
