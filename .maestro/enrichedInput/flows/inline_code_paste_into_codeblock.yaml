@@ -27,12 +27,11 @@ appId: swmansion.enriched.example
     when:
       platform: Android
     commands:
-      - tapOn:
+      - longPressOn:
           id: 'editor-input'
           point: '10%, 30%'
       - tapOn:
-          id: 'editor-input'
-          point: '10%, 30%'
+          text: 'Select all'
 
 - tapOn:
     text: 'Copy'

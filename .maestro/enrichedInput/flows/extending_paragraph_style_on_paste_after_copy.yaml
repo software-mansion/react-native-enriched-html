@@ -24,12 +24,11 @@ tags:
     when:
       platform: Android
     commands:
-      - tapOn:
+      - longPressOn:
           id: 'editor-input'
           point: '10%, 50%'
       - tapOn:
-          id: 'editor-input'
-          point: '10%, 50%'
+          text: 'Select all'
 
 - tapOn:
     text: 'Copy'

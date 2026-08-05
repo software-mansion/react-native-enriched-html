@@ -26,12 +26,11 @@ appId: swmansion.enriched.example
     when:
       platform: Android
     commands:
-      - tapOn:
+      - longPressOn:
           id: 'editor-input'
           point: '20%, 50%'
       - tapOn:
-          id: 'editor-input'
-          point: '20%, 50%'
+          text: 'Select all'
 - tapOn:
     text: 'Copy'
 
@@ -73,12 +72,11 @@ appId: swmansion.enriched.example
     when:
       platform: Android
     commands:
-      - tapOn:
+      - longPressOn:
           id: 'editor-input'
           point: '20%, 50%'
       - tapOn:
-          id: 'editor-input'
-          point: '20%, 50%'
+          text: 'Select all'
 - tapOn:
     text: 'Copy'
 
