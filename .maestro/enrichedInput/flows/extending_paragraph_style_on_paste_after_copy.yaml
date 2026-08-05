@@ -32,7 +32,6 @@ tags:
           point: '10%, 50%'
 
 - tapOn:
-    id: 'android:id/floating_toolbar_menu_item_text'
     text: 'Copy'
 
 # Dismiss toolbar with Copy/Cut etc. options
