@@ -282,6 +282,11 @@ TEST(GumboParserTest, EnrichedTagRemappings) {
   EXPECT_EQ(
       GumboParser::normalizeHtml("<img src='x' width='100' height='100' />"),
       "<img src=\"x\" width=\"100\" height=\"100\" />");
+  EXPECT_EQ(GumboParser::normalizeHtml("<img width=\"100\" height=\"100\" />"),
+            "<img src=\"\" width=\"100\" height=\"100\" />");
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<img src=\"\" width=\"100\" height=\"100\" />"),
+            "<img src=\"\" width=\"100\" height=\"100\" />");
 
   // Lists
   EXPECT_EQ(GumboParser::normalizeHtml("<ul><li>x</li></ul>"),

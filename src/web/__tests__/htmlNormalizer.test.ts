@@ -262,6 +262,14 @@ describe('htmlNormalizer', () => {
         "<img src='x' width='100' height='100' />",
         '<img src="x" width="100" height="100" />',
       ],
+      [
+        '<img width="100" height="100" />',
+        '<img src="" width="100" height="100" />',
+      ],
+      [
+        '<img src="" width="100" height="100" />',
+        '<img src="" width="100" height="100" />',
+      ],
 
       // Lists
       ['<ul><li>x</li></ul>', '<ul><li>x</li></ul>'],
