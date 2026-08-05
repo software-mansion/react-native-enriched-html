@@ -478,11 +478,8 @@ class EnrichedTextInputView :
     val currentText = text as Editable
     val textLength = currentText.length
 
-    // Capture active inline styles before setValue, which runs as a transaction and skips the
-    // text watcher style pass that would otherwise materialise them.
-    val activeInlineStyles = EnrichedSpans.inlineSpans.keys.filter { spanState?.getStart(it) != null }
-
     if (textLength == 0) {
+      val activeInlineStyles = selection?.getActiveInlineStylesAt(0) ?: emptyList()
       setValue(value)
       applyActiveInlineStyles(activeInlineStyles, 0, text?.length ?: 0)
       return
@@ -498,6 +495,9 @@ class EnrichedTextInputView :
       adjustedStart++
     }
     val adjustedEnd = safeEnd.coerceAtLeast(adjustedStart)
+
+    // Active inline styles follow selection-start semantics at the insertion point.
+    val activeInlineStyles = selection?.getActiveInlineStylesAt(adjustedStart) ?: emptyList()
 
     val newText = parseText(value) as Spannable
 

@@ -439,10 +439,10 @@ export const EnrichedTextInput = ({
           parseOptions: { preserveWhitespace: 'full' as const },
         }) as Fragment;
 
-        // Inherit the editor's active inline styles (toggled marks or the marks at the
-        // caret) so inserted text picks them up.
-        const activeMarks =
-          editor.state.storedMarks ?? editor.state.selection.$head.marks();
+        // Inherit active inline styles from the insertion start: toggled marks first,
+        // otherwise the marks at [from], matching native selection-start semantics.
+        const $from = editor.state.doc.resolve(from);
+        const activeMarks = editor.state.storedMarks ?? $from.marks();
         const parsed = applyMarksToContent(parsedRaw, activeMarks);
 
         const blocks: Node[] = [];

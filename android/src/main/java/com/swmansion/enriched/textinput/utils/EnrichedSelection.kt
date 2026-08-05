@@ -119,6 +119,33 @@ class EnrichedSelection(
     return Pair(finalStart, finalEnd)
   }
 
+  fun getActiveInlineStylesAt(position: Int): List<String> {
+    val spannable = view.text as? Spannable ?: return emptyList()
+    if (position < 0) return emptyList()
+
+    val activeStyles = mutableListOf<String>()
+
+    for ((style, config) in EnrichedSpans.inlineSpans) {
+      if (view.spanState?.getStart(style) != null) {
+        activeStyles.add(style)
+        continue
+      }
+
+      val spans = spannable.getSpans(position, position, config.clazz)
+      for (span in spans) {
+        val spanStart = spannable.getSpanStart(span)
+        val spanEnd = spannable.getSpanEnd(span)
+        if (position == spanStart) continue
+        if (position > spanStart && position <= spanEnd) {
+          activeStyles.add(style)
+          break
+        }
+      }
+    }
+
+    return activeStyles
+  }
+
   private fun <T> getInlineStyleStart(type: Class<T>): Int? {
     val (start, end) = getInlineSelection()
     val spannable = view.text as Spannable
