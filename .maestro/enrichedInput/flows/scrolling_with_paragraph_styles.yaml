@@ -83,10 +83,7 @@ appId: swmansion.enriched.example
     from:
       id: 'editor-input'
     direction: DOWN
-- swipe:
-    from:
-      id: 'editor-input'
-    direction: DOWN
+    duration: 1000
 
 - waitForAnimationToEnd
 
@@ -106,10 +103,7 @@ appId: swmansion.enriched.example
     from:
       id: 'editor-input'
     direction: UP
-- swipe:
-    from:
-      id: 'editor-input'
-    direction: UP
+    duration: 1000
 
 - waitForAnimationToEnd
 
