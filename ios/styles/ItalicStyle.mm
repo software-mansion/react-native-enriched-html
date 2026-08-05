@@ -1,5 +1,5 @@
 #import "EnrichedTextInputView.h"
-#import "FontExtension.h"
+#import "ItalicUtils.h"
 #import "StyleHeaders.h"
 
 @implementation ItalicStyle : StyleBase
@@ -17,21 +17,15 @@
 }
 
 - (void)applyStyling:(NSRange)range {
-  [self.host.textView.textStorage
-      enumerateAttribute:NSFontAttributeName
-                 inRange:range
-                 options:0
-              usingBlock:^(id _Nullable value, NSRange range,
-                           BOOL *_Nonnull stop) {
-                UIFont *font = (UIFont *)value;
-                if (font != nullptr) {
-                  UIFont *newFont = [font setItalic];
-                  [self.host.textView.textStorage
-                      addAttribute:NSFontAttributeName
-                             value:newFont
-                             range:range];
-                }
-              }];
+  [ItalicUtils applyItalicInTextStorage:self.host.textView.textStorage
+                                inRange:range];
+}
+
+// some styles might apply a new font (inline code), so we need to apply
+// the italic last, that way knowing if the used font supports italics
+// or we need to apply a slant
+- (NSInteger)stylingPriority {
+  return 1;
 }
 
 @end

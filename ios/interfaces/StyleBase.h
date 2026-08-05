@@ -14,6 +14,7 @@
 - (BOOL)isParagraph;
 - (BOOL)needsZWS;
 - (BOOL)appliesStylingToTyping;
+- (NSInteger)stylingPriority;
 - (instancetype)initWithHost:(id<EnrichedViewHost>)host;
 - (NSRange)actualUsedRange:(NSRange)range;
 - (void)toggle:(NSRange)range;

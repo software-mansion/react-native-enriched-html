@@ -1,0 +1,197 @@
+#import "ItalicUtils.h"
+#import "FontExtension.h"
+#import <CoreText/CoreText.h>
+
+// slant used when a font has no italic face
+static const CGFloat kObliquenessFallback = 0.2;
+
+typedef NS_ENUM(NSInteger, ItalicKind) {
+  // whitespace and other invisible characters - takes over the kind of its
+  // neighbours
+  ItalicKindNeutral,
+  // character must not be slanted at all (text attachments)
+  ItalicKindNone,
+  // font has a real italic glyph for the character
+  ItalicKindFont,
+  // no italic glyph available, the slant has to be used
+  ItalicKindOblique,
+};
+
+static NSCharacterSet *NeutralCharacters(void) {
+  static NSCharacterSet *neutral = nil;
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{
+    NSMutableCharacterSet *set =
+        [[NSCharacterSet whitespaceAndNewlineCharacterSet] mutableCopy];
+    [set formUnionWithCharacterSet:[NSCharacterSet controlCharacterSet]];
+    // ZWS
+    [set addCharactersInString:[NSString
+                                   stringWithFormat:@"%C", (unichar)0x200B]];
+    neutral = [set copy];
+  });
+  return neutral;
+}
+
+// returns YES when the font renders the given UTF-16 sequence itself
+static BOOL FontCoversCharacters(UIFont *font, const unichar *chars,
+                                 CFIndex count) {
+  if (font == nullptr) {
+    return NO;
+  }
+  CGGlyph glyphs[2] = {0, 0};
+  return CTFontGetGlyphsForCharacters((__bridge CTFontRef)font, chars, glyphs,
+                                      count);
+}
+
+@implementation ItalicUtils
+
++ (void)applyItalicInTextStorage:(NSTextStorage *)textStorage
+                         inRange:(NSRange)range {
+  if (textStorage == nullptr || range.length == 0 ||
+      NSMaxRange(range) > textStorage.length) {
+    return;
+  }
+
+  // we process each present font
+  [textStorage enumerateAttribute:NSFontAttributeName
+                          inRange:range
+                          options:0
+                       usingBlock:^(id _Nullable value, NSRange fontRange,
+                                    BOOL *_Nonnull stop) {
+                         UIFont *font = (UIFont *)value;
+                         if (font == nullptr) {
+                           return;
+                         }
+                         [self applyItalicForFont:font
+                                    inTextStorage:textStorage
+                                          inRange:fontRange];
+                       }];
+}
+
++ (void)applyItalicForFont:(UIFont *)font
+             inTextStorage:(NSTextStorage *)textStorage
+                   inRange:(NSRange)range {
+  UIFont *italicFont = [font setItalic];
+  BOOL hasItalicFace = [italicFont isItalic];
+
+  NSMutableArray<NSValue *> *clusterRanges = [NSMutableArray array];
+  NSMutableArray<NSNumber *> *clusterKinds = [NSMutableArray array];
+
+  // we process each composed character sequence and classify it to a specific
+  // ItalicKind
+  [textStorage.string
+      enumerateSubstringsInRange:range
+                         options:NSStringEnumerationByComposedCharacterSequences
+                      usingBlock:^(NSString *_Nullable cluster,
+                                   NSRange clusterRange, NSRange _,
+                                   BOOL *_Nonnull stop) {
+                        if (cluster.length == 0) {
+                          return;
+                        }
+                        [clusterRanges
+                            addObject:[NSValue valueWithRange:clusterRange]];
+                        [clusterKinds
+                            addObject:@([self kindForCluster:cluster
+                                                        font:font
+                                                  italicFont:italicFont
+                                               hasItalicFace:hasItalicFace])];
+                      }];
+
+  [self resolveNeutralKinds:clusterKinds];
+
+  // merge neighbouring clusters of the same kind and apply the style
+  NSUInteger index = 0;
+  while (index < clusterKinds.count) {
+    NSUInteger endIndex = index + 1;
+    ItalicKind kind = (ItalicKind)[clusterKinds[index] integerValue];
+    while (endIndex < clusterKinds.count &&
+           (ItalicKind)[clusterKinds[endIndex] integerValue] == kind) {
+      endIndex += 1;
+    }
+
+    NSRange startRange = [clusterRanges[index] rangeValue];
+    NSRange endRange = [clusterRanges[endIndex - 1] rangeValue];
+    NSRange segment = NSMakeRange(startRange.location,
+                                  NSMaxRange(endRange) - startRange.location);
+
+    [self applyKind:kind
+             toSegment:segment
+         inTextStorage:textStorage
+        withItalicFont:italicFont];
+
+    index = endIndex;
+  }
+}
+
++ (ItalicKind)kindForCluster:(NSString *)cluster
+                        font:(UIFont *)font
+                  italicFont:(UIFont *)italicFont
+               hasItalicFace:(BOOL)hasItalicFace {
+  if ([cluster rangeOfCharacterFromSet:[NeutralCharacters() invertedSet]]
+          .location == NSNotFound) {
+    return ItalicKindNeutral;
+  }
+
+  // we just need to analyze the first unicode character to classify the whole
+  // cluster
+  unichar chars[2] = {0, 0};
+  CFIndex count = 1;
+  chars[0] = [cluster characterAtIndex:0];
+  if (CFStringIsSurrogateHighCharacter(chars[0]) && cluster.length > 1) {
+    chars[1] = [cluster characterAtIndex:1];
+    count = 2;
+  }
+
+  if (chars[0] == (unichar)NSAttachmentCharacter) {
+    return ItalicKindNone;
+  }
+
+  BOOL coveredByFont = FontCoversCharacters(font, chars, count);
+
+  // italic style is supported - we use it
+  if (coveredByFont && hasItalicFace &&
+      FontCoversCharacters(italicFont, chars, count)) {
+    return ItalicKindFont;
+  }
+
+  // italic is not supported, we use the slate instead
+  return ItalicKindOblique;
+}
+
+// neutral clusters take over the preceding kind
++ (void)resolveNeutralKinds:(NSMutableArray<NSNumber *> *)kinds {
+  ItalicKind previous = ItalicKindNeutral;
+  for (NSUInteger i = 0; i < kinds.count; i += 1) {
+    ItalicKind kind = (ItalicKind)[kinds[i] integerValue];
+    if (kind == ItalicKindNeutral) {
+      kinds[i] = @(previous);
+    } else {
+      previous = kind;
+    }
+  }
+}
+
++ (void)applyKind:(ItalicKind)kind
+         toSegment:(NSRange)segment
+     inTextStorage:(NSTextStorage *)textStorage
+    withItalicFont:(UIFont *)italicFont {
+  switch (kind) {
+  case ItalicKindFont:
+    [textStorage addAttribute:NSFontAttributeName
+                        value:italicFont
+                        range:segment];
+    [textStorage removeAttribute:NSObliquenessAttributeName range:segment];
+    break;
+  case ItalicKindOblique:
+    [textStorage addAttribute:NSObliquenessAttributeName
+                        value:@(kObliquenessFallback)
+                        range:segment];
+    break;
+  case ItalicKindNone:
+  case ItalicKindNeutral:
+    [textStorage removeAttribute:NSObliquenessAttributeName range:segment];
+    break;
+  }
+}
+
+@end

@@ -45,6 +45,11 @@
   return NO;
 }
 
+// determines the order of which the styles are applied
+- (NSInteger)stylingPriority {
+  return 0;
+}
+
 - (instancetype)initWithHost:(id<EnrichedViewHost>)host {
   self = [super init];
   _host = host;

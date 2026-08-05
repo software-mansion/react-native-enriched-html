@@ -61,6 +61,14 @@
   [_removedTypingAttributes removeAllObjects];
 }
 
+// Paragraph styles always go first, inline ones are ordered by their
+// stylingPriority
+- (NSInteger)stylingOrderFor:(StyleBase *)style {
+  if (style == nullptr)
+    return NSIntegerMax;
+  return [style isParagraph] ? NSIntegerMin : [style stylingPriority];
+}
+
 - (void)handleDirtyRangesStyling {
   // Filter out 0 length ranges for styling.
   NSPredicate *predicate = [NSPredicate
@@ -97,16 +105,20 @@
 
     // Sort style types so paragraph styles come first. Their broad visual
     // attributes (e.g. foreground color, font) are laid down before inline
-    // styles override them on their specific sub-ranges.
+    // styles override them on their specific sub-ranges. Inline styles among
+    // themselves follow their stylingPriority.
     NSArray *sortedStyleTypes = [presentStyles.allKeys
-        sortedArrayUsingComparator:^NSComparisonResult(NSNumber *a,
-                                                       NSNumber *b) {
-          BOOL aPara = [_input->stylesDict[a] isParagraph];
-          BOOL bPara = [_input->stylesDict[b] isParagraph];
-          if (aPara == bPara)
-            return NSOrderedSame;
-          return aPara ? NSOrderedAscending : NSOrderedDescending;
-        }];
+        sortedArrayWithOptions:NSSortStable
+               usingComparator:^NSComparisonResult(NSNumber *a, NSNumber *b) {
+                 NSInteger aOrder =
+                     [self stylingOrderFor:_input->stylesDict[a]];
+                 NSInteger bOrder =
+                     [self stylingOrderFor:_input->stylesDict[b]];
+                 if (aOrder == bOrder)
+                   return NSOrderedSame;
+                 return aOrder < bOrder ? NSOrderedAscending
+                                        : NSOrderedDescending;
+               }];
 
     // re-apply meta-attributes and apply visual styling following the saved
     // occurences.

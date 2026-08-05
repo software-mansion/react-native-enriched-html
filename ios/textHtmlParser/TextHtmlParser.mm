@@ -153,8 +153,20 @@
     }
   }
 
+  // Respect the styling priority
+  NSArray *sortedInlineApply = [pendingInlineApply
+      sortedArrayWithOptions:NSSortStable
+             usingComparator:^NSComparisonResult(NSArray *a, NSArray *b) {
+               NSInteger aPriority = [((StyleBase *)a[0]) stylingPriority];
+               NSInteger bPriority = [((StyleBase *)b[0]) stylingPriority];
+               if (aPriority == bPriority)
+                 return NSOrderedSame;
+               return aPriority < bPriority ? NSOrderedAscending
+                                            : NSOrderedDescending;
+             }];
+
   // Apply visual styling for inline styles
-  for (NSArray *entry in pendingInlineApply) {
+  for (NSArray *entry in sortedInlineApply) {
     StyleBase *style = entry[0];
     NSRange adjustedStyleRange = [((NSValue *)entry[1]) rangeValue];
     [style applyStyling:adjustedStyleRange];
