@@ -62,11 +62,11 @@
 }
 
 // Paragraph styles always go first, inline ones are ordered by their
-// stylingPriority
+// stylePriority
 - (NSInteger)stylingOrderFor:(StyleBase *)style {
   if (style == nullptr)
     return NSIntegerMax;
-  return [style isParagraph] ? NSIntegerMin : [style stylingPriority];
+  return [style isParagraph] ? NSIntegerMin : [style stylePriority];
 }
 
 - (void)handleDirtyRangesStyling {
@@ -106,7 +106,7 @@
     // Sort style types so paragraph styles come first. Their broad visual
     // attributes (e.g. foreground color, font) are laid down before inline
     // styles override them on their specific sub-ranges. Inline styles among
-    // themselves follow their stylingPriority.
+    // themselves follow their stylePriority.
     NSArray *sortedStyleTypes = [presentStyles.allKeys
         sortedArrayWithOptions:NSSortStable
                usingComparator:^NSComparisonResult(NSNumber *a, NSNumber *b) {

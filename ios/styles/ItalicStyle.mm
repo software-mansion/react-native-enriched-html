@@ -24,8 +24,8 @@
 // some styles might apply a new font (inline code), so we need to apply
 // the italic last, that way knowing if the used font supports italics
 // or we need to apply a slant
-- (NSInteger)stylingPriority {
-  return 1;
+- (NSInteger)stylePriority {
+  return 3;
 }
 
 @end
