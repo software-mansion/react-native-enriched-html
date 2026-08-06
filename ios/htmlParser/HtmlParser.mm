@@ -670,7 +670,7 @@
       [styleArr addObject:@([ItalicStyle getType])];
     } else if ([tagName isEqualToString:@"img"]) {
       NSRegularExpression *srcRegex =
-          [NSRegularExpression regularExpressionWithPattern:@"src=\"([^\"]+)\""
+          [NSRegularExpression regularExpressionWithPattern:@"src=\"([^\"]*)\""
                                                     options:0
                                                       error:nullptr];
       NSTextCheckingResult *match =
