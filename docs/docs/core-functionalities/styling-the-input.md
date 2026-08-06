@@ -12,6 +12,9 @@ everything from the container's dimensions down to the color of a bullet point.
 - **`htmlStyle`** - the appearance of individual rich text elements: heading
   sizes, blockquote borders, code colors, list markers, mention colors, and so
   on.
+- **`placeholderTextColor`** - the color of the placeholder text.
+- **`selectionColor`** - the color of the text selection highlight.
+- **`cursorColor`** - the color of the text cursor.
 
 ```tsx
 <EnrichedTextInput

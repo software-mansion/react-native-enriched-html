@@ -11,7 +11,8 @@ detail stays behind the same public API.
 
 ## One API across platforms
 
-The web build exposes the **same props, ref methods, and events** as native.
+The web build exposes the same core API as native - **props, ref methods, and events** -
+with one web-only addition - `sanitizationConfig` prop.
 Events keep their native shape too - they arrive as
 `NativeSyntheticEvent`, read off `e.nativeEvent`, so
 [event-handling](/core-functionalities/handling-events) code is portable as-is:
