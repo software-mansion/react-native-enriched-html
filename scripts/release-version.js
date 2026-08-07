@@ -174,6 +174,7 @@ function parseArguments(argv) {
     baseVersion: '',
     packageJsonPath: 'package.json',
     registry: 'https://npm.pkg.github.com',
+    version: '',
   };
 
   for (let index = 0; index < argv.length; index += 2) {
@@ -185,6 +186,7 @@ function parseArguments(argv) {
 
     if (key === '--release-type') options.releaseType = value;
     else if (key === '--base-version') options.baseVersion = value;
+    else if (key === '--version') options.version = value;
     else if (key === '--package-json') options.packageJsonPath = value;
     else if (key === '--registry') options.registry = value;
     else throw new Error(`Unknown argument: ${key}`);
@@ -210,7 +212,7 @@ function run(argv = process.argv.slice(2)) {
     ...registryState,
     baseVersion: options.baseVersion,
     gitSha,
-    manifestVersion: packageJson.version,
+    manifestVersion: options.version || packageJson.version,
     releaseType: options.releaseType,
   });
 

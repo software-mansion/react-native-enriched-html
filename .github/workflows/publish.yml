@@ -8,8 +8,13 @@ on:
       release-type:
         description: Type of release to publish.
         type: choice
-        options: [stable, nightly, beta, rc]
-        default: stable
+        options: [nightly, beta, rc, stable]
+        default: nightly
+      version:
+        description: Stable x.y.z version. Required for manual stable releases.
+        type: string
+        required: false
+        default: ''
       base-version:
         description: Optional x.y.z base for beta, rc, or nightly releases.
         type: string
@@ -38,6 +43,7 @@ jobs:
       NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       REGISTRY_URL: https://npm.pkg.github.com
       RELEASE_TYPE: ${{ github.event_name == 'schedule' && 'nightly' || inputs.release-type }}
+      RELEASE_VERSION: ${{ github.event_name == 'schedule' && '' || inputs.version }}
 
     steps:
       - name: Check out
@@ -50,6 +56,16 @@ jobs:
         run: |
           if [[ "$DRY_RUN" != "true" && "$GITHUB_REF_NAME" != "main" && "$GITHUB_REF_NAME" != release/* ]]; then
             echo "Live releases must run from main or release/**, got $GITHUB_REF_NAME"
+            exit 1
+          fi
+
+      - name: Validate stable release inputs
+        if: github.event_name == 'workflow_dispatch' && env.RELEASE_TYPE == 'stable'
+        shell: bash
+        run: |
+          if [[ ! "$RELEASE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Stable releases from main/release branches require version=x.y.z"
+            echo "Example: RELEASE_VERSION=2.1.0 yarn release"
             exit 1
           fi
 
@@ -71,6 +87,7 @@ jobs:
           node scripts/release-version.js \
             --release-type "$RELEASE_TYPE" \
             --base-version "$BASE_VERSION" \
+            --version "$RELEASE_VERSION" \
             --package-json package.json \
             --registry "$REGISTRY_URL"
 

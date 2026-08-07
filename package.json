@@ -67,7 +67,7 @@
     "test:e2e:ios": ".maestro/scripts/run-tests.sh --platform ios",
     "test:e2e:web": ".playwright/scripts/run-tests.sh",
     "test:e2e": "bash -c '.maestro/scripts/run-tests-all.sh \"$@\" && .playwright/scripts/run-tests.sh \"$@\"' _",
-    "release": "yarn prepare && gh workflow run publish.yml --repo litlynx/react-native-enriched-html --ref main --field release-type=stable --field dry-run=false"
+    "release": "node scripts/release.js"
   },
   "keywords": [
     "react-native",
