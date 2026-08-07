@@ -9,6 +9,7 @@ import android.graphics.Color
 import android.graphics.Rect
 import android.graphics.text.LineBreaker
 import android.os.Build
+import android.text.Editable
 import android.text.InputType
 import android.text.Spannable
 import android.text.SpannableString
@@ -399,8 +400,9 @@ class EnrichedTextInputView :
     val pasteEnd = (start + insertedLength).coerceIn(0, finalText.length)
     setSelection(pasteEnd)
 
-    // Detect links in the newly pasted range
-    parametrizedStyles?.detectLinksInRange(finalText, start.coerceAtMost(pasteEnd), pasteEnd)
+    // Update links and mentions in the newly pasted range
+    val editable = text as? Editable ?: return
+    parametrizedStyles?.afterTextChanged(editable, start.coerceAtMost(pasteEnd), pasteEnd)
   }
 
   fun requestFocusProgrammatically() {
@@ -414,7 +416,7 @@ class EnrichedTextInputView :
     val normalized = GumboNormalizer.normalizeHtml(text.toString()) ?: return text
 
     return try {
-      val parsed = EnrichedParser.fromHtml(normalized, htmlStyle, spannableFactory)
+      val parsed = EnrichedParser.fromHtml(normalized, htmlStyle, spannableFactory, linkRegex)
       parsed.trimEnd('\n')
     } catch (e: Exception) {
       Log.e(TAG, "Error parsing normalized HTML: ${e.message}")
@@ -427,7 +429,7 @@ class EnrichedTextInputView :
 
     if (isInternalHtml) {
       try {
-        val parsed = EnrichedParser.fromHtml(text.toString(), htmlStyle, spannableFactory)
+        val parsed = EnrichedParser.fromHtml(text.toString(), htmlStyle, spannableFactory, linkRegex)
         return parsed.trimEnd('\n')
       } catch (e: Exception) {
         Log.e(TAG, "Error parsing HTML: ${e.message}")

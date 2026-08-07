@@ -1,6 +1,7 @@
 #import "HtmlParser.h"
 #import "AlignmentEntry.h"
 #import "AlignmentUtils.h"
+#import "EnrichedConfig.h"
 #import "ColorExtension.h"
 #import "CustomStyleData.h"
 #include "GumboParser.hpp"
@@ -416,7 +417,9 @@
   return fixedHtml;
 }
 
-+ (NSArray *_Nonnull)getTextAndStylesFromHtml:(NSString *_Nonnull)fixedHtml {
++ (NSArray *_Nonnull)getTextAndStylesFromHtml:(NSString *_Nonnull)fixedHtml
+                                       config:
+                                           (EnrichedConfig *_Nullable)config {
   NSMutableString *plainText = [[NSMutableString alloc] initWithString:@""];
   NSMutableDictionary *ongoingTags = [[NSMutableDictionary alloc] init];
   NSMutableArray *initiallyProcessedTags = [[NSMutableArray alloc] init];
@@ -647,6 +650,10 @@
 
   // process tags into proper StyleType + StylePair values
   NSMutableArray *processedStyles = [[NSMutableArray alloc] init];
+  // Tracks the number of processed images to remove their pre-generated
+  // placeholder offsets from tag ranges when reading from plainText
+  // (which does not contain those placeholders).
+  NSInteger secondPassImageCount = 0;
 
   for (NSArray *arr in initiallyProcessedTags) {
     NSString *tagName = (NSString *)arr[0];
@@ -665,7 +672,7 @@
       [styleArr addObject:@([ItalicStyle getType])];
     } else if ([tagName isEqualToString:@"img"]) {
       NSRegularExpression *srcRegex =
-          [NSRegularExpression regularExpressionWithPattern:@"src=\"([^\"]+)\""
+          [NSRegularExpression regularExpressionWithPattern:@"src=\"([^\"]*)\""
                                                     options:0
                                                       error:nullptr];
       NSTextCheckingResult *match =
@@ -717,6 +724,7 @@
       }
 
       stylePair.styleValue = imageData;
+      secondPassImageCount++;
     } else if ([tagName isEqualToString:@"u"]) {
       [styleArr addObject:@([UnderlineStyle getType])];
     } else if ([tagName isEqualToString:@"s"]) {
@@ -744,12 +752,21 @@
       NSString *url =
           [params substringWithRange:NSMakeRange(hrefRange.location + 6,
                                                  hrefRange.length - 7)];
-      NSString *text = [plainText substringWithRange:tagRangeValue.rangeValue];
+
+      // tagRange location includes one extra offset per preceding image
+      // placeholder, which don't exist in plainText. Subtract them to map
+      // back to the correct plainText index.
+      NSRange adjustedRange = tagRangeValue.rangeValue;
+      NSRange plainTextRange = NSMakeRange(
+          adjustedRange.location - secondPassImageCount, adjustedRange.length);
+      NSString *text = [plainText substringWithRange:plainTextRange];
 
       LinkData *linkData = [[LinkData alloc] init];
       linkData.url = url;
       linkData.text = text;
-      linkData.isManual = ![text isEqualToString:url];
+      linkData.isManual = ![text isEqualToString:url] ||
+                          ![LinkStyle matchesLinkRegexWithConfig:url
+                                                          config:config];
 
       stylePair.styleValue = linkData;
     } else if ([tagName isEqualToString:@"mention"]) {
@@ -1360,8 +1377,9 @@
         ImageData *data = [imageStyle getImageDataAt:location];
         if (data != nullptr && data.uri != nullptr) {
           return [NSString
-              stringWithFormat:@"img src=\"%@\" width=\"%f\" height=\"%f\"",
-                               data.uri, data.width, data.height];
+              stringWithFormat:@"img src=\"%@\" width=\"%d\" height=\"%d\"",
+                               data.uri, (int)floor(data.width),
+                               (int)floor(data.height)];
         }
       }
       return @"img";

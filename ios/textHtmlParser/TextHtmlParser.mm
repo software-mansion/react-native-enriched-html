@@ -31,7 +31,8 @@
       return;
     }
 
-    NSArray *result = [HtmlParser getTextAndStylesFromHtml:normalized];
+    NSArray *result = [HtmlParser getTextAndStylesFromHtml:normalized
+                                                    config:nil];
     NSString *plainText = result[0];
     NSArray *processedStyles = result[1];
     NSArray *alignments = result[2];

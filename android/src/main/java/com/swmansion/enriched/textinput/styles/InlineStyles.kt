@@ -223,7 +223,18 @@ class InlineStyles(
     if (spans.isEmpty()) return false
 
     for (span in spans) {
+      val spanStart = spannable.getSpanStart(span)
+      val spanEnd = spannable.getSpanEnd(span)
+
       spannable.removeSpan(span)
+
+      if (spanStart < start) {
+        setSpan(spannable, config.clazz, spanStart, start - 1)
+      }
+
+      if (spanEnd > end) {
+        setSpan(spannable, config.clazz, end, spanEnd)
+      }
     }
 
     return true

@@ -1,11 +1,11 @@
 import {
-  type Component,
+  useCallback,
   useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
+  type ComponentRef,
 } from 'react';
-import { useCallback } from 'react';
 import EnrichedTextInputNativeComponent, {
   Commands,
   type NativeProps,
@@ -17,11 +17,11 @@ import EnrichedTextInputNativeComponent, {
 import {
   processColor,
   type ColorValue,
+  type HostComponent,
   type HostInstance,
   type MeasureInWindowOnSuccessCallback,
   type MeasureLayoutOnSuccessCallback,
   type MeasureOnSuccessCallback,
-  type NativeMethods,
   type NativeSyntheticEvent,
 } from 'react-native';
 import { normalizeHtmlStyle } from '../utils/normalizeHtmlStyle';
@@ -54,7 +54,7 @@ const getSafeColorInt = (
   return null;
 };
 
-type ComponentType = (Component<NativeProps, {}, any> & NativeMethods) | null;
+type ComponentType = ComponentRef<HostComponent<NativeProps>>;
 
 type HtmlRequest = {
   resolve: (html: string) => void;
@@ -63,7 +63,7 @@ type HtmlRequest = {
 
 export const EnrichedTextInput = ({
   ref,
-  autoFocus,
+  autoFocus = false,
   editable = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.editable,
   mentionIndicators = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.mentionIndicators.slice(),
   defaultValue,

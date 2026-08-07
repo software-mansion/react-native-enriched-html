@@ -5,6 +5,8 @@
 #import "MentionParams.h"
 #import "StyleBase.h"
 
+@class EnrichedConfig;
+
 @interface CustomStyle : StyleBase
 - (void)applyStyleFromDict:(NSDictionary *)dict selectedRange:(NSRange)range;
 - (void)setCustomStyleData:(CustomStyleData *)data
@@ -39,6 +41,8 @@
 - (void)handleAutomaticLinks:(NSString *)word inRange:(NSRange)wordRange;
 - (void)handleManualLinks:(NSString *)word inRange:(NSRange)wordRange;
 - (void)applyLinkMetaWithData:(LinkData *)linkData range:(NSRange)range;
++ (BOOL)matchesLinkRegexWithConfig:(NSString *)url
+                            config:(EnrichedConfig *)config;
 @end
 
 @interface MentionStyle : StyleBase
