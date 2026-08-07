@@ -1,15 +1,63 @@
-import Link from '@tiptap/extension-link';
-import type { CommandProps } from '@tiptap/core';
+import Link, { type LinkOptions } from '@tiptap/extension-link';
+import { mergeAttributes, type CommandProps } from '@tiptap/core';
 import type { Editor } from '@tiptap/react';
 
 import { nativePosToTiptapPos } from '../positionMapping';
 import { isLinkBlocked } from './formatRules';
+import { findAutolinkRangesInWord } from '../pmPlugins/AutolinkPlugin/autolinkRegex';
 
-export const EnrichedLink = Link.extend({
+function isFullLinkMatch(text: string, linkRegex: RegExp | undefined): boolean {
+  const ranges = findAutolinkRangesInWord(text, linkRegex);
+  return ranges.some((r) => r.start === 0 && r.endExclusive === text.length);
+}
+
+export const EnrichedLink = Link.extend<
+  LinkOptions & { getLinkRegex: () => RegExp | null | undefined }
+>({
   excludes: 'link code',
 
+  parseHTML() {
+    return [
+      {
+        tag: 'a[href]',
+        getAttrs: (node: string | HTMLElement) => {
+          if (typeof node === 'string') return null;
+          const href = node.getAttribute('href');
+          if (!href || /^javascript:/i.test(href)) return false;
+          return null;
+        },
+      },
+    ];
+  },
+
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      auto: {
+        default: false,
+        parseHTML: (el) => {
+          const href = el.getAttribute('href');
+          const textContent = el.textContent;
+          if (!href || href !== textContent) return false;
+
+          const linkRegex = this.options.getLinkRegex();
+          if (linkRegex === null) return false;
+
+          return isFullLinkMatch(href, linkRegex);
+        },
+        renderHTML: () => {
+          return {};
+        },
+      },
+    };
+  },
+
   renderHTML({ HTMLAttributes }) {
-    return ['a', { href: HTMLAttributes.href }, 0];
+    return [
+      'a',
+      mergeAttributes(this.options.HTMLAttributes, HTMLAttributes),
+      0,
+    ];
   },
 
   addOptions() {
@@ -23,6 +71,9 @@ export const EnrichedLink = Link.extend({
         ...parent.HTMLAttributes,
         target: null,
         rel: null,
+      },
+      getLinkRegex: () => {
+        throw new Error('EnrichedLink.configure({ getLinkRegex }) is required');
       },
     };
   },
@@ -54,6 +105,10 @@ export const EnrichedLink = Link.extend({
         return parent?.unsetLink?.()(props) ?? false;
       },
     };
+  },
+
+  addPasteRules() {
+    return [];
   },
 });
 

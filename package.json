@@ -1,6 +1,6 @@
 {
   "name": "react-native-enriched-html",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "HTML-based Rich Text solution for React Native",
   "source": "./src/index.tsx",
   "main": "./lib/module/index.js",
@@ -83,29 +83,31 @@
   "bugs": {
     "url": "https://github.com/software-mansion/react-native-enriched-html/issues"
   },
-  "homepage": "https://github.com/software-mansion/react-native-enriched-html#readme",
+  "homepage": "https://enriched.swmansion.com/html",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
   "dependencies": {
-    "@tiptap/core": "3.20.4",
-    "@tiptap/extension-blockquote": "3.20.4",
-    "@tiptap/extension-bold": "3.20.4",
-    "@tiptap/extension-code": "3.20.4",
-    "@tiptap/extension-document": "3.20.4",
-    "@tiptap/extension-heading": "3.20.4",
-    "@tiptap/extension-history": "3.20.4",
-    "@tiptap/extension-image": "3.20.4",
-    "@tiptap/extension-italic": "3.20.4",
-    "@tiptap/extension-link": "3.20.4",
-    "@tiptap/extension-list": "3.20.4",
-    "@tiptap/extension-paragraph": "3.20.4",
-    "@tiptap/extension-strike": "3.20.4",
-    "@tiptap/extension-text": "3.20.4",
-    "@tiptap/extension-underline": "3.20.4",
-    "@tiptap/extensions": "3.20.4",
-    "@tiptap/pm": "3.20.4",
-    "@tiptap/react": "3.20.4"
+    "@tiptap/core": "3.27.1",
+    "@tiptap/extension-blockquote": "3.27.1",
+    "@tiptap/extension-bold": "3.27.1",
+    "@tiptap/extension-code": "3.27.1",
+    "@tiptap/extension-document": "3.27.1",
+    "@tiptap/extension-heading": "3.27.1",
+    "@tiptap/extension-history": "3.27.1",
+    "@tiptap/extension-image": "3.27.1",
+    "@tiptap/extension-italic": "3.27.1",
+    "@tiptap/extension-link": "3.27.1",
+    "@tiptap/extension-list": "3.27.1",
+    "@tiptap/extension-paragraph": "3.27.1",
+    "@tiptap/extension-strike": "3.27.1",
+    "@tiptap/extension-text": "3.27.1",
+    "@tiptap/extension-text-align": "3.27.1",
+    "@tiptap/extension-underline": "3.27.1",
+    "@tiptap/extensions": "3.27.1",
+    "@tiptap/pm": "3.27.1",
+    "@tiptap/react": "3.27.1",
+    "dompurify": "3.4.11"
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^19.6.0",
@@ -114,12 +116,13 @@
     "@eslint/js": "^9.22.0",
     "@evilmartians/lefthook": "^1.5.0",
     "@playwright/test": "1.58.2",
-    "@react-native-community/cli": "20.0.0",
-    "@react-native/eslint-config": "^0.81.0",
+    "@react-native-community/cli": "20.1.0",
+    "@react-native/eslint-config": "^0.86.0",
+    "@react-native/jest-preset": "^0.86.0",
     "@release-it/conventional-changelog": "^9.0.2",
     "@types/jest": "^29.5.5",
-    "@types/react": "^19.1.0",
-    "@types/react-dom": "^19.1.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
     "clang-format": "^1.8.0",
     "commitlint": "^19.6.1",
     "del-cli": "^5.1.0",
@@ -130,10 +133,10 @@
     "jest-environment-jsdom": "^29.7.0",
     "playwright": "1.58.2",
     "prettier": "^3.0.3",
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
-    "react-native": "0.81.0",
-    "react-native-builder-bob": "^0.40.18",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native": "0.86.0",
+    "react-native-builder-bob": "^0.43.0",
     "release-it": "^17.10.0",
     "turbo": "^1.10.7",
     "typescript": "^5.8.3"
@@ -146,6 +149,9 @@
     "apps/example",
     "apps/example-web"
   ],
+  "resolutions": {
+    "shell-quote": "1.8.4"
+  },
   "packageManager": "yarn@4.13.0",
   "jest": {
     "projects": [

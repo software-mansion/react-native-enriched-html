@@ -1,3 +1,4 @@
+#import "ColorExtension.h"
 #import "CustomStyleData.h"
 #import "EnrichedTextInputView.h"
 #import "RangeUtils.h"
@@ -61,7 +62,8 @@ static NSString *const CustomStyleAttributeName = @"EnrichedCustomStyle";
                       data.foregroundColor;
                 }
                 if (data.backgroundColor != nil) {
-                  attrs[NSBackgroundColorAttributeName] = data.backgroundColor;
+                  attrs[NSBackgroundColorAttributeName] =
+                      [data.backgroundColor colorWithResolvedAlpha];
                 }
                 if (attrs.count == 0)
                   return;

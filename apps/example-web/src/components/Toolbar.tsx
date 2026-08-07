@@ -17,7 +17,7 @@ interface ToolbarButtonProps {
   label: string;
   testId: string;
   isActive: boolean;
-  isDisabled: boolean;
+  isDisabled?: boolean;
   variant?: string;
   onPress: () => void;
 }
@@ -202,6 +202,16 @@ export function Toolbar({
     onPress: (editor: EnrichedTextInputInstance | null) => void;
   }[];
 
+  const alignmentItems: {
+    label: string;
+    value: 'left' | 'center' | 'right' | 'justify';
+  }[] = [
+    { label: '←', value: 'left' },
+    { label: '↔', value: 'center' },
+    { label: '→', value: 'right' },
+    { label: '≡', value: 'justify' },
+  ];
+
   return (
     <div className="toolbar">
       <div className="toolbar-controls" {...dragScroll}>
@@ -215,6 +225,17 @@ export function Toolbar({
             variant={item.variant}
             onPress={() => {
               item.onPress(editorRef.current);
+            }}
+          />
+        ))}
+        {alignmentItems.map((item) => (
+          <ToolbarButton
+            key={`alignment-${item.value}`}
+            label={item.label}
+            testId={`toolbar-button-alignment-${item.value}`}
+            isActive={s?.alignment === item.value}
+            onPress={() => {
+              editorRef.current?.setTextAlignment(item.value);
             }}
           />
         ))}

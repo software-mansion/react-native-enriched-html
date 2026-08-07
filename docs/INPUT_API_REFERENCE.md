@@ -1,7 +1,5 @@
 # API Reference
 
-> **Web support is experimental.** Behavior may change without a major version bump.
-
 ## Props
 
 ### `allowFontScaling`
@@ -616,9 +614,9 @@ Default value:
 ];
 ```
 
-| Type             | Default Value | Platform |
-| ---------------- | ------------- | -------- |
-| `TextShortcut[]` | see above     | Both     |
+| Type             | Default Value | Platform          |
+| ---------------- | ------------- | ----------------- |
+| `TextShortcut[]` | see above     | iOS, Android, Web |
 
 > [!NOTE]
 > Pass an empty array to disable all shortcuts.
@@ -639,13 +637,13 @@ If true, Android will use experimental synchronous events. This will prevent fro
 | ------ | ------------- | -------- |
 | `bool` | `false`       | Android  |
 
-### `useHtmlNormalizer` - EXPERIMENTAL
+### `useHtmlNormalizer`
 
-If true, external HTML pasted/inserted into the input (e.g. from Google Docs, Word, or web pages) will be normalized into the canonical tag subset that the enriched parser understands. However, this is an experimental feature, which has not been thoroughly tested. We may decide to enable it by default in a future release.
+If true, external HTML pasted/inserted into the input (e.g. from Google Docs, Word, or web pages) will be normalized into the canonical tag subset that the enriched parser understands.
 
 | Type   | Default Value | Platform          |
 | ------ | ------------- | ----------------- |
-| `bool` | `false`       | iOS, Android, Web |
+| `bool` | `true`        | iOS, Android, Web |
 
 ## Ref Methods
 
@@ -770,9 +768,6 @@ Sets text alignment for the paragraph(s) at the current selection. When inside a
 
 > [!NOTE]
 > On Android, `'justify'` is not supported. Calling `setTextAlignment('justify')` does not apply justified text — the paragraph ends up with natural alignment, the same as `'auto'`. On iOS, justified alignment works as expected.
-
-> [!NOTE]
-> On Web text alignment is not supported. Calling `setTextAlignment()` has no effect.
 
 ### `.startMention()`
 
@@ -935,6 +930,7 @@ The following keyboard shortcuts are available on Web. `Mod` is `⌘` on macOS a
 | Paste as plain text | ⌘ Shift+V         | Ctrl+Shift+V            |
 | Undo                | ⌘ Z               | Ctrl+Z                  |
 | Redo                | ⌘ Shift+Z         | Ctrl+Shift+Z            |
+| Select all          | ⌘ A               | Ctrl+A                  |
 
 ## HtmlStyle type
 
@@ -1043,7 +1039,7 @@ interface MentionStyleProperties {
 
 ### mention
 
-If only a single config is given, the style applies to all mention types. You can also set a different config for each mentionIndicator that has been defined, then the prop should be a record with indicators as a keys and configs as their values.
+If only a single config is given, the style applies to all mention types. You can also set a different config for each mentionIndicator that has been defined, then the prop should be a record with indicators as keys and configs as their values. Additionally, you can define a style using the `'default'` key, which will act as a base that the rest of your defined styles will fallback on.
 
 - `color` defines the color of mention's text, takes [color](https://reactnative.dev/docs/colors) value and defaults to `blue`.
 - `backgroundColor` is the mention's background color, takes [color](https://reactnative.dev/docs/colors) value and defaults to `yellow`.

@@ -20,9 +20,13 @@
   return YES;
 }
 
+- (CGFloat)headIndent {
+  return [self.host.config blockquoteBorderWidth] +
+         [self.host.config blockquoteGapWidth];
+}
+
 - (void)applyStyling:(NSRange)range {
-  CGFloat indent = [self.host.config blockquoteBorderWidth] +
-                   [self.host.config blockquoteGapWidth];
+  CGFloat indent = [self headIndent];
   [self.host.textView.textStorage
       enumerateAttribute:NSParagraphStyleAttributeName
                  inRange:range
@@ -49,6 +53,28 @@
   [self.host.textView.textStorage addAttribute:NSStrikethroughColorAttributeName
                                          value:bqColor
                                          range:range];
+}
+
+- (BOOL)appliesStylingToTyping {
+  return YES;
+}
+
+- (void)applyStylingToTypingAttrs:(NSMutableDictionary *)attributes {
+  NSMutableParagraphStyle *pStyle =
+      [attributes[NSParagraphStyleAttributeName] mutableCopy];
+  if (pStyle == nil)
+    return;
+  CGFloat indent = [self headIndent];
+  pStyle.headIndent = indent;
+  pStyle.firstLineHeadIndent = indent;
+  attributes[NSParagraphStyleAttributeName] = pStyle;
+
+  UIColor *bqColor = [self.host.config blockquoteColor];
+  if (bqColor != nil) {
+    attributes[NSForegroundColorAttributeName] = bqColor;
+    attributes[NSUnderlineColorAttributeName] = bqColor;
+    attributes[NSStrikethroughColorAttributeName] = bqColor;
+  }
 }
 
 @end
