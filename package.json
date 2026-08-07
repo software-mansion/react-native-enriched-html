@@ -1,6 +1,6 @@
 {
   "name": "@litlynx/react-native-enriched-html",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "HTML-based Rich Text solution for React Native",
   "source": "./src/index.tsx",
   "main": "./lib/module/index.js",
@@ -66,7 +66,8 @@
     "test:e2e:android": ".maestro/scripts/run-tests.sh --platform android",
     "test:e2e:ios": ".maestro/scripts/run-tests.sh --platform ios",
     "test:e2e:web": ".playwright/scripts/run-tests.sh",
-    "test:e2e": "bash -c '.maestro/scripts/run-tests-all.sh \"$@\" && .playwright/scripts/run-tests.sh \"$@\"' _"
+    "test:e2e": "bash -c '.maestro/scripts/run-tests-all.sh \"$@\" && .playwright/scripts/run-tests.sh \"$@\"' _",
+    "release": "yarn prepare && gh workflow run publish.yml --repo litlynx/react-native-enriched-html --ref main --field release-type=stable --field dry-run=false"
   },
   "keywords": [
     "react-native",
