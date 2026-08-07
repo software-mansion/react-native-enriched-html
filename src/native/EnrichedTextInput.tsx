@@ -52,7 +52,7 @@ export const EnrichedTextInput = ({
   editable = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.editable,
   mentionIndicators = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.mentionIndicators.slice(),
   defaultValue,
-  maxLength = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.maxLength,
+  maxLength,
   placeholder,
   placeholderTextColor,
   cursorColor,

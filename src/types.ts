@@ -638,16 +638,7 @@ export interface EnrichedTextInputProps extends Omit<ViewProps, 'children'> {
 
   /**
    * Maximum number of characters the editor's plain text may contain.
-   * Zero-width spaces used internally as layout anchors are not counted.
-   *
-   * Text that doesn't fit (typed, dictated, pasted or set with
-   * `ref.setValue()`) is truncated instead of being rejected, and the cut
-   * never splits an emoji, a surrogate pair or a combining mark.
-   *
-   * Programmatic insertions respect the limit too - `ref.setLink()` shortens
-   * the link's text, `ref.setMention()` inserts as much of the mention's text
-   * as fits but stops being a mention when it doesn't fit whole, and
-   * `ref.setImage()` is skipped when there's no room left for it.
+   * If inserted content doesn't meet this limit, it gets truncated.
    */
   maxLength?: number;
 

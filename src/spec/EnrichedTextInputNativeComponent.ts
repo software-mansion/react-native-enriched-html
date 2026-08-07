@@ -378,7 +378,6 @@ export interface NativeProps extends ViewProps {
   returnKeyLabel?: string;
   submitBehavior?: string;
   allowFontScaling?: boolean;
-  // -1 means no limit
   maxLength?: WithDefault<Int32, -1>;
 
   // event callbacks
