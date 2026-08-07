@@ -161,24 +161,6 @@ class InlineStyles(
     setAndMergeSpans(spannable, type, start, end)
   }
 
-  fun restoreStyleOnRange(
-    name: String,
-    start: Int,
-    end: Int,
-  ) {
-    if (start >= end) return
-
-    val config = EnrichedSpans.inlineSpans[name] ?: return
-    val spannable = view.text as? Spannable ?: return
-    val spans = spannable.getSpans(start, end, config.clazz)
-
-    if (spans.any { spannable.getSpanStart(it) <= start && spannable.getSpanEnd(it) >= end }) {
-      return
-    }
-
-    setSpan(spannable, config.clazz, start, end)
-  }
-
   fun toggleStyle(name: String) {
     if (view.selection == null) return
     val (start, end) = view.selection.getInlineSelection()

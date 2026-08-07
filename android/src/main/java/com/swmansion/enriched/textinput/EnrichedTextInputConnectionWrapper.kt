@@ -7,7 +7,6 @@ import android.view.inputmethod.InputConnection
 import android.view.inputmethod.InputConnectionWrapper
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.uimanager.UIManagerHelper
-import com.swmansion.enriched.common.spans.interfaces.EnrichedInlineSpan
 import com.swmansion.enriched.textinput.events.OnInputKeyPressEvent
 import com.swmansion.enriched.textinput.spans.EnrichedSpans
 
@@ -109,14 +108,8 @@ class EnrichedTextInputConnectionWrapper(
     composingStart: Int,
     composingEnd: Int,
   ): List<InlineSpanSnapshot> =
-    editable
-      .getSpans(composingStart, composingEnd, EnrichedInlineSpan::class.java)
-      .mapNotNull { span ->
-        val style =
-          EnrichedSpans.inlineSpans.entries
-            .firstOrNull { (_, config) -> config.clazz.isInstance(span) }
-            ?.key
-            ?: return@mapNotNull null
+    EnrichedSpans.inlineSpans.flatMap { (style, config) ->
+      editable.getSpans(composingStart, composingEnd, config.clazz).mapNotNull { span ->
         val start = editable.getSpanStart(span).coerceAtLeast(composingStart)
         val end = editable.getSpanEnd(span).coerceAtMost(composingEnd)
 
@@ -126,6 +119,7 @@ class EnrichedTextInputConnectionWrapper(
           null
         }
       }
+    }
 
   private fun restoreInlineSpans(snapshot: ComposingTextSnapshot) {
     val editable = editText.text ?: return
@@ -182,7 +176,7 @@ class EnrichedTextInputConnectionWrapper(
 
     val mappedStart = newRangeStart + intersectionStart - oldRangeStart
     val mappedEnd = newRangeStart + intersectionEnd - oldRangeStart
-    editText.inlineStyles?.restoreStyleOnRange(
+    editText.inlineStyles?.applyStyleOnRange(
       snapshot.style,
       composingStart + mappedStart,
       composingStart + mappedEnd,
