@@ -4,6 +4,7 @@ import type { OnChangeStateEvent } from '../types';
 import type { NativeSyntheticEvent } from 'react-native';
 import { adaptWebToNativeEvent } from './adaptWebToNativeEvent';
 import {
+  getCurrentAlignment,
   isAnyParagraphFormatActive,
   isFormatBlocked,
 } from './formats/formatRules';
@@ -97,7 +98,7 @@ function buildState(
       isConflicting: editor.isActive('link'),
       isBlocking: isFormatBlocked('image', editor, htmlStyle),
     },
-    alignment: 'left',
+    alignment: getCurrentAlignment(editor) ?? 'auto',
     customStyle: {
       foregroundColor:
         editor.getAttributes('customStyle').foregroundColor ?? '',

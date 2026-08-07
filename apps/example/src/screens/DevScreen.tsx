@@ -73,7 +73,6 @@ export function DevScreen({ onSwitch }: DevScreenProps) {
               ANDROID_EXPERIMENTAL_SYNCHRONOUS_EVENTS
             }
             onPasteImages={(e) => editor.handlePasteImagesEvent(e.nativeEvent)}
-            useHtmlNormalizer
             testID="editor-input"
           />
           <Toolbar

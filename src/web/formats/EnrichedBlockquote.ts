@@ -29,7 +29,8 @@ export const EnrichedBlockquote = Blockquote.extend({
             () => editor.isActive('blockquote'),
             () => commands.lift('blockquote'),
             (c) => c.toggleWrap('blockquote'),
-            chain
+            chain,
+            editor
           ),
     };
   },

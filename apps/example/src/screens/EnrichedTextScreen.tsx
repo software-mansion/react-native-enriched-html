@@ -116,7 +116,6 @@ export function EnrichedTextScreen({ onSwitch }: EnrichedTextScreenProps) {
               ellipsizeMode={ellipsizeMode}
               onLinkPress={handleLinkPress}
               onMentionPress={handleMentionPress}
-              useHtmlNormalizer
             >
               {html}
             </EnrichedText>

@@ -1,7 +1,8 @@
-import { wrappingInputRule, type CommandProps } from '@tiptap/core';
+import { type CommandProps } from '@tiptap/core';
 import { BulletList } from '@tiptap/extension-list';
 
 import { applyWrappingListToSelection } from './applyWrappingListToSelection';
+import { withPreservedAlignment } from './formatRules';
 
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
@@ -11,18 +12,11 @@ declare module '@tiptap/core' {
   }
 }
 
-const BULLET_LIST_INPUT_REGEX = /^\s*-\s$/;
-
 export const EnrichedUnorderedList = BulletList.extend({
   name: 'unorderedList',
 
   addInputRules() {
-    return [
-      wrappingInputRule({
-        find: BULLET_LIST_INPUT_REGEX,
-        type: this.type,
-      }),
-    ];
+    return [];
   },
 
   addKeyboardShortcuts() {
@@ -33,9 +27,11 @@ export const EnrichedUnorderedList = BulletList.extend({
     return {
       toggleUnorderedList:
         () =>
-        ({ editor, commands, chain }: CommandProps) => {
+        ({ editor, chain }: CommandProps) => {
           if (editor.isActive('unorderedList')) {
-            return commands.setParagraph();
+            return withPreservedAlignment(editor, chain(), (c) =>
+              c.clearNodes().setParagraph()
+            );
           }
 
           return applyWrappingListToSelection(

@@ -29,7 +29,8 @@ export const EnrichedHeading = Heading.configure({
             () => editor.isActive('heading', attrs),
             () => commands.setParagraph(),
             (c) => c.setHeading(attrs),
-            chain
+            chain,
+            editor
           ),
     };
   },

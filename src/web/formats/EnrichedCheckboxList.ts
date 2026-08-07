@@ -2,6 +2,7 @@ import { type CommandProps } from '@tiptap/core';
 import { TaskList } from '@tiptap/extension-list';
 
 import { applyWrappingListToSelection } from './applyWrappingListToSelection';
+import { withPreservedAlignment } from './formatRules';
 
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
@@ -24,9 +25,11 @@ export const EnrichedCheckboxList = TaskList.extend({
   addCommands() {
     return {
       toggleCheckboxList: (checked: boolean) => {
-        return ({ editor, commands, chain }: CommandProps): boolean => {
+        return ({ editor, chain }: CommandProps): boolean => {
           if (editor.isActive('checkboxList')) {
-            return commands.setParagraph();
+            return withPreservedAlignment(editor, chain(), (c) =>
+              c.clearNodes().setParagraph()
+            );
           }
 
           return applyWrappingListToSelection(

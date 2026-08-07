@@ -36,7 +36,8 @@ const convertToHtmlStyleInternal = (
 ): HtmlStyleInternal => {
   const mentionStyles = expandMentionStylesForIndicators(
     style.mention,
-    mentionIndicators
+    mentionIndicators,
+    DEFAULT_HTML_STYLE
   );
 
   let markerFontWeight: string | undefined;

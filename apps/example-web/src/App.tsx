@@ -27,12 +27,20 @@ import { Toolbar } from './components/Toolbar';
 import { MentionPopup, type MentionItem } from './components/MentionPopup';
 import { useUserMention } from './hooks/useUserMention';
 import { useChannelMention } from './hooks/useChannelMention';
+import { TextRenderer } from './components/TextRenderer';
 
 const DEFAULT_LINK_STATE: OnLinkDetected = {
   text: '',
   url: '',
   start: 0,
   end: 0,
+};
+const LINK_REGEX =
+  /^(?:enriched:\/\/\S+|(?:https?:\/\/)?(?:www\.)?swmansion\.com(?:\/\S*)?)$/i;
+
+const SANITIZATION_CONFIG = {
+  linkRegex:
+    /^(?:enriched:\/\/\S+|(?:https?:\/\/)?(?:www\.)?swmansion\.com(?:\/\S*)?|https?:\/\/\S+)$/i,
 };
 
 function App() {
@@ -52,6 +60,8 @@ function App() {
     useState<OnLinkDetected>(DEFAULT_LINK_STATE);
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+
+  const [enrichedTextValue, setEnrichedTextValue] = useState('');
 
   const isLinkActive = !!editorState?.link.isActive;
   const hasLinkUrl = currentLink.url.length > 0;
@@ -109,25 +119,23 @@ function App() {
     console.log('[EnrichedTextInput] Change mention', indicator, text);
     if (indicator === '@') {
       userMention.onMentionChange(text);
-      if (!isUserPopupOpen) setIsUserPopupOpen(true);
     } else {
       channelMention.onMentionChange(text);
-      if (!isChannelPopupOpen) setIsChannelPopupOpen(true);
     }
   };
 
   const handleUserMentionSelected = (item: MentionItem) => {
     ref.current?.setMention('@', `@${item.name}`, {
-      id: item.id,
-      type: 'user',
+      'id': item.id,
+      'data-type': 'user',
     });
     closeUserMentionPopup();
   };
 
   const handleChannelMentionSelected = (item: MentionItem) => {
     ref.current?.setMention('#', `#${item.name}`, {
-      id: item.id,
-      type: 'channel',
+      'id': item.id,
+      'data-type': 'channel',
     });
     closeChannelMentionPopup();
   };
@@ -226,6 +234,19 @@ function App() {
     }
   };
 
+  const handleSetEnrichedTextValue = () => {
+    ref.current
+      ?.getHTML()
+      .then((html) => {
+        setEnrichedTextValue(html);
+        ref.current?.setValue('');
+      })
+      .catch((error: unknown) => {
+        setEnrichedTextValue('');
+        console.error('Failed to get HTML:', error);
+      });
+  };
+
   return (
     <div className="container">
       <h1 className="app-title">Enriched Text Input</h1>
@@ -261,7 +282,8 @@ function App() {
           onMentionDetected={handleOnMentionDetected}
           mentionIndicators={['@', '#']}
           htmlStyle={WEB_DEFAULT_HTML_STYLE}
-          useHtmlNormalizer
+          linkRegex={LINK_REGEX}
+          sanitizationConfig={SANITIZATION_CONFIG}
         />
         <MentionPopup
           variant="user"
@@ -303,7 +325,17 @@ function App() {
         }}
       />
 
+      <button
+        className="btn btn-full"
+        data-testid="set-enriched-text-value"
+        onClick={handleSetEnrichedTextValue}
+      >
+        Push Text
+      </button>
+
       {showHtmlOutput && <HtmlOutputPanel html={currentHtml} />}
+
+      <TextRenderer htmlValue={enrichedTextValue} />
 
       {isSetValueModalOpen && (
         <SetValueModal

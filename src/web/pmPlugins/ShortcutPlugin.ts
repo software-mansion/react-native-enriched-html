@@ -39,6 +39,13 @@ export const ShortcutPlugin = Extension.create<ShortcutPluginOptions>({
       };
 
     return {
+      'Mod-a': ({ editor }) => {
+        const { doc } = editor.state;
+        return editor.commands.setTextSelection({
+          from: 0,
+          to: doc.content.size,
+        });
+      },
       'Mod-Shift-v': ({ editor }) => {
         if (!editor.isEditable) return false;
         insertPlainTextFromClipboard(editor).catch(() => {});

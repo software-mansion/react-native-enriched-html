@@ -11,7 +11,7 @@ export type { MentionPluginOptions, TriggerState } from './types';
 export { mentionPluginKey } from './mentionPluginKey';
 export { setMention } from './setMention';
 export { startMention } from './startMention';
-export { subscribeMentionEvents } from './subscribeMentionEvents';
+export { useMentionEvents } from './useMentionEvents';
 
 export const MentionPlugin = Extension.create<MentionPluginOptions>({
   name: 'mentionTrigger',

@@ -104,6 +104,9 @@ export const StrictMarksPlugin = Extension.create({
           if (!selection.empty) return null;
 
           const docChanged = !oldState.doc.eq(newState.doc);
+          const selChanged = !oldState.selection.eq(newState.selection);
+          if (!docChanged && !selChanged) return null;
+
           const isExplicitToggle =
             !docChanged && transactions.some((tr) => tr.storedMarks !== null);
           if (isExplicitToggle) return null;

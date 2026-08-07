@@ -143,6 +143,30 @@ test.describe('strict marks', () => {
     await expect(boldBtn).toHaveClass(/toolbar-btn--active/);
   });
 
+  test('pressing Enter in the middle of bold that is followed by plain text keeps bold and types bold', async ({
+    page,
+  }) => {
+    await setEditorHtml(page, '<html><p><b>hello</b> world</p></html>');
+
+    const editor = editorLocator(page);
+    const boldBtn = toolbarButton(page, 'bold');
+
+    await editor.click();
+    await editor.press('End');
+    // land in he|llo
+    for (let i = 0; i < 9; i++) {
+      await editor.press('ArrowLeft', { delay: 80 });
+    }
+
+    await editor.press('Enter');
+    await expect(boldBtn).toHaveClass(/toolbar-btn--active/);
+
+    await editor.pressSequentially('X', { delay: 80 });
+    await expect(boldBtn).toHaveClass(/toolbar-btn--active/);
+
+    await expect.poll(async () => getSerializedHtml(page)).toMatch(/<p><b>X/);
+  });
+
   test('pressing Enter after the last bold character keeps bold when the rest of the line is plain', async ({
     page,
   }) => {
@@ -319,7 +343,7 @@ test.describe('strict marks', () => {
   }) => {
     await setEditorHtml(
       page,
-      '<html><p><mention text="@Jane" indicator="@" id="1" type="user">@Jane</mention></p></html>'
+      '<html><p><mention text="@Jane" indicator="@" id="1">@Jane</mention></p></html>'
     );
 
     const editor = editorLocator(page);
@@ -332,7 +356,7 @@ test.describe('strict marks', () => {
         const html = await getSerializedHtml(page);
         return (
           html.includes(
-            '<mention text="@Jane" indicator="@" id="1" type="user">@Jane</mention>'
+            '<mention text="@Jane" indicator="@" id="1">@Jane</mention>'
           ) && !html.includes('@Jane after</mention>')
         );
       })

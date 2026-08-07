@@ -52,6 +52,7 @@ jobs:
               - 'apps/example-web/package.json'
               - 'apps/example-web/vite.config.ts'
               - 'apps/example-web/index.html'
+              - '.playwright/**'
 
   lint:
     runs-on: ubuntu-latest
@@ -85,6 +86,39 @@ jobs:
 
       - name: Run unit tests
         run: yarn test --maxWorkers=2 --coverage
+
+  test-e2e-web:
+    needs: [changes]
+    if: needs.changes.outputs.web == 'true'
+    runs-on: macos-26
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Caches/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+
+      - name: Install Playwright browsers
+        run: yarn playwright install chromium
+
+      - name: Run web e2e tests
+        run: yarn test:e2e:web
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: .playwright/playwright-report/
+          retention-days: 7
 
   build-library:
     runs-on: ubuntu-latest
@@ -192,7 +226,7 @@ jobs:
   build-ios:
     needs: [changes]
     if: needs.changes.outputs.ios == 'true'
-    runs-on: macos-latest
+    runs-on: macos-26
     env:
       TURBO_CACHE_DIR: .turbo/ios
     steps:
@@ -205,7 +239,7 @@ jobs:
       - name: Set up Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: '16.4'
+          xcode-version: '26.3'
 
       - name: Reset build folder and pods
         run: rm -rf apps/example/build apps/example/ios/Pods apps/example/ios/Podfile.lock
