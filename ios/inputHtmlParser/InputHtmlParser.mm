@@ -2,6 +2,7 @@
 #import "AlignmentEntry.h"
 #import "EnrichedTextInputView.h"
 #import "HtmlParser.h"
+#import "MaxLengthUtils.h"
 #import "StringExtension.h"
 #import "StyleHeaders.h"
 #import "StyleUtils.h"
@@ -23,9 +24,13 @@
   _input->textView.text = @"";
   _input->textView.typingAttributes = _input->defaultTypingAttributes;
 
+  NSInteger capacity = [MaxLengthUtils wholeContentCapacityForHost:_input];
+
   @try {
-    NSArray *processingResult =
-        [HtmlParser getTextAndStylesFromHtml:html config:_input.config];
+    NSArray *parsed = [HtmlParser getTextAndStylesFromHtml:html
+                                                    config:_input.config];
+    NSArray *processingResult = [self truncateProcessingResult:parsed
+                                                    toCapacity:capacity];
     NSString *plainText = (NSString *)processingResult[0];
     NSArray *stylesInfo = (NSArray *)processingResult[1];
     NSArray *alignments = (NSArray *)processingResult[2];
@@ -45,14 +50,19 @@
                exception.reason);
 
     // set new text
-    _input->textView.text = html;
+    _input->textView.text = [MaxLengthUtils truncate:html toCapacity:capacity];
   }
 }
 
 - (void)replaceFromHtml:(NSString *_Nonnull)html range:(NSRange)range {
+  NSInteger capacity = [MaxLengthUtils capacityForHost:_input
+                                        replacingRange:range];
+
   @try {
-    NSArray *processingResult =
-        [HtmlParser getTextAndStylesFromHtml:html config:_input.config];
+    NSArray *parsed = [HtmlParser getTextAndStylesFromHtml:html
+                                                    config:_input.config];
+    NSArray *processingResult = [self truncateProcessingResult:parsed
+                                                    toCapacity:capacity];
     NSString *plainText = (NSString *)processingResult[0];
     NSArray *stylesInfo = (NSArray *)processingResult[1];
     NSArray *alignments = (NSArray *)processingResult[2];
@@ -73,7 +83,8 @@
     RCTLogWarn(@"[EnrichedTextInput]: Failed to parse HTML: (%@), falling back "
                @"to raw input.",
                exception.reason);
-    [TextInsertionUtils replaceText:html
+    [TextInsertionUtils replaceText:[MaxLengthUtils truncate:html
+                                                  toCapacity:capacity]
                                  at:range
                additionalAttributes:nil
                                host:_input
@@ -82,9 +93,15 @@
 }
 
 - (void)insertFromHtml:(NSString *_Nonnull)html location:(NSInteger)location {
+  NSInteger capacity =
+      [MaxLengthUtils capacityForHost:_input
+                       replacingRange:NSMakeRange(location, 0)];
+
   @try {
-    NSArray *processingResult =
-        [HtmlParser getTextAndStylesFromHtml:html config:_input.config];
+    NSArray *parsed = [HtmlParser getTextAndStylesFromHtml:html
+                                                    config:_input.config];
+    NSArray *processingResult = [self truncateProcessingResult:parsed
+                                                    toCapacity:capacity];
     NSString *plainText = (NSString *)processingResult[0];
     NSArray *stylesInfo = (NSArray *)processingResult[1];
     NSArray *alignments = (NSArray *)processingResult[2];
@@ -105,7 +122,8 @@
     RCTLogWarn(@"[EnrichedTextInput]: Failed to parse HTML: (%@), falling back "
                @"to raw input.",
                exception.reason);
-    [TextInsertionUtils insertText:html
+    [TextInsertionUtils insertText:[MaxLengthUtils truncate:html
+                                                 toCapacity:capacity]
                                 at:location
               additionalAttributes:nil
                               host:_input
@@ -218,6 +236,74 @@
                       withTyping:NO
                   withDirtyRange:NO];
   }
+}
+
+/**
+ * Shortens the parsed html so that it fits in `capacity` plain characters,
+ * dropping and clamping the parsed styles and alignments accordingly.
+ */
+- (NSArray *)truncateProcessingResult:(NSArray *)processingResult
+                           toCapacity:(NSInteger)capacity {
+  NSString *plainText = (NSString *)processingResult[0];
+
+  if ([MaxLengthUtils plainLengthOf:plainText] <= capacity) {
+    return processingResult;
+  }
+
+  NSUInteger cut = [MaxLengthUtils cutIndexIn:plainText capacity:capacity];
+  NSMutableArray *styles = [NSMutableArray new];
+  NSMutableArray<AlignmentEntry *> *alignments = [NSMutableArray new];
+
+  for (NSArray *styleInfo in (NSArray *)processingResult[1]) {
+    StylePair *stylePair = (StylePair *)styleInfo[1];
+    NSRange range = [stylePair.rangeValue rangeValue];
+
+    if (range.location >= cut) {
+      continue;
+    }
+
+    StylePair *clampedPair = [[StylePair alloc] init];
+    clampedPair.rangeValue = [NSValue
+        valueWithRange:NSMakeRange(range.location,
+                                   MIN(range.length, cut - range.location))];
+    clampedPair.styleValue = [self clampStyleValue:stylePair.styleValue
+                                          toLength:cut];
+    [styles addObject:@[ styleInfo[0], clampedPair ]];
+  }
+
+  for (AlignmentEntry *entry in (
+           NSArray<AlignmentEntry *> *)processingResult[2]) {
+    if (entry.range.location >= cut) {
+      continue;
+    }
+
+    AlignmentEntry *clampedEntry = [[AlignmentEntry alloc] init];
+    clampedEntry.range =
+        NSMakeRange(entry.range.location,
+                    MIN(entry.range.length, cut - entry.range.location));
+    clampedEntry.alignment = entry.alignment;
+    [alignments addObject:clampedEntry];
+  }
+
+  return @[ [plainText substringToIndex:cut], styles, alignments ];
+}
+
+// checkbox lists carry a { position: isChecked } dictionary which has to lose
+// the entries pointing behind the truncated text
+- (id)clampStyleValue:(id)styleValue toLength:(NSUInteger)length {
+  if (![styleValue isKindOfClass:[NSDictionary class]]) {
+    return styleValue;
+  }
+
+  NSDictionary *dictionary = (NSDictionary *)styleValue;
+  NSMutableDictionary *clamped = [NSMutableDictionary new];
+  for (NSNumber *key in dictionary) {
+    if ([key unsignedIntegerValue] < length) {
+      clamped[key] = dictionary[key];
+    }
+  }
+
+  return clamped;
 }
 
 - (NSString *_Nullable)initiallyProcessHtml:(NSString *_Nonnull)html {

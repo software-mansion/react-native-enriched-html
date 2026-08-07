@@ -13,6 +13,7 @@ import com.swmansion.enriched.textinput.spans.EnrichedInputLinkSpan
 import com.swmansion.enriched.textinput.spans.EnrichedInputMentionSpan
 import com.swmansion.enriched.textinput.spans.EnrichedSpans
 import com.swmansion.enriched.textinput.utils.getSafeSpanBoundaries
+import com.swmansion.enriched.textinput.utils.replaceCountingInserted
 import com.swmansion.enriched.textinput.utils.safelyRemoveZWS
 
 class ParametrizedStyles(
@@ -57,16 +58,15 @@ class ParametrizedStyles(
       spannable.removeSpan(span)
     }
 
-    if (start == end) {
-      spannable.insert(start, text)
-    } else {
-      spannable.replace(start, end, text)
-    }
+    val insertedLength = spannable.replaceCountingInserted(start, end, text)
 
-    val spanEnd = start + text.length
-    val span = EnrichedInputLinkSpan(url, view.htmlStyle, true)
-    val (safeStart, safeEnd) = spannable.getSafeSpanBoundaries(start, spanEnd)
-    spannable.setSpan(span, safeStart, safeEnd, EnrichedSpanFlags.forSpan(span))
+    // maxLength may have shortened the text, the link covers only what really
+    // made it into the input then
+    if (insertedLength > 0) {
+      val span = EnrichedInputLinkSpan(url, view.htmlStyle, true)
+      val (safeStart, safeEnd) = spannable.getSafeSpanBoundaries(start, start + insertedLength)
+      spannable.setSpan(span, safeStart, safeEnd, EnrichedSpanFlags.forSpan(span))
+    }
 
     view.selection?.validateStyles()
     isSettingLinkSpan = false
@@ -343,18 +343,20 @@ class ParametrizedStyles(
     val spannable = view.text as SpannableStringBuilder
     val (start, originalEnd) = view.selection.getInlineSelection()
 
-    if (start == originalEnd) {
-      spannable.insert(start, EnrichedConstants.ORC_STRING)
-    } else {
+    if (start != originalEnd) {
       val spans = spannable.getSpans(start, originalEnd, EnrichedInputImageSpan::class.java)
       for (s in spans) {
         spannable.removeSpan(s)
       }
-
-      spannable.replace(start, originalEnd, EnrichedConstants.ORC_STRING)
     }
 
-    val (imageStart, imageEnd) = spannable.getSafeSpanBoundaries(start, start + 1)
+    // an image takes a single character and can't be truncated, so it is simply
+    // not added when maxLength leaves no room for it
+    val insertedLength =
+      spannable.replaceCountingInserted(start, originalEnd, EnrichedConstants.ORC_STRING)
+    if (insertedLength == 0) return
+
+    val (imageStart, imageEnd) = spannable.getSafeSpanBoundaries(start, start + insertedLength)
     val span = EnrichedInputImageSpan.createEnrichedImageSpan(src, width.toInt(), height.toInt())
     span.observeAsyncDrawableLoaded(view.text)
 
@@ -393,12 +395,17 @@ class ParametrizedStyles(
     val end = mentionEnd ?: selectionEnd
 
     view.runAsATransaction {
-      spannable.replace(start, end, text)
+      val insertedLength = spannable.replaceCountingInserted(start, end, text)
+      val (safeStart, safeEnd) = spannable.getSafeSpanBoundaries(start, start + insertedLength)
 
-      val span = EnrichedInputMentionSpan(text, indicator, attributes, view.htmlStyle)
-      val spanEnd = start + text.length
-      val (safeStart, safeEnd) = spannable.getSafeSpanBoundaries(start, spanEnd)
-      spannable.setSpan(span, safeStart, safeEnd, EnrichedSpanFlags.forSpan(span))
+      if (insertedLength > 0) {
+        val span = EnrichedInputMentionSpan(text, indicator, attributes, view.htmlStyle)
+        spannable.setSpan(span, safeStart, safeEnd, EnrichedSpanFlags.forSpan(span))
+
+        // a mention that got shortened by maxLength isn't the text it was created
+        // with anymore, so it keeps the text but stops being a mention
+        removeStaleMentionSpans(spannable, safeStart, safeEnd)
+      }
 
       val hasSpaceAtTheEnd = spannable.length > safeEnd && spannable[safeEnd] == ' '
       if (!hasSpaceAtTheEnd) {
@@ -411,6 +418,25 @@ class ParametrizedStyles(
     view.selection.validateStyles()
     mentionStart = null
     mentionEnd = null
+  }
+
+  /**
+   * Drops the mention spans in `[start, end)` that no longer hold the text they were created with -
+   * the same staleness rule that ends an edited mention during detection.
+   */
+  private fun removeStaleMentionSpans(
+    spannable: Spannable,
+    start: Int,
+    end: Int,
+  ) {
+    for (span in spannable.getSpans(start, end, EnrichedInputMentionSpan::class.java)) {
+      val spanStart = spannable.getSpanStart(span)
+      val spanEnd = spannable.getSpanEnd(span)
+
+      if (spannable.subSequence(spanStart, spanEnd).toString() != span.getText()) {
+        spannable.removeSpan(span)
+      }
+    }
   }
 
   fun getStyleRange(): Pair<Int, Int> = view.selection?.getInlineSelection() ?: Pair(0, 0)

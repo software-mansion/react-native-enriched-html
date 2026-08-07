@@ -1,6 +1,7 @@
 #import "AttributeEntry.h"
 #import "ColorExtension.h"
 #import "EnrichedTextInputView.h"
+#import "MaxLengthUtils.h"
 #import "StyleHeaders.h"
 #import "TextInsertionUtils.h"
 #import "UIView+React.h"
@@ -176,6 +177,15 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
   NSString *newText =
       hasSpaceAfter ? text : [NSString stringWithFormat:@"%@ ", text];
 
+  // a mention that doesn't fit in maxLength inserts as much of its text as it
+  // can. It stops being a mention then - the meta is still applied below with
+  // the original text, so the staleness check in handleExistingMentions (ran
+  // by anyTextMayHaveBeenModified right after) strips the styling for us
+  newText = [MaxLengthUtils
+        truncate:newText
+      toCapacity:[MaxLengthUtils capacityForHost:self.host
+                                  replacingRange:rangeToBeReplaced]];
+
   [TextInsertionUtils replaceText:newText
                                at:rangeToBeReplaced
              additionalAttributes:nullptr
@@ -191,7 +201,8 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
   }
 
   // THEN, add the attributes to not apply them on the space
-  NSRange mentionRange = NSMakeRange(rangeToBeReplaced.location, text.length);
+  NSRange mentionRange =
+      NSMakeRange(rangeToBeReplaced.location, MIN(text.length, newText.length));
   [self applyMentionMeta:params range:mentionRange];
   [self.host.attributesManager addDirtyRange:mentionRange];
   // mention editing should finish

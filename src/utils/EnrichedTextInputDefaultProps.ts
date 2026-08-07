@@ -3,6 +3,8 @@ import type { TextShortcut } from '../types';
 export const ENRICHED_TEXT_INPUT_DEFAULT_PROPS = {
   mentionIndicators: ['@'],
   editable: true,
+  // -1 means no limit
+  maxLength: -1,
   htmlStyle: {},
   autoCapitalize: 'sentences',
   scrollEnabled: true,
