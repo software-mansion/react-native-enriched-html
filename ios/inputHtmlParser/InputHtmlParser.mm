@@ -262,12 +262,13 @@
       continue;
     }
 
+    NSUInteger clampedLength = MIN(range.length, cut - range.location);
     StylePair *clampedPair = [[StylePair alloc] init];
-    clampedPair.rangeValue = [NSValue
-        valueWithRange:NSMakeRange(range.location,
-                                   MIN(range.length, cut - range.location))];
+    clampedPair.rangeValue =
+        [NSValue valueWithRange:NSMakeRange(range.location, clampedLength)];
     clampedPair.styleValue = [self clampStyleValue:stylePair.styleValue
-                                          toLength:cut];
+                                          toLength:cut
+                                     clampedLength:clampedLength];
     [styles addObject:@[ styleInfo[0], clampedPair ]];
   }
 
@@ -288,13 +289,26 @@
   return @[ [plainText substringToIndex:cut], styles, alignments ];
 }
 
-// checkbox lists carry a { position: isChecked } dictionary which has to lose
-// the entries pointing behind the truncated text
-- (id)clampStyleValue:(id)styleValue toLength:(NSUInteger)length {
+- (id)clampStyleValue:(id)styleValue
+             toLength:(NSUInteger)length
+        clampedLength:(NSUInteger)clampedLength {
+  // link's text value that is later inserted by addLink
+  if ([styleValue isKindOfClass:[LinkData class]]) {
+    LinkData *linkData = (LinkData *)styleValue;
+    if (linkData.text.length > clampedLength) {
+      LinkData *clampedLinkData = [linkData copy];
+      clampedLinkData.text = [MaxLengthUtils truncate:linkData.text
+                                           toCapacity:clampedLength];
+      return clampedLinkData;
+    }
+    return styleValue;
+  }
+
   if (![styleValue isKindOfClass:[NSDictionary class]]) {
     return styleValue;
   }
 
+  // checkbox list's { position: isChecked } dictionary
   NSDictionary *dictionary = (NSDictionary *)styleValue;
   NSMutableDictionary *clamped = [NSMutableDictionary new];
   for (NSNumber *key in dictionary) {
