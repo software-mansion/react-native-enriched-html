@@ -6,6 +6,7 @@ import { VisualRegression } from './testScreens/VisualRegression';
 import { TestSubmitProps } from './testScreens/TestSubmitProps';
 import { TestEnrichedText } from './testScreens/TestEnrichedText';
 import { TestEllipsize } from './testScreens/TestEllipsize';
+import { TestMaxLength } from './testScreens/TestMaxLength';
 import { useEffect, useState } from 'react';
 
 export default function RouteSelector() {
@@ -48,6 +49,10 @@ export default function RouteSelector() {
 
   if (path === '/test-ellipsize') {
     return <TestEllipsize />;
+  }
+
+  if (path === '/test-max-length') {
+    return <TestMaxLength />;
   }
 
   return <App />;
