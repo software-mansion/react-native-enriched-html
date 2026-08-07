@@ -293,7 +293,7 @@
     return;
   }
 
-  // a pasted fragment that doesn't fit gets truncated, not rejected
+  // a pasted fragment that doesn't fit gets truncated
   plainText = [MaxLengthUtils truncate:plainText
                             toCapacity:[MaxLengthUtils capacityForHost:input
                                                         replacingRange:range]];

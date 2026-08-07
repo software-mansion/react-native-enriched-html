@@ -2039,9 +2039,6 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
 
 /**
  * Shortens `text` when it doesn't fit in the remaining `maxLength` capacity.
- * Multi character changes (paste, dictation, IME) get truncated and inserted
- * through the regular insertion path, single characters that don't fit at all
- * are simply rejected.
  *
  * Returns YES when the change has been handled here and must not be applied
  * by the text view itself.

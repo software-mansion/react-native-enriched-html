@@ -59,8 +59,8 @@ static const unichar kZeroWidthSpace = 0x200B;
     return index;
   }
 
-  // never cut a composed character (emoji, surrogate pair, combining mark)
-  // in half - snap the cut point outwards instead
+  // never cut a composed character in half - snap
+  // the cut point outwards instead
   NSRange composed = [text rangeOfComposedCharacterSequenceAtIndex:index];
   return composed.location == index ? index : NSMaxRange(composed);
 }

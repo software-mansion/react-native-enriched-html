@@ -178,9 +178,7 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
       hasSpaceAfter ? text : [NSString stringWithFormat:@"%@ ", text];
 
   // a mention that doesn't fit in maxLength inserts as much of its text as it
-  // can. It stops being a mention then - the meta is still applied below with
-  // the original text, so the staleness check in handleExistingMentions (ran
-  // by anyTextMayHaveBeenModified right after) strips the styling for us
+  // can
   newText = [MaxLengthUtils
         truncate:newText
       toCapacity:[MaxLengthUtils capacityForHost:self.host
