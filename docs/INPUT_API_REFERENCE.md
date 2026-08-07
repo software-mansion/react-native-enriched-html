@@ -126,16 +126,16 @@ Keep in mind that not all JS regex features are supported, for example variable-
 
 ### `maxLength`
 
-Maximum number of characters the input's plain text may contain. The zero-width spaces that are internally used as style anchors are not counted, so the limit always matches what the user actually sees.
+Maximum number of characters the input's plain text may contain.
 
-Text that doesn't fit is truncated instead of being rejected, no matter how it got into the input - typing, dictation, IME composition, pasting or setting the value with `defaultValue` and `ref.setValue()`. Pasting a too long fragment shortens the fragment itself and keeps whatever followed the caret intact, and the cut point never splits an emoji, a surrogate pair or a combining mark in half. Truncated text goes through the regular editing path, so its formatting is kept and link detection, mentions, `onChangeText` and `onChangeHtml` all work with what really ended up in the input.
+Text that doesn't fit is truncated instead of being rejected, no matter how it got into the input - typing, dictation, IME composition, pasting or setting the value with `defaultValue` and `ref.setValue()`.
 
-| Type     | Default Value | Platform     |
-| -------- | ------------- | ------------ |
-| `number` | no limit      | iOS, Android |
+| Type     | Default Value | Platform          |
+| -------- | ------------- | ----------------- |
+| `number` | no limit      | iOS, Android, Web |
 
 > [!NOTE]
-> Programmatic insertions respect the limit too - `ref.setLink()` shortens the link's text, `ref.setMention()` inserts as much of the mention's text as fits but stops being a mention when it doesn't fit whole, and `ref.setImage()` is skipped when there's no room left for it. Lowering the limit doesn't shorten the text that's already in the input.
+> Programmatic insertions respect the limit too - e.g. `ref.setLink()`, `ref.setMention()`, `ref.setImage()`.
 
 ### `onBlur`
 
