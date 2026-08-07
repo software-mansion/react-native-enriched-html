@@ -369,11 +369,7 @@ class ParametrizedStyles(
     val spannable = view.text as SpannableStringBuilder
     val (start, end) = selection.getInlineSelection()
 
-    if (start == end) {
-      spannable.insert(start, indicator)
-    } else {
-      spannable.replace(start, end, indicator)
-    }
+    spannable.replaceCountingInserted(start, end, indicator)
   }
 
   fun setMentionSpan(

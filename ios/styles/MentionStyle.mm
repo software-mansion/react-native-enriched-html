@@ -247,6 +247,12 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
       [NSString stringWithFormat:@"%@%@%@", addSpaceBefore ? @" " : @"",
                                  indicator, addSpaceAfter ? @" " : @""];
 
+  // check if an indicator can be inserted with the maxLength constraint
+  if ([MaxLengthUtils plainLengthOf:finalString] >
+      [MaxLengthUtils capacityForHost:self.host replacingRange:currentRange]) {
+    return;
+  }
+
   NSRange newSelect = NSMakeRange(
       currentRange.location + finalString.length + (addSpaceAfter ? -1 : 0), 0);
 
