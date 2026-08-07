@@ -207,6 +207,21 @@ The `package.json` file contains various scripts for common tasks:
 - `yarn test:e2e:ios`: run E2E tests on iOS.
 - `yarn test:e2e:web`: run E2E tests on the web example with Playwright (add `--ui` for the interactive runner).
 
+### Releases
+
+Packages are published to GitHub Packages by the `Publish` GitHub Actions workflow. Live releases are restricted to `main` and `release/**` branches; the workflow defaults to a dry-run.
+
+For a stable release:
+
+1. Update the root `package.json` to the intended stable `x.y.z` version in a release pull request and merge it.
+2. Dispatch `Publish` with `release-type: stable` and `dry-run: true` from the release commit.
+3. Review the generated package artifact and checks.
+4. Dispatch the same release with `dry-run: false`. The workflow publishes with the `latest` tag when appropriate, then creates the matching git tag and GitHub Release.
+
+For beta or RC releases, select the corresponding release type and optionally supply the intended stable `x.y.z` base. Both channels use the `next` dist-tag. Nightlies use the `nightly` dist-tag and run automatically from `main`; the optional base version overrides the default next-minor calculation.
+
+After the first publication, repository administrators should confirm that the package is public, linked to this repository, and grants this repository Actions write access.
+
 ### Sending a pull request
 
 > **Working on your first pull request?** You can learn how from this _free_ series: [How to Contribute to an Open Source Project on GitHub](https://app.egghead.io/playlists/how-to-contribute-to-an-open-source-project-on-github).

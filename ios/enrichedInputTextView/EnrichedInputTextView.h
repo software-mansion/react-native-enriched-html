@@ -3,4 +3,5 @@
 
 @interface EnrichedInputTextView : UITextView
 @property(nonatomic, weak) id input;
+@property(nonatomic) BOOL showsCustomVerticalScrollIndicator;
 @end

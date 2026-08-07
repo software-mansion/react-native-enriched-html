@@ -7,10 +7,74 @@
 #import "TextListsUtils.h"
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
+@interface EnrichedInputTextView ()
+@property(nonatomic, strong) UIView *customVerticalScrollIndicator;
+@end
+
 @implementation EnrichedInputTextView
+
+- (void)setShowsCustomVerticalScrollIndicator:(BOOL)show {
+  _showsCustomVerticalScrollIndicator = show;
+  self.showsVerticalScrollIndicator = !show;
+
+  if (show && !_customVerticalScrollIndicator) {
+    _customVerticalScrollIndicator = [[UIView alloc] initWithFrame:CGRectZero];
+    _customVerticalScrollIndicator.backgroundColor =
+        [UIColor colorWithRed:207.0 / 255.0
+                        green:207.0 / 255.0
+                         blue:207.0 / 255.0
+                        alpha:1];
+    _customVerticalScrollIndicator.layer.cornerRadius = 6;
+    _customVerticalScrollIndicator.userInteractionEnabled = NO;
+    EnrichedTextInputView *input = (EnrichedTextInputView *)_input;
+    [input addSubview:_customVerticalScrollIndicator];
+  }
+
+  if (!show) {
+    [_customVerticalScrollIndicator removeFromSuperview];
+    _customVerticalScrollIndicator = nil;
+  }
+
+  [self updateCustomVerticalScrollIndicator];
+}
+
+- (void)setContentOffset:(CGPoint)contentOffset {
+  [super setContentOffset:contentOffset];
+  [self updateCustomVerticalScrollIndicator];
+}
+
+- (void)setContentSize:(CGSize)contentSize {
+  [super setContentSize:contentSize];
+  [self updateCustomVerticalScrollIndicator];
+}
+
+- (void)updateCustomVerticalScrollIndicator {
+  if (!_showsCustomVerticalScrollIndicator) {
+    return;
+  }
+
+  CGFloat viewportHeight = CGRectGetHeight(self.bounds);
+  CGFloat contentHeight = self.contentSize.height;
+  CGFloat scrollableHeight = contentHeight - viewportHeight;
+  BOOL canScroll = viewportHeight > 0 && scrollableHeight > 0;
+  _customVerticalScrollIndicator.hidden = !canScroll;
+  if (!canScroll) {
+    return;
+  }
+
+  CGFloat indicatorHeight =
+      MAX(18, viewportHeight * viewportHeight / contentHeight);
+  CGFloat progress = MIN(MAX(self.contentOffset.y / scrollableHeight, 0), 1);
+  EnrichedTextInputView *input = (EnrichedTextInputView *)_input;
+  _customVerticalScrollIndicator.frame = CGRectMake(
+      CGRectGetWidth(input.bounds) - 10,
+      CGRectGetMinY(self.frame) + progress * (viewportHeight - indicatorHeight),
+      6, indicatorHeight);
+}
 
 - (void)layoutSubviews {
   [super layoutSubviews];
+  [self updateCustomVerticalScrollIndicator];
   // UITextView resets contentSize during its own layout pass (triggered when
   // the frame is set on first mount). Re-schedule a relayout so our explicit
   // contentSize is applied after UITextView finishes its internal layout.

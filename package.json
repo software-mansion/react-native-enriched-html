@@ -1,5 +1,5 @@
 {
-  "name": "react-native-enriched-html",
+  "name": "@litlynx/react-native-enriched-html",
   "version": "1.0.0",
   "description": "HTML-based Rich Text solution for React Native",
   "source": "./src/index.tsx",
@@ -60,7 +60,6 @@
     "lint-clang:fix": "yarn lint-clang:ios:fix && yarn lint-clang:android:fix",
     "clean": "./scripts/git-clean.sh",
     "prepare": "bob build",
-    "release": "release-it",
     "android-studio": "open -a 'Android Studio' apps/example/android",
     "xcode": "open -a 'Xcode' apps/example/ios/EnrichedTextInputExample.xcworkspace",
     "test:e2e:mobile": ".maestro/scripts/run-tests-all.sh",
@@ -76,16 +75,16 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/software-mansion/react-native-enriched-html.git"
+    "url": "git+https://github.com/litlynx/react-native-enriched-html.git"
   },
   "author": "Software Mansion <contact@swmansion.com> (https://swmansion.com)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/software-mansion/react-native-enriched-html/issues"
+    "url": "https://github.com/litlynx/react-native-enriched-html/issues"
   },
-  "homepage": "https://github.com/software-mansion/react-native-enriched-html#readme",
+  "homepage": "https://github.com/litlynx/react-native-enriched-html#readme",
   "publishConfig": {
-    "registry": "https://registry.npmjs.org/"
+    "registry": "https://npm.pkg.github.com"
   },
   "dependencies": {
     "@tiptap/core": "3.20.4",
@@ -116,7 +115,6 @@
     "@playwright/test": "1.58.2",
     "@react-native-community/cli": "20.0.0",
     "@react-native/eslint-config": "^0.81.0",
-    "@release-it/conventional-changelog": "^9.0.2",
     "@types/jest": "^29.5.5",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
@@ -133,8 +131,7 @@
     "react-dom": "19.1.0",
     "react-native": "0.81.0",
     "react-native-builder-bob": "^0.40.18",
-    "release-it": "^17.10.0",
-    "turbo": "^1.10.7",
+    "turbo": "^2.10.8",
     "typescript": "^5.8.3"
   },
   "peerDependencies": {
@@ -162,25 +159,6 @@
     "extends": [
       "@commitlint/config-conventional"
     ]
-  },
-  "release-it": {
-    "git": {
-      "commitMessage": "chore: release ${version}",
-      "tagName": "v${version}"
-    },
-    "npm": {
-      "publish": true
-    },
-    "github": {
-      "release": true
-    },
-    "plugins": {
-      "@release-it/conventional-changelog": {
-        "preset": {
-          "name": "angular"
-        }
-      }
-    }
   },
   "prettier": {
     "quoteProps": "consistent",

@@ -5,7 +5,9 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.graphics.BlendMode
 import android.graphics.BlendModeColorFilter
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.text.LineBreaker
 import android.os.Build
@@ -92,6 +94,12 @@ class EnrichedTextInputView :
   var isDuringTransaction: Boolean = false
   var isRemovingMany: Boolean = false
   var scrollEnabled: Boolean = true
+  var showVerticalScrollbar: Boolean = false
+    set(value) {
+      field = value
+      isVerticalScrollBarEnabled = !value
+      invalidate()
+    }
   var allowFontScaling: Boolean = EnrichedConstants.ALLOW_FONT_SCALING_DEFAULT
     set(value) {
       if (field != value) {
@@ -146,6 +154,10 @@ class EnrichedTextInputView :
   private var inputMethodManager: InputMethodManager? = null
   private val spannableFactory = EnrichedTextInputSpannableFactory()
   private var contextMenuItems: List<Pair<Int, String>> = emptyList()
+  private val verticalScrollbarPaint =
+    Paint(Paint.ANTI_ALIAS_FLAG).apply {
+      color = Color.rgb(207, 207, 207)
+    }
 
   constructor(context: Context) : super(context) {
     prepareComponent()
@@ -171,6 +183,41 @@ class EnrichedTextInputView :
     // and attempts to scroll the text horizontally.
     // We lock the horizontal scroll to 0 to prevent the view from shifting.
     super.scrollTo(0, y)
+  }
+
+  override fun onDraw(canvas: Canvas) {
+    super.onDraw(canvas)
+
+    if (!showVerticalScrollbar) return
+
+    val viewportHeight = height.toFloat()
+    val contentHeight = computeVerticalScrollRange().toFloat()
+    val scrollableHeight = contentHeight - viewportHeight
+    if (viewportHeight <= 0 || scrollableHeight <= 0) return
+
+    val density = resources.displayMetrics.density
+    val indicatorHeight = maxOf(18 * density, viewportHeight * viewportHeight / contentHeight)
+    val progress = (computeVerticalScrollOffset() / scrollableHeight).coerceIn(0f, 1f)
+    val top = scrollY + progress * (viewportHeight - indicatorHeight)
+    canvas.drawRoundRect(
+      width - 10 * density,
+      top,
+      width - 4 * density,
+      top + indicatorHeight,
+      3 * density,
+      3 * density,
+      verticalScrollbarPaint,
+    )
+  }
+
+  override fun onScrollChanged(
+    l: Int,
+    t: Int,
+    oldl: Int,
+    oldt: Int,
+  ) {
+    super.onScrollChanged(l, t, oldl, oldt)
+    if (showVerticalScrollbar) invalidate()
   }
 
   override fun onCreateInputConnection(outAttrs: EditorInfo): InputConnection? {

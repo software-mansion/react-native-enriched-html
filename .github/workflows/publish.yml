@@ -1,9 +1,8 @@
 name: Publish
+
 on:
-  # For nightly releases
   schedule:
-    - cron: '42 23 * * *' # at 23:42 every day
-  # For manual releases
+    - cron: '42 23 * * *'
   workflow_dispatch:
     inputs:
       release-type:
@@ -11,13 +10,13 @@ on:
         type: choice
         options: [stable, nightly, beta, rc]
         default: stable
-      version:
-        description: Specific version to publish (usually inferred from x.y-stable branch name).
+      base-version:
+        description: Optional x.y.z base for beta, rc, or nightly releases.
         type: string
         required: false
         default: ''
       dry-run:
-        description: Whether to perform a dry run of the publish.
+        description: Build and validate without changing packages, tags, or releases.
         type: boolean
         default: true
 
@@ -27,40 +26,132 @@ jobs:
 
     permissions:
       contents: write
-      id-token: write # for OIDC
+      packages: write
 
     concurrency:
-      group: publish-${{ github.ref }}
+      group: publish-github-package
       cancel-in-progress: false
+
+    env:
+      BASE_VERSION: ${{ github.event_name == 'schedule' && '' || inputs.base-version }}
+      DRY_RUN: ${{ github.event_name == 'schedule' && 'false' || inputs.dry-run }}
+      NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      REGISTRY_URL: https://npm.pkg.github.com
+      RELEASE_TYPE: ${{ github.event_name == 'schedule' && 'nightly' || inputs.release-type }}
 
     steps:
       - name: Check out
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate publishing ref
+        shell: bash
+        run: |
+          if [[ "$DRY_RUN" != "true" && "$GITHUB_REF_NAME" != "main" && "$GITHUB_REF_NAME" != release/* ]]; then
+            echo "Live releases must run from main or release/**, got $GITHUB_REF_NAME"
+            exit 1
+          fi
 
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
-          cache: 'yarn'
-          registry-url: https://registry.npmjs.org/
+          cache: yarn
+          registry-url: https://npm.pkg.github.com
+          scope: '@litlynx'
 
-      - name: Publish manual release
-        if: ${{ github.event_name == 'workflow_dispatch' }}
-        uses: software-mansion/npm-package-publish@1bb885ec49bed729c8c1ec95a11a285d89f1bf45
-        with:
-          package-name: 'react-native-enriched-html'
-          package-json-path: 'package.json'
-          install-dependencies-command: 'yarn install --immutable'
-          release-type: ${{ inputs.release-type }}
-          version: ${{ inputs.version }}
-          dry-run: ${{ inputs.dry-run }}
+      - name: Install dependencies
+        run: yarn install --immutable
 
-      - name: Publish automatic nightly release
-        if: ${{ github.event_name == 'schedule' }}
-        uses: software-mansion/npm-package-publish@1bb885ec49bed729c8c1ec95a11a285d89f1bf45
+      - name: Resolve release version
+        id: release
+        shell: bash
+        run: |
+          node scripts/release-version.js \
+            --release-type "$RELEASE_TYPE" \
+            --base-version "$BASE_VERSION" \
+            --package-json package.json \
+            --registry "$REGISTRY_URL"
+
+      - name: Validate stable tag and release
+        id: stable-metadata
+        if: env.RELEASE_TYPE == 'stable'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.release.outputs.version }}
+        shell: bash
+        run: |
+          if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" >/dev/null 2>&1; then
+            TAG_COMMIT=$(git rev-list -n 1 "v$VERSION")
+            if [[ "$TAG_COMMIT" != "$GITHUB_SHA" ]]; then
+              echo "Tag v$VERSION already points to $TAG_COMMIT instead of $GITHUB_SHA"
+              exit 1
+            fi
+            echo "tag-exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag-exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          if gh release view "v$VERSION" >/dev/null 2>&1; then
+            echo "GitHub Release v$VERSION already exists"
+            exit 1
+          fi
+
+      - name: Run checks
+        run: |
+          yarn lint
+          yarn typecheck
+          yarn test --maxWorkers=2
+
+      - name: Build package
+        run: yarn prepare
+
+      - name: Pack package
+        id: pack
+        shell: bash
+        run: |
+          npm pack --ignore-scripts --json > npm-pack.json
+          TARBALL=$(node -e "const fs=require('node:fs'); const data=JSON.parse(fs.readFileSync('npm-pack.json','utf8')); process.stdout.write(data[0].filename)")
+          echo "tarball=$TARBALL" >> "$GITHUB_OUTPUT"
+
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v4
         with:
-          package-name: 'react-native-enriched-html'
-          package-json-path: 'package.json'
-          install-dependencies-command: 'yarn install --immutable'
-          release-type: 'nightly'
-          dry-run: false
+          name: ${{ steps.pack.outputs.tarball }}
+          path: ${{ steps.pack.outputs.tarball }}
+          if-no-files-found: error
+
+      - name: Dry-run package publication
+        if: env.DRY_RUN == 'true'
+        env:
+          DIST_TAG: ${{ steps.release.outputs.tag }}
+          TARBALL: ${{ steps.pack.outputs.tarball }}
+        run: npm publish "$TARBALL" --dry-run --tag "$DIST_TAG" --registry "$REGISTRY_URL"
+
+      - name: Publish package
+        if: env.DRY_RUN != 'true'
+        env:
+          DIST_TAG: ${{ steps.release.outputs.tag }}
+          TARBALL: ${{ steps.pack.outputs.tarball }}
+        run: npm publish "$TARBALL" --tag "$DIST_TAG" --registry "$REGISTRY_URL"
+
+      - name: Remove temporary maintenance tag
+        if: env.DRY_RUN != 'true' && steps.release.outputs.remove-tag == 'true'
+        run: npm dist-tag rm @litlynx/react-native-enriched-html legacy --registry "$REGISTRY_URL"
+
+      - name: Create stable tag and GitHub Release
+        if: env.DRY_RUN != 'true' && env.RELEASE_TYPE == 'stable'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_EXISTS: ${{ steps.stable-metadata.outputs.tag-exists }}
+          VERSION: ${{ steps.release.outputs.version }}
+        shell: bash
+        run: |
+          git config user.email "action@github.com"
+          git config user.name "GitHub Action"
+          if [[ "$TAG_EXISTS" != "true" ]]; then
+            git tag -a "v$VERSION" -m "Release v$VERSION"
+            git push origin "v$VERSION"
+          fi
+          gh release create "v$VERSION" --verify-tag --generate-notes --title "v$VERSION"

@@ -1,4 +1,4 @@
-import type { HtmlStyle } from 'react-native-enriched-html';
+import type { HtmlStyle } from '@litlynx/react-native-enriched-html';
 
 export const WEB_DEFAULT_HTML_STYLE: HtmlStyle = {
   h1: {

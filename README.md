@@ -6,7 +6,7 @@
 
 # react-native-enriched-html
 
-`react-native-enriched-html` is a powerful React Native Rich Text solution:
+`@litlynx/react-native-enriched-html` is a powerful React Native Rich Text solution:
 
 - ⚡ Fully native input and display components (Supports New Architecture only)
 - 💻 HTML-based parsing with live, synchronous text styling
@@ -46,27 +46,46 @@ We can help you build your next dream product –
 
 ## Prerequisites
 
-- `react-native-enriched-html` currently supports Android and iOS, Web implementation is still experimental.
+- `@litlynx/react-native-enriched-html` currently supports Android and iOS, Web implementation is still experimental.
 - It works only with [the React Native New Architecture (Fabric)](https://reactnative.dev/architecture/landing-page) and supports following React Native releases: `0.81`, `0.82`, `0.83`, `0.84` and `0.85`.
 
 ## Installation
+
+This package is published through GitHub Packages. GitHub requires consumers to authenticate before installing npm packages, including public packages. Create a [personal access token (classic)](https://github.com/settings/tokens) with the `read:packages` scope and configure your package manager without committing the token.
+
+For npm, Yarn Classic, and Expo CLI, add the following to your user-level or project `.npmrc`:
+
+```ini
+@litlynx:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${GITHUB_PACKAGES_TOKEN}
+```
+
+For Yarn 4, configure the scope and log in once:
+
+```sh
+yarn config set npmScopes.litlynx.npmRegistryServer https://npm.pkg.github.com
+yarn npm login --scope litlynx --always-auth
+```
+
+> [!IMPORTANT]
+> The former unscoped `react-native-enriched-html` package on npmjs is a historical package and will not receive releases from this repository. Update both your dependency and import specifiers to `@litlynx/react-native-enriched-html`.
 
 ### Bare react native app
 
 #### 1. Install the library
 
 ```sh
-yarn add react-native-enriched-html
+yarn add @litlynx/react-native-enriched-html
 ```
 
 > [!TIP]
 > To try the latest features before they land in a stable release, install the nightly build:
 >
 > ```sh
-> yarn add react-native-enriched-html@nightly
+> yarn add @litlynx/react-native-enriched-html@nightly
 > ```
 >
-> Nightly versions are published to npm automatically and may contain breaking changes.
+> Nightly versions are published to GitHub Packages automatically and may contain breaking changes.
 
 #### 2. Install iOS dependencies
 
@@ -81,7 +100,7 @@ cd ios && bundler install && bundler exec pod install
 #### 1. Install the library
 
 ```sh
-npx expo install react-native-enriched-html
+npx expo install @litlynx/react-native-enriched-html
 ```
 
 #### 2. Run prebuild
@@ -100,11 +119,11 @@ npx expo prebuild
 Here's a simple example of an input that lets you toggle bold on its text and shows whether bold is currently active via the button color.
 
 ```tsx
-import { EnrichedTextInput } from 'react-native-enriched-html';
+import { EnrichedTextInput } from '@litlynx/react-native-enriched-html';
 import type {
   EnrichedTextInputInstance,
   OnChangeStateEvent,
-} from 'react-native-enriched-html';
+} from '@litlynx/react-native-enriched-html';
 import { useState, useRef } from 'react';
 import { View, Button, StyleSheet } from 'react-native';
 
@@ -156,7 +175,7 @@ Summary of what happens here:
 
 ## Supported Tags
 
-`react-native-enriched-html` uses both standard and custom HTML tags in its output and accepts them as input.
+`@litlynx/react-native-enriched-html` uses both standard and custom HTML tags in its output and accepts them as input.
 
 Not all styles can be combined freely. There are two kinds of restrictions:
 
@@ -234,7 +253,7 @@ The links are here, just like in any other editor, a piece of text with a URL at
 
 ### Automatic links detection
 
-`react-native-enriched-html` automatically detects words that appear to be some URLs and makes them links.
+`@litlynx/react-native-enriched-html` automatically detects words that appear to be some URLs and makes them links.
 You can customize this behavior by providing your own regular expression via [linkRegex](docs/INPUT_API_REFERENCE.md#linkregex) prop.
 
 ### Applying links manually
@@ -261,7 +280,7 @@ There are two ways in which a mention can be started; either by typing one of th
 
 ### Mention related events
 
-`react-native-enriched-html` emits 3 different events that help handling mentions' editing:
+`@litlynx/react-native-enriched-html` emits 3 different events that help handling mentions' editing:
 
 - [onStartMention](docs/INPUT_API_REFERENCE.md#onstartmention) is emitted whenever mention is started in one of the ways from the [previous section](#starting-a-mention) or the user has come back (moved selection) to some unfinished mention they have started. It can be used for opening proper tools you use in the app to edit a mention (e.g. a list for choosing from users or channels that the mention will affect).
 - [onChangeMention](docs/INPUT_API_REFERENCE.md#onchangemention) is emitted whenever user put or removed some characters after a mention indicator. This way you can react to active mention editing by, for example, filtering users in your displayed list based on the typed text.
@@ -285,7 +304,7 @@ You can find some examples in the [usage section](#usage) or in the example app.
 
 ## Other Events
 
-`react-native-enriched-html` emits a few more events that may be of use:
+`@litlynx/react-native-enriched-html` emits a few more events that may be of use:
 
 - [onFocus](docs/INPUT_API_REFERENCE.md#onfocus) - emits whenever input focuses.
 - [onBlur](docs/INPUT_API_REFERENCE.md) - emits whenever input blurs.
@@ -322,18 +341,18 @@ You can extend the native text editing menu with custom items using the [context
 
 ## Customizing \<EnrichedTextInput /> styles
 
-`react-native-enriched-html` allows customizing styles of the `<EnrichedTextInput />` component. See [htmlStyle](docs/INPUT_API_REFERENCE.md#htmlstyle) prop.
+`@litlynx/react-native-enriched-html` allows customizing styles of the `<EnrichedTextInput />` component. See [htmlStyle](docs/INPUT_API_REFERENCE.md#htmlstyle) prop.
 
 ## EnrichedText component
 
-`react-native-enriched-html` provides an `EnrichedText` component that renders the HTML output of `EnrichedTextInput` with all supported styles, interactive links, and mentions.
+`@litlynx/react-native-enriched-html` provides an `EnrichedText` component that renders the HTML output of `EnrichedTextInput` with all supported styles, interactive links, and mentions.
 
 ```tsx
-import { EnrichedText } from 'react-native-enriched-html';
+import { EnrichedText } from '@litlynx/react-native-enriched-html';
 import type {
   OnLinkPressEvent,
   OnMentionPressEvent,
-} from 'react-native-enriched-html';
+} from '@litlynx/react-native-enriched-html';
 import { StyleSheet } from 'react-native';
 
 export default function App() {
@@ -389,7 +408,7 @@ See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the 
 
 ## License
 
-`react-native-enriched-html` library is licensed under [The MIT License](./LICENSE).
+`@litlynx/react-native-enriched-html` is licensed under [The MIT License](./LICENSE).
 
 ---
 

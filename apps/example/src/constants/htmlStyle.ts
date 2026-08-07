@@ -1,7 +1,7 @@
 import type {
   EnrichedTextHtmlStyle,
   HtmlStyle,
-} from 'react-native-enriched-html';
+} from '@litlynx/react-native-enriched-html';
 
 export const htmlStyle = {
   h1: {

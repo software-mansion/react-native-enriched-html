@@ -2,7 +2,7 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "paths": {
-      "react-native-enriched-html": ["../../src/index.native.tsx"]
+      "@litlynx/react-native-enriched-html": ["../../src/index.native.tsx"]
     }
   }
 }

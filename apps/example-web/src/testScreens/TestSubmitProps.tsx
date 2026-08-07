@@ -4,7 +4,7 @@ import {
   type EnrichedTextInputInstance,
   type EnrichedTextInputProps,
   type OnSubmitEditing,
-} from 'react-native-enriched-html';
+} from '@litlynx/react-native-enriched-html';
 import type { NativeSyntheticEvent, ReturnKeyTypeOptions } from 'react-native';
 
 const editorWrapStyle = {

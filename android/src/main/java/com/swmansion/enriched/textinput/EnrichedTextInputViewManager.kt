@@ -241,6 +241,14 @@ class EnrichedTextInputViewManager :
     view.scrollEnabled = scrollEnabled
   }
 
+  @ReactProp(name = "showVerticalScrollbar")
+  override fun setShowVerticalScrollbar(
+    view: EnrichedTextInputView,
+    showVerticalScrollbar: Boolean,
+  ) {
+    view.showVerticalScrollbar = showVerticalScrollbar
+  }
+
   @ReactProp(name = "allowFontScaling")
   override fun setAllowFontScaling(
     view: EnrichedTextInputView,

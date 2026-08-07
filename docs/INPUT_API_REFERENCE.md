@@ -105,6 +105,14 @@ A prop for customizing styles appearances.
 | ------------------------------ | -------------------------------------------------- | ----------------- |
 | [`HtmlStyle`](#htmlstyle-type) | default values from [`HtmlStyle`](#htmlstyle-type) | iOS, Android, Web |
 
+### `showVerticalScrollbar`
+
+If `true`, displays a custom vertical scrollbar while the editor content can scroll. The default native scrollbar is hidden while this prop is enabled.
+
+| Type   | Default Value | Platform     |
+| ------ | ------------- | ------------ |
+| `bool` | `false`       | iOS, Android |
+
 ### `mentionIndicators`
 
 The recognized mention indicators. Each item needs to be a 1 character long string.
@@ -745,7 +753,7 @@ setValue: (value: string) => void;
 
 Sets the input's value.
 
-- `value: string` - value to set, it can either be `react-native-enriched-html` supported HTML string or raw text.
+- `value: string` - value to set, it can either be `@litlynx/react-native-enriched-html` supported HTML string or raw text.
 
 ### `.setSelection()`
 

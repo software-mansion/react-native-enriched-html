@@ -35,4 +35,20 @@ export default defineConfig([
   {
     ignores: ['node_modules/', 'lib/', 'apps/example-web/dist/', 'cpp/build/'],
   },
+  {
+    files: ['scripts/**/*.js'],
+    languageOptions: {
+      sourceType: 'script',
+      globals: {
+        console: 'readonly',
+        describe: 'readonly',
+        expect: 'readonly',
+        jest: 'readonly',
+        module: 'readonly',
+        process: 'readonly',
+        require: 'readonly',
+        test: 'readonly',
+      },
+    },
+  },
 ]);

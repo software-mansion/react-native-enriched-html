@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      'react-native-enriched-html': path.resolve(
+      '@litlynx/react-native-enriched-html': path.resolve(
         __dirname,
         '../../src/index.tsx'
       ),
