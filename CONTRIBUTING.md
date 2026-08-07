@@ -213,7 +213,7 @@ Packages are published to GitHub Packages by the `Publish` GitHub Actions workfl
 
 For a stable release:
 
-1. Update the root `package.json` to the intended stable `x.y.z` version in a release pull request and merge it.
+1. Update the root `package.json` to an unpublished, untagged stable `x.y.z` version in a release pull request and merge it.
 2. Dispatch `Publish` with `release-type: stable` and `dry-run: true` from the release commit.
 3. Review the generated package artifact and checks.
 4. Dispatch the same release with `dry-run: false`. The workflow publishes with the `latest` tag when appropriate, then creates the matching git tag and GitHub Release.
