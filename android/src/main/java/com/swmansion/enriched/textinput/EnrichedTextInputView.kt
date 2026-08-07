@@ -125,7 +125,6 @@ class EnrichedTextInputView :
   var spanWatcher: EnrichedSpanWatcher? = null
   var layoutManager: EnrichedTextInputViewLayoutManager = EnrichedTextInputViewLayoutManager(this)
 
-  // -1 means no limit, see MaxLengthFilter
   var maxLength: Int = MaxLength.UNLIMITED
 
   var shouldEmitHtml: Boolean = false
@@ -385,7 +384,7 @@ class EnrichedTextInputView :
     val end = selectionEnd.coerceAtLeast(0)
     val lengthBefore = currentText.length
 
-    val pasted: Spannable =
+    val pastedSpannable: Spannable =
       when {
         item.htmlText != null -> {
           val parsed = parseText(item.htmlText)
@@ -403,9 +402,9 @@ class EnrichedTextInputView :
 
     // the pasted fragment is what gets truncated - everything that follows the
     // caret has to stay intact, so it can't be left to the maxLength filter
-    val pastedSpannable = truncateToRemainingLength(pasted, start, end) ?: return
+    val truncatedPastedSpannable = truncateToRemainingLength(pastedSpannable, start, end) ?: return
 
-    val finalText = currentText.mergeSpannables(start, end, pastedSpannable, htmlStyle)
+    val finalText = currentText.mergeSpannables(start, end, truncatedPastedSpannable, htmlStyle)
     setValue(finalText, false)
 
     // replacement-safe: oldLength - removed + inserted
@@ -438,7 +437,6 @@ class EnrichedTextInputView :
     val cut = MaxLength.cutIndexIn(pasted, 0, pasted.length, capacity)
     if (cut == 0) return if (start == end) null else SpannableString("")
 
-    // subSequence keeps the spans, so the truncated fragment keeps its formatting
     return pasted.subSequence(0, cut) as? Spannable ?: SpannableString(pasted.subSequence(0, cut))
   }
 

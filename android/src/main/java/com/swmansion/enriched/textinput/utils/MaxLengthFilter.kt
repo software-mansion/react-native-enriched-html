@@ -8,9 +8,6 @@ import java.text.BreakIterator
 
 /**
  * Helpers enforcing the `maxLength` prop.
- *
- * The limit is counted in the editor's plain text, so the zero width spaces that are internally
- * used as style anchors don't take up any of it.
  */
 object MaxLength {
   const val UNLIMITED = -1
@@ -77,9 +74,6 @@ object MaxLength {
  * Applies the `maxLength` limit to every change made to the editor's text - typing, dictation, IME
  * composition, pasting and setting the value imperatively all go through the filters of the
  * underlying `Editable`.
- *
- * Text that doesn't fit is truncated rather than rejected, so a change is dropped entirely only
- * when there's no capacity left at all (e.g. typing a character at the limit).
  */
 class MaxLengthFilter(
   private val view: EnrichedTextInputView,
@@ -105,8 +99,6 @@ class MaxLengthFilter(
 
     val cut = MaxLength.cutIndexIn(source, start, end, capacity)
 
-    // subSequence keeps the spans of the incoming text, so pasted content
-    // doesn't lose its formatting when it gets truncated
     return if (cut <= start) "" else source.subSequence(start, cut)
   }
 }

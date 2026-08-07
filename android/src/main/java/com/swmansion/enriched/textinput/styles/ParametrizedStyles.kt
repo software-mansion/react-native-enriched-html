@@ -398,13 +398,9 @@ class ParametrizedStyles(
       val insertedLength = spannable.replaceCountingInserted(start, end, text)
       val (safeStart, safeEnd) = spannable.getSafeSpanBoundaries(start, start + insertedLength)
 
-      if (insertedLength > 0) {
+      if (insertedLength == text.length) {
         val span = EnrichedInputMentionSpan(text, indicator, attributes, view.htmlStyle)
         spannable.setSpan(span, safeStart, safeEnd, EnrichedSpanFlags.forSpan(span))
-
-        // a mention that got shortened by maxLength isn't the text it was created
-        // with anymore, so it keeps the text but stops being a mention
-        removeStaleMentionSpans(spannable, safeStart, safeEnd)
       }
 
       val hasSpaceAtTheEnd = spannable.length > safeEnd && spannable[safeEnd] == ' '
@@ -418,25 +414,6 @@ class ParametrizedStyles(
     view.selection.validateStyles()
     mentionStart = null
     mentionEnd = null
-  }
-
-  /**
-   * Drops the mention spans in `[start, end)` that no longer hold the text they were created with -
-   * the same staleness rule that ends an edited mention during detection.
-   */
-  private fun removeStaleMentionSpans(
-    spannable: Spannable,
-    start: Int,
-    end: Int,
-  ) {
-    for (span in spannable.getSpans(start, end, EnrichedInputMentionSpan::class.java)) {
-      val spanStart = spannable.getSpanStart(span)
-      val spanEnd = spannable.getSpanEnd(span)
-
-      if (spannable.subSequence(spanStart, spanEnd).toString() != span.getText()) {
-        spannable.removeSpan(span)
-      }
-    }
   }
 
   fun getStyleRange(): Pair<Int, Int> = view.selection?.getInlineSelection() ?: Pair(0, 0)
