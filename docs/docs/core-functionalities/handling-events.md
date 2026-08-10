@@ -2,13 +2,21 @@
 sidebar_position: 3
 ---
 
-# Handling events
+# Handling input events
 
 Since the input is [uncontrolled](/fundamentals/core-concepts#the-input-is-uncontrolled),
 events are how you observe it. You change content by calling ref methods; you
 react to changes by listening to the callbacks below.
 
 Full payload shapes of the available callbacks can be found in the `EnrichedTextInput` reference.
+
+:::note
+
+This page covers `EnrichedTextInput` events. The read-only
+[`EnrichedText`](/core-functionalities/rendering-rich-text) component only
+exposes `onLinkPress` and `onMentionPress` callbacks.
+
+:::
 
 ## Content
 

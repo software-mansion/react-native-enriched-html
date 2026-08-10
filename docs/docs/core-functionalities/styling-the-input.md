@@ -16,6 +16,12 @@ everything from the container's dimensions down to the color of a bullet point.
 - **`selectionColor`** - the color of the text selection highlight.
 - **`cursorColor`** - the color of the text cursor.
 
+:::note
+
+`cursorColor` is not supported on iOS. For more platform differences, see [Compatibility](misc/compatibility).
+
+:::
+
 ```tsx
 <EnrichedTextInput
   style={{
