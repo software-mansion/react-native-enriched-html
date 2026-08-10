@@ -11,7 +11,7 @@ does and help you understand further chapters better.
 ## The input is uncontrolled
 
 `EnrichedTextInput` does not take its content from a prop and does not push
-every keystroke back into React state. It owns its content on the native side
+every keystroke back into React state. It owns its content and state on the native side
 and you talk to it through a `ref`.
 
 This is deliberate. Rich text changes constantly - every character, selection
