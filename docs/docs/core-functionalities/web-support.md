@@ -15,7 +15,7 @@ The web build exposes the same core API as native - **props, ref methods, and ev
 with one web-only addition - `sanitizationConfig` prop.
 Events keep their native shape too - they arrive as
 `NativeSyntheticEvent`, read off `e.nativeEvent`, so
-[event-handling](/core-functionalities/handling-events) code is portable as-is:
+[event-handling](/core-functionalities/handling-input-events) code is portable as-is:
 
 ```tsx
 <EnrichedTextInput
