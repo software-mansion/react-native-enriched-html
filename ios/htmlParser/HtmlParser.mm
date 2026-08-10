@@ -1495,6 +1495,22 @@
               [cssProps appendString:@" "];
             [cssProps appendFormat:@"background-color: %@;", bg];
           }
+          if (data.fontSize != nil) {
+            if (cssProps.length > 0)
+              [cssProps appendString:@" "];
+            [cssProps appendFormat:@"font-size: %.0fpx;",
+                                   [data.fontSize doubleValue]];
+          }
+          if (data.fontFamily.length > 0) {
+            if (cssProps.length > 0)
+              [cssProps appendString:@" "];
+            if ([data.fontFamily rangeOfString:@" "].location != NSNotFound) {
+              // font family contains spaces, wrap in single quotes
+              [cssProps appendFormat:@"font-family: '%@';", data.fontFamily];
+            } else {
+              [cssProps appendFormat:@"font-family: %@;", data.fontFamily];
+            }
+          }
           if (cssProps.length > 0) {
             return [NSString stringWithFormat:@"span style=\"%@\"", cssProps];
           }
@@ -1533,6 +1549,8 @@
   static NSRegularExpression *styleAttrRegex;
   static NSRegularExpression *fgRegex;
   static NSRegularExpression *bgRegex;
+  static NSRegularExpression *fontSizeRegex;
+  static NSRegularExpression *fontFamilyRegex;
   static dispatch_once_t onceToken;
   dispatch_once(&onceToken, ^{
     styleAttrRegex = [NSRegularExpression
@@ -1549,6 +1567,16 @@
     // string
     bgRegex = [NSRegularExpression
         regularExpressionWithPattern:@"background-color\\s*:\\s*([^;]+)"
+                             options:NSRegularExpressionCaseInsensitive
+                               error:nil];
+
+    fontSizeRegex = [NSRegularExpression
+        regularExpressionWithPattern:@"font-size\\s*:\\s*([0-9.]+)\\s*px"
+                             options:NSRegularExpressionCaseInsensitive
+                               error:nil];
+
+    fontFamilyRegex = [NSRegularExpression
+        regularExpressionWithPattern:@"font-family\\s*:\\s*([^;]+)"
                              options:NSRegularExpressionCaseInsensitive
                                error:nil];
   });
@@ -1579,6 +1607,37 @@
   if (bgMatch) {
     data.backgroundColor = [UIColor
         colorFromCSSString:[css substringWithRange:[bgMatch rangeAtIndex:1]]];
+  }
+
+  NSTextCheckingResult *fontSizeMatch =
+      [fontSizeRegex firstMatchInString:css
+                                options:0
+                                  range:NSMakeRange(0, css.length)];
+  if (fontSizeMatch) {
+    NSString *fontSizeString =
+        [css substringWithRange:[fontSizeMatch rangeAtIndex:1]];
+    data.fontSize = @([fontSizeString doubleValue]);
+  }
+
+  NSTextCheckingResult *fontFamilyMatch =
+      [fontFamilyRegex firstMatchInString:css
+                                  options:0
+                                    range:NSMakeRange(0, css.length)];
+  if (fontFamilyMatch) {
+    NSString *fontFamilyString = [[css
+        substringWithRange:[fontFamilyMatch rangeAtIndex:1]]
+        stringByTrimmingCharactersInSet:[NSCharacterSet
+                                            whitespaceAndNewlineCharacterSet]];
+    if (([fontFamilyString hasPrefix:@"'"] &&
+         [fontFamilyString hasSuffix:@"'"]) ||
+        ([fontFamilyString hasPrefix:@"\""] &&
+         [fontFamilyString hasSuffix:@"\""])) {
+      fontFamilyString = [fontFamilyString
+          substringWithRange:NSMakeRange(1, fontFamilyString.length - 2)];
+    }
+    if (fontFamilyString.length > 0) {
+      data.fontFamily = fontFamilyString;
+    }
   }
 
   return data.isEmpty ? nil : data;

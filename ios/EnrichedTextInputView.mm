@@ -1168,7 +1168,12 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
                        ?: "",
                .backgroundColor =
                    [[currentCustomStyle.backgroundColor hexString] UTF8String]
-                       ?: ""}});
+                       ?: "",
+               .fontSize = currentCustomStyle.fontSize
+                               ? [currentCustomStyle.fontSize doubleValue]
+                               : 0.0,
+               .fontFamily =
+                   [currentCustomStyle.fontFamily UTF8String] ?: ""}});
     }
   }
 
@@ -1566,6 +1571,19 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
     processedDict[@"backgroundColor"] = [bgRaw isKindOfClass:[NSNull class]]
                                             ? [NSNull null]
                                             : [RCTConvert UIColor:bgRaw];
+  }
+
+  id fsRaw = dict[@"fontSize"];
+  if (fsRaw != nil) {
+    processedDict[@"fontSize"] =
+        [fsRaw isKindOfClass:[NSNull class]] ? [NSNull null] : fsRaw;
+  }
+
+  id ffRaw = dict[@"fontFamily"];
+  if (ffRaw != nil) {
+    processedDict[@"fontFamily"] = [ffRaw isKindOfClass:[NSNull class]]
+                                       ? [NSNull null]
+                                       : [RCTConvert NSString:ffRaw];
   }
 
   [customStyleClass applyStyleFromDict:processedDict
@@ -1976,7 +1994,12 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
                  .backgroundColor =
                      [[contextCustomStyleData.backgroundColor hexString]
                          UTF8String]
-                         ?: ""}}});
+                         ?: "",
+                 .fontSize = contextCustomStyleData.fontSize
+                                 ? [contextCustomStyleData.fontSize doubleValue]
+                                 : 0.0,
+                 .fontFamily =
+                     [contextCustomStyleData.fontFamily UTF8String] ?: ""}}});
   }
 }
 

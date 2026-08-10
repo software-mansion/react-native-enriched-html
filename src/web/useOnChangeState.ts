@@ -102,6 +102,8 @@ function buildState(
     customStyle: {
       foregroundColor: '',
       backgroundColor: '',
+      fontSize: 0,
+      fontFamily: '',
     },
   };
 }

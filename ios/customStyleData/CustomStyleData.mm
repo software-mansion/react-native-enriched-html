@@ -3,7 +3,8 @@
 @implementation CustomStyleData
 
 - (BOOL)isEmpty {
-  return _foregroundColor == nil && _backgroundColor == nil;
+  return _foregroundColor == nil && _backgroundColor == nil &&
+         _fontSize == nil && _fontFamily == nil;
 }
 
 - (void)mergeFromDict:(NSDictionary *)dict {
@@ -17,6 +18,16 @@
     self.backgroundColor =
         [bgVal isKindOfClass:[UIColor class]] ? (UIColor *)bgVal : nil;
   }
+  id fsVal = dict[@"fontSize"];
+  if (fsVal != nil) {
+    self.fontSize =
+        [fsVal isKindOfClass:[NSNumber class]] ? (NSNumber *)fsVal : nil;
+  }
+  id ffVal = dict[@"fontFamily"];
+  if (ffVal != nil) {
+    self.fontFamily =
+        [ffVal isKindOfClass:[NSString class]] ? (NSString *)ffVal : nil;
+  }
 }
 
 - (BOOL)isEqual:(id)object {
@@ -29,17 +40,25 @@
                  [_foregroundColor isEqual:other.foregroundColor];
   BOOL bgEqual = (_backgroundColor == other.backgroundColor) ||
                  [_backgroundColor isEqual:other.backgroundColor];
-  return fgEqual && bgEqual;
+  BOOL fsEqual = (_fontSize == other.fontSize) ||
+                 (_fontSize != nil && other.fontSize != nil &&
+                  [_fontSize isEqualToNumber:other.fontSize]);
+  BOOL ffEqual = (_fontFamily == other.fontFamily) ||
+                 [_fontFamily isEqualToString:other.fontFamily];
+  return fgEqual && bgEqual && fsEqual && ffEqual;
 }
 
 - (NSUInteger)hash {
-  return [_foregroundColor hash] ^ [_backgroundColor hash];
+  return [_foregroundColor hash] ^ [_backgroundColor hash] ^ [_fontSize hash] ^
+         [_fontFamily hash];
 }
 
 - (id)copyWithZone:(NSZone *)zone {
   CustomStyleData *copy = [[CustomStyleData allocWithZone:zone] init];
   copy.foregroundColor = self.foregroundColor;
   copy.backgroundColor = self.backgroundColor;
+  copy.fontSize = self.fontSize;
+  copy.fontFamily = self.fontFamily;
   return copy;
 }
 
