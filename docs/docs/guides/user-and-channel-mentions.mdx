@@ -44,7 +44,7 @@ Now let's register both indicators and the events callbacks:
 <EnrichedTextInput
   mentionIndicators={['@', '#']}
   onStartMention={openPicker} // fired when '@' or '#' is typed
-  onChangeMention={updateQuery} // fired on every keystroke after it
+  onChangeMention={updateQuery} // fired on every keystroke after an indicator
   onEndMention={closePicker} // fired when the mention is left
   // ...
 />
