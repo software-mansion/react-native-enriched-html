@@ -60,7 +60,7 @@ The library contains native code, so rebuild your app after installing. On iOS,
 install the pods first:
 
 ```sh
-cd ios && bundler install && bundler exec pod install
+cd ios && pod install
 ```
 
 ### Expo
@@ -103,8 +103,7 @@ Install the package:
   </TabItem>
 </Tabs>
 
-The shipped components share the React Native's API, minus the functionalities a
-browser can't provide. See the _Web support_ guide for what's covered.
+The web version should work right out of the box. Check the details in the Web Support section. 
 
 ## Nightly builds
 
