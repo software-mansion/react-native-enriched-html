@@ -36,12 +36,18 @@ const linkRegex = /issue-\d+/g;
 <EnrichedTextInput linkRegex={linkRegex} /* ... */ />;
 ```
 
+:::tip
+
+You can pass `null` to turn automatic detection
+off entirely.
+
+:::
+
 :::note
 
 On iOS and Android the pattern is matched by the platform's native regex engine,
 so not every JavaScript regex feature is available there - variable-width
-lookbehinds, for instance, won't work. Pass `null` to turn automatic detection
-off entirely.
+lookbehinds, for instance, won't work.
 
 :::
 
@@ -90,8 +96,14 @@ const addLink = () => {
 :::tip
 
 Passing a different `text` than what's selected replaces the selected text before
-applying the link. To strip a link while keeping its text, call
-`removeLink(start, end)`.
+applying the link.
+
+:::
+
+:::tip
+
+To strip a link while keeping its text,
+you can call `removeLink(start, end)`.
 
 :::
 
@@ -115,9 +127,13 @@ while editing an autolinked token breaks it.
 
 ## Handling links with events
 
-There is an event that allows you to handle user's interaction with links inside `EnrichedTextInput`.
+There are two events that allows you to handle user interaction with links, one in each component.
 
+In `EnrichedTextInput`:
 - **`onLinkDetected`** fires when the cursor enters or leaves a created link.
+
+In `EnrichedText`:
+- **`onLinkPress`** fires when the user presses a link.
 
 :::info
 
