@@ -16,8 +16,8 @@ and you talk to it through a `ref`.
 
 This is deliberate. Rich text changes constantly - every character, selection
 move and style toggle - and round-tripping all of that through JavaScript state
-would be extremely slow and open to a possible de-synchronization of those states.
-Keeping it native makes the editor fast and stable.
+would be extremely slow and open to a possible de-synchronization of those states
+between the JS and native side. Keeping it in the latter, makes the editor fast and stable.
 
 In practice this means:
 
@@ -25,6 +25,13 @@ In practice this means:
 - To **observe** changes to the content or formatting, listen to events such as `onChangeState`, `onChangeHtml`, or `onChangeSelection`.
 
 You never set a `value` prop and re-render to make an edit happen.
+
+:::note
+
+We have one value-setting prop - `defaultValue`, but this provides an initial editor's value on its creation,
+so we don't violate the _uncontrolled_ nature of the component here.
+
+:::
 
 ## HTML is the source of truth
 
