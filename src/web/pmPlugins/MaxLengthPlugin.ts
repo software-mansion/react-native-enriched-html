@@ -58,7 +58,7 @@ function getInsertedRanges(
 /**
  * Finds the position within [from, to) where the plain-text length
  * of [from, cut) is `keep`. Snaps outward inside composed characters,
- * so e.g. emojis, surrogate pairs and are never split.
+ * so e.g. emojis, surrogate pairs, and combining marks are never split.
  */
 function findCutPosition(
   doc: PMNode,

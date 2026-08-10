@@ -124,7 +124,7 @@ export function TestScreen({
         </View>
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle} testID="max-length-current">
-            maxLength: {maxLength ? maxLength : 'None'}
+            maxLength: {maxLength ?? 'None'}
           </Text>
           <View style={styles.buttonRow}>
             <Button

@@ -128,7 +128,7 @@ Keep in mind that not all JS regex features are supported, for example variable-
 
 Maximum number of characters the input's plain text may contain.
 
-Text that doesn't fit is truncated instead of being rejected, no matter how it got into the input - typing, dictation, IME composition, pasting or setting the value with `defaultValue` and `ref.setValue()`.
+Typing past the limit is rejected (extra characters are ignored). Multi-character insertions (dictation, IME composition, paste, and programmatic APIs like `defaultValue`/`ref.setValue()`) are truncated to what fits.
 
 | Type     | Default Value | Platform          |
 | -------- | ------------- | ----------------- |
