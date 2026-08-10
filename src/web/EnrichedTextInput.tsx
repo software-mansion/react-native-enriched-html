@@ -63,6 +63,7 @@ import { EnrichedOrderedList } from './formats/EnrichedOrderedList';
 import { EnrichedCheckboxItem } from './formats/EnrichedCheckboxItem';
 import { EnrichedCheckboxList } from './formats/EnrichedCheckboxList';
 import { EnrichedTextAlign } from './formats/EnrichedTextAlign';
+import { EnrichedCustomStyle } from './formats/EnrichedCustomStyle';
 import { StripBoldInStyledHeadingsPlugin } from './pmPlugins/StripBoldInStyledHeadingsPlugin';
 import { StrictMarksPlugin } from './pmPlugins/StrictMarksPlugin';
 import { MergeAdjacentSameKindBlocksPlugin } from './pmPlugins/MergeAdjacentSameKindBlocksPlugin';
@@ -87,6 +88,7 @@ import {
   sanitizeMentionAttributes,
 } from './sanitization/htmlSanitizer';
 import { assertBrowserEnvironment } from './assertBrowserEnvironment';
+import { normalizeColorValue } from './normalization/colorNormalizer';
 
 function runFocused(
   editor: Editor,
@@ -223,6 +225,7 @@ export const EnrichedTextInput = ({
       EnrichedOrderedList,
       EnrichedCheckboxList,
       EnrichedTextAlign,
+      EnrichedCustomStyle,
       StripMarksInCodeBlockPlugin,
       StripMarksOnImagePlugin,
       StripBoldInStyledHeadingsPlugin.configure({
@@ -413,7 +416,18 @@ export const EnrichedTextInput = ({
           runFocused(editor, (c) => c.setTextAlign(alignment));
         }
       },
-      setStyle: () => {},
+      setStyle: (customStyle) => {
+        runFocused(editor, (c) =>
+          c.setCustomStyle({
+            ...('foregroundColor' in customStyle && {
+              foregroundColor: normalizeColorValue(customStyle.foregroundColor),
+            }),
+            ...('backgroundColor' in customStyle && {
+              backgroundColor: normalizeColorValue(customStyle.backgroundColor),
+            }),
+          })
+        );
+      },
     }),
     [editor, mentionIndicatorsRef, useHtmlNormalizerRef, sanitizationConfigRef]
   );
