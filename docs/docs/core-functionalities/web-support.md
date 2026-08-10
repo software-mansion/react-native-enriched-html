@@ -76,8 +76,7 @@ upload) so the browser can release the memory.
 
 Unlike the native platforms, the web build sanitizes HTML for you. It runs
 [DOMPurify](https://github.com/cure53/DOMPurify) at **every entrypoint** - the
-`children` of `EnrichedText`, and `defaultValue`, `setValue`, and pasted content
-on `EnrichedTextInput`. Sanitization is also run on the input component's **output** - `getHTML()`.
+`children` of `EnrichedText`, `defaultValue`, `setValue` and content pasted into `EnrichedTextInput`. Sanitization is also run on the input component's **output** - `getHTML()`.
 This ensures untrusted markup can't inject scripts or unsafe attributes into the DOM.
 
 :::note

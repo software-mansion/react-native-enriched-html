@@ -56,4 +56,4 @@ This is a heavy computational operation that might slow down your app's performa
 ## Keyboard and submission
 
 - **`onKeyPress`** - a key was pressed.
-- **`onSubmitEditing`** - the user presses return/enter key. Fires when `submitBehavior` is set to either `submit` or `blurAndSubmit`.
+- **`onSubmitEditing`** - the user pressed return/enter key. Fired when `submitBehavior` is set to either `submit` or `blurAndSubmit`.
