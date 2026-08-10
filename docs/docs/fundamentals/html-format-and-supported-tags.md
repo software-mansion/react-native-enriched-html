@@ -6,7 +6,7 @@ sidebar_position: 4
 
 The provided components work with a fixed set of standard and custom HTML tags - the editor produces them and they can be used as input to both the editor and the display component. This page is the reference for that set.
 
-Styles fall into two groups: **inline** tags that wrap a range of characters,
+Styles fall into two groups: **inline** tags that wrap a range of characters
 and **paragraph** tags that apply to whole paragraphs (**a paragraph might span a few lines!**). Not all of them combine
 freely, and there are two kinds of restriction:
 
