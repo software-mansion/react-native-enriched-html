@@ -50,9 +50,6 @@ const styles = StyleSheet.create({
 
 ## Toggling a style
 
-The input is uncontrolled - you don't change its content through props. Instead
-you call methods on it through a `ref` of type `EnrichedTextInputInstance`.
-
 Add a ref and a button that calls `toggleBold`. Each call flips bold on the
 current selection, or arms it for the next characters you type if nothing is
 selected.
@@ -107,8 +104,11 @@ const styles = StyleSheet.create({
 });
 ```
 
-Every other style is toggled similarly via `ref` - there's a `toggleItalic`,
-`toggleUnderline`, `toggleH1`, `toggleOrderedList`, and so on.
+:::note
+
+To learn about how you can toggle each of the available styles, visit [Basic styles](/rich-text-formatting/basic-styles)
+
+:::
 
 ## Reading the state back
 
