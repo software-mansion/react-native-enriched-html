@@ -1498,8 +1498,8 @@
           if (data.fontSize != nil) {
             if (cssProps.length > 0)
               [cssProps appendString:@" "];
-            [cssProps appendFormat:@"font-size: %.0fpx;",
-                                   [data.fontSize doubleValue]];
+            [cssProps
+                appendFormat:@"font-size: %gpx;", [data.fontSize doubleValue]];
           }
           if (data.fontFamily.length > 0) {
             if (cssProps.length > 0)
@@ -1628,6 +1628,16 @@
         substringWithRange:[fontFamilyMatch rangeAtIndex:1]]
         stringByTrimmingCharactersInSet:[NSCharacterSet
                                             whitespaceAndNewlineCharacterSet]];
+
+    // If font family contains a comma, use the first part e.g. "Nunito,
+    // sans-serif" -> "Nunito"
+    NSRange commaRange = [fontFamilyString rangeOfString:@","];
+    if (commaRange.location != NSNotFound) {
+      fontFamilyString =
+          [[fontFamilyString substringToIndex:commaRange.location]
+              stringByTrimmingCharactersInSet:
+                  [NSCharacterSet whitespaceAndNewlineCharacterSet]];
+    }
     if (([fontFamilyString hasPrefix:@"'"] &&
          [fontFamilyString hasSuffix:@"'"]) ||
         ([fontFamilyString hasPrefix:@"\""] &&

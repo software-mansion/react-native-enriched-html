@@ -20,8 +20,12 @@
   }
   id fsVal = dict[@"fontSize"];
   if (fsVal != nil) {
-    self.fontSize =
-        [fsVal isKindOfClass:[NSNumber class]] ? (NSNumber *)fsVal : nil;
+    if ([fsVal isKindOfClass:[NSNumber class]] &&
+        [(NSNumber *)fsVal doubleValue] > 0) {
+      self.fontSize = (NSNumber *)fsVal;
+    } else {
+      self.fontSize = nil;
+    }
   }
   id ffVal = dict[@"fontFamily"];
   if (ffVal != nil) {
