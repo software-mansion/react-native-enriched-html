@@ -1,0 +1,120 @@
+appId: swmansion.enriched.example
+---
+# Validates custom font size and font family on plain text, inline styles, and paragraph styles.
+- launchApp
+
+- tapOn:
+    id: 'toggle-screen-button'
+
+- tapOn:
+    id: 'editor-input'
+
+# Section 1: Plain text with custom fonts
+
+- tapOn:
+    id: 'toolbar-font-size'
+- tapOn:
+    id: 'font-size-24'
+- inputText: '24px plain'
+- tapOn:
+    id: 'toolbar-font-size'
+- tapOn:
+    id: 'font-size-clear'
+- inputText: ' '
+
+- tapOn:
+    id: 'toolbar-font-family'
+- tapOn:
+    id: 'font-family-Nunito-Bold'
+- inputText: 'Bold family'
+- tapOn:
+    id: 'toolbar-font-family'
+- tapOn:
+    id: 'font-family-clear'
+- inputText: ' '
+
+- tapOn:
+    id: 'toolbar-font-size'
+- tapOn:
+    id: 'font-size-32'
+- tapOn:
+    id: 'toolbar-font-family'
+- tapOn:
+    id: 'font-family-Courier'
+- inputText: '32 Courier'
+- tapOn:
+    id: 'toolbar-font-size'
+- tapOn:
+    id: 'font-size-clear'
+- tapOn:
+    id: 'toolbar-font-family'
+- tapOn:
+    id: 'font-family-clear'
+- inputText: ' '
+
+# Section 2: Inline styles + custom fonts
+
+- tapOn:
+    id: 'toolbar-bold'
+- tapOn:
+    id: 'toolbar-font-size'
+- tapOn:
+    id: 'font-size-20'
+- inputText: 'Bold 20px'
+- tapOn:
+    id: 'toolbar-bold'
+- tapOn:
+    id: 'toolbar-font-size'
+- tapOn:
+    id: 'font-size-clear'
+- inputText: ' '
+
+- tapOn:
+    id: 'toolbar-italic'
+- tapOn:
+    id: 'toolbar-font-family'
+- tapOn:
+    id: 'font-family-Nunito-Italic'
+- inputText: 'Italic family'
+- tapOn:
+    id: 'toolbar-italic'
+- tapOn:
+    id: 'toolbar-font-family'
+- tapOn:
+    id: 'font-family-clear'
+- inputText: ' '
+
+- tapOn:
+    id: 'toolbar-inline-code'
+- tapOn:
+    id: 'toolbar-font-family'
+- tapOn:
+    id: 'font-family-CascadiaCode-Bold'
+- inputText: 'Code bold'
+- tapOn:
+    id: 'toolbar-inline-code'
+- tapOn:
+    id: 'toolbar-font-family'
+- tapOn:
+    id: 'font-family-clear'
+- inputText: ' '
+- pressKey: Enter
+
+# Section 3: Paragraph styles + custom fonts
+
+- tapOn:
+    id: 'toolbar-quote'
+- tapOn:
+    id: 'toolbar-font-family'
+- tapOn:
+    id: 'font-family-CascadiaCode-Regular'
+- inputText: 'Quote code family'
+- tapOn:
+    id: 'toolbar-font-family'
+- tapOn:
+    id: 'font-family-clear'
+
+- runFlow:
+    file: '../subflows/capture_or_assert_screenshot.yaml'
+    env:
+      SCREENSHOT_NAME: 'custom_style_fonts'

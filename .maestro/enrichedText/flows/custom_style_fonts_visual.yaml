@@ -1,0 +1,29 @@
+appId: swmansion.enriched.example
+---
+# Validates that custom style fonts are displayed correctly
+- launchApp
+
+- tapOn:
+    id: 'toggle-screen-button'
+
+- tapOn:
+    id: 'toggle-enriched-text-screen-button'
+
+- runFlow:
+    file: '../subflows/set_enriched_text_value.yaml'
+    env:
+      VALUE: >
+        <html>
+          <p>Regular family</p>
+          <p><span style="font-size: 24px;">24px plain</span></p>
+          <p><span style="font-family: Nunito-Bold;">Bold family</span></p>
+          <p><span style="font-size: 32px; font-family: Courier;">32 Courier</span></p>
+          <p><b><span style="font-size: 20px;">Bold 20px</span></b> <i><span style="font-family: Nunito-Italic;">Italic family</span></i> <code><span style="font-family: CascadiaCode-Bold;">Code bold</span></code></p>
+          <h5><span style="font-size: 40px;">H5 40px</span></h5>
+          <blockquote><p><span style="font-family: CascadiaCode-Regular;">Quote code family</span></p></blockquote>
+        </html>
+
+- runFlow:
+    file: '../subflows/capture_or_assert_screenshot.yaml'
+    env:
+      SCREENSHOT_NAME: 'custom_style_fonts_visual'

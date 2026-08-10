@@ -41,7 +41,6 @@ const COLORS = [
 const FONT_SIZES = [12, 16, 20, 24, 28, 32, 36, 40];
 
 const FONT_FAMILIES = [
-  { label: 'Regular', value: 'Nunito-Regular' },
   { label: 'Bold', value: 'Nunito-Bold' },
   { label: 'Italic', value: 'Nunito-Italic' },
   { label: 'Code', value: 'CascadiaCode-Regular' },
