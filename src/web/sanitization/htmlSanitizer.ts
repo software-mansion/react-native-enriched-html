@@ -3,6 +3,11 @@ import type { SanitizationConfig } from '../../types';
 
 const MENTION_ATTRS = ['text', 'indicator'];
 
+// Non-URL <img> attributes we emit. They must be listed as "URI safe" because
+// DOMPurify validates every attribute value that isn't in its built-in
+// URI_SAFE_ATTRIBUTES set against ALLOWED_URI_REGEXP.
+const IMG_DIMENSION_ATTRS = ['width', 'height'];
+
 // Attributes DOMPurify keeps by default and are commonly used, so we don't emit an unnecessary warning
 const COMMONLY_ALLOWED_ATTRS = ['id', 'class', 'style'];
 
@@ -10,7 +15,7 @@ export function sanitizeHtml(html: string, config?: SanitizationConfig) {
   return DOMPurify.sanitize(html, {
     ADD_TAGS: ['mention', 'codeblock'],
     ADD_ATTR: MENTION_ATTRS,
-    ADD_URI_SAFE_ATTR: MENTION_ATTRS,
+    ADD_URI_SAFE_ATTR: [...MENTION_ATTRS, ...IMG_DIMENSION_ATTRS],
     // if not supplied, fall back to DOMPurify's built-in default.
     ...(config?.linkRegex ? { ALLOWED_URI_REGEXP: config.linkRegex } : {}),
   });
