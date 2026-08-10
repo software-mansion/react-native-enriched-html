@@ -23,7 +23,7 @@ renders the input's output. Both speak HTML - the input
 produces it, the display consumes it.
 
 Not only does this library allow you to apply basic rich text styles you know well,
-like *bold* or _italic_, but also provides more powerful tools like `mentions`, something
+like _bold_ or _italic_, but also provides more powerful tools like _mentions_, something
 you will learn more about in the next chapters.
 
 ## Prerequisites
