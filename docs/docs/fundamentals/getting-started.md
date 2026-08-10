@@ -23,7 +23,7 @@ renders the input's output. Both speak HTML - the input
 produces it, the display consumes it.
 
 Not only does this library allow you to apply basic rich text styles you know well,
-like *bold* or _italic_, but also provides more powerful tools like `mentions`, something
+like _bold_ or _italic_, but also provides more powerful tools like _mentions_, something
 you will learn more about in the next chapters.
 
 ## Prerequisites
@@ -60,7 +60,7 @@ The library contains native code, so rebuild your app after installing. On iOS,
 install the pods first:
 
 ```sh
-cd ios && bundler install && bundler exec pod install
+cd ios && pod install
 ```
 
 ### Expo
@@ -103,8 +103,7 @@ Install the package:
   </TabItem>
 </Tabs>
 
-The shipped components share the React Native's API, minus the functionalities a
-browser can't provide. See the _Web support_ guide for what's covered.
+The web version should work right out of the box. Check the details in the Web Support section. 
 
 ## Nightly builds
 

@@ -7537,7 +7537,7 @@ __metadata:
     react: "npm:19.1.1"
     react-dom: "npm:19.1.1"
     react-native: "npm:0.86.0"
-    react-native-enriched-html: "npm:1.0.1"
+    react-native-enriched-html: "npm:1.1.0"
     react-native-web: "npm:0.21.2"
   languageName: unknown
   linkType: soft
@@ -13292,9 +13292,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-enriched-html@npm:1.0.1":
-  version: 1.0.1
-  resolution: "react-native-enriched-html@npm:1.0.1"
+"react-native-enriched-html@npm:1.1.0":
+  version: 1.1.0
+  resolution: "react-native-enriched-html@npm:1.1.0"
   dependencies:
     "@tiptap/core": "npm:3.27.1"
     "@tiptap/extension-blockquote": "npm:3.27.1"
@@ -13319,7 +13319,7 @@ __metadata:
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10c0/692120bc1bb9bd1698e9d0909d7ec34ef0879b22665da657b27502bb7c86d05fbc3e52981e0d66c6124e779a1844a4e0dde17c7f81932c3fd70e73c43135aeb2
+  checksum: 10c0/2037f347164db268e115207241d2642e15e6713c7fb51d48fd44556c724b69d98e4fe82e4dc99b90ef4208bb319262d072020c85afe7991d8a20fef3b2408e4c
   languageName: node
   linkType: hard
 
