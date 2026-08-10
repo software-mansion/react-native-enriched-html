@@ -18,7 +18,7 @@ everything from the container's dimensions down to the color of a bullet point.
 
 :::note
 
-`cursorColor` is not supported on iOS. For more platform differences, see [Compatibility](misc/compatibility).
+`cursorColor` is not supported on iOS. For more platform differences, see [Compatibility](/misc/compatibility).
 
 :::
 
