@@ -39,6 +39,14 @@ everything from the container's dimensions down to the color of a bullet point.
 />
 ```
 
+## `style`
+
+`style` accepts a subset of React Native's `TextStyle` - layout, appearance,
+and base typography - described by `EnrichedInputStyle`. Most of these map directly
+to their React Native `TextStyle` counterparts. Some are platform-limited
+(e.g. `shadowColor` is iOS-only, `elevation` is Android-only) - see the
+`EnrichedTextInput` reference for the full property list.
+
 ## `htmlStyle`
 
 `htmlStyle` maps each supported element to a small config object. Anything you
