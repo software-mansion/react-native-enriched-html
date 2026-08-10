@@ -33,6 +33,10 @@ export const DEFAULT_STYLES: StylesState = {
   mention: DEFAULT_STYLE_STATE,
   checkboxList: DEFAULT_STYLE_STATE,
   alignment: 'auto',
+  customStyle: {
+    foregroundColor: '',
+    backgroundColor: '',
+  },
 };
 
 export const DEFAULT_LINK_STATE = {

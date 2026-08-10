@@ -479,6 +479,13 @@ class EnrichedTextInputViewManager :
     view?.setTextAlignment(alignment)
   }
 
+  override fun setStyle(
+    view: EnrichedTextInputView?,
+    styleJSON: String,
+  ) {
+    // TODO: Implement
+  }
+
   override fun measure(
     context: Context,
     localData: ReadableMap?,

@@ -253,6 +253,75 @@ TEST(GumboParserTest, SpanRemappings) {
                 "<span style='text-decoration: line-through; font-weight: "
                 "bold; font-style: italic;'>x</span>"),
             "<b><i><s>x</s></i></b>");
+
+  // Foreground color only
+  EXPECT_EQ(
+      GumboParser::normalizeHtml("<span style=\"color: red;\">x</span>"),
+      "<span style=\"color: red\">x</span>");
+  EXPECT_EQ(
+      GumboParser::normalizeHtml("<span style=\"color: #ff0000\">x</span>"),
+      "<span style=\"color: #ff0000\">x</span>");
+  EXPECT_EQ(
+      GumboParser::normalizeHtml(
+          "<span style='color: rgb(255, 0, 0)'>x</span>"),
+      "<span style=\"color: rgb(255, 0, 0)\">x</span>");
+
+  // Background color only
+  EXPECT_EQ(
+      GumboParser::normalizeHtml(
+          "<span style=\"background-color: blue;\">x</span>"),
+      "<span style=\"background-color: blue\">x</span>");
+  EXPECT_EQ(
+      GumboParser::normalizeHtml(
+          "<span style=\"background-color: rgba(0,0,0,0.5)\">x</span>"),
+      "<span style=\"background-color: rgba(0,0,0,0.5)\">x</span>");
+
+  // Both colors combined
+  EXPECT_EQ(
+      GumboParser::normalizeHtml(
+          "<span style=\"color: red; background-color: blue;\">x</span>"),
+      "<span style=\"color: red; background-color: blue\">x</span>");
+  EXPECT_EQ(
+      GumboParser::normalizeHtml(
+          "<span style=\"background-color: blue; color: red;\">x</span>"),
+      "<span style=\"color: red; background-color: blue\">x</span>");
+
+  // Color + Single Formatter
+  EXPECT_EQ(
+      GumboParser::normalizeHtml(
+          "<span style=\"color: red; font-weight: bold;\">x</span>"),
+      "<span style=\"color: red\"><b>x</b></span>");
+  EXPECT_EQ(
+      GumboParser::normalizeHtml(
+          "<span style=\"font-weight: bold; color: red;\">x</span>"),
+      "<span style=\"color: red\"><b>x</b></span>");
+  EXPECT_EQ(
+      GumboParser::normalizeHtml(
+          "<span style=\"background-color: yellow; font-style: "
+          "italic;\">x</span>"),
+      "<span style=\"background-color: yellow\"><i>x</i></span>");
+  EXPECT_EQ(
+      GumboParser::normalizeHtml(
+          "<span style=\"text-decoration: underline; color: green;\">x</"
+          "span>"),
+      "<span style=\"color: green\"><u>x</u></span>");
+
+  // Color + Multiple inline styles
+  EXPECT_EQ(
+      GumboParser::normalizeHtml(
+          "<span style=\"color: #ffffff; background-color: #000000; "
+          "font-weight: bold; text-decoration: underline;\">x</span>"),
+      "<span style=\"color: #ffffff; background-color: "
+      "#000000\"><b><u>x</u></b></span>");
+
+  // Mix of colors and inline styles
+  EXPECT_EQ(
+      GumboParser::normalizeHtml(
+          "<span style=\"text-decoration: line-through; color: rgb(255, 0, "
+          "0); font-style: italic; background-color: rgb(0, 0, 255); "
+          "font-weight: bold;\">x</span>"),
+      "<span style=\"color: rgb(255, 0, 0); background-color: rgb(0, 0, "
+      "255)\"><b><i><s>x</s></i></b></span>");
 }
 
 TEST(GumboParserTest, EnrichedTagRemappings) {
