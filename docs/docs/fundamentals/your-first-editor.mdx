@@ -8,7 +8,7 @@ import FirstEditorSrc from '!!raw-loader!@site/src/examples/FirstEditor';
 
 # Your first editor
 
-Let's build a small editor with a button that toggles bold and lights up when
+Let's build a small editor with a button that toggles bold and highlights when
 the current selection is bold. It's just enough to see the two moving parts of
 the library: **calling methods on the input** and **reading its state back**.
 
@@ -34,7 +34,9 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  container: { gap: 12 },
+  container: {
+    gap: 12
+  },
   input: {
     fontSize: 18,
     color: '#232736',
@@ -47,9 +49,6 @@ const styles = StyleSheet.create({
 ```
 
 ## Toggling a style
-
-The input is uncontrolled - you don't change its content through props. Instead
-you call methods on it through a `ref` of type `EnrichedTextInputInstance`.
 
 Add a ref and a button that calls `toggleBold`. Each call flips bold on the
 current selection, or arms it for the next characters you type if nothing is
@@ -79,7 +78,9 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  container: { gap: 12 },
+  container: {
+    gap: 12
+  },
   input: {
     fontSize: 18,
     color: '#232736',
@@ -103,8 +104,11 @@ const styles = StyleSheet.create({
 });
 ```
 
-Every other style is toggled similarly via `ref` - there's a `toggleItalic`,
-`toggleUnderline`, `toggleH1`, `toggleOrderedList`, and so on.
+:::note
+
+To learn how you can toggle each of the available styles, visit [Basic styles](/rich-text-formatting/basic-styles).
+
+:::
 
 ## Reading the state back
 
@@ -147,7 +151,9 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  container: { gap: 12 },
+  container: {
+    gap: 12
+  },
   input: {
     fontSize: 18,
     color: '#232736',
