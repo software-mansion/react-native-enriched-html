@@ -483,7 +483,7 @@ class EnrichedTextInputViewManager :
     view: EnrichedTextInputView?,
     styleJSON: String,
   ) {
-    // TODO: Implement
+    view?.setStyle(styleJSON)
   }
 
   override fun measure(
