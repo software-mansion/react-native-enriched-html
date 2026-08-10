@@ -4,12 +4,10 @@ sidebar_position: 4
 
 # HTML format and supported tags
 
-The editor works with a fixed set of standard and custom HTML tags - it both
-produces them in its output and accepts them as input. This page is the
-reference for that set.
+The provided components work with a fixed set of standard and custom HTML tags - the editor produces them and they can be used as input to both the editor and the display component. This page is the reference for that set.
 
 Styles fall into two groups: **inline** tags that wrap a range of characters,
-and **paragraph** tags that apply to whole lines. Not all of them combine
+and **paragraph** tags that apply to whole paragraphs (**a paragraph might span a few lines!**). Not all of them combine
 freely, and there are two kinds of restriction:
 
 - **Conflicting** - toggling a style that conflicts with an active one replaces
