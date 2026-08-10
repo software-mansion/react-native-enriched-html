@@ -38,6 +38,10 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
 
+      - name: Typecheck docs
+        working-directory: ${{ github.workspace }}
+        run: yarn typecheck:docs
+
       - name: Build docs
         run: yarn build
 
