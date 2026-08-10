@@ -383,6 +383,8 @@ export interface OnChangeStateEvent {
   customStyle: {
     foregroundColor: string;
     backgroundColor: string;
+    fontSize: number;
+    fontFamily: string;
   };
 }
 
@@ -579,6 +581,8 @@ export interface EnrichedTextInputInstance extends NativeMethods {
   setStyle: (customStyle: {
     foregroundColor?: ColorValue | null;
     backgroundColor?: ColorValue | null;
+    fontSize?: number | null;
+    fontFamily?: string | null;
   }) => void;
 }
 

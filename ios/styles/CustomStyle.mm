@@ -1,8 +1,10 @@
 #import "ColorExtension.h"
 #import "CustomStyleData.h"
 #import "EnrichedTextInputView.h"
+#import "FontExtension.h"
 #import "RangeUtils.h"
 #import "StyleHeaders.h"
+#import <React/RCTFont.h>
 
 static NSString *const CustomStyleAttributeName = @"EnrichedCustomStyle";
 
@@ -22,6 +24,44 @@ static NSString *const CustomStyleAttributeName = @"EnrichedCustomStyle";
 
 - (NSInteger)stylePriority {
   return 1;
+}
+
+- (UIFont *)resolveFont:(UIFont *)font forData:(CustomStyleData *)data {
+  UIFont *resolvedFont = font ?: [self.host.config primaryFont];
+  UIFont *originalFont = resolvedFont;
+
+  if (data.fontFamily.length > 0) {
+    resolvedFont = [RCTFont updateFont:resolvedFont
+                            withFamily:data.fontFamily
+                                  size:0
+                                weight:nullptr
+                                 style:nullptr
+                               variant:nullptr
+                       scaleMultiplier:1];
+    resolvedFont = [resolvedFont withFontTraits:originalFont];
+  }
+
+  if (data.fontSize != nil) {
+    resolvedFont = [resolvedFont setSize:[data.fontSize doubleValue]];
+  }
+
+  return resolvedFont;
+}
+
+- (BOOL)appliesStylingToTyping {
+  CustomStyleData *data =
+      [self getCustomStyleDataAt:self.host.textView.selectedRange.location];
+  return data.fontSize != nil || data.fontFamily.length > 0;
+}
+
+- (void)applyStylingToTypingAttrs:(NSMutableDictionary *)attributes {
+  CustomStyleData *data =
+      [self getCustomStyleDataAt:self.host.textView.selectedRange.location];
+  if (data.fontSize == nil && data.fontFamily.length == 0)
+    return;
+
+  UIFont *currentFont = attributes[NSFontAttributeName];
+  attributes[NSFontAttributeName] = [self resolveFont:currentFont forData:data];
 }
 
 - (BOOL)styleCondition:(id)value range:(NSRange)range {
@@ -65,17 +105,37 @@ static NSString *const CustomStyleAttributeName = @"EnrichedCustomStyle";
                   attrs[NSBackgroundColorAttributeName] =
                       [data.backgroundColor colorWithResolvedAlpha];
                 }
-                if (attrs.count == 0)
-                  return;
+
+                BOOL hasFontOverride =
+                    data.fontSize != nil || data.fontFamily.length > 0;
 
                 // Skip newline characters so background color doesn't bleed.
                 NSArray *nonNewlineRanges =
                     [RangeUtils getNonNewlineRangesIn:self.host.textView
                                                 range:subRange];
                 for (NSValue *rangeVal in nonNewlineRanges) {
-                  [self.host.textView.textStorage
-                      addAttributes:attrs
-                              range:[rangeVal rangeValue]];
+                  NSRange applyRange = [rangeVal rangeValue];
+                  if (attrs.count > 0) {
+                    [self.host.textView.textStorage addAttributes:attrs
+                                                            range:applyRange];
+                  }
+                  if (hasFontOverride) {
+                    [self.host.textView.textStorage
+                        enumerateAttribute:NSFontAttributeName
+                                   inRange:applyRange
+                                   options:0
+                                usingBlock:^(id _Nullable value,
+                                             NSRange fontRange,
+                                             BOOL *_Nonnull stop) {
+                                  UIFont *font = (UIFont *)value;
+                                  UIFont *newFont = [self resolveFont:font
+                                                              forData:data];
+                                  [self.host.textView.textStorage
+                                      addAttribute:NSFontAttributeName
+                                             value:newFont
+                                             range:fontRange];
+                                }];
+                  }
                 }
               }];
 }
