@@ -179,6 +179,7 @@ test.describe('test-max-length mentions', () => {
     await gotoTestMaxLength(page);
     await setValue(page, '<html><p>1234</p></html>');
     await setSelection(page, 4, 4);
+    await page.waitForTimeout(100);
     await page.keyboard.type(' ');
     await page.click(sel.startMentionButton);
 
