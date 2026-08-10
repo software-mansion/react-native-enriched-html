@@ -957,7 +957,16 @@
             inCheckboxList = NO;
           }
         } else {
-          [result appendString:@"\n<br>"];
+          NSString *cssStyleString =
+              [self prepareCssStyleString:currentRange.location
+                             isOpeningTag:YES
+                                     host:host];
+          if (cssStyleString.length > 0) {
+            [result appendString:[NSString stringWithFormat:@"\n<p%@></p>",
+                                                            cssStyleString]];
+          } else {
+            [result appendString:@"\n<br>"];
+          }
         }
       } else {
         // newline finishes a paragraph and all style tags need to be closed
@@ -1456,7 +1465,7 @@
 }
 
 + (void)checkForAlignments:(NSArray *)tagData
-                 plainText:(NSString *)plainText
+                 plainText:(NSMutableString *)plainText
            foundAlignments:(NSMutableArray<AlignmentEntry *> *)foundAlignments
        precedingImageCount:(NSInteger)precedingImageCount {
   if (tagData == nil) {
@@ -1473,6 +1482,12 @@
     // Calculate range relative to plainText
     NSInteger actualStart = startLoc + precedingImageCount;
     NSInteger length = plainText.length - startLoc;
+
+    // Empty aligned paragraphs have no characters to attach alignment to.
+    if (length == 0) {
+      [plainText appendString:@"\u200B"];
+      length = 1;
+    }
 
     if (length > 0) {
       AlignmentEntry *entry = [[AlignmentEntry alloc] init];
