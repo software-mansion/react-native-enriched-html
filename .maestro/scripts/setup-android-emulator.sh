@@ -12,7 +12,7 @@ fi
 TAG="google_apis_playstore"
 SYSTEM_IMAGE="system-images;android-${API_LEVEL};${TAG};${ABI}"
 AVD_NAME="Pixel9-API${API_LEVEL}-Enriched"
-PORT=5554
+PORT=5570
 SERIAL="emulator-${PORT}"
 
 if [ -z "$ANDROID_HOME" ]; then
