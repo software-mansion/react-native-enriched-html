@@ -94,8 +94,9 @@ public class EnrichedParser {
     String normalizedBlockQuote =
         normalizedCodeBlock.replaceAll("</blockquote>\\n<br>", "</blockquote>");
 
-    // Replace empty <p> tags (with or without style attributes) with <br>
-    String normalizedHtml = normalizedBlockQuote.replaceAll("<p[^>]*></p>", "<br>");
+    // Replace empty <p> tags with <br>, except when they carry text-align
+    String normalizedHtml =
+        normalizedBlockQuote.replaceAll("<p(?![^>]*text-align\\s*:)[^>]*></p>", "<br>");
 
     return "<html>\n" + normalizedHtml + "</html>";
   }
@@ -593,7 +594,14 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
     if (tag.equalsIgnoreCase("br")) {
       handleBr(mSpannableStringBuilder);
     } else if (tag.equalsIgnoreCase("p")) {
+      boolean empty = isEmptyTag;
+      Alignment pendingAlignment = empty ? getLast(mSpannableStringBuilder, Alignment.class) : null;
       endBlockElement(mSpannableStringBuilder, mSpanFactory);
+      // Plain empty paragraphs never reach setParagraphSpanFromMark (no ZWS).
+      // Represent them as a blank line so they round-trip as <br>.
+      if (empty && pendingAlignment == null) {
+        handleBr(mSpannableStringBuilder);
+      }
     } else if (tag.equalsIgnoreCase("ul")) {
       currentListAlignmentCssValue = null;
       endBlockElement(mSpannableStringBuilder, mSpanFactory);

@@ -11,14 +11,21 @@ open class EnrichedInlineCodeSpan(
 ) : MetricAffectingSpan(),
   EnrichedInlineSpan {
   override fun updateDrawState(textPaint: TextPaint) {
-    val typeface = Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL)
-    textPaint.typeface = typeface
+    applyMonospace(textPaint)
     textPaint.color = enrichedStyle.inlineCodeColor
     textPaint.bgColor = enrichedStyle.inlineCodeBackgroundColor
   }
 
   override fun updateMeasureState(textPaint: TextPaint) {
-    val typeface = Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL)
+    applyMonospace(textPaint)
+  }
+
+  // When switching to a monospace font, we need to remember
+  // and apply other current styles, such as bold or italic.
+  private fun applyMonospace(textPaint: TextPaint) {
+    val currentStyle = textPaint.typeface?.style ?: Typeface.NORMAL
+    val typeface = Typeface.create(Typeface.MONOSPACE, currentStyle)
+
     textPaint.typeface = typeface
   }
 }
