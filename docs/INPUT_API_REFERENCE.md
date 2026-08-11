@@ -124,6 +124,16 @@ Keep in mind that not all JS regex features are supported, for example variable-
 > [!TIP]
 > With this approach you can also disable link detection completely by providing a `null` value as the prop.
 
+### `linkOnPaste`
+
+If `true`, pasting clipboard content that consists solely of a URL while some text is selected turns the selection into a link pointing to that URL, instead of replacing the selected text with the pasted content.
+
+The pasted content is recognized as a URL when it fully matches [`linkRegex`](#linkregex) (or the default link detection patterns when the prop is not provided). URLs without a scheme (e.g. `www.example.com`) get an `https://` prefix in the resulting link. The paste falls back to the regular behavior when the selection is empty or whitespace-only, or when the link style cannot be applied at the selection (e.g. inside inline code or a code block). Has no effect when link detection is disabled with `linkRegex={null}`.
+
+| Type   | Default Value | Platform          |
+| ------ | ------------- | ----------------- |
+| `bool` | `false`       | iOS, Android, Web |
+
 ### `onBlur`
 
 Callback that's called whenever the input loses focus (is blurred).

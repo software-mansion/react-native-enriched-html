@@ -670,6 +670,15 @@ export interface EnrichedTextInputProps extends Omit<ViewProps, 'children'> {
    */
   linkRegex?: RegExp | null;
 
+  /**
+   * If `true`, pasting clipboard content that consists solely of a URL over
+   * a non-empty selection turns the selected text into a link pointing to
+   * that URL instead of replacing the selection with the pasted text.
+   * Has no effect when link detection is disabled via `linkRegex={null}`.
+   * Disabled by default.
+   */
+  linkOnPaste?: boolean;
+
   /** The label shown on the return key of the software keyboard. */
   returnKeyType?: ReturnKeyTypeOptions;
 

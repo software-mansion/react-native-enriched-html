@@ -69,6 +69,7 @@ export function TestLinks() {
             setLastOnLinkDetected(e);
           }}
           linkRegex={appliedLinkRegex}
+          linkOnPaste
         />
       </div>
 

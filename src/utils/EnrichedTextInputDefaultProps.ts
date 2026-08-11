@@ -6,6 +6,7 @@ export const ENRICHED_TEXT_INPUT_DEFAULT_PROPS = {
   htmlStyle: {},
   autoCapitalize: 'sentences',
   scrollEnabled: true,
+  linkOnPaste: false,
   androidExperimentalSynchronousEvents: false,
   useHtmlNormalizer: true,
   allowFontScaling: true,

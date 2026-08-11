@@ -693,6 +693,11 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
     useHtmlNormalizer = newViewProps.useHtmlNormalizer;
   }
 
+  // linkOnPaste
+  if (newViewProps.linkOnPaste != oldViewProps.linkOnPaste) {
+    linkOnPaste = newViewProps.linkOnPaste;
+  }
+
   // textShortcuts
   bool textShortcutsChanged =
       newViewProps.textShortcuts.size() != oldViewProps.textShortcuts.size();
@@ -1523,23 +1528,55 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
               end:(NSInteger)end
              text:(NSString *)text
               url:(NSString *)url {
+  [self tryAddLinkAt:start end:end text:text url:url];
+}
+
+- (BOOL)tryAddLinkAt:(NSInteger)start
+                 end:(NSInteger)end
+                text:(NSString *)text
+                 url:(NSString *)url {
   LinkStyle *linkStyleClass = (LinkStyle *)stylesDict[@([LinkStyle getType])];
   if (linkStyleClass == nullptr) {
-    return;
+    return NO;
   }
 
   // translate the output start-end notation to range
   NSRange linkRange = NSMakeRange(start, end - start);
-  if ([StyleUtils handleStyleBlocksAndConflicts:[LinkStyle getType]
-                                          range:linkRange
-                                        forHost:self]) {
-    LinkData *linkData = [[LinkData alloc] init];
-    linkData.text = text;
-    linkData.url = url;
-    linkData.isManual = YES;
-    [linkStyleClass addLink:linkData range:linkRange withSelection:YES];
-    [self anyTextMayHaveBeenModified];
+  if (![StyleUtils handleStyleBlocksAndConflicts:[LinkStyle getType]
+                                           range:linkRange
+                                         forHost:self]) {
+    return NO;
   }
+
+  LinkData *linkData = [[LinkData alloc] init];
+  linkData.text = text;
+  linkData.url = url;
+  linkData.isManual = YES;
+  [linkStyleClass addLink:linkData range:linkRange withSelection:YES];
+  [self anyTextMayHaveBeenModified];
+  return YES;
+}
+
+// Returns a normalized href when the whole string is a single URL matching
+// the link regex config; used by the linkOnPaste behavior.
+- (NSString *)linkURLIfEntireString:(NSString *)text {
+  if (text.length == 0) {
+    return nullptr;
+  }
+
+  if (![LinkStyle matchesEntireLinkRegexWithConfig:text config:config]) {
+    return nullptr;
+  }
+
+  NSStringCompareOptions prefixOpts =
+      NSCaseInsensitiveSearch | NSAnchoredSearch;
+  if ([text rangeOfString:@"http://" options:prefixOpts].location !=
+          NSNotFound ||
+      [text rangeOfString:@"https://" options:prefixOpts].location !=
+          NSNotFound) {
+    return text;
+  }
+  return [@"https://" stringByAppendingString:text];
 }
 
 - (void)removeLinkAt:(NSInteger)start end:(NSInteger)end {
