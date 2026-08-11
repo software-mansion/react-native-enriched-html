@@ -46,12 +46,17 @@ class EnrichedTextView : AppCompatTextView {
     set(value) {
       if (field == value) return
       field = value
+      // Invalidate the spannable factory so that it is recreated with the new allowFontScaling value
+      cachedSpannableFactory = null
       fontSizeRaw?.let { setFontSize(it) }
       htmlStyleMap?.let { setHtmlStyle(it) }
     }
 
   private var enrichedStyle: EnrichedTextStyle? = null
-  private val spannableFactory = EnrichedTextSpanFactory()
+
+  private var cachedSpannableFactory: EnrichedTextSpanFactory? = null
+  private val spannableFactory: EnrichedTextSpanFactory
+    get() = cachedSpannableFactory ?: EnrichedTextSpanFactory(context.assets, allowFontScaling).also { cachedSpannableFactory = it }
 
   // We keep the parsedText around so that when an async image finishes loading we can re-call
   // setText with the same instance and force the TextView to rebuild its layout.

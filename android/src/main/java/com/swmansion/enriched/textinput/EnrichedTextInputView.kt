@@ -100,6 +100,8 @@ class EnrichedTextInputView :
     set(value) {
       if (field != value) {
         field = value
+        // Invalidate the spannable factory so that it is recreated with the new allowFontScaling value
+        cachedSpannableFactory = null
         val raw = fontSizeRaw
         if (raw != null) {
           setFontSize(raw) // re-invokes invalidateStyles internally
@@ -148,7 +150,13 @@ class EnrichedTextInputView :
   private var defaultValueDirty: Boolean = false
 
   private var inputMethodManager: InputMethodManager? = null
-  private val spannableFactory = EnrichedTextInputSpannableFactory()
+
+  private var cachedSpannableFactory: EnrichedTextInputSpannableFactory? = null
+  private val spannableFactory: EnrichedTextInputSpannableFactory
+    get() =
+      cachedSpannableFactory
+        ?: EnrichedTextInputSpannableFactory(context.assets, allowFontScaling).also { cachedSpannableFactory = it }
+
   private var contextMenuItems: List<Pair<Int, String>> = emptyList()
 
   constructor(context: Context) : super(context) {

@@ -149,6 +149,8 @@ class EnrichedSelection(
 
     var foundFg: Int? = null
     var foundBg: Int? = null
+    var foundFontSize: Float? = null
+    var foundFontFamily: String? = null
 
     for (span in spans) {
       val spanStart = spannable.getSpanStart(span)
@@ -159,11 +161,13 @@ class EnrichedSelection(
       } else if (start >= spanStart && end <= spanEnd) {
         foundFg = span.getForegroundColor()
         foundBg = span.getBackgroundColor()
+        foundFontSize = span.getFontSize()
+        foundFontFamily = span.getFontFamily()
         break
       }
     }
 
-    state.setCustomStyle(foundFg, foundBg)
+    state.setCustomStyle(foundFg, foundBg, foundFontSize, foundFontFamily)
   }
 
   fun getParagraphSelection(): Pair<Int, Int> {
