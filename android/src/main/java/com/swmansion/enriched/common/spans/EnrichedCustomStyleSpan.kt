@@ -50,7 +50,7 @@ open class EnrichedCustomStyleSpan(
   }
 
   private fun applyFontState(textPaint: TextPaint) {
-    fontFamily?.let { family ->
+    fontFamily?.trim()?.takeIf { it.isNotEmpty() }?.let { family ->
       textPaint.typeface =
         applyStyles(
           textPaint.typeface,
@@ -60,7 +60,7 @@ open class EnrichedCustomStyleSpan(
           assets,
         )
     }
-    fontSizeSp?.let { size ->
+    fontSizeSp?.takeIf { it > 0f }?.let { size ->
       textPaint.textSize = pixelFromSpOrDp(size, allowFontScaling)
     }
   }

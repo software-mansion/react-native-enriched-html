@@ -9,6 +9,6 @@ data class CustomStyle(
   fun isEmpty(): Boolean =
     foregroundColor == null &&
       backgroundColor == null &&
-      fontSize == null &&
-      fontFamily == null
+      (fontSize == null || fontSize <= 0f) &&
+      fontFamily.isNullOrBlank()
 }

@@ -26,13 +26,13 @@ class CustomStyles(
     val bgColor = if (hasBg && !json.isNull("backgroundColor")) json.getInt("backgroundColor") else null
     val fontSize =
       if (hasFontSize && !json.isNull("fontSize")) {
-        json.getDouble("fontSize").toFloat()
+        json.getDouble("fontSize").toFloat().takeIf { it > 0f }
       } else {
         null
       }
     val fontFamily =
       if (hasFontFamily && !json.isNull("fontFamily")) {
-        json.getString("fontFamily")
+        json.getString("fontFamily").trim().takeIf { it.isNotEmpty() }
       } else {
         null
       }
