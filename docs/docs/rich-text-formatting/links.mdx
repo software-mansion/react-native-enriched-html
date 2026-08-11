@@ -27,14 +27,22 @@ no longer holds and the link naturally breaks.
 You control what counts as a link with the
 `linkRegex` prop. Pass your own `RegExp`
 to recognize custom patterns - for example, only `https://` URLs or a custom
-scheme that detects references like `issue-123`:
+scheme that detects URLs like `enriched://home`:
 
 ```tsx
-// Detect "issue-123" style tokens as links.
-const linkRegex = /issue-\d+/g;
+// Detect "enriched://" URLs as links.
+const linkRegex = /enriched:\/\/\S+/g;
 
 <EnrichedTextInput linkRegex={linkRegex} /* ... */ />;
 ```
+
+:::tip
+
+The detected links don't have to be an actual URL scheme like `https://` or `enriched://`.
+You can freely customize the `linkRegex`, e.g. by setting it to `issue-\d+`, which will
+detect specific phrases, such as `issue-123`.
+
+:::
 
 :::tip
 
@@ -118,7 +126,7 @@ to use `sanitizationConfig` to whitelist your custom scheme.
 
 ## Try it out
 
-The editor below uses a custom `linkRegex` that autolinks `issue-123` tokens - type them and watch it become a link. Then
+The editor below uses a custom `linkRegex` that autolinks `enriched://` URLs - type them and watch it become a link. Then
 select some words and hit **Link the selection** to attach a URL manually.
 Notice the difference afterward: editing the manual link's text keeps it a link,
 while editing an autolinked token breaks it.
