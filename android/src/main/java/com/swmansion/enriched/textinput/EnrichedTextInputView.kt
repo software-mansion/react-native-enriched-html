@@ -100,6 +100,8 @@ class EnrichedTextInputView :
     set(value) {
       if (field != value) {
         field = value
+        // Invalidate the spannable factory so that it is recreated with the new allowFontScaling value
+        cachedSpannableFactory = null
         val raw = fontSizeRaw
         if (raw != null) {
           setFontSize(raw) // re-invokes invalidateStyles internally
@@ -149,7 +151,11 @@ class EnrichedTextInputView :
 
   private var inputMethodManager: InputMethodManager? = null
 
-  private fun spannableFactory() = EnrichedTextInputSpannableFactory(context.assets, allowFontScaling)
+  private var cachedSpannableFactory: EnrichedTextInputSpannableFactory? = null
+  private val spannableFactory: EnrichedTextInputSpannableFactory
+    get() =
+      cachedSpannableFactory
+        ?: EnrichedTextInputSpannableFactory(context.assets, allowFontScaling).also { cachedSpannableFactory = it }
 
   private var contextMenuItems: List<Pair<Int, String>> = emptyList()
 
@@ -420,7 +426,7 @@ class EnrichedTextInputView :
     val normalized = GumboNormalizer.normalizeHtml(text.toString()) ?: return text
 
     return try {
-      val parsed = EnrichedParser.fromHtml(normalized, htmlStyle, spannableFactory(), linkRegex)
+      val parsed = EnrichedParser.fromHtml(normalized, htmlStyle, spannableFactory, linkRegex)
       parsed.trimEnd('\n')
     } catch (e: Exception) {
       Log.e(TAG, "Error parsing normalized HTML: ${e.message}")
@@ -433,7 +439,7 @@ class EnrichedTextInputView :
 
     if (isInternalHtml) {
       try {
-        val parsed = EnrichedParser.fromHtml(text.toString(), htmlStyle, spannableFactory(), linkRegex)
+        val parsed = EnrichedParser.fromHtml(text.toString(), htmlStyle, spannableFactory, linkRegex)
         return parsed.trimEnd('\n')
       } catch (e: Exception) {
         Log.e(TAG, "Error parsing HTML: ${e.message}")
