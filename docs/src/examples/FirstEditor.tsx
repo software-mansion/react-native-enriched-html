@@ -16,6 +16,10 @@ export default function App() {
       <EnrichedTextInput
         ref={ref}
         style={styles.input}
+        // The `htmlStyle` here is only there to make the rendered
+        // input match these docs' color palette, so don't worry
+        // about it here. If you want to learn more, see the
+        // "Styling the input" section.
         htmlStyle={htmlStyle}
         placeholder="Type something here..."
         onChangeState={e => setState(e.nativeEvent)}
