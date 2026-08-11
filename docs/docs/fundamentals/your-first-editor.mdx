@@ -54,7 +54,7 @@ Add a ref and a button that calls `toggleBold`. Each call flips bold on the
 current selection, or arms it for the next characters you type if nothing is
 selected.
 
-```tsx {2-4,7,12,16-18,33-44}
+```tsx {2-4,7,12,16-18,35-46}
 import { EnrichedTextInput } from 'react-native-enriched-html';
 import type { EnrichedTextInputInstance } from 'react-native-enriched-html';
 import { useRef } from 'react';
@@ -118,7 +118,7 @@ user knows what they're about to change. The input reports this through the
 
 The payload holds an entry per style. Use `bold.isActive` to drive the button:
 
-```tsx {4,6,11,19,22,24,50-53,58-60}
+```tsx {4,6,11,19,22,24,52-55,60-62}
 import { EnrichedTextInput } from 'react-native-enriched-html';
 import type {
   EnrichedTextInputInstance,
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
 });
 ```
 
-That's the full loop: the button **acts** on the input with `toggleBold`, and
+That's the full loop: the button **acts** on the input with `toggleBold` and
 the input **reports** the result through `onChangeState`. A real toolbar is just
 this repeated for every style.
 
@@ -192,7 +192,7 @@ this repeated for every style.
 
 Each `onChangeState` entry carries more than `isActive`. `isBlocking` and
 `isConflicting` tell you when a style can't be applied on top of the current
-one. [Core concepts](/fundamentals/core-concepts) explains the full state model,
+one or conflicts with it. [Core concepts](/fundamentals/core-concepts) explains the full state model,
 and [Supported tags](/fundamentals/html-format-and-supported-tags)
 lists which styles clash with each other.
 

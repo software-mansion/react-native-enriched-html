@@ -1,8 +1,8 @@
 // @ts-check
 // Note: type annotations allow type checking and IDEs autocompletion
 
-import { topbarBannerReservationScript } from '@swmansion/t-rex-ui/topbar-banner'; 
-import { TOP_BAR_BANNER } from './src/components/topbarBanner.config.ts'; 
+import { topbarBannerReservationScript } from '@swmansion/t-rex-ui/topbar-banner';
+import { TOP_BAR_BANNER } from './src/components/topbarBanner.config.ts';
 
 const path = require('path');
 
@@ -65,7 +65,7 @@ const bannerReservationHeadTags = firstBannerZone
         innerHTML: topbarBannerReservationScript(
           firstBannerZone.zoneId,
           firstBannerZone.contentId,
-          TOP_BAR_BANNER.hiddenPaths,
+          TOP_BAR_BANNER.hiddenPaths
         ),
       },
     ]
@@ -133,7 +133,9 @@ const config = {
 
   headTags: bannerReservationHeadTags,
 
-  clientModules: [require.resolve('./src/clientModules/topbarBannerRefresh.ts')],
+  clientModules: [
+    require.resolve('./src/clientModules/topbarBannerRefresh.ts'),
+  ],
 
   plugins: [
     reactNativeWebPlugin,
