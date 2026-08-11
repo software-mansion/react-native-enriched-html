@@ -6,7 +6,7 @@ sidebar_position: 4
 
 Both `EnrichedTextInput` and `EnrichedText` run on the web. On native the editor
 is backed by the platform's text engine; on the web it is built on
-[Tiptap](https://tiptap.dev/) (on top of ProseMirror). That implementation
+[Tiptap](https://tiptap.dev/). That implementation
 detail stays behind the same public API.
 
 ## One API across platforms
@@ -88,7 +88,7 @@ will define, which URI-containing attributes will actually be preserved by the s
 
 ## Server-side rendering
 
-The library does **not** support SSR. Normalization and sanitization both need a
+The library does **not** support SSR yet. Normalization and sanitization both need a
 DOM to work against, which isn't available during server rendering. In an SSR
 framework (Next.js, Remix, …), make sure both `EnrichedTextInput` and
 `EnrichedText` render **client-side only**.
