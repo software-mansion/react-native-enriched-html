@@ -29,6 +29,9 @@ const sel = {
   selectionStart: '[data-testid="test-links-selection-start"]',
   selectionEnd: '[data-testid="test-links-selection-end"]',
   applySelection: '[data-testid="test-links-apply-selection-button"]',
+  applySetLinkFromSelection:
+    '[data-testid="test-links-apply-setlink-from-selection-button"]',
+  selectionPayload: '[data-testid="test-links-selection-payload"]',
   onLinkDetectedPayload: '[data-testid="on-link-detected-payload"]',
   editorInner: '[data-testid="test-links-editor"] .eti-editor',
   editorScreenshot: '[data-testid="test-links-editor"]',
@@ -249,6 +252,67 @@ test.describe('test-links setLink table', () => {
         .toContain(c.expectContains);
     });
   }
+});
+
+test.describe('test-links setLink round-trips onChangeSelection text', () => {
+  // Regression: onChangeSelection reports the selected text with '\n' at block
+  // boundaries and '￼' for inline leaves. setLink used to compare that
+  // against a plain textBetween serialization, so feeding the event's own text
+  // straight back mismatched, took the destructive replace branch, merged the
+  // blocks into one paragraph and rendered the '\n' as a literal glyph.
+  test('linking a selection across a block boundary keeps both paragraphs', async ({
+    page,
+  }) => {
+    await gotoTestLinks(page);
+    await setTestLinksEditorHtml(page, '<html><p>siema</p><p>czesc</p></html>');
+
+    // "ma\ncz" - crosses the paragraph boundary.
+    await page.fill(sel.selectionStart, '3');
+    await page.fill(sel.selectionEnd, '8');
+    await page.fill(sel.setLinkUrl, 'https://swmansion.com');
+    await page.click(sel.applySelection);
+
+    await expect
+      .poll(async () => page.locator(sel.selectionPayload).textContent())
+      .toBe(JSON.stringify({ start: 3, end: 8, text: 'ma\ncz' }));
+
+    await page.click(sel.applySetLinkFromSelection);
+
+    await expect
+      .poll(async () => getTestLinksSerializedHtml(page))
+      .toContain(
+        '<p>sie<a href="https://swmansion.com">ma</a></p>' +
+          '<p><a href="https://swmansion.com">cz</a>esc</p>'
+      );
+  });
+
+  test('linking a selection across a block boundary preserves inline marks', async ({
+    page,
+  }) => {
+    await gotoTestLinks(page);
+    await setTestLinksEditorHtml(
+      page,
+      '<html><p>sie<b>ma</b></p><p>czesc</p></html>'
+    );
+
+    await page.fill(sel.selectionStart, '3');
+    await page.fill(sel.selectionEnd, '8');
+    await page.fill(sel.setLinkUrl, 'https://swmansion.com');
+    await page.click(sel.applySelection);
+
+    await expect
+      .poll(async () => page.locator(sel.selectionPayload).textContent())
+      .toBe(JSON.stringify({ start: 3, end: 8, text: 'ma\ncz' }));
+
+    await page.click(sel.applySetLinkFromSelection);
+
+    await expect
+      .poll(async () => getTestLinksSerializedHtml(page))
+      .toContain(
+        '<p>sie<a href="https://swmansion.com"><b>ma</b></a></p>' +
+          '<p><a href="https://swmansion.com">cz</a>esc</p>'
+      );
+  });
 });
 
 test.describe('test-links removeLink table', () => {
