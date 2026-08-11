@@ -1571,7 +1571,8 @@
                                error:nil];
 
     fontSizeRegex = [NSRegularExpression
-        regularExpressionWithPattern:@"font-size\\s*:\\s*([0-9.]+)\\s*px"
+        regularExpressionWithPattern:
+            @"font-size\\s*:\\s*([0-9.]+)(?:\\s*px)?(?=\\s*;|\\s*$)"
                              options:NSRegularExpressionCaseInsensitive
                                error:nil];
 
@@ -1616,7 +1617,10 @@
   if (fontSizeMatch) {
     NSString *fontSizeString =
         [css substringWithRange:[fontSizeMatch rangeAtIndex:1]];
-    data.fontSize = @([fontSizeString doubleValue]);
+    double parsedFontSize = [fontSizeString doubleValue];
+    if (parsedFontSize > 0) {
+      data.fontSize = @(parsedFontSize);
+    }
   }
 
   NSTextCheckingResult *fontFamilyMatch =

@@ -560,13 +560,15 @@
   }
 }
 
-- (NSNumber *)scaledPrimaryFontSize {
+- (CGFloat)scaledFontSizeForValue:(CGFloat)fontSize {
   if (!_allowFontScaling) {
-    return [self primaryFontSize];
+    return fontSize;
   }
-  CGFloat scaledSize = [[UIFontMetrics defaultMetrics]
-      scaledValueForValue:[[self primaryFontSize] floatValue]];
-  return @(scaledSize);
+  return [[UIFontMetrics defaultMetrics] scaledValueForValue:fontSize];
+}
+
+- (NSNumber *)scaledPrimaryFontSize {
+  return @([self scaledFontSizeForValue:[[self primaryFontSize] floatValue]]);
 }
 
 - (CGFloat)checkboxListBoxSize {

@@ -42,7 +42,9 @@ static NSString *const CustomStyleAttributeName = @"EnrichedCustomStyle";
   }
 
   if (data.fontSize != nil) {
-    resolvedFont = [resolvedFont setSize:[data.fontSize doubleValue]];
+    CGFloat pointSize =
+        [self.host.config scaledFontSizeForValue:[data.fontSize doubleValue]];
+    resolvedFont = [resolvedFont setSize:pointSize];
   }
 
   return resolvedFont;
