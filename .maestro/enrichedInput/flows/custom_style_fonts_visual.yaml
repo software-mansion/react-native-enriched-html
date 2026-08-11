@@ -109,8 +109,6 @@ appId: swmansion.enriched.example
 - tapOn:
     id: 'font-family-CascadiaCode-Regular'
 - inputText: 'Quote code family'
-- tapOn:
-    id: 'toolbar-font-family'
 
 - runFlow:
     file: '../subflows/capture_or_assert_screenshot.yaml'
