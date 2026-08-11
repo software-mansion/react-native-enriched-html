@@ -11,11 +11,7 @@ does and help you understand further chapters better.
 ## The input is uncontrolled
 
 `EnrichedTextInput` does not take its content from a prop and does not push
-<<<<<<< HEAD
-every keystroke back into React state. It owns its content on the native side
-=======
 every keystroke back into React state. It owns its content and state on the native side
->>>>>>> feat/docs
 and you talk to it through a `ref`.
 
 This is deliberate. Rich text changes constantly - every character, selection
@@ -51,11 +47,7 @@ lists exactly what it produces and accepts.
 
 Sanitizing HTML is your responsibility. The library doesn't guarantee safe HTML on mobile, so
 sanitize anything you persist, render elsewhere, or accept from untrusted
-<<<<<<< HEAD
-sources. To learn how sanitization is handled on Web, see [Web support](/core-functionalities/web-support)
-=======
 sources. To learn how sanitization is handled on Web, see [Web support](/core-functionalities/web-support).
->>>>>>> feat/docs
 
 :::
 
