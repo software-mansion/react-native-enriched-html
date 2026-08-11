@@ -162,11 +162,7 @@
 }
 
 - (CGFloat)scaledPrimaryLineHeight {
-  if (!_allowFontScaling) {
-    return [self primaryLineHeight];
-  }
-  return [[UIFontMetrics defaultMetrics]
-      scaledValueForValue:[self primaryLineHeight]];
+  return [self scaledFontSizeForValue:[self primaryLineHeight]];
 }
 
 - (NSString *)primaryFontWeight {
@@ -235,10 +231,7 @@
 }
 
 - (CGFloat)h1FontSize {
-  if (!_allowFontScaling) {
-    return _h1FontSize;
-  }
-  return [[UIFontMetrics defaultMetrics] scaledValueForValue:_h1FontSize];
+  return [self scaledFontSizeForValue:_h1FontSize];
 }
 
 - (void)setH1FontSize:(CGFloat)newValue {
@@ -254,10 +247,7 @@
 }
 
 - (CGFloat)h2FontSize {
-  if (!_allowFontScaling) {
-    return _h2FontSize;
-  }
-  return [[UIFontMetrics defaultMetrics] scaledValueForValue:_h2FontSize];
+  return [self scaledFontSizeForValue:_h2FontSize];
 }
 
 - (void)setH2FontSize:(CGFloat)newValue {
@@ -273,10 +263,7 @@
 }
 
 - (CGFloat)h3FontSize {
-  if (!_allowFontScaling) {
-    return _h3FontSize;
-  }
-  return [[UIFontMetrics defaultMetrics] scaledValueForValue:_h3FontSize];
+  return [self scaledFontSizeForValue:_h3FontSize];
 }
 
 - (void)setH3FontSize:(CGFloat)newValue {
@@ -292,10 +279,7 @@
 }
 
 - (CGFloat)h4FontSize {
-  if (!_allowFontScaling) {
-    return _h4FontSize;
-  }
-  return [[UIFontMetrics defaultMetrics] scaledValueForValue:_h4FontSize];
+  return [self scaledFontSizeForValue:_h4FontSize];
 }
 
 - (void)setH4FontSize:(CGFloat)newValue {
@@ -311,10 +295,7 @@
 }
 
 - (CGFloat)h5FontSize {
-  if (!_allowFontScaling) {
-    return _h5FontSize;
-  }
-  return [[UIFontMetrics defaultMetrics] scaledValueForValue:_h5FontSize];
+  return [self scaledFontSizeForValue:_h5FontSize];
 }
 
 - (void)setH5FontSize:(CGFloat)newValue {
@@ -330,10 +311,7 @@
 }
 
 - (CGFloat)h6FontSize {
-  if (!_allowFontScaling) {
-    return _h6FontSize;
-  }
-  return [[UIFontMetrics defaultMetrics] scaledValueForValue:_h6FontSize];
+  return [self scaledFontSizeForValue:_h6FontSize];
 }
 
 - (void)setH6FontSize:(CGFloat)newValue {
