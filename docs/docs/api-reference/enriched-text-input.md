@@ -79,7 +79,9 @@ interface EnrichedTextInputProps extends Omit<ViewProps, 'children'> {
 
 ## Props
 
-### `allowFontScaling` <Optional /> {#allowfontscaling}
+All props are optional.
+
+### `allowFontScaling` {#allowfontscaling}
 
 If `true`, the input respects the system's accessibility font scaling settings.
 
@@ -87,7 +89,7 @@ If `true`, the input respects the system's accessibility font scaling settings.
 | --------- | ------- | ------------ |
 | `boolean` | `true`  | Android, iOS |
 
-### `autoFocus` <Optional /> {#autofocus}
+### `autoFocus` {#autofocus}
 
 If `true`, focuses the input when it mounts.
 
@@ -95,7 +97,7 @@ If `true`, focuses the input when it mounts.
 | --------- | ------- | ----------------- |
 | `boolean` | `false` | Android, iOS, Web |
 
-### `autoCapitalize` <Optional /> {#autocapitalize}
+### `autoCapitalize` {#autocapitalize}
 
 Tells the input to automatically capitalize certain characters.
 
@@ -108,7 +110,7 @@ Tells the input to automatically capitalize certain characters.
 | -------------------------------------------------- | ------------- | ----------------- |
 | `'none' \| 'sentences' \| 'words' \| 'characters'` | `'sentences'` | Android, iOS, Web |
 
-### `contextMenuItems` <Optional /> {#contextmenuitems}
+### `contextMenuItems` {#contextmenuitems}
 
 An array of custom items to display in the native text editing menu. Each item
 specifies a title, visibility flag, and a callback that fires when the item is
@@ -149,7 +151,7 @@ submenu, depending on the device manufacturer.
 
 :::
 
-### `cursorColor` <Optional /> {#cursorcolor}
+### `cursorColor` {#cursorcolor}
 
 Sets the color of the cursor (caret) in the component.
 
@@ -157,7 +159,7 @@ Sets the color of the cursor (caret) in the component.
 | ---------------------------------------------- | -------------- | ------------ |
 | [`color`](https://reactnative.dev/docs/colors) | system default | Android, Web |
 
-### `defaultValue` <Optional /> {#defaultvalue}
+### `defaultValue` {#defaultvalue}
 
 Provides an initial value for the input. If the string is a valid HTML output of
 `EnrichedTextInput` (or other HTML that the parser will accept), proper styles
@@ -167,7 +169,7 @@ are applied.
 | -------- | ------- | ----------------- |
 | `string` | -       | Android, iOS, Web |
 
-### `editable` <Optional /> {#editable}
+### `editable` {#editable}
 
 If `false`, text is not editable.
 
@@ -183,7 +185,7 @@ via ref methods still work.
 
 :::
 
-### `htmlStyle` <Optional /> {#htmlstyle}
+### `htmlStyle` {#htmlstyle}
 
 Customizes the appearance of HTML elements inside the editor. See
 [`HtmlStyle`](#htmlstyle-type).
@@ -192,7 +194,7 @@ Customizes the appearance of HTML elements inside the editor. See
 | ----------- | -------------------------------------------------- | ----------------- |
 | `HtmlStyle` | default values from [`HtmlStyle`](#htmlstyle-type) | Android, iOS, Web |
 
-### `mentionIndicators` <Optional /> {#mentionindicators}
+### `mentionIndicators` {#mentionindicators}
 
 The recognized mention indicators. Each item must be a 1-character string.
 
@@ -200,7 +202,7 @@ The recognized mention indicators. Each item must be a 1-character string.
 | ---------- | ------- | ----------------- |
 | `string[]` | `['@']` | Android, iOS, Web |
 
-### `linkRegex` <Optional /> {#linkregex}
+### `linkRegex` {#linkregex}
 
 A custom regex pattern for detecting links in the input. If not provided, a
 default regex is used. You can customize which patterns are recognized as links
@@ -227,7 +229,7 @@ For details, see [sanitization](/core-functionalities/web-support).
 
 :::
 
-### `onBlur` <Optional /> {#onblur}
+### `onBlur` {#onblur}
 
 Called whenever the input loses focus.
 
@@ -235,7 +237,7 @@ Called whenever the input loses focus.
 | ------------------------ | ------- | ----------------- |
 | `(e: BlurEvent) => void` | -       | Android, iOS, Web |
 
-### `onChangeHtml` <Optional /> {#onchangehtml}
+### `onChangeHtml` {#onchangehtml}
 
 Called when the input's HTML changes.
 
@@ -260,7 +262,7 @@ HTML at specific moments (for example when saving), use the
 
 :::
 
-### `onChangeMention` <Optional /> {#onchangemention}
+### `onChangeMention` {#onchangemention}
 
 Called whenever the text typed after the mention indicator changes while a mention is being edited.
 
@@ -278,7 +280,7 @@ interface OnChangeMentionEvent {
 | --------------------------------------- | ------- | ----------------- |
 | `(event: OnChangeMentionEvent) => void` | -       | Android, iOS, Web |
 
-### `onChangeSelection` <Optional /> {#onchangeselection}
+### `onChangeSelection` {#onchangeselection}
 
 Called each time the user changes the selection or moves the cursor.
 
@@ -299,7 +301,7 @@ interface OnChangeSelectionEvent {
 | --------------------------------------------------------------- | ------- | ----------------- |
 | `(event: NativeSyntheticEvent<OnChangeSelectionEvent>) => void` | -       | Android, iOS, Web |
 
-### `onChangeState` <Optional /> {#onchangestate}
+### `onChangeState` {#onchangestate}
 
 Called when any of the styles within the selection changes. Use this to drive
 toolbar button state. See
@@ -377,7 +379,7 @@ instead, the same as `'auto'`.
 | ----------------------------------------------------------- | ------- | ----------------- |
 | `(event: NativeSyntheticEvent<OnChangeStateEvent>) => void` | -       | Android, iOS, Web |
 
-### `onChangeText` <Optional /> {#onchangetext}
+### `onChangeText` {#onchangetext}
 
 Called when any text changes occur in the input.
 
@@ -400,7 +402,7 @@ extraction can have performance implications.
 
 :::
 
-### `onEndMention` <Optional /> {#onendmention}
+### `onEndMention` {#onendmention}
 
 Called when the user is no longer editing a mention actively - they moved the
 cursor elsewhere, or typed a space and the cursor is no longer within the edited
@@ -412,7 +414,7 @@ mention.
 | ----------------------------- | ------- | ----------------- |
 | `(indicator: string) => void` | -       | Android, iOS, Web |
 
-### `onFocus` <Optional /> {#onfocus}
+### `onFocus` {#onfocus}
 
 Called whenever the input is focused.
 
@@ -420,7 +422,7 @@ Called whenever the input is focused.
 | ------------------------- | ------- | ----------------- |
 | `(e: FocusEvent) => void` | -       | Android, iOS, Web |
 
-### `onLinkDetected` <Optional /> {#onlinkdetected}
+### `onLinkDetected` {#onlinkdetected}
 
 Called when the user has moved the
 cursor/selection onto a link.
@@ -443,7 +445,7 @@ interface OnLinkDetected {
 | --------------------------------- | ------- | ----------------- |
 | `(event: OnLinkDetected) => void` | -       | Android, iOS, Web |
 
-### `onMentionDetected` <Optional /> {#onmentiondetected}
+### `onMentionDetected` {#onmentiondetected}
 
 Called when the
 user moved the cursor/selection onto a mention.
@@ -464,7 +466,7 @@ interface OnMentionDetected {
 | ------------------------------------ | ------- | ----------------- |
 | `(event: OnMentionDetected) => void` | -       | Android, iOS, Web |
 
-### `onStartMention` <Optional /> {#onstartmention}
+### `onStartMention` {#onstartmention}
 
 Called whenever mention editing starts.
 
@@ -474,7 +476,7 @@ Called whenever mention editing starts.
 | ----------------------------- | ------- | ----------------- |
 | `(indicator: string) => void` | -       | Android, iOS, Web |
 
-### `onKeyPress` <Optional /> {#onkeypress}
+### `onKeyPress` {#onkeypress}
 
 Called when a key is pressed. See
 [TextInput onKeyPress](https://reactnative.dev/docs/textinput#onkeypress) for
@@ -490,7 +492,7 @@ interface OnKeyPressEvent {
 | -------------------------------------------------------- | ------- | ----------------- |
 | `(event: NativeSyntheticEvent<OnKeyPressEvent>) => void` | -       | Android, iOS, Web |
 
-### `onSubmitEditing` <Optional /> {#onsubmitediting}
+### `onSubmitEditing` {#onsubmitediting}
 
 Called when the user submits the input (presses the return/enter key while
 `submitBehavior` is `'submit'` or `'blurAndSubmit'`).
@@ -507,7 +509,7 @@ interface OnSubmitEditing {
 | -------------------------------------------------------- | ------- | ----------------- |
 | `(event: NativeSyntheticEvent<OnSubmitEditing>) => void` | -       | Android, iOS, Web |
 
-### `onPasteImages` <Optional /> {#onpasteimages}
+### `onPasteImages` {#onpasteimages}
 
 Called when the user pastes one or more images or GIFs into the input.
 
@@ -537,7 +539,7 @@ released. Call `URL.revokeObjectURL(uri)` once you no longer need the image
 
 :::
 
-### `placeholder` <Optional /> {#placeholder}
+### `placeholder` {#placeholder}
 
 The placeholder text displayed when nothing has been typed yet. Disappears when
 something is typed.
@@ -546,7 +548,7 @@ something is typed.
 | -------- | ------- | ----------------- |
 | `string` | `''`    | Android, iOS, Web |
 
-### `placeholderTextColor` <Optional /> {#placeholdertextcolor}
+### `placeholderTextColor` {#placeholdertextcolor}
 
 Input placeholder's text color.
 
@@ -562,7 +564,7 @@ A React ref that lets you call any [ref methods](#ref-methods) on the input.
 | ---------------------------------------------- | ------- | ----------------- |
 | `RefObject<EnrichedTextInputInstance \| null>` | -       | Android, iOS, Web |
 
-### `returnKeyLabel` <Optional /> {#returnkeylabel}
+### `returnKeyLabel` {#returnkeylabel}
 
 Overrides the return key label with a custom string.
 
@@ -570,7 +572,7 @@ Overrides the return key label with a custom string.
 | -------- | ------- | --------- |
 | `string` | -       | Android   |
 
-### `returnKeyType` <Optional /> {#returnkeytype}
+### `returnKeyType` {#returnkeytype}
 
 Specifies the label or icon shown on the keyboard's return key.
 
@@ -595,7 +597,7 @@ a visible effect; unsupported values are silently ignored and fall back to
 
 :::
 
-### `sanitizationConfig` <Optional /> {#sanitizationconfig}
+### `sanitizationConfig` {#sanitizationconfig}
 
 Web-only configuration for the HTML sanitization step, which runs on every HTML
 entry and exit point — `defaultValue`, `.setValue()`, pasted HTML, `.getHTML()`,
@@ -638,7 +640,7 @@ To both autolink and preserve a custom protocol, configure both.
 
 :::
 
-### `scrollEnabled` <Optional /> {#scrollenabled}
+### `scrollEnabled` {#scrollenabled}
 
 If `false`, the editor's internal scroll view is disabled and the component
 expands to fit all content.
@@ -647,7 +649,7 @@ expands to fit all content.
 | --------- | ------- | ----------------- |
 | `boolean` | `true`  | Android, iOS, Web |
 
-### `selectionColor` <Optional /> {#selectioncolor}
+### `selectionColor` {#selectioncolor}
 
 Color of the selection rectangle drawn over the selected text. On iOS, the
 cursor (caret) also uses this color.
@@ -656,7 +658,7 @@ cursor (caret) also uses this color.
 | ---------------------------------------------- | -------------- | ----------------- |
 | [`color`](https://reactnative.dev/docs/colors) | system default | Android, iOS, Web |
 
-### `style` <Optional /> {#style}
+### `style` {#style}
 
 Controls the layout, dimensions, typography, borders, shadows, opacity, and
 similar container-level appearance of the editable content container. See
@@ -666,7 +668,7 @@ similar container-level appearance of the editable content container. See
 | -------------------- | ------- | ----------------- |
 | `EnrichedInputStyle` | -       | Android, iOS, Web |
 
-### `submitBehavior` <Optional /> {#submitbehavior}
+### `submitBehavior` {#submitbehavior}
 
 Controls what happens when the user presses the return/enter key.
 
@@ -678,7 +680,7 @@ Controls what happens when the user presses the return/enter key.
 | ------------------------------------------ | ----------- | ----------------- |
 | `'submit' \| 'blurAndSubmit' \| 'newline'` | `'newline'` | Android, iOS, Web |
 
-### `textShortcuts` <Optional /> {#textshortcuts}
+### `textShortcuts` {#textshortcuts}
 
 An array of shortcuts that auto-convert typed patterns into styles. Each entry
 maps a `trigger` string to a `style`. These shortcuts allow users to format text
@@ -761,7 +763,7 @@ Pass an empty array to disable all shortcuts.
 
 :::
 
-### `useHtmlNormalizer` <Optional /> {#usehtmlnormalizer}
+### `useHtmlNormalizer` {#usehtmlnormalizer}
 
 If `true`, external HTML pasted or inserted into the input (for example from
 Google Docs, Word, or web pages) is normalized into the canonical tag subset
@@ -772,7 +774,7 @@ that the enriched parser understands. See
 | --------- | ------- | ----------------- |
 | `boolean` | `true`  | Android, iOS, Web |
 
-### `androidExperimentalSynchronousEvents` <Optional /> {#androidexperimentalsynchronousevents}
+### `androidExperimentalSynchronousEvents` {#androidexperimentalsynchronousevents}
 
 :::caution
 

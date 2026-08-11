@@ -46,7 +46,9 @@ interface EnrichedTextProps extends ViewProps {
 
 ## Props
 
-### `allowFontScaling` <Optional /> {#allowfontscaling}
+All props are optional except `children`, which is required.
+
+### `allowFontScaling` {#allowfontscaling}
 
 If `true`, the text respects the system's accessibility font scaling settings.
 
@@ -54,7 +56,7 @@ If `true`, the text respects the system's accessibility font scaling settings.
 | --------- | ------- | ------------ |
 | `boolean` | `true`  | Android, iOS |
 
-### `children` {#children}
+### `children` <Required /> {#children}
 
 The HTML string to render. Accepts the HTML format produced by
 [`EnrichedTextInput`](/api-reference/enriched-text-input). See
@@ -81,7 +83,7 @@ elements. See [`EnrichedTextHtmlStyle`](#enrichedtexthtmlstyle-type).
 | ----------------------- | ------- | ----------------- |
 | `EnrichedTextHtmlStyle` | -       | Android, iOS, Web |
 
-### `useHtmlNormalizer` <Optional /> {#usehtmlnormalizer}
+### `useHtmlNormalizer` {#usehtmlnormalizer}
 
 If `true`, external HTML (for example from Google Docs, Word, or web pages) is
 normalized before rendering. This converts arbitrary HTML into the canonical
@@ -92,7 +94,7 @@ tag subset that the enriched parser understands. See
 | --------- | ------- | ----------------- |
 | `boolean` | `true`  | Android, iOS, Web |
 
-### `sanitizationConfig` <Optional /> {#sanitizationconfig}
+### `sanitizationConfig` {#sanitizationconfig}
 
 Web-only configuration for the HTML sanitization step applied to `children`
 before rendering.
@@ -128,7 +130,7 @@ interface SanitizationConfig {
 | -------------------- | ------- | --------- |
 | `SanitizationConfig` | -       | Web       |
 
-### `ellipsizeMode` <Optional /> {#ellipsizemode}
+### `ellipsizeMode` {#ellipsizemode}
 
 How the text should be truncated when `numberOfLines` is set and the text overflows.
 
@@ -148,7 +150,7 @@ On Android, when `numberOfLines` is set to a value higher than `1`, only
 
 :::
 
-### `numberOfLines` <Optional /> {#numberoflines}
+### `numberOfLines` {#numberoflines}
 
 Limits the number of displayed lines. Set to `0` for unlimited lines.
 
@@ -156,7 +158,7 @@ Limits the number of displayed lines. Set to `0` for unlimited lines.
 | -------- | ------- | ------------ |
 | `number` | `0`     | Android, iOS |
 
-### `selectable` <Optional /> {#selectable}
+### `selectable` {#selectable}
 
 If `true`, the text can be selected by the user (for example for copy/paste).
 
@@ -164,7 +166,7 @@ If `true`, the text can be selected by the user (for example for copy/paste).
 | --------- | ------- | ----------------- |
 | `boolean` | `false` | Android, iOS, Web |
 
-### `selectionColor` <Optional /> {#selectioncolor}
+### `selectionColor` {#selectioncolor}
 
 The color of the text selection highlight.
 
@@ -172,7 +174,7 @@ The color of the text selection highlight.
 | ---------------------------------------------- | -------------- | ----------------- |
 | [`color`](https://reactnative.dev/docs/colors) | system default | Android, iOS, Web |
 
-### `onLinkPress` <Optional /> {#onlinkpress}
+### `onLinkPress` {#onlinkpress}
 
 Called when the user presses a link element. Receives an `OnLinkPressEvent`
 containing the link's URL.
@@ -187,7 +189,7 @@ interface OnLinkPressEvent {
 | ----------------------------------- | ------- | ----------------- |
 | `(event: OnLinkPressEvent) => void` | -       | Android, iOS, Web |
 
-### `onMentionPress` <Optional /> {#onmentionpress}
+### `onMentionPress` {#onmentionpress}
 
 Called when the user presses a mention element. Receives an
 `OnMentionPressEvent` with the mention's text, indicator character, and custom
