@@ -255,18 +255,12 @@ test.describe('test-links setLink table', () => {
 });
 
 test.describe('test-links setLink round-trips onChangeSelection text', () => {
-  // Regression: onChangeSelection reports the selected text with '\n' at block
-  // boundaries and '￼' for inline leaves. setLink used to compare that
-  // against a plain textBetween serialization, so feeding the event's own text
-  // straight back mismatched, took the destructive replace branch, merged the
-  // blocks into one paragraph and rendered the '\n' as a literal glyph.
   test('linking a selection across a block boundary keeps both paragraphs', async ({
     page,
   }) => {
     await gotoTestLinks(page);
-    await setTestLinksEditorHtml(page, '<html><p>siema</p><p>czesc</p></html>');
+    await setTestLinksEditorHtml(page, '<html><p>hello</p><p>world</p></html>');
 
-    // "ma\ncz" - crosses the paragraph boundary.
     await page.fill(sel.selectionStart, '3');
     await page.fill(sel.selectionEnd, '8');
     await page.fill(sel.setLinkUrl, 'https://swmansion.com');
@@ -274,15 +268,15 @@ test.describe('test-links setLink round-trips onChangeSelection text', () => {
 
     await expect
       .poll(async () => page.locator(sel.selectionPayload).textContent())
-      .toBe(JSON.stringify({ start: 3, end: 8, text: 'ma\ncz' }));
+      .toBe(JSON.stringify({ start: 3, end: 8, text: 'lo\nwo' }));
 
     await page.click(sel.applySetLinkFromSelection);
 
     await expect
       .poll(async () => getTestLinksSerializedHtml(page))
       .toContain(
-        '<p>sie<a href="https://swmansion.com">ma</a></p>' +
-          '<p><a href="https://swmansion.com">cz</a>esc</p>'
+        '<p>hel<a href="https://swmansion.com">lo</a></p>' +
+          '<p><a href="https://swmansion.com">wo</a>rld</p>'
       );
   });
 
@@ -292,7 +286,7 @@ test.describe('test-links setLink round-trips onChangeSelection text', () => {
     await gotoTestLinks(page);
     await setTestLinksEditorHtml(
       page,
-      '<html><p>sie<b>ma</b></p><p>czesc</p></html>'
+      '<html><p>hel<b>lo</b></p><p>world</p></html>'
     );
 
     await page.fill(sel.selectionStart, '3');
@@ -302,15 +296,15 @@ test.describe('test-links setLink round-trips onChangeSelection text', () => {
 
     await expect
       .poll(async () => page.locator(sel.selectionPayload).textContent())
-      .toBe(JSON.stringify({ start: 3, end: 8, text: 'ma\ncz' }));
+      .toBe(JSON.stringify({ start: 3, end: 8, text: 'lo\nwo' }));
 
     await page.click(sel.applySetLinkFromSelection);
 
     await expect
       .poll(async () => getTestLinksSerializedHtml(page))
       .toContain(
-        '<p>sie<a href="https://swmansion.com"><b>ma</b></a></p>' +
-          '<p><a href="https://swmansion.com">cz</a>esc</p>'
+        '<p>hel<a href="https://swmansion.com"><b>lo</b></a></p>' +
+          '<p><a href="https://swmansion.com">wo</a>rld</p>'
       );
   });
 });
