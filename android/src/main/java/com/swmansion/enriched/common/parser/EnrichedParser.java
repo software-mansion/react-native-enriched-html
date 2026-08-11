@@ -371,7 +371,7 @@ public class EnrichedParser {
             }
             if (fontSize != null) {
               if (cssProps.length() > 0) cssProps.append(" ");
-              cssProps.append("font-size: ").append(fontSize).append("px;");
+              cssProps.append("font-size: ").append(formatCssFontSizeValue(fontSize)).append("px;");
             }
             if (fontFamily != null && !fontFamily.isEmpty()) {
               if (cssProps.length() > 0) cssProps.append(" ");
@@ -450,6 +450,13 @@ public class EnrichedParser {
         out.append(c);
       }
     }
+  }
+
+  private static String formatCssFontSizeValue(float fontSize) {
+    if (fontSize == Math.rint(fontSize) && !Float.isInfinite(fontSize)) {
+      return String.valueOf((int) fontSize);
+    }
+    return String.valueOf(fontSize);
   }
 }
 
