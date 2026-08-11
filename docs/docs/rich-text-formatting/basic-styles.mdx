@@ -9,7 +9,7 @@ import BasicStylesEditorSrc from '!!raw-loader!@site/src/examples/BasicStylesEdi
 # Basic styles
 
 In [Your first editor](/fundamentals/your-first-editor) you wired up a single
-**Bold** button. Every other formatting style works exactly the same way: a
+**Bold** button. Almost every other formatting style works exactly the same way: a
 `toggle` method on the `ref` changes the text, and `onChangeState` reports back
 whether the style is active. The only exceptions to that rule are **mentions**,
 **links** and **inline images**, which work a bit differently. They cannot be toggled
@@ -21,8 +21,8 @@ versus **paragraph** formatting.
 ## Inline styles
 
 Inline styles wrap a range of characters. Toggling one applies it to exactly the
-characters you have selected, or - if nothing is selected - arms it so the next
-characters you type come out styled. This is the family the bold belongs to:
+characters you have selected, or - if nothing is selected - enables it so the next
+characters you type come out styled. This family includes:
 
 - **Bold** - `toggleBold()`
 - **Italic** - `toggleItalic()`
