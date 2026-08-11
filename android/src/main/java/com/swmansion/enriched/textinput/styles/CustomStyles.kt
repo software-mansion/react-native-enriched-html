@@ -37,29 +37,25 @@ class CustomStyles(
         null
       }
 
-    if (start == end) {
-      val currentStyle = view.spanState?.customStyle
-      val finalFg = if (hasFg) fgColor else currentStyle?.foregroundColor
-      val finalBg = if (hasBg) bgColor else currentStyle?.backgroundColor
-      val finalFontSize = if (hasFontSize) fontSize else currentStyle?.fontSize
-      val finalFontFamily = if (hasFontFamily) fontFamily else currentStyle?.fontFamily
-
-      view.spanState?.setCustomStyle(finalFg, finalBg, finalFontSize, finalFontFamily)
-    } else {
-      val spannable = view.text as Spannable
-      applyCustomStyleSpan(
-        spannable,
-        start,
-        end,
-        hasFg,
-        fgColor,
-        hasBg,
-        bgColor,
-        hasFontSize,
-        fontSize,
-        hasFontFamily,
-        fontFamily,
+    val styleUpdater: (CustomStyle) -> CustomStyle = { oldStyle ->
+      CustomStyle(
+        foregroundColor = if (hasFg) fgColor else oldStyle.foregroundColor,
+        backgroundColor = if (hasBg) bgColor else oldStyle.backgroundColor,
+        fontSize = if (hasFontSize) fontSize else oldStyle.fontSize,
+        fontFamily = if (hasFontFamily) fontFamily else oldStyle.fontFamily,
       )
+    }
+
+    if (start == end) {
+      val merged = styleUpdater(view.spanState?.customStyle ?: CustomStyle())
+      view.spanState?.setCustomStyle(
+        merged.foregroundColor,
+        merged.backgroundColor,
+        merged.fontSize,
+        merged.fontFamily,
+      )
+    } else {
+      applyCustomStyleSpan(view.text as Spannable, start, end, styleUpdater)
       view.selection.validateStyles()
     }
   }
@@ -68,14 +64,7 @@ class CustomStyles(
     spannable: Spannable,
     start: Int,
     end: Int,
-    hasFg: Boolean,
-    fgColor: Int?,
-    hasBg: Boolean,
-    bgColor: Int?,
-    hasFontSize: Boolean,
-    fontSize: Float?,
-    hasFontFamily: Boolean,
-    fontFamily: String?,
+    styleUpdater: (CustomStyle) -> CustomStyle,
   ) {
     val existingSpans = spannable.getSpans(start, end, EnrichedInputCustomStyleSpan::class.java)
     val boundaries = mutableSetOf(start, end)
@@ -111,14 +100,7 @@ class CustomStyles(
       // Find the old span that fully covers this specific chunk
       val oldSpan = oldSpans.firstOrNull { it.second <= chunkStart && it.third >= chunkEnd }?.first
       val oldStyle = oldSpan?.toCustomStyle() ?: CustomStyle()
-
-      val merged =
-        CustomStyle(
-          foregroundColor = if (hasFg) fgColor else oldStyle.foregroundColor,
-          backgroundColor = if (hasBg) bgColor else oldStyle.backgroundColor,
-          fontSize = if (hasFontSize) fontSize else oldStyle.fontSize,
-          fontFamily = if (hasFontFamily) fontFamily else oldStyle.fontFamily,
-        )
+      val merged = styleUpdater(oldStyle)
 
       setCustomSpan(spannable, chunkStart, chunkEnd, merged)
     }
