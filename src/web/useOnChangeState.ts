@@ -104,6 +104,8 @@ function buildState(
         editor.getAttributes('customStyle').foregroundColor ?? '',
       backgroundColor:
         editor.getAttributes('customStyle').backgroundColor ?? '',
+      fontSize: 0,
+      fontFamily: '',
     },
   };
 }

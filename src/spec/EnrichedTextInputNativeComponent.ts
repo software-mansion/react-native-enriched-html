@@ -127,6 +127,8 @@ export interface OnChangeStateEvent {
   customStyle: {
     foregroundColor: string;
     backgroundColor: string;
+    fontSize: Float;
+    fontFamily: string;
   };
 }
 
@@ -287,6 +289,8 @@ export interface OnContextMenuItemPressEvent {
     customStyle: {
       foregroundColor: string;
       backgroundColor: string;
+      fontSize: Float;
+      fontFamily: string;
     };
   };
 }

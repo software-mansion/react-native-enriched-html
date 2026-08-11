@@ -36,6 +36,8 @@ export const DEFAULT_STYLES: StylesState = {
   customStyle: {
     foregroundColor: '',
     backgroundColor: '',
+    fontSize: 0,
+    fontFamily: '',
   },
 };
 

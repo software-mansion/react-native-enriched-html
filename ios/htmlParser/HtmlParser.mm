@@ -1495,6 +1495,22 @@
               [cssProps appendString:@" "];
             [cssProps appendFormat:@"background-color: %@;", bg];
           }
+          if (data.fontSize != nil) {
+            if (cssProps.length > 0)
+              [cssProps appendString:@" "];
+            [cssProps
+                appendFormat:@"font-size: %gpx;", [data.fontSize doubleValue]];
+          }
+          if (data.fontFamily.length > 0) {
+            if (cssProps.length > 0)
+              [cssProps appendString:@" "];
+            if ([data.fontFamily rangeOfString:@" "].location != NSNotFound) {
+              // font family contains spaces, wrap in single quotes
+              [cssProps appendFormat:@"font-family: '%@';", data.fontFamily];
+            } else {
+              [cssProps appendFormat:@"font-family: %@;", data.fontFamily];
+            }
+          }
           if (cssProps.length > 0) {
             return [NSString stringWithFormat:@"span style=\"%@\"", cssProps];
           }
@@ -1533,6 +1549,8 @@
   static NSRegularExpression *styleAttrRegex;
   static NSRegularExpression *fgRegex;
   static NSRegularExpression *bgRegex;
+  static NSRegularExpression *fontSizeRegex;
+  static NSRegularExpression *fontFamilyRegex;
   static dispatch_once_t onceToken;
   dispatch_once(&onceToken, ^{
     styleAttrRegex = [NSRegularExpression
@@ -1549,6 +1567,17 @@
     // string
     bgRegex = [NSRegularExpression
         regularExpressionWithPattern:@"background-color\\s*:\\s*([^;]+)"
+                             options:NSRegularExpressionCaseInsensitive
+                               error:nil];
+
+    fontSizeRegex = [NSRegularExpression
+        regularExpressionWithPattern:
+            @"font-size\\s*:\\s*([0-9.]+)(?:\\s*px)?(?=\\s*;|\\s*$)"
+                             options:NSRegularExpressionCaseInsensitive
+                               error:nil];
+
+    fontFamilyRegex = [NSRegularExpression
+        regularExpressionWithPattern:@"font-family\\s*:\\s*([^;]+)"
                              options:NSRegularExpressionCaseInsensitive
                                error:nil];
   });
@@ -1579,6 +1608,50 @@
   if (bgMatch) {
     data.backgroundColor = [UIColor
         colorFromCSSString:[css substringWithRange:[bgMatch rangeAtIndex:1]]];
+  }
+
+  NSTextCheckingResult *fontSizeMatch =
+      [fontSizeRegex firstMatchInString:css
+                                options:0
+                                  range:NSMakeRange(0, css.length)];
+  if (fontSizeMatch) {
+    NSString *fontSizeString =
+        [css substringWithRange:[fontSizeMatch rangeAtIndex:1]];
+    double parsedFontSize = [fontSizeString doubleValue];
+    if (parsedFontSize > 0) {
+      data.fontSize = @(parsedFontSize);
+    }
+  }
+
+  NSTextCheckingResult *fontFamilyMatch =
+      [fontFamilyRegex firstMatchInString:css
+                                  options:0
+                                    range:NSMakeRange(0, css.length)];
+  if (fontFamilyMatch) {
+    NSString *fontFamilyString = [[css
+        substringWithRange:[fontFamilyMatch rangeAtIndex:1]]
+        stringByTrimmingCharactersInSet:[NSCharacterSet
+                                            whitespaceAndNewlineCharacterSet]];
+
+    // If font family contains a comma, use the first part e.g. "Nunito,
+    // sans-serif" -> "Nunito"
+    NSRange commaRange = [fontFamilyString rangeOfString:@","];
+    if (commaRange.location != NSNotFound) {
+      fontFamilyString =
+          [[fontFamilyString substringToIndex:commaRange.location]
+              stringByTrimmingCharactersInSet:
+                  [NSCharacterSet whitespaceAndNewlineCharacterSet]];
+    }
+    if (([fontFamilyString hasPrefix:@"'"] &&
+         [fontFamilyString hasSuffix:@"'"]) ||
+        ([fontFamilyString hasPrefix:@"\""] &&
+         [fontFamilyString hasSuffix:@"\""])) {
+      fontFamilyString = [fontFamilyString
+          substringWithRange:NSMakeRange(1, fontFamilyString.length - 2)];
+    }
+    if (fontFamilyString.length > 0) {
+      data.fontFamily = fontFamilyString;
+    }
   }
 
   return data.isEmpty ? nil : data;

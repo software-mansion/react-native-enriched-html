@@ -5,6 +5,8 @@
 
 @property(nonatomic, strong, nullable) UIColor *foregroundColor;
 @property(nonatomic, strong, nullable) UIColor *backgroundColor;
+@property(nonatomic, strong, nullable) NSNumber *fontSize;
+@property(nonatomic, copy, nullable) NSString *fontFamily;
 
 - (BOOL)isEmpty;
 
