@@ -148,7 +148,9 @@ class EnrichedTextInputView :
   private var defaultValueDirty: Boolean = false
 
   private var inputMethodManager: InputMethodManager? = null
-  private val spannableFactory = EnrichedTextInputSpannableFactory()
+
+  private fun spannableFactory() = EnrichedTextInputSpannableFactory(context.assets, allowFontScaling)
+
   private var contextMenuItems: List<Pair<Int, String>> = emptyList()
 
   constructor(context: Context) : super(context) {
@@ -418,7 +420,7 @@ class EnrichedTextInputView :
     val normalized = GumboNormalizer.normalizeHtml(text.toString()) ?: return text
 
     return try {
-      val parsed = EnrichedParser.fromHtml(normalized, htmlStyle, spannableFactory, linkRegex)
+      val parsed = EnrichedParser.fromHtml(normalized, htmlStyle, spannableFactory(), linkRegex)
       parsed.trimEnd('\n')
     } catch (e: Exception) {
       Log.e(TAG, "Error parsing normalized HTML: ${e.message}")
@@ -431,7 +433,7 @@ class EnrichedTextInputView :
 
     if (isInternalHtml) {
       try {
-        val parsed = EnrichedParser.fromHtml(text.toString(), htmlStyle, spannableFactory, linkRegex)
+        val parsed = EnrichedParser.fromHtml(text.toString(), htmlStyle, spannableFactory(), linkRegex)
         return parsed.trimEnd('\n')
       } catch (e: Exception) {
         Log.e(TAG, "Error parsing HTML: ${e.message}")

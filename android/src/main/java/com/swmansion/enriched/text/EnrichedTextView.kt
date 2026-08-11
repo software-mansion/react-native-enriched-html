@@ -51,7 +51,8 @@ class EnrichedTextView : AppCompatTextView {
     }
 
   private var enrichedStyle: EnrichedTextStyle? = null
-  private val spannableFactory = EnrichedTextSpanFactory()
+
+  private fun spannableFactory() = EnrichedTextSpanFactory(context.assets, allowFontScaling)
 
   // We keep the parsedText around so that when an async image finishes loading we can re-call
   // setText with the same instance and force the TextView to rebuild its layout.
@@ -195,7 +196,7 @@ class EnrichedTextView : AppCompatTextView {
 
     if (isInternalHtml) {
       try {
-        val parsed = EnrichedParser.fromHtml(text, style, spannableFactory)
+        val parsed = EnrichedParser.fromHtml(text, style, spannableFactory())
         return parsed.trimEnd('\n')
       } catch (e: Exception) {
         Log.e(TAG, "Error parsing HTML: ${e.message}")
@@ -221,7 +222,7 @@ class EnrichedTextView : AppCompatTextView {
     val normalized = GumboNormalizer.normalizeHtml(text) ?: return null
 
     return try {
-      val parsed: Spanned = EnrichedParser.fromHtml(normalized, style, spannableFactory)
+      val parsed: Spanned = EnrichedParser.fromHtml(normalized, style, spannableFactory())
       parsed.trimEnd('\n')
     } catch (e: Exception) {
       Log.e(TAG, "Error parsing normalized HTML: ${e.message}")

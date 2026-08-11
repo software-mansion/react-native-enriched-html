@@ -349,7 +349,12 @@ public class EnrichedParser {
           EnrichedCustomStyleSpan cs = (EnrichedCustomStyleSpan) style[j];
           Integer fgColor = cs.getForegroundColor();
           Integer bgColor = cs.getBackgroundColor();
-          if (fgColor != null || bgColor != null) {
+          Float fontSize = cs.getFontSize();
+          String fontFamily = cs.getFontFamily();
+          if (fgColor != null
+              || bgColor != null
+              || fontSize != null
+              || (fontFamily != null && !fontFamily.isEmpty())) {
             StringBuilder cssProps = new StringBuilder();
             if (fgColor != null) {
               cssProps
@@ -363,6 +368,18 @@ public class EnrichedParser {
                   .append("background-color: ")
                   .append(EnrichedColorParser.colorToHex(bgColor))
                   .append(";");
+            }
+            if (fontSize != null) {
+              if (cssProps.length() > 0) cssProps.append(" ");
+              cssProps.append("font-size: ").append(fontSize).append("px;");
+            }
+            if (fontFamily != null && !fontFamily.isEmpty()) {
+              if (cssProps.length() > 0) cssProps.append(" ");
+              if (fontFamily.indexOf(' ') >= 0) {
+                cssProps.append("font-family: '").append(fontFamily).append("';");
+              } else {
+                cssProps.append("font-family: ").append(fontFamily).append(";");
+              }
             }
             out.append("<span style=\"").append(cssProps).append("\">");
           } else {
@@ -457,6 +474,13 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
 
   private static final Pattern CSS_BG_PATTERN =
       Pattern.compile("background-color\\s*:\\s*([^;]+)", Pattern.CASE_INSENSITIVE);
+
+  private static final Pattern CSS_FONT_SIZE_PATTERN =
+      Pattern.compile(
+          "font-size\\s*:\\s*([0-9.]+)(?:\\s*px)?(?=\\s*;|\\s*$)", Pattern.CASE_INSENSITIVE);
+
+  private static final Pattern CSS_FONT_FAMILY_PATTERN =
+      Pattern.compile("font-family\\s*:\\s*([^;]+)", Pattern.CASE_INSENSITIVE);
 
   private static String parseCssAlignmentValue(Attributes attributes) {
     String style = attributes.getValue("", "style");
@@ -963,6 +987,8 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
     String styleAttr = attributes.getValue("", "style");
     Integer fg = null;
     Integer bg = null;
+    Float fontSize = null;
+    String fontFamily = null;
 
     if (styleAttr != null) {
       Matcher fgMatcher = CSS_FG_PATTERN.matcher(styleAttr);
@@ -973,17 +999,44 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
       if (bgMatcher.find()) {
         bg = EnrichedColorParser.parseCssColor(bgMatcher.group(1));
       }
+      Matcher fontSizeMatcher = CSS_FONT_SIZE_PATTERN.matcher(styleAttr);
+      if (fontSizeMatcher.find()) {
+        String fontSizeString = fontSizeMatcher.group(1);
+        if (fontSizeString != null) {
+          fontSize = Float.parseFloat(fontSizeString);
+        }
+      }
+      Matcher fontFamilyMatcher = CSS_FONT_FAMILY_PATTERN.matcher(styleAttr);
+      if (fontFamilyMatcher.find()) {
+        fontFamily = parseCssFontFamily(fontFamilyMatcher.group(1));
+      }
     }
 
-    if (fg != null || bg != null) {
-      start(text, new CustomStyleMark(fg, bg));
+    if (fg != null
+        || bg != null
+        || fontSize != null
+        || (fontFamily != null && !fontFamily.isEmpty())) {
+      start(text, new CustomStyleMark(fg, bg, fontSize, fontFamily));
     }
+  }
+
+  private static String parseCssFontFamily(String raw) {
+    if (raw == null) return null;
+    String value = raw.trim();
+    if ((value.startsWith("'") && value.endsWith("'"))
+        || (value.startsWith("\"") && value.endsWith("\""))) {
+      value = value.substring(1, value.length() - 1);
+    }
+    return value.isEmpty() ? null : value;
   }
 
   private static <T> void endSpan(Editable text, T style, EnrichedSpanFactory<T> spanFactory) {
     CustomStyleMark mark = getLast(text, CustomStyleMark.class);
     if (mark == null) return;
-    setSpanFromMark(text, mark, spanFactory.createCustomStyleSpan(mark.mFg, mark.mBg));
+    setSpanFromMark(
+        text,
+        mark,
+        spanFactory.createCustomStyleSpan(mark.mFg, mark.mBg, mark.mFontSize, mark.mFontFamily));
   }
 
   public void setDocumentLocator(Locator locator) {}
@@ -1116,10 +1169,14 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
   private static class CustomStyleMark {
     public final Integer mFg;
     public final Integer mBg;
+    public final Float mFontSize;
+    public final String mFontFamily;
 
-    public CustomStyleMark(Integer fg, Integer bg) {
+    public CustomStyleMark(Integer fg, Integer bg, Float fontSize, String fontFamily) {
       mFg = fg;
       mBg = bg;
+      mFontSize = fontSize;
+      mFontFamily = fontFamily;
     }
   }
 

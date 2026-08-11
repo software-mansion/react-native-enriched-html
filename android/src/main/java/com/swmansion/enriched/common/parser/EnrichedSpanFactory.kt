@@ -85,5 +85,7 @@ interface EnrichedSpanFactory<T> {
   fun createCustomStyleSpan(
     foregroundColor: Int?,
     backgroundColor: Int?,
+    fontSize: Float?,
+    fontFamily: String?,
   ): EnrichedCustomStyleSpan
 }

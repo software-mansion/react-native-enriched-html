@@ -162,8 +162,10 @@ class EnrichedSpanState(
   fun setCustomStyle(
     fgColor: Int?,
     bgColor: Int?,
+    fontSize: Float? = null,
+    fontFamily: String? = null,
   ) {
-    this.customStyle = CustomStyle(fgColor, bgColor)
+    this.customStyle = CustomStyle(fgColor, bgColor, fontSize, fontFamily)
     emitStateChangeEvent()
   }
 
@@ -340,6 +342,9 @@ class EnrichedSpanState(
     } else {
       customStyleMap.putString("backgroundColor", "")
     }
+
+    customStyleMap.putDouble("fontSize", (customStyle?.fontSize ?: 0f).toDouble())
+    customStyleMap.putString("fontFamily", customStyle?.fontFamily ?: "")
 
     return customStyleMap
   }

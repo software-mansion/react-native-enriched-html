@@ -118,7 +118,7 @@ object MeasurementStore {
       val allowFontScaling = allowFontScalingFromProps(props)
       val enrichedStyle = EnrichedTextStyle.fromReadableMap(context as ReactContext, fontSize, style, allowFontScaling)
 
-      val factory = EnrichedTextSpanFactory()
+      val factory = EnrichedTextSpanFactory(context.assets, allowFontScaling)
       val parsed = EnrichedParser.fromHtml(textToParse, enrichedStyle, factory)
       return parsed.trimEnd('\n')
     } catch (e: Exception) {
