@@ -11,7 +11,11 @@ does and help you understand further chapters better.
 ## The input is uncontrolled
 
 `EnrichedTextInput` does not take its content from a prop and does not push
+<<<<<<< HEAD
 every keystroke back into React state. It owns its content on the native side
+=======
+every keystroke back into React state. It owns its content and state on the native side
+>>>>>>> feat/docs
 and you talk to it through a `ref`.
 
 This is deliberate. Rich text changes constantly - every character, selection
@@ -47,7 +51,11 @@ lists exactly what it produces and accepts.
 
 Sanitizing HTML is your responsibility. The library doesn't guarantee safe HTML on mobile, so
 sanitize anything you persist, render elsewhere, or accept from untrusted
+<<<<<<< HEAD
 sources. To learn how sanitization is handled on Web, see [Web support](/core-functionalities/web-support)
+=======
+sources. To learn how sanitization is handled on Web, see [Web support](/core-functionalities/web-support).
+>>>>>>> feat/docs
 
 :::
 
@@ -61,9 +69,9 @@ All supported and canonical tags are listed in [Supported tags](/fundamentals/ht
 
 ## Two components, one HTML format
 
-The library is split into an editor and a viewer:
+The library is split into an editor and a display:
 
-- **`EnrichedTextInput`** - the interactive editor from the previous page.
+- **`EnrichedTextInput`** - an interactive editor that emits HTML.
 - **`EnrichedText`** - a read-only display component that renders the input's
   HTML.
 
@@ -73,13 +81,13 @@ The HTML format that both components expect is identical, what allows you to int
 
 Not every style can be combined with every other. For example, a paragraph can't be both a heading and a list item, code blocks don't support inline formatting such as bold or italic. The editor tracks this and reports it through `onChangeState`, which gives each style three booleans:
 
-- **`isActive`** - the style is applied at the current selection. Use it to
+- **`isActive`** - whether the style is applied at the current selection. Use it to
   highlight a toolbar button.
-- **`isBlocking`** - another active style forbids this one entirely, so toggling
-  it would do nothing. For example bold is blocked inside a code block. Use it
-  to disable a button.
-- **`isConflicting`** - this style would replace an active one if toggled on.
-  For example switching a blockquote paragraph to a heading removes the
+- **`isBlocking`** - whether another active style forbids this one entirely, so toggling
+  it would do nothing. For example, bold is blocked inside a code block. Use it
+  to disable a toolbar button.
+- **`isConflicting`** - whether this style would replace an active one if toggled on.
+  For example, switching a blockquote paragraph to a heading removes the
   blockquote. Use it to hint that the toggle is a swap, not an addition.
 
 Driving your toolbar from these three flags keeps the UI honest: buttons light
