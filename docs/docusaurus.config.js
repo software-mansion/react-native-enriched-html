@@ -1,8 +1,10 @@
 // @ts-check
 // Note: type annotations allow type checking and IDEs autocompletion
 
-import { topbarBannerReservationScript } from '@swmansion/t-rex-ui/topbar-banner'; 
-import { TOP_BAR_BANNER } from './src/components/topbarBanner.config.ts'; 
+import { topbarBannerReservationScript } from '@swmansion/t-rex-ui/topbar-banner';
+import { TOP_BAR_BANNER } from './src/components/topbarBanner.config.ts';
+
+const path = require('path');
 
 const lightCodeTheme = require('./src/theme/CodeBlock/highlighting-light.js');
 const darkCodeTheme = require('./src/theme/CodeBlock/highlighting-dark.js');
@@ -22,6 +24,38 @@ function reactNativeWebPlugin() {
   };
 }
 
+function enrichedHtmlLocalSourcePlugin() {
+  const librarySource = path.resolve(__dirname, '../src');
+  return {
+    name: 'enriched-html-local-source',
+    configureWebpack(_config, isServer, utils) {
+      return {
+        module: {
+          rules: [
+            {
+              test: /\.tsx?$/,
+              include: librarySource,
+              use: [utils.getJSLoader({ isServer })],
+            },
+          ],
+        },
+        resolve: {
+          alias: {
+            'react-native-enriched-html$': path.resolve(
+              librarySource,
+              'index.tsx'
+            ),
+            // The react-native-enriched-html has separate react and react-dom dependencies in node_modules,
+            // so React would otherwise be resolved from the repo root and bundled twice.
+            'react': path.resolve(__dirname, 'node_modules/react'),
+            'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
+          },
+        },
+      };
+    },
+  };
+}
+
 const firstBannerZone = TOP_BAR_BANNER.zones[0];
 const bannerReservationHeadTags = firstBannerZone
   ? [
@@ -31,7 +65,7 @@ const bannerReservationHeadTags = firstBannerZone
         innerHTML: topbarBannerReservationScript(
           firstBannerZone.zoneId,
           firstBannerZone.contentId,
-          TOP_BAR_BANNER.hiddenPaths,
+          TOP_BAR_BANNER.hiddenPaths
         ),
       },
     ]
@@ -99,10 +133,13 @@ const config = {
 
   headTags: bannerReservationHeadTags,
 
-  clientModules: [require.resolve('./src/clientModules/topbarBannerRefresh.ts')],
+  clientModules: [
+    require.resolve('./src/clientModules/topbarBannerRefresh.ts'),
+  ],
 
   plugins: [
     reactNativeWebPlugin,
+    enrichedHtmlLocalSourcePlugin,
     function transpileTRexUiTheme() {
       return {
         name: 'transpile-t-rex-ui-theme',
@@ -160,9 +197,10 @@ const config = {
             dropdownActiveClassDisabled: true,
           },
           {
-            href: 'https://github.com/software-mansion/react-native-enriched-html/',
-            position: 'right',
-            className: 'header-github',
+            'href':
+              'https://github.com/software-mansion/react-native-enriched-html/',
+            'position': 'right',
+            'className': 'header-github',
             'aria-label': 'GitHub repository',
           },
         ],
