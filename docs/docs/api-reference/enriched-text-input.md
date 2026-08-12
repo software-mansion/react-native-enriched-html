@@ -233,9 +233,9 @@ For details, see [sanitization](/core-functionalities/web-support).
 
 Called whenever the input loses focus.
 
-| Type                     | Default | Platforms         |
-| ------------------------ | ------- | ----------------- |
-| `(e: BlurEvent) => void` | -       | Android, iOS, Web |
+| Type                     | Platforms         |
+| ------------------------ | ----------------- |
+| `(e: BlurEvent) => void` | Android, iOS, Web |
 
 ### `onChangeHtml` {#onchangehtml}
 
@@ -249,9 +249,9 @@ interface OnChangeHtmlEvent {
 
 - `value` is the new HTML
 
-| Type                                                       | Default | Platforms         |
-| ---------------------------------------------------------- | ------- | ----------------- |
-| `(event: NativeSyntheticEvent<OnChangeHtmlEvent>) => void` | -       | Android, iOS, Web |
+| Type                                                       | Platforms         |
+| ---------------------------------------------------------- | ----------------- |
+| `(event: NativeSyntheticEvent<OnChangeHtmlEvent>) => void` | Android, iOS, Web |
 
 :::tip
 
@@ -276,9 +276,9 @@ interface OnChangeMentionEvent {
 - `indicator` is the indicator of the currently edited mention
 - `text` contains the whole text typed after the indicator
 
-| Type                                    | Default | Platforms         |
-| --------------------------------------- | ------- | ----------------- |
-| `(event: OnChangeMentionEvent) => void` | -       | Android, iOS, Web |
+| Type                                    | Platforms         |
+| --------------------------------------- | ----------------- |
+| `(event: OnChangeMentionEvent) => void` | Android, iOS, Web |
 
 ### `onChangeSelection` {#onchangeselection}
 
@@ -297,9 +297,9 @@ interface OnChangeSelectionEvent {
   selection, `start` equals `end`
 - `text` is the input's text in the current selection
 
-| Type                                                            | Default | Platforms         |
-| --------------------------------------------------------------- | ------- | ----------------- |
-| `(event: NativeSyntheticEvent<OnChangeSelectionEvent>) => void` | -       | Android, iOS, Web |
+| Type                                                            | Platforms         |
+| --------------------------------------------------------------- | ----------------- |
+| `(event: NativeSyntheticEvent<OnChangeSelectionEvent>) => void` | Android, iOS, Web |
 
 ### `onChangeState` {#onchangestate}
 
@@ -308,54 +308,32 @@ toolbar button state. See
 [The style state model](/fundamentals/core-concepts#the-style-state-model).
 
 ```ts
+interface StyleState {
+  isActive: boolean;
+  isConflicting: boolean;
+  isBlocking: boolean;
+}
+
 interface OnChangeStateEvent {
-  bold: { isActive: boolean; isConflicting: boolean; isBlocking: boolean };
-  italic: { isActive: boolean; isConflicting: boolean; isBlocking: boolean };
-  underline: { isActive: boolean; isConflicting: boolean; isBlocking: boolean };
-  strikeThrough: {
-    isActive: boolean;
-    isConflicting: boolean;
-    isBlocking: boolean;
-  };
-  inlineCode: {
-    isActive: boolean;
-    isConflicting: boolean;
-    isBlocking: boolean;
-  };
-  h1: { isActive: boolean; isConflicting: boolean; isBlocking: boolean };
-  h2: { isActive: boolean; isConflicting: boolean; isBlocking: boolean };
-  h3: { isActive: boolean; isConflicting: boolean; isBlocking: boolean };
-  h4: { isActive: boolean; isConflicting: boolean; isBlocking: boolean };
-  h5: { isActive: boolean; isConflicting: boolean; isBlocking: boolean };
-  h6: { isActive: boolean; isConflicting: boolean; isBlocking: boolean };
-  codeBlock: {
-    isActive: boolean;
-    isConflicting: boolean;
-    isBlocking: boolean;
-  };
-  blockQuote: {
-    isActive: boolean;
-    isConflicting: boolean;
-    isBlocking: boolean;
-  };
-  orderedList: {
-    isActive: boolean;
-    isConflicting: boolean;
-    isBlocking: boolean;
-  };
-  unorderedList: {
-    isActive: boolean;
-    isConflicting: boolean;
-    isBlocking: boolean;
-  };
-  link: { isActive: boolean; isConflicting: boolean; isBlocking: boolean };
-  image: { isActive: boolean; isConflicting: boolean; isBlocking: boolean };
-  mention: { isActive: boolean; isConflicting: boolean; isBlocking: boolean };
-  checkboxList: {
-    isActive: boolean;
-    isConflicting: boolean;
-    isBlocking: boolean;
-  };
+  bold: StyleState;
+  italic: StyleState;
+  underline: StyleState;
+  strikeThrough: StyleState;
+  inlineCode: StyleState;
+  h1: StyleState;
+  h2: StyleState;
+  h3: StyleState;
+  h4: StyleState;
+  h5: StyleState;
+  h6: StyleState;
+  codeBlock: StyleState;
+  blockQuote: StyleState;
+  orderedList: StyleState;
+  unorderedList: StyleState;
+  link: StyleState;
+  image: StyleState;
+  mention: StyleState;
+  checkboxList: StyleState;
   alignment: string;
 }
 ```
@@ -375,9 +353,9 @@ instead, the same as `'auto'`.
 
 :::
 
-| Type                                                        | Default | Platforms         |
-| ----------------------------------------------------------- | ------- | ----------------- |
-| `(event: NativeSyntheticEvent<OnChangeStateEvent>) => void` | -       | Android, iOS, Web |
+| Type                                                        | Platforms         |
+| ----------------------------------------------------------- | ----------------- |
+| `(event: NativeSyntheticEvent<OnChangeStateEvent>) => void` | Android, iOS, Web |
 
 ### `onChangeText` {#onchangetext}
 
@@ -391,16 +369,9 @@ interface OnChangeTextEvent {
 
 - `value` is the new plain-text value of the input
 
-| Type                                                       | Default | Platforms         |
-| ---------------------------------------------------------- | ------- | ----------------- |
-| `(event: NativeSyntheticEvent<OnChangeTextEvent>) => void` | -       | Android, iOS, Web |
-
-:::tip
-
-If you don't need the plain text value, omit `onChangeText` - continuous text
-extraction can have performance implications.
-
-:::
+| Type                                                       | Platforms         |
+| ---------------------------------------------------------- | ----------------- |
+| `(event: NativeSyntheticEvent<OnChangeTextEvent>) => void` | Android, iOS, Web |
 
 ### `onEndMention` {#onendmention}
 
@@ -410,17 +381,17 @@ mention.
 
 - `indicator` is the indicator of the mention that was being edited
 
-| Type                          | Default | Platforms         |
-| ----------------------------- | ------- | ----------------- |
-| `(indicator: string) => void` | -       | Android, iOS, Web |
+| Type                          | Platforms         |
+| ----------------------------- | ----------------- |
+| `(indicator: string) => void` | Android, iOS, Web |
 
 ### `onFocus` {#onfocus}
 
 Called whenever the input is focused.
 
-| Type                      | Default | Platforms         |
-| ------------------------- | ------- | ----------------- |
-| `(e: FocusEvent) => void` | -       | Android, iOS, Web |
+| Type                      | Platforms         |
+| ------------------------- | ----------------- |
+| `(e: FocusEvent) => void` | Android, iOS, Web |
 
 ### `onLinkDetected` {#onlinkdetected}
 
@@ -441,9 +412,9 @@ interface OnLinkDetected {
 - `start` is the starting index of the link
 - `end` is the first index after the ending index of the link
 
-| Type                              | Default | Platforms         |
-| --------------------------------- | ------- | ----------------- |
-| `(event: OnLinkDetected) => void` | -       | Android, iOS, Web |
+| Type                              | Platforms         |
+| --------------------------------- | ----------------- |
+| `(event: OnLinkDetected) => void` | Android, iOS, Web |
 
 ### `onMentionDetected` {#onmentiondetected}
 
@@ -462,9 +433,9 @@ interface OnMentionDetected {
 - `indicator` is the indicator of the mention
 - `attributes` are the additional user-defined attributes stored with the mention
 
-| Type                                 | Default | Platforms         |
-| ------------------------------------ | ------- | ----------------- |
-| `(event: OnMentionDetected) => void` | -       | Android, iOS, Web |
+| Type                                 | Platforms         |
+| ------------------------------------ | ----------------- |
+| `(event: OnMentionDetected) => void` | Android, iOS, Web |
 
 ### `onStartMention` {#onstartmention}
 
@@ -472,9 +443,9 @@ Called whenever mention editing starts.
 
 - `indicator` is the indicator of the mention that begins editing
 
-| Type                          | Default | Platforms         |
-| ----------------------------- | ------- | ----------------- |
-| `(indicator: string) => void` | -       | Android, iOS, Web |
+| Type                          | Platforms         |
+| ----------------------------- | ----------------- |
+| `(indicator: string) => void` | Android, iOS, Web |
 
 ### `onKeyPress` {#onkeypress}
 
@@ -488,9 +459,9 @@ interface OnKeyPressEvent {
 }
 ```
 
-| Type                                                     | Default | Platforms         |
-| -------------------------------------------------------- | ------- | ----------------- |
-| `(event: NativeSyntheticEvent<OnKeyPressEvent>) => void` | -       | Android, iOS, Web |
+| Type                                                     | Platforms         |
+| -------------------------------------------------------- | ----------------- |
+| `(event: NativeSyntheticEvent<OnKeyPressEvent>) => void` | Android, iOS, Web |
 
 ### `onSubmitEditing` {#onsubmitediting}
 
@@ -505,9 +476,9 @@ interface OnSubmitEditing {
 
 - `text` is the current plain-text content of the input at submission time
 
-| Type                                                     | Default | Platforms         |
-| -------------------------------------------------------- | ------- | ----------------- |
-| `(event: NativeSyntheticEvent<OnSubmitEditing>) => void` | -       | Android, iOS, Web |
+| Type                                                     | Platforms         |
+| -------------------------------------------------------- | ----------------- |
+| `(event: NativeSyntheticEvent<OnSubmitEditing>) => void` | Android, iOS, Web |
 
 ### `onPasteImages` {#onpasteimages}
 
@@ -527,11 +498,11 @@ interface OnPasteImagesEvent {
 }
 ```
 
-| Type                                                        | Default | Platforms         |
-| ----------------------------------------------------------- | ------- | ----------------- |
-| `(event: NativeSyntheticEvent<OnPasteImagesEvent>) => void` | -       | Android, iOS, Web |
+| Type                                                        | Platforms         |
+| ----------------------------------------------------------- | ----------------- |
+| `(event: NativeSyntheticEvent<OnPasteImagesEvent>) => void` | Android, iOS, Web |
 
-:::tip
+:::note
 
 On Web, `uri` is a blob URL (`blob:...`). Blob URLs hold memory until explicitly
 released. Call `URL.revokeObjectURL(uri)` once you no longer need the image
@@ -1467,7 +1438,3 @@ export interface EnrichedInputStyle {
   [Core concepts](/fundamentals/core-concepts#html-is-the-source-of-truth).
 - For the full list of supported tags and style conflicts, see
   [HTML format and supported tags](/fundamentals/html-format-and-supported-tags).
-
-## Platform compatibility
-
-<PlatformCompatibility android ios web />
