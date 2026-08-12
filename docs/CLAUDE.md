@@ -26,7 +26,7 @@ Deployed to `https://docs.swmansion.com/react-native-enriched-html/` via GitHub 
 
 Registered in `src/theme/MDXComponents.js`, same conventions as the
 react-native-reanimated docs (without interactive examples):
-`PlatformCompatibility`, `CollapsibleCode`, `Optional`, `Yes`, `No`,
+`PlatformCompatibility`, `CollapsibleCode`, `Optional`, `Required`, `Yes`, `No`,
 `Version`, `Spacer`, `Row`, `Grid`, `Indent`, `ExampleVideo`, `ThemedVideo`,
 `Badges` (t-rex-ui), plus restyled admonitions, `<details>`, Tabs, diff and
 highlighted code blocks, and Mermaid diagrams.

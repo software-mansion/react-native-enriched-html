@@ -6,6 +6,7 @@ import PlatformCompatibility from '@site/src/components/PlatformCompatibility';
 import ExampleVideo from '@site/src/components/ExampleVideo';
 import ThemedVideo from '@site/src/components/ThemedVideo';
 import Optional from '@site/src/components/Optional';
+import Required from '@site/src/components/Required';
 import Indent from '@site/src/components/Indent';
 import Row from '@site/src/components/Row';
 import Grid from '@site/src/components/Grid';
@@ -21,6 +22,7 @@ export default {
   ExampleVideo,
   ThemedVideo,
   Optional,
+  Required,
   Indent,
   Row,
   Grid,
