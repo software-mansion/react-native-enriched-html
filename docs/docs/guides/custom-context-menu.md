@@ -8,6 +8,8 @@ The `contextMenuItems` prop lets you add your own actions to the native
 text-selection menu - the popover that e.g. shows **Copy / Paste / Cut** when the
 user long-presses selected text.
 
+![Demo of the context menu feature](/assets/context-menu-demo.webp)
+
 :::info
 
 This is a **native-only** feature (iOS and Android) - which
@@ -113,7 +115,12 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  container: { gap: 12 },
+  container: {
+    flex: 1,
+    padding: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   input: {
     fontSize: 18,
     color: '#232736',
