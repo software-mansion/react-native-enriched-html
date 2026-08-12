@@ -58,6 +58,4 @@ Built by [Software Mansion](https://swmansion.com/) and sponsored by [Filament](
 
 [<img width="128" height="69" alt="Software Mansion Logo" src="https://github.com/user-attachments/assets/f0e18471-a7aa-4e80-86ac-87686a86fe56" />](https://swmansion.com/)
 &nbsp;&nbsp;&nbsp;
-<img width="48" height="48" alt="" src="https://github.com/user-attachments/assets/46c6bf1f-2685-497e-b699-d5a94b2582a3" />
-&nbsp;&nbsp;&nbsp;
 [<img width="80" height="80" alt="Filament Logo" src="https://github.com/user-attachments/assets/4103ab79-da34-4164-aa5f-dcf08815bf65" />](https://filament.dm/)
