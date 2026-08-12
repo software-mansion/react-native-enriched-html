@@ -13,7 +13,7 @@ type Suggestion = { id: string; name: string };
 // `onPress` fires - so `setMention` would do nothing. Preventing the default
 // mousedown keeps focus in the editor. It's a no-op on native, where tapping a
 // Pressable never steals focus.
-const keepEditorFocused: any =
+const keepEditorFocused: { onMouseDown: (e: React.MouseEvent) => void } | null =
   Platform.OS === 'web'
     ? { onMouseDown: (e: { preventDefault(): void }) => e.preventDefault() }
     : null;
@@ -32,33 +32,17 @@ const CHANNELS: Suggestion[] = [
   { id: 'c4', name: 'announcements' },
 ];
 
-// Each mention kind is styled by its indicator.
-const htmlStyle: HtmlStyle = {
-  mention: {
-    '@': {
-      color: '#2b7a4b',
-      backgroundColor: '#d8f3e3',
-      textDecorationLine: 'none',
-    },
-    '#': {
-      color: '#2b5f9e',
-      backgroundColor: '#d8e6f9',
-      textDecorationLine: 'none',
-    },
-  },
-};
-
 export default function App() {
   const ref = useRef<EnrichedTextInputInstance>(null);
-  // The indicator of the mention being edited ('@' | '#'), or null when idle.
   const [indicator, setIndicator] = useState<string | null>(null);
   const [query, setQuery] = useState('');
 
   const suggestions = useMemo(() => {
     if (indicator === null) return [];
     const source = indicator === '#' ? CHANNELS : USERS;
-    const q = query.toLowerCase();
-    return source.filter(item => item.name.toLowerCase().startsWith(q));
+    return source.filter(item =>
+      item.name.toLowerCase().startsWith(query.toLowerCase())
+    );
   }, [indicator, query]);
 
   const openPicker = (nextIndicator: string) => {
@@ -80,6 +64,11 @@ export default function App() {
     closePicker();
   };
 
+  const updateQuery = ({ indicator: ind, text }: OnChangeMentionEvent) => {
+    setIndicator(ind);
+    setQuery(text);
+  };
+
   return (
     <View style={styles.container}>
       <EnrichedTextInput
@@ -89,10 +78,7 @@ export default function App() {
         placeholder="Type '@' for people or '#' for channels..."
         mentionIndicators={['@', '#']}
         onStartMention={openPicker}
-        onChangeMention={({ indicator: ind, text }: OnChangeMentionEvent) => {
-          setIndicator(ind);
-          setQuery(text);
-        }}
+        onChangeMention={updateQuery}
         onEndMention={closePicker}
       />
       {suggestions.length > 0 && (
@@ -114,6 +100,22 @@ export default function App() {
     </View>
   );
 }
+
+// Each mention kind is styled by its indicator.
+const htmlStyle: HtmlStyle = {
+  mention: {
+    '@': {
+      color: '#2b7a4b',
+      backgroundColor: '#d8f3e3',
+      textDecorationLine: 'none',
+    },
+    '#': {
+      color: '#2b5f9e',
+      backgroundColor: '#d8e6f9',
+      textDecorationLine: 'none',
+    },
+  },
+};
 
 const styles = StyleSheet.create({
   container: { gap: 8 },

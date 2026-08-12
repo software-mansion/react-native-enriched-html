@@ -13,7 +13,7 @@ type Emoji = { shortcode: string; char: string };
 // `onPress` fires - so `setMention` would do nothing. Preventing the default
 // mousedown keeps focus in the editor. It's a no-op on native, where tapping a
 // Pressable never steals focus.
-const keepEditorFocused: any =
+const keepEditorFocused: { onMouseDown: (e: React.MouseEvent) => void } | null =
   Platform.OS === 'web'
     ? { onMouseDown: (e: { preventDefault(): void }) => e.preventDefault() }
     : null;
@@ -24,17 +24,6 @@ const EMOJIS: Emoji[] = [
   { shortcode: 'fire', char: '🔥' },
   { shortcode: 'rocket', char: '🚀' },
 ];
-
-// The emoji glyph is the whole mention, so keep it visually plain.
-const htmlStyle: HtmlStyle = {
-  mention: {
-    ':': {
-      color: '#232736',
-      backgroundColor: 'transparent',
-      textDecorationLine: 'none',
-    },
-  },
-};
 
 export default function App() {
   const ref = useRef<EnrichedTextInputInstance>(null);
@@ -48,9 +37,19 @@ export default function App() {
     return EMOJIS.filter(emoji => emoji.shortcode.startsWith(q));
   }, [open, query]);
 
+  const openPicker = () => {
+    setOpen(true);
+    setQuery('');
+  };
+
   const closePicker = () => {
     setOpen(false);
     setQuery('');
+  };
+
+  const updateQuery = ({ text }: OnChangeMentionEvent) => {
+    setOpen(true);
+    setQuery(text);
   };
 
   const pick = (emoji: Emoji) => {
@@ -69,14 +68,8 @@ export default function App() {
         htmlStyle={htmlStyle}
         placeholder="Type ':' then a name, e.g. :smile"
         mentionIndicators={[':']}
-        onStartMention={() => {
-          setOpen(true);
-          setQuery('');
-        }}
-        onChangeMention={({ text }: OnChangeMentionEvent) => {
-          setOpen(true);
-          setQuery(text);
-        }}
+        onStartMention={openPicker}
+        onChangeMention={updateQuery}
         onEndMention={closePicker}
       />
       {suggestions.length > 0 && (
@@ -96,6 +89,17 @@ export default function App() {
     </View>
   );
 }
+
+// The emoji glyph is the whole mention, so keep it visually plain.
+const htmlStyle: HtmlStyle = {
+  mention: {
+    ':': {
+      color: '#232736',
+      backgroundColor: 'transparent',
+      textDecorationLine: 'none',
+    },
+  },
+};
 
 const styles = StyleSheet.create({
   container: { gap: 8 },

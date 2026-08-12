@@ -54,7 +54,7 @@ import type {
   EnrichedTextInputInstance,
   OnChangeSelectionEvent,
 } from 'react-native-enriched-html';
-import { useMemo, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
 
 export default function App() {
@@ -65,42 +65,39 @@ export default function App() {
 
   const hasRangedSelection = !!selection && selection.start !== selection.end;
 
-  const contextMenuItems: ContextMenuItem[] = useMemo(
-    () => [
-      {
-        // `text` and `selection` describe what the user long-pressed.
-        text: 'Show selection',
-        onPress: ({ text, selection: range }) => {
-          Alert.alert(
-            'Selection',
-            `"${text}" at [${range.start}, ${range.end}]`
-          );
-        },
+  const contextMenuItems: ContextMenuItem[] = () => [
+    {
+      // `text` and `selection` describe what the user long-pressed.
+      text: 'Show selection',
+      onPress: ({ text, selection: range }) => {
+        Alert.alert(
+          'Selection',
+          `"${text}" at [${range.start}, ${range.end}]`
+        );
       },
-      {
-        // Menu items can call any editor command through the ref.
-        text: 'Bold',
-        onPress: () => {
-          ref.current?.toggleBold();
-        },
+    },
+    {
+      // Menu items can call any editor command through the ref.
+      text: 'Bold',
+      onPress: () => {
+        ref.current?.toggleBold();
       },
-      {
-        // Only useful with a ranged selection, so hide it otherwise; when
-        // shown, `selection` lets you target the exact range you were given.
-        text: 'Link to Software Mansion',
-        visible: hasRangedSelection,
-        onPress: ({ text, selection: range }) => {
-          ref.current?.setLink(
-            range.start,
-            range.end,
-            text,
-            'https://swmansion.com'
-          );
-        },
+    },
+    {
+      // Only useful with a ranged selection, so hide it otherwise; when
+      // shown, `selection` lets you target the exact range you were given.
+      text: 'Link to Software Mansion',
+      visible: hasRangedSelection,
+      onPress: ({ text, selection: range }) => {
+        ref.current?.setLink(
+          range.start,
+          range.end,
+          text,
+          'https://swmansion.com'
+        );
       },
-    ],
-    [hasRangedSelection]
-  );
+    },
+  ];
 
   return (
     <View style={styles.container}>
