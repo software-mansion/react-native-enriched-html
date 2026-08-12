@@ -21,7 +21,7 @@
 
 ## Installation
 
-Check out the detailed installation [instructions](https://enriched.swmansion.com/html/).
+Check out the detailed [installation instructions](https://enriched.swmansion.com/html/).
 
 ## Compatibility
 
@@ -31,12 +31,12 @@ The full list of compatible React Native versions is available [here](https://en
 
 ## Documentation
 
-To find more about `react-native-enriched-html` including API references, known limitations or our contributing guide, visit the official [documentation](https://enriched.swmansion.com/html/).
+To find more about `react-native-enriched-html` including usage guides, API references, known limitations or our contributing guide, visit the official [documentation](https://enriched.swmansion.com/html/).
 
 ## Examples
 
 The source code for the example mobile and web apps is under the [`apps`](https://github.com/software-mansion/react-native-enriched-html/tree/main/apps) directory.
-You can also see the live preview of the library's capabilities by visiting the official [documentation](https://enriched.swmansion.com/html/) filled with interactive examples.
+You can also see the live preview of the library's capabilities by visiting the [official documentation](https://enriched.swmansion.com/html/) filled with interactive examples.
 
 ## License
 
