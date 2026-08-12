@@ -151,6 +151,8 @@ submenu, depending on the device manufacturer.
 
 :::
 
+See [Custom context menu](/guides/custom-context-menu) for a full example.
+
 ### `cursorColor` {#cursorcolor}
 
 Sets the color of the cursor (caret) in the component.
@@ -196,7 +198,8 @@ Customizes the appearance of HTML elements inside the editor. See
 
 ### `mentionIndicators` {#mentionindicators}
 
-The recognized mention indicators. Each item must be a 1-character string.
+The recognized mention indicators. Each item must be a 1-character string. See
+[Mentions](/rich-text-formatting/mentions) for how indicators are used.
 
 | Type       | Default | Platforms         |
 | ---------- | ------- | ----------------- |
@@ -482,7 +485,8 @@ interface OnSubmitEditing {
 
 ### `onPasteImages` {#onpasteimages}
 
-Called when the user pastes one or more images or GIFs into the input.
+Called when the user pastes one or more images or GIFs into the input. See
+[Inline images](/rich-text-formatting/inline-images) for the full picture.
 
 - `images` - an array of objects with URI, MIME type, and dimensions for each
   pasted image/GIF
@@ -633,7 +637,8 @@ cursor (caret) also uses this color.
 
 Controls the layout, dimensions, typography, borders, shadows, opacity, and
 similar container-level appearance of the editable content container. See
-[`EnrichedInputStyle`](#enrichedinputstyle-type).
+[`EnrichedInputStyle`](#enrichedinputstyle-type) and
+[Styling the input](/core-functionalities/styling-the-input).
 
 | Type                 | Default | Platforms         |
 | -------------------- | ------- | ----------------- |
@@ -656,7 +661,8 @@ Controls what happens when the user presses the return/enter key.
 An array of shortcuts that auto-convert typed patterns into styles. Each entry
 maps a `trigger` string to a `style`. These shortcuts allow users to format text
 similarly to modern Markdown editors by typing familiar patterns directly in the
-input.
+input. See [Text shortcuts](/rich-text-formatting/text-shortcuts) for more
+details.
 
 ```ts
 interface TextShortcut {
@@ -807,7 +813,8 @@ performance overhead of continuous parsing via `onChangeHtml`.
 setImage: (src: string, width: number, height: number) => void;
 ```
 
-Sets an inline image at the current selection.
+Sets an inline image at the current selection. See
+[Inline images](/rich-text-formatting/inline-images) for more details.
 
 - `src: string` - absolute path to a file or remote image address
 - `width: number` - width of the image
@@ -829,7 +836,8 @@ setLink: (start: number, end: number, text: string, url: string) => void;
 
 Sets a link at the given place with the given displayed text and URL. The link
 replaces any text between `start` and `end`. Setting a link with `start` equal
-to `end` inserts it in place.
+to `end` inserts it in place. See [Links](/rich-text-formatting/links) for more
+details.
 
 - `start: number` - starting index where the link should be
 - `end: number` - first index behind the new link's ending index
@@ -859,7 +867,8 @@ setMention: (
 ```
 
 Sets the currently edited mention with a given indicator, displayed text, and
-custom attributes.
+custom attributes. See [Mentions](/rich-text-formatting/mentions) for more
+details.
 
 - `indicator: string` - indicator of the set mention
 - `text: string` - text displayed for the mention; anything the user typed is
@@ -907,7 +916,8 @@ setTextAlignment: (
 ```
 
 Sets text alignment for the paragraph(s) at the current selection. When inside a
-list, the alignment is applied to all contiguous list items.
+list, the alignment is applied to all contiguous list items. See
+[Text alignment](/rich-text-formatting/text-alignment) for more details.
 
 - `alignment` - desired text alignment; use `'auto'` to reset to the system
   natural alignment
@@ -1062,6 +1072,8 @@ checkbox individually by tapping on it.
 
 - `checked: boolean` - whether the checkboxes should be checked or unchecked by
   default
+
+See [Lists](/rich-text-formatting/lists) for more on all list types.
 
 ## HtmlStyle type
 
