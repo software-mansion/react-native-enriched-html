@@ -46,7 +46,7 @@ interface EnrichedTextProps extends ViewProps {
 
 ## Props
 
-All props are optional except `children`, which is required.
+All props are optional except `children`.
 
 ### `allowFontScaling` {#allowfontscaling}
 
