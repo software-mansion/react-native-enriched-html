@@ -31,6 +31,15 @@ function resolveFontSize(value: number | null | undefined): number | null {
   return value;
 }
 
+function parseFontSize(value: string | null | undefined): number | null {
+  if (!value) return null;
+  const trimmed = value.trim();
+  const match = /^([0-9.]+)\s*(?:px)?$/i.exec(trimmed);
+  if (!match) return null;
+  const n = parseFloat(match[1]!);
+  return !Number.isNaN(n) && n > 0 ? n : null;
+}
+
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
     customStyle: {
@@ -58,11 +67,7 @@ export const EnrichedCustomStyle = Mark.create({
       },
       fontSize: {
         default: null,
-        parseHTML: (el: HTMLElement) => {
-          const raw = el.style.fontSize;
-          const n = parseFloat(raw);
-          return raw && !Number.isNaN(n) && n > 0 ? n : null;
-        },
+        parseHTML: (el: HTMLElement) => parseFontSize(el.style.fontSize),
       },
       fontFamily: {
         default: null,
