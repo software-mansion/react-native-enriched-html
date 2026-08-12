@@ -25,13 +25,6 @@ Install dependencies for the monorepo workspaces by running `yarn` in the root d
 yarn
 ```
 
-:::note
-
-Because the project relies on Yarn workspaces, you can't use `npm` for
-development.
-
-:::
-
 The [native example app](https://github.com/software-mansion/react-native-enriched-html/tree/main/apps/example)
 demonstrates the library on iOS and Android and is how you test any changes you
 make there. The [web example app](https://github.com/software-mansion/react-native-enriched-html/tree/main/apps/example-web)
