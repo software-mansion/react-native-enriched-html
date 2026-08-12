@@ -6,6 +6,15 @@ sidebar_position: 4
 
 Here's what we're planning to bring to React Native Enriched HTML in the future.
 
+:::note
+
+Feature requests are always welcome. If there is something you would like to see
+that is not listed here, open a
+[GitHub issue](https://github.com/software-mansion/react-native-enriched-html/issues)
+in our repo - we would love to hear from you.
+
+:::
+
 ## Nested lists
 
 Support for multi-level ordered and unordered lists, so users can organize

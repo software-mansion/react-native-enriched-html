@@ -27,8 +27,8 @@ that the `EnrichedTextInput` and the `EnrichedText` display render identically. 
 [Supported tags](/fundamentals/html-format-and-supported-tags) for the full
 list.
 
-## New Architecture required
-
-The components are built exclusively for the React Native New Architecture
-(Fabric). There is no Old Architecture (Paper) fallback. See
-[Compatibility](/misc/compatibility) for supported React Native versions.
+We may add support for more tags and related functionality over time - see the
+[Roadmap](/misc/roadmap) for what is planned. If you need a specific tag that is
+not supported yet, the best way to let us know is to open a
+[GitHub issue](https://github.com/software-mansion/react-native-enriched-html/issues)
+in our repo.

@@ -41,7 +41,9 @@ layout effect - the paragraph is shown with its natural alignment, the same as
 ### `ellipsizeMode` with multiple lines (Android)
 
 On Android, when `numberOfLines` is set to a value higher than `1`, only the
-`'tail'` value of `ellipsizeMode` works correctly.
+`'tail'` value of `ellipsizeMode` works correctly. This matches React Native's
+built-in [`Text`](https://reactnative.dev/docs/text#ellipsizemode) component - it
+is an Android platform limitation, not something specific to this library.
 
 ### Custom context menu (iOS 16+, ordering)
 
@@ -54,11 +56,20 @@ own UI instead.
 
 ### Return key behaviour
 
-- **`returnKeyType`** on Android it's accepted but ignored, because
-  `returnKeyType` doesn't work with multiline inputs. On the Web it maps to the
-  browser's [`enterkeyhint`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/enterkeyhint).
-- **`returnKeyLabel`** is supported on Android but not on iOS, and can't be set
-  inside a browser, so it's ignored on the Web.
+These props follow the same platform rules as React Native's
+[`TextInput`](https://reactnative.dev/docs/textinput):
+
+- **`returnKeyType`** - behaves like on [`TextInput`](https://reactnative.dev/docs/textinput#returnkeytype)
+  on iOS. On Android it is accepted but has no effect, because the input is always
+  multiline and Android does not apply `returnKeyType` to multiline inputs - the
+  same long-standing behaviour as [`TextInput`](https://reactnative.dev/docs/textinput)
+  with `multiline={true}`. On the Web it maps to the browser's
+  [`enterkeyhint`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/enterkeyhint).
+- **`returnKeyLabel`** - Android only, matching
+  [`returnKeyLabel`](https://reactnative.dev/docs/textinput#returnkeylabel-android)
+  on `TextInput`, where React Native recommends using it instead of
+  `returnKeyType`. Not available on iOS, and can't be set inside a browser, so
+  it is ignored on the Web.
 
 ### Cursor / selection color
 

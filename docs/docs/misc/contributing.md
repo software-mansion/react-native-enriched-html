@@ -42,11 +42,12 @@ app; changes to the library's web source are hot-reloaded by its dev server.
 
 To edit the native code in an IDE:
 
-- **iOS** - open `apps/example/ios/EnrichedTextInputExample.xcworkspace` in
-  Xcode. Find the sources under **Pods > Development Pods >
-  ReactNativeEnrichedHtml**.
-- **Android** - open `apps/example/android` in Android Studio. Find the sources
-  under **react-native-enriched-html** in the **Android** view.
+- **iOS** - run `yarn xcode` to open
+  `apps/example/ios/EnrichedTextInputExample.xcworkspace` in Xcode. Find the
+  sources under **Pods > Development Pods > ReactNativeEnrichedHtml**.
+- **Android** - run `yarn android-studio` to open `apps/example/android` in
+  Android Studio. Find the sources under **react-native-enriched-html** in the
+  **Android** view.
 
 ### Running the native example app
 
@@ -65,6 +66,18 @@ yarn example android
 # iOS
 yarn example ios
 ```
+
+:::note iOS
+
+Before running the app for the first time - or after updating native
+dependencies - install CocoaPods dependencies:
+
+```sh
+cd apps/example/ios
+bundle install && bundle exec pod install
+```
+
+:::
 
 ### Running the web example app
 
@@ -131,7 +144,10 @@ with component-specific subflows in `.maestro/enrichedInput/subflows/` and
   - `$ANDROID_HOME/platform-tools`
   - `$ANDROID_HOME/emulator`
 
-The target devices are:
+You must run tests on exactly these devices - do not substitute other
+simulators or emulators. The suite includes visual regression tests that compare
+screenshots against saved baselines, so using the same screen dimensions and
+resolution is crucial.
 
 | Platform | Device    | OS                            |
 | -------- | --------- | ----------------------------- |
@@ -292,6 +308,16 @@ The `package.json` file contains scripts for common tasks:
 
 Working on your first pull request? Learn how from this free series:
 [How to Contribute to an Open Source Project on GitHub](https://app.egghead.io/playlists/how-to-contribute-to-an-open-source-project-on-github).
+
+:::
+
+:::note
+
+If something is unclear or you're not sure about the correct API, feel free to
+open a [GitHub issue](https://github.com/software-mansion/react-native-enriched-html/issues)
+or start a [discussion](https://github.com/software-mansion/react-native-enriched-html/discussions).
+
+The maintainers will be happy to help.
 
 :::
 
