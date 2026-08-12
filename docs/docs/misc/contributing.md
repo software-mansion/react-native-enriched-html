@@ -186,7 +186,7 @@ yarn test:e2e:android --update-screenshots .maestro/enrichedInput/flows/inline_s
 
 Always review newly saved screenshots before committing them.
 
-:::note Flaky Android tests on macOS
+:::note Running Android tests on macOS
 
 macOS may throttle the Android emulator via **App Nap** when its window isn't
 visible, which can cause test timeouts. Either keep the emulator window visible
