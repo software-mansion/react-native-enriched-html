@@ -262,6 +262,5 @@ style applied to any indicator without its own config.
 
 - `EnrichedText` is read-only. Use [`EnrichedTextInput`](/api-reference/enriched-text-input)
   when the user needs to edit content.
-- Pass the HTML string as `children`, not as a `value` prop.
 - Sanitizing HTML is your responsibility. See
   [Core concepts](/fundamentals/core-concepts#html-is-the-source-of-truth).
