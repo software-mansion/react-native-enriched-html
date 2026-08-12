@@ -5,6 +5,7 @@ import type {
 } from 'react-native-enriched-html';
 import { useRef, useState } from 'react';
 import { View, StyleSheet, Pressable, Text } from 'react-native';
+import { htmlStyle } from './htmlStyle';
 
 export default function App() {
   const ref = useRef<EnrichedTextInputInstance>(null);
@@ -15,6 +16,11 @@ export default function App() {
       <EnrichedTextInput
         ref={ref}
         style={styles.input}
+        // The `htmlStyle` here is only there to make the rendered
+        // input match these docs' color palette, so don't worry
+        // about it here. If you want to learn more, see the
+        // "Styling the input" section.
+        htmlStyle={htmlStyle}
         placeholder="Type something here..."
         onChangeState={e => setState(e.nativeEvent)}
       />

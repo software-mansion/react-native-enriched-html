@@ -5,6 +5,7 @@ import type {
 } from 'react-native-enriched-html';
 import { useRef, useState } from 'react';
 import { View, StyleSheet, Pressable, Text } from 'react-native';
+import { htmlStyle } from './htmlStyle';
 
 // Detect "enriched://" URLs as links.
 const linkRegex = /enriched:\/\/\S+/g;
@@ -33,6 +34,7 @@ export default function App() {
       <EnrichedTextInput
         ref={ref}
         style={styles.input}
+        htmlStyle={htmlStyle}
         placeholder="Type enriched://home, or select text below..."
         linkRegex={linkRegex}
         onChangeSelection={e => setSelection(e.nativeEvent)}
