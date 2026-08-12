@@ -104,8 +104,8 @@ function buildState(
         editor.getAttributes('customStyle').foregroundColor ?? '',
       backgroundColor:
         editor.getAttributes('customStyle').backgroundColor ?? '',
-      fontSize: 0,
-      fontFamily: '',
+      fontSize: editor.getAttributes('customStyle').fontSize ?? 0,
+      fontFamily: editor.getAttributes('customStyle').fontFamily ?? '',
     },
   };
 }
@@ -125,7 +125,7 @@ function hashState(state: OnChangeStateEvent): string {
     })
     .join('');
 
-  return `${formatHash}|${state.alignment}|${state.customStyle.foregroundColor}|${state.customStyle.backgroundColor}`;
+  return `${formatHash}|${state.alignment}|${state.customStyle.foregroundColor}|${state.customStyle.backgroundColor}|${state.customStyle.fontSize}|${state.customStyle.fontFamily}`;
 }
 
 function getFormatHash(

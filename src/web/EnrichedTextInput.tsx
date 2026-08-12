@@ -425,6 +425,12 @@ export const EnrichedTextInput = ({
             ...('backgroundColor' in customStyle && {
               backgroundColor: normalizeColorValue(customStyle.backgroundColor),
             }),
+            ...('fontSize' in customStyle && {
+              fontSize: customStyle.fontSize,
+            }),
+            ...('fontFamily' in customStyle && {
+              fontFamily: customStyle.fontFamily,
+            }),
           })
         );
       },

@@ -599,6 +599,8 @@ function walkNode(node: Node, out: { buf: string }): void {
 
     const fg = htmlNode.style.color;
     const bg = htmlNode.style.backgroundColor;
+    const fontSize = htmlNode.style.fontSize;
+    const fontFamily = htmlNode.style.fontFamily;
 
     // build the preserved span if colors exist
     let spanOpen = '';
@@ -607,6 +609,8 @@ function walkNode(node: Node, out: { buf: string }): void {
 
     if (fg) styleParts.push(`color: ${fg}`);
     if (bg) styleParts.push(`background-color: ${bg}`);
+    if (fontSize) styleParts.push(`font-size: ${fontSize}`);
+    if (fontFamily) styleParts.push(`font-family: ${fontFamily}`);
 
     if (styleParts.length > 0) {
       spanOpen = `<span style="${styleParts.join('; ')}">`;
