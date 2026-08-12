@@ -265,7 +265,3 @@ style applied to any indicator without its own config.
 - Pass the HTML string as `children`, not as a `value` prop.
 - Sanitizing HTML is your responsibility. See
   [Core concepts](/fundamentals/core-concepts#html-is-the-source-of-truth).
-
-## Platform compatibility
-
-<PlatformCompatibility android ios web />
