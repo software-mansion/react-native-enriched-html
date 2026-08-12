@@ -1,0 +1,45 @@
+---
+sidebar_position: 6
+---
+
+import InteractiveExample from '@site/src/components/InteractiveExample';
+import TextAlignmentEditor from '@site/src/examples/TextAlignmentEditor';
+import TextAlignmentEditorSrc from '!!raw-loader!@site/src/examples/TextAlignmentEditor';
+
+# Text alignment
+
+Alignment controls how a paragraph's text sits within the input's width. It's a
+per-paragraph property - every paragraph the selection touches gets aligned - and
+you set it with the `setTextAlignment` ref method:
+
+```ts
+setTextAlignment(alignment: 'left' | 'center' | 'right' | 'justify' | 'auto')
+```
+
+The five values are:
+
+- **`left`**, **`center`**, **`right`** - align the text to that direction.
+- **`justify`** - stretch each line to fill the full width.
+- **`auto`** - reset to the system's natural alignment.
+
+:::note
+
+On Android, `justify` is not supported. Calling `setTextAlignment('justify')` results in natural alignment (the same as `auto`).
+
+:::
+Unlike the paragraph styles from [Basic styles](/rich-text-formatting/basic-styles),
+text alignment does not report its state with the `isActive` / `isConflicting` booleans in `onChangeState`. Instead it exposes `alignment` with its relevant string value.
+
+```tsx
+const [state, setState] = useState<OnChangeStateEvent | null>(null);
+
+// Highlight the button that matches the paragraph at the cursor.
+const isActive = state?.alignment === 'center';
+```
+
+## Try it out
+
+Type a paragraph or two, place the cursor on one, and try each alignment. The
+active button reflects `state.alignment` for the paragraph the cursor is in.
+
+<InteractiveExample src={TextAlignmentEditorSrc} component={TextAlignmentEditor} />
