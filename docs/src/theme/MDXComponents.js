@@ -1,4 +1,5 @@
 import MDXComponents from '@theme-original/MDXComponents';
+import Code from '@theme/CodeBlock';
 import Details from '@site/src/theme/MDXComponents/Details';
 import CollapsibleCode from '@site/src/components/CollapsibleCode';
 import InteractiveExample from '@site/src/components/InteractiveExample';
@@ -16,6 +17,7 @@ import { Badges } from '@swmansion/t-rex-ui';
 
 export default {
   ...MDXComponents,
+  code: Code,
   details: Details,
   CollapsibleCode,
   InteractiveExample,
