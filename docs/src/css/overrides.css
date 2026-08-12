@@ -88,6 +88,38 @@ table thead tr {
   margin-right: 1em;
 }
 
+/* Match the live (`jsx live`) code block playground to the look of the docs */
+[class*='playgroundContainer'] {
+  border: 1px solid var(--swm-border);
+  border-radius: var(--ifm-code-border-radius);
+  box-shadow: none;
+}
+
+[class*='playgroundHeader'],
+[class*='playgroundHeader']:first-of-type {
+  background-color: var(--swm-off-background) !important;
+  color: var(--ifm-color-content) !important;
+  text-transform: none !important;
+  font-weight: 500 !important;
+  letter-spacing: normal !important;
+  font-size: var(--ifm-code-font-size) !important;
+  padding: 0.5rem var(--ifm-pre-padding) !important;
+  border-bottom: 1px solid var(--swm-border);
+}
+
+[class*='playgroundEditor'] {
+  background-color: var(--swm-off-background) !important;
+}
+
+[class*='playgroundEditor'] pre {
+  border: none;
+}
+
+[class*='playgroundPreview'] {
+  background-color: var(--ifm-background-color);
+  border-top: 1px solid var(--swm-border);
+}
+
 .theme-doc-version-badge {
   color: var(--swm-version-badge);
   background: var(--swm-version-badge-background);
