@@ -157,7 +157,7 @@
     "projects": [
       {
         "displayName": "native",
-        "preset": "react-native",
+        "preset": "@react-native/jest-preset",
         "modulePathIgnorePatterns": [
           "<rootDir>/apps/example/node_modules",
           "<rootDir>/lib/"
