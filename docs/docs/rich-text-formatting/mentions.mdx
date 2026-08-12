@@ -16,7 +16,7 @@ styled text: it's a reference you can act on later.
 
 A mention begins with an **indicator** - a single character that tells the editor
 "a mention starts here". The set of recognized indicators is controlled by the
-`mentionIndicators` prop, which defaults to
+[`mentionIndicators`](/api-reference/enriched-text-input#mentionindicators) prop, which defaults to
 `['@']`:
 
 ```tsx
@@ -25,12 +25,12 @@ A mention begins with an **indicator** - a single character that tells the edito
 ```
 
 Typing one of these characters starts a mention. You can also start one
-programmatically with `startMention(indicator)`.
+programmatically with [`startMention(indicator)`](/api-reference/enriched-text-input#startmention).
 
 ## Inserting a mention with `setMention`
 
 Once a mention is being edited - the user has typed an indicator, or you've
-called `startMention` - you insert the finished mention with `setMention`:
+called `startMention` - you insert the finished mention with [`setMention`](/api-reference/enriched-text-input#setmention):
 
 ```ts
 setMention(
@@ -77,12 +77,12 @@ A real app watches what the user types after the
 indicator and shows a picker. Four events give you everything you need for
 that:
 
-- **`onStartMention`** fires when a mention starts - a good moment to open your suggestion list.
-- **`onChangeMention`** fires on every edit to the query, handing you the text
+- [**`onStartMention`**](/api-reference/enriched-text-input#onstartmention) fires when a mention starts - a good moment to open your suggestion list.
+- [**`onChangeMention`**](/api-reference/enriched-text-input#onchangemention) fires on every edit to the query, handing you the text
   typed after the indicator - use it to filter the list.
-- **`onEndMention`** fires when the mention stops being edited - the cursor
+- [**`onEndMention`**](/api-reference/enriched-text-input#onendmention) fires when the mention stops being edited - the cursor
   moved away, or the query was closed - so you can dismiss the list.
-- **`onMentionDetected`** fires when the cursor enters or leaves a created mention.
+- [**`onMentionDetected`**](/api-reference/enriched-text-input#onmentiondetected) fires when the cursor enters or leaves a created mention.
 
 You'd open the list on `onStartMention`, filter it on `onChangeMention`, and
 call `setMention` when the user picks someone. This example doesn't wire up any
@@ -91,7 +91,7 @@ of that; the full picker flow is covered end-to-end in the
 
 The read-only `EnrichedText` also emits an event you can use to handle user interaction:
 
-- **`onMentionPress`** fires when the user presses a mention.
+- [**`onMentionPress`**](/api-reference/enriched-text#onmentionpress) fires when the user presses a mention.
 
 :::caution
 

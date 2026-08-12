@@ -177,7 +177,8 @@ The color of the text selection highlight.
 ### `onLinkPress` {#onlinkpress}
 
 Called when the user presses a link element. Receives an `OnLinkPressEvent`
-containing the link's URL.
+containing the link's URL. See [Links](/rich-text-formatting/links) for more
+on how links are created and detected.
 
 ```ts
 interface OnLinkPressEvent {
@@ -193,7 +194,8 @@ interface OnLinkPressEvent {
 
 Called when the user presses a mention element. Receives an
 `OnMentionPressEvent` with the mention's text, indicator character, and custom
-attributes.
+attributes. See [Mentions](/rich-text-formatting/mentions) for more on how
+mentions are created.
 
 ```ts
 interface OnMentionPressEvent {

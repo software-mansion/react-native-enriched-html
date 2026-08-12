@@ -8,7 +8,7 @@ Since the input is [uncontrolled](/fundamentals/core-concepts#the-input-is-uncon
 events are how you observe it. You change content by calling ref methods; you
 react to changes by listening to the callbacks below.
 
-Full payload shapes of the available callbacks can be found in the `EnrichedTextInput` reference.
+Full payload shapes of the available callbacks can be found in the [`EnrichedTextInput`](/api-reference/enriched-text-input#props) reference.
 
 :::note
 
@@ -64,4 +64,4 @@ This is a heavy computational operation that might slow down your app's performa
 ## Keyboard and submission
 
 - **`onKeyPress`** - a key was pressed.
-- **`onSubmitEditing`** - the user pressed return/enter key. Fired when `submitBehavior` is set to either `submit` or `blurAndSubmit`.
+- **`onSubmitEditing`** - the user pressed return/enter key. Fired when [`submitBehavior`](/api-reference/enriched-text-input#submitbehavior) is set to either `submit` or `blurAndSubmit`.

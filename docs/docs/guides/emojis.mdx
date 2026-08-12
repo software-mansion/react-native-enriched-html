@@ -46,7 +46,7 @@ const q = query.replace(/:$/, '').toLowerCase();
 const suggestions = EMOJIS.filter(e => e.shortcode.startsWith(q));
 ```
 
-When the user picks, `setMention` inserts the glyph as the mention's display
+When the user picks, [`setMention`](/api-reference/enriched-text-input#setmention) inserts the glyph as the mention's display
 text. The `data-shortcode` makes a handy attribute if you ever need to reconstruct it:
 
 ```tsx
