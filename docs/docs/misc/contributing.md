@@ -74,7 +74,7 @@ dependencies - install CocoaPods dependencies:
 
 ```sh
 cd apps/example/ios
-bundle install && bundle exec pod install
+pod install
 ```
 
 :::
