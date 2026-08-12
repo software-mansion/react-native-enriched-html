@@ -25,7 +25,7 @@ no longer holds and the link naturally breaks.
 ### Customizing detection
 
 You control what counts as a link with the
-`linkRegex` prop. Pass your own `RegExp`
+[`linkRegex`](/api-reference/enriched-text-input#linkregex) prop. Pass your own `RegExp`
 to recognize custom patterns - for example, only `https://` URLs or a custom
 scheme that detects URLs like `enriched://home`:
 
@@ -62,7 +62,7 @@ lookbehinds, for instance, won't work.
 ## Manual links
 
 Manual links are applied explicitly with the
-`setLink` ref method:
+[`setLink`](/api-reference/enriched-text-input#setlink) ref method:
 
 ```ts
 setLink(start: number, end: number, text: string, url: string)
@@ -111,7 +111,7 @@ applying the link.
 :::tip
 
 To strip a link while keeping its text,
-you can call `removeLink(start, end)`.
+you can call [`removeLink(start, end)`](/api-reference/enriched-text-input#removelink).
 
 :::
 
@@ -120,7 +120,7 @@ you can call `removeLink(start, end)`.
 If you are using links with custom URL schemes, e.g. `custom://`, the `linkRegex` used
 for auto-detection might not be enough. On web the built-in sanitization
 will strip your `href` attributes. To prevent this, you also need
-to use `sanitizationConfig` to whitelist your custom scheme.
+to use [`sanitizationConfig`](/api-reference/enriched-text-input#sanitizationconfig) to whitelist your custom scheme.
 
 :::
 
@@ -135,13 +135,13 @@ while editing an autolinked token breaks it.
 
 ## Handling links with events
 
-There are two events that allows you to handle user interaction with links, one in each component.
+There are two events that allow you to handle user interaction with links, one in each component.
 
 In `EnrichedTextInput`:
-- **`onLinkDetected`** fires when the cursor enters or leaves a created link.
+- [**`onLinkDetected`**](/api-reference/enriched-text-input#onlinkdetected) fires when the cursor enters or leaves a created link.
 
 In `EnrichedText`:
-- **`onLinkPress`** fires when the user presses a link.
+- [**`onLinkPress`**](/api-reference/enriched-text#onlinkpress) fires when the user presses a link.
 
 :::info
 

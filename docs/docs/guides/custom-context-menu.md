@@ -4,7 +4,7 @@ sidebar_position: 3
 
 # Custom context menu
 
-The `contextMenuItems` prop lets you add your own actions to the native
+The [`contextMenuItems`](/api-reference/enriched-text-input#contextmenuitems) prop lets you add your own actions to the native
 text-selection menu - the popover that e.g. shows **Copy / Paste / Cut** when the
 user long-presses selected text.
 

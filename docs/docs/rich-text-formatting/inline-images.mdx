@@ -12,7 +12,7 @@ Aside from just styled text, the library offers much more. This includes inline 
 
 ## Inserting an image
 
-You can insert it explicitly with the `setImage` ref method:
+You can insert it explicitly with the [`setImage`](/api-reference/enriched-text-input#setimage) ref method:
 
 ```ts
 setImage(src: string, width: number, height: number)
@@ -55,7 +55,7 @@ than a crash.
 :::info
 
 Images can also arrive by pasting rather than through `setImage` - the editor
-surfaces those through the `onPasteImages` event, which hands you each image's URI,
+surfaces those through the [`onPasteImages`](/api-reference/enriched-text-input#onpasteimages) event, which hands you each image's URI,
 MIME type, and dimensions so you can upload or resize before inserting.
 
 :::
