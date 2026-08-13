@@ -83,10 +83,6 @@ const config = {
   organizationName: 'software-mansion',
   projectName: 'react-native-enriched-html',
 
-  // TODO: remove once the site is ready for public traffic. Until then,
-  // keep the deploy hidden from search engines.
-  noIndex: true,
-
   onBrokenLinks: 'throw',
   onBrokenAnchors: 'throw',
   markdown: {
