@@ -600,7 +600,7 @@ function walkNode(node: Node, out: { buf: string }): void {
     const fg = htmlNode.style.color;
     const bg = htmlNode.style.backgroundColor;
     const fontSize = htmlNode.style.fontSize;
-    const fontFamily = htmlNode.style.fontFamily;
+    const fontFamily = escapeText(htmlNode.style.fontFamily);
 
     // build the preserved span if colors exist
     let spanOpen = '';

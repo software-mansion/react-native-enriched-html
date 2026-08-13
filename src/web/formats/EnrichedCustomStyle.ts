@@ -1,4 +1,5 @@
 import { Mark } from '@tiptap/core';
+import type { Attrs } from '@tiptap/pm/model';
 
 type CustomStyleAttrs = {
   foregroundColor?: string | null;
@@ -173,7 +174,7 @@ export const EnrichedCustomStyle = Mark.create({
           }
 
           const mergeAttrs = (
-            existing: { [key: string]: any } | undefined
+            existing: Attrs | undefined
           ): Required<CustomStyleAttrs> => ({
             foregroundColor: existing?.foregroundColor || null,
             backgroundColor: existing?.backgroundColor || null,
