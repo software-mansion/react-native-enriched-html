@@ -8,7 +8,9 @@ The [`contextMenuItems`](/api-reference/enriched-text-input#contextmenuitems) pr
 text-selection menu - the popover that e.g. shows **Copy / Paste / Cut** when the
 user long-presses selected text.
 
-![Demo of the context menu feature](/assets/context-menu-demo.webp)
+<video autoPlay loop muted playsInline width="100%" style={{ borderRadius: '8px' }}>
+  <source src={require('../../static/assets/context-menu-demo.mp4').default} type="video/mp4" />
+</video>
 
 :::info
 
