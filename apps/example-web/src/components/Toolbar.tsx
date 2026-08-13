@@ -23,7 +23,22 @@ const COLORS = [
   '#ADD8E6',
 ];
 
-type OpenPicker = 'text-color' | 'bg-color' | null;
+const FONT_SIZES = [12, 16, 20, 24, 28, 32, 36, 40];
+
+const FONT_FAMILIES = [
+  { label: 'Sans', value: 'Arial' },
+  { label: 'Serif', value: 'Georgia' },
+  { label: 'Mono', value: 'Courier New' },
+  { label: 'System', value: 'system-ui' },
+  { label: 'Cursive', value: 'cursive' },
+] as const;
+
+type OpenPicker =
+  | 'text-color'
+  | 'bg-color'
+  | 'font-size'
+  | 'font-family'
+  | null;
 
 interface ToolbarProps {
   editorRef: RefObject<EnrichedTextInputInstance | null>;
@@ -84,6 +99,11 @@ export function Toolbar({
 
   const activeFgColor = s?.customStyle.foregroundColor ?? '';
   const activeBgColor = s?.customStyle.backgroundColor ?? '';
+  const activeFontSize = s?.customStyle.fontSize ?? 0;
+  const activeFontFamily = s?.customStyle.fontFamily ?? '';
+  const activeFontFamilyLabel =
+    FONT_FAMILIES.find((family) => family.value === activeFontFamily)?.label ??
+    '';
 
   const handleSelectFgColor = (color: string) => {
     editorRef.current?.setStyle({ foregroundColor: color });
@@ -99,6 +119,22 @@ export function Toolbar({
   };
   const handleClearBgColor = () => {
     editorRef.current?.setStyle({ backgroundColor: null });
+    setOpenPicker(null);
+  };
+  const handleSelectFontSize = (size: number) => {
+    editorRef.current?.setStyle({ fontSize: size });
+    setOpenPicker(null);
+  };
+  const handleClearFontSize = () => {
+    editorRef.current?.setStyle({ fontSize: null });
+    setOpenPicker(null);
+  };
+  const handleSelectFontFamily = (family: string) => {
+    editorRef.current?.setStyle({ fontFamily: family });
+    setOpenPicker(null);
+  };
+  const handleClearFontFamily = () => {
+    editorRef.current?.setStyle({ fontFamily: null });
     setOpenPicker(null);
   };
 
@@ -332,10 +368,52 @@ export function Toolbar({
               }}
             />
           </button>
+          <button
+            type="button"
+            data-testid="toolbar-font-size"
+            className={`toolbar-btn toolbar-color-btn${
+              openPicker === 'font-size' || activeFontSize > 0
+                ? ' toolbar-btn--active'
+                : ''
+            }`}
+            onPointerDown={(e) => {
+              if (e.pointerType === 'mouse') e.preventDefault();
+            }}
+            onClick={() => {
+              setOpenPicker((prev) =>
+                prev === 'font-size' ? null : 'font-size'
+              );
+            }}
+          >
+            <span className="toolbar-color-label">
+              {activeFontSize > 0 ? String(activeFontSize) : 'Aa'}
+            </span>
+          </button>
+          <button
+            type="button"
+            data-testid="toolbar-font-family"
+            className={`toolbar-btn toolbar-color-btn${
+              openPicker === 'font-family' || activeFontFamily.length > 0
+                ? ' toolbar-btn--active'
+                : ''
+            }`}
+            onPointerDown={(e) => {
+              if (e.pointerType === 'mouse') e.preventDefault();
+            }}
+            onClick={() => {
+              setOpenPicker((prev) =>
+                prev === 'font-family' ? null : 'font-family'
+              );
+            }}
+          >
+            <span className="toolbar-color-label">
+              {activeFontFamilyLabel || 'Ff'}
+            </span>
+          </button>
         </div>
         <div className="toolbar-fill" aria-hidden="true" />
       </div>
-      {openPicker !== null && (
+      {(openPicker === 'text-color' || openPicker === 'bg-color') && (
         <div className="toolbar-color-picker">
           <button
             type="button"
@@ -373,6 +451,73 @@ export function Toolbar({
               />
             );
           })}
+        </div>
+      )}
+      {openPicker === 'font-size' && (
+        <div className="toolbar-font-picker">
+          <button
+            type="button"
+            data-testid="font-size-clear"
+            className="toolbar-font-option toolbar-font-option--clear"
+            onPointerDown={(e) => {
+              if (e.pointerType === 'mouse') e.preventDefault();
+            }}
+            onClick={handleClearFontSize}
+          >
+            ✕
+          </button>
+          {FONT_SIZES.map((size) => (
+            <button
+              key={size}
+              type="button"
+              data-testid={`font-size-${String(size)}`}
+              className={`toolbar-font-option${
+                size === activeFontSize ? ' toolbar-font-option--active' : ''
+              }`}
+              onPointerDown={(e) => {
+                if (e.pointerType === 'mouse') e.preventDefault();
+              }}
+              onClick={() => {
+                handleSelectFontSize(size);
+              }}
+            >
+              {size}
+            </button>
+          ))}
+        </div>
+      )}
+      {openPicker === 'font-family' && (
+        <div className="toolbar-font-picker">
+          <button
+            type="button"
+            data-testid="font-family-clear"
+            className="toolbar-font-option toolbar-font-option--clear"
+            onPointerDown={(e) => {
+              if (e.pointerType === 'mouse') e.preventDefault();
+            }}
+            onClick={handleClearFontFamily}
+          >
+            ✕
+          </button>
+          {FONT_FAMILIES.map(({ label, value }) => (
+            <button
+              key={value}
+              type="button"
+              data-testid={`font-family-${value}`}
+              className={`toolbar-font-option${
+                value === activeFontFamily ? ' toolbar-font-option--active' : ''
+              }`}
+              style={{ fontFamily: value }}
+              onPointerDown={(e) => {
+                if (e.pointerType === 'mouse') e.preventDefault();
+              }}
+              onClick={() => {
+                handleSelectFontFamily(value);
+              }}
+            >
+              {label}
+            </button>
+          ))}
         </div>
       )}
     </div>

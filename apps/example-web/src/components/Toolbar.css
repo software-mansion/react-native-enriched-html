@@ -139,3 +139,50 @@
 .toolbar-color-swatch:focus-visible {
   outline: none;
 }
+
+.toolbar-font-picker {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding: 8px;
+  gap: 8px;
+  background: rgba(0, 26, 114, 0.95);
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.toolbar-font-option {
+  min-width: 36px;
+  height: 28px;
+  padding: 0 8px;
+  border: 2px solid transparent;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.toolbar-font-option--clear {
+  width: 28px;
+  min-width: 28px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-color: rgba(255, 255, 255, 0.4);
+  background: transparent;
+}
+
+.toolbar-font-option--active {
+  background: rgb(0, 26, 114);
+  border-color: #fff;
+}
+
+.toolbar-font-option:focus-visible {
+  outline: none;
+}
