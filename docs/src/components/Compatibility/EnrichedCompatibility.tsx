@@ -9,6 +9,7 @@ const REACT_NATIVE_VERSIONS = [
   '0.84',
   '0.85',
   '0.86',
+  '0.87',
 ];
 
 const LIBRARY_VERSIONS = [
