@@ -491,7 +491,12 @@ static void emit_attributes(GumboElement *el, const char *tag_name,
   if (strcmp(tag_name, "a") == 0) {
     emit_one_attr(out, el, "href");
   } else if (strcmp(tag_name, "img") == 0) {
-    emit_one_attr(out, el, "src");
+    const char *src_val = get_attr(el, "src");
+    if (src_val && src_val[0]) {
+      emit_one_attr(out, el, "src");
+    } else {
+      buffer_append_str(out, " src=\"\"");
+    }
     emit_one_attr(out, el, "alt");
     emit_one_attr(out, el, "width");
     emit_one_attr(out, el, "height");

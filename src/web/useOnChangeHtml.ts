@@ -6,10 +6,10 @@ import { normalizeHtmlFromTiptap } from './normalization/tiptapHtmlNormalizer';
 
 export const useOnChangeHtml = (
   editor: Editor,
-  onChangeHtml?: (e: NativeSyntheticEvent<OnChangeHtmlEvent>) => void,
-  sanitizationConfig?: SanitizationConfig
+  getSanitizationConfig: () => SanitizationConfig | undefined,
+  onChangeHtml?: (e: NativeSyntheticEvent<OnChangeHtmlEvent>) => void
 ) => {
   useOnEditorChange(editor, onChangeHtml, (e) =>
-    normalizeHtmlFromTiptap(e.getHTML(), sanitizationConfig)
+    normalizeHtmlFromTiptap(e.getHTML(), getSanitizationConfig)
   );
 };

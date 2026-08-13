@@ -22,8 +22,9 @@ export function prepareHtmlForTiptap(
 
 export function normalizeHtmlFromTiptap(
   html: string,
-  sanitizationConfig?: SanitizationConfig
+  getSanitizationConfig: () => SanitizationConfig | undefined
 ): string {
+  const sanitizationConfig = getSanitizationConfig();
   html = sanitizeHtml(html, sanitizationConfig);
   html = checkboxHtmlFromTiptap(html);
 

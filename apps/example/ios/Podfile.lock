@@ -1845,7 +1845,7 @@ PODS:
     - React-utils (= 0.86.0)
     - ReactNativeDependencies
   - ReactNativeDependencies (0.86.0)
-  - ReactNativeEnrichedHtml (1.0.1):
+  - ReactNativeEnrichedHtml (1.1.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2108,7 +2108,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   FBLazyVector: b3e7ad108f0d882e30445c5527d774e3fd432f3d
-  hermes-engine: 03c4f027614fa33388949bb373cbf7a4892b8e5f
+  hermes-engine: 78997c9592858f3aeaacad4f0062cd700ba8dda2
   RCTDeprecation: 2a74a2c57675e64419bd89078efde81f7c1de90b
   RCTRequired: 30451112e6fef4e6f31b4e7eee0845156e35e4b0
   RCTSwiftUI: 5aaf0b07e747ba749dc6acc94d8bd41eea4b570f
@@ -2182,7 +2182,7 @@ SPEC CHECKSUMS:
   ReactCodegen: ee39bbc365b4791c9b5183b52c533ebf586e1d8d
   ReactCommon: 4d01bfb533b93a2103329dfefc74db6a9e272888
   ReactNativeDependencies: fa0a54b3f5319ae0e3b9aff32bfee7a424b88e66
-  ReactNativeEnrichedHtml: dd0ab1af4d67d0727eba649dc4524bffb0b417d3
+  ReactNativeEnrichedHtml: 2905798b4a734822d13c6b46f49ad69834358923
   Yoga: fe50ab299e578f397fef753cf309c6703a4db29b
 
 PODFILE CHECKSUM: 88c10840d02e9884b2dc3f457d5120f83ac3803b

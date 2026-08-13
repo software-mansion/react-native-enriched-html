@@ -23,6 +23,7 @@ import { useEllipsizeMode } from './ellipsizeMode/useEllipsizeMode';
 import { adaptWebToNativeEvent } from './adaptWebToNativeEvent';
 import { useStableRef } from './useStableRef';
 import { assertBrowserEnvironment } from './assertBrowserEnvironment';
+import { useOrderedListMarkerWidth } from './useOrderedListMarkerWidth';
 
 export const EnrichedText = memo(
   ({
@@ -122,6 +123,8 @@ export const EnrichedText = memo(
 
     const onLinkPressRef = useStableRef(onLinkPress);
     const onMentionPressRef = useStableRef(onMentionPress);
+
+    useOrderedListMarkerWidth(containerRef, finalHtml);
 
     useImageErrorFallback(containerRef);
     usePressInteractions(containerRef, onLinkPressRef, onMentionPressRef);
