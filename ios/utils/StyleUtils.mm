@@ -230,10 +230,9 @@
   NSMutableArray<NSNumber *> *resultArray =
       [[NSMutableArray<NSNumber *> alloc] init];
 
-  // there might be a case where the given `range` doesn't have the
-  // present conflicting style, but it is present in typing attributes,
-  // so we run `detect:range` for good measure, as it analyzes typing
-  // attributes unlike `any:range`
+  // There might be a case where the given `range` doesn't have a conflicting
+  // style, but it is present in typing attributes. In that case, run `detect:`
+  // for good measure, since it considers typing attributes (unlike `any:`).
   NSRange selectedRange = host.textView.selectedRange;
   BOOL caretWithinRange = range.length >= 1 && selectedRange.length == 0 &&
                           selectedRange.location >= range.location &&
