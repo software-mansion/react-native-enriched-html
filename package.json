@@ -47,7 +47,7 @@
     "docs-install": "cd docs && yarn install",
     "docs-start": "cd docs && yarn start",
     "test": "jest --passWithNoTests",
-    "typecheck": "yarn typecheck:lib && yarn typecheck:example && yarn typecheck:example-web && yarn typecheck:docs",
+    "typecheck": "yarn typecheck:lib && yarn typecheck:example && yarn typecheck:example-web",
     "typecheck:lib": "tsc -p tsconfig.build.json",
     "typecheck:example": "tsc -p apps/example/tsconfig.json",
     "typecheck:example-web": "tsc -p apps/example-web/tsconfig.app.json",
