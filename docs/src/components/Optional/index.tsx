@@ -5,6 +5,6 @@ interface Props {
   footnote?: boolean;
 }
 
-export default function Optional({ footnote }) {
+export default function Optional({ footnote }: Props) {
   return <div className={styles.badge}>Optional{footnote ? '*' : ''}</div>;
 }

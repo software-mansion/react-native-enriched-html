@@ -1,12 +1,14 @@
 {
-  "extends": "../tsconfig.base.json",
+  "extends": "@docusaurus/tsconfig",
   "compilerOptions": {
     "baseUrl": ".",
+    "strict": true,
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "paths": {
       "@site/*": ["./*"],
       "react-native-enriched-html": ["../src/index.tsx"]
-    },
+    }
   },
-  "exclude": [".docusaurus", "build"],
-  "include": ["src/examples"]
+  "include": ["src"],
+  "exclude": [".docusaurus", "build"]
 }

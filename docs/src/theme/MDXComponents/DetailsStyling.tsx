@@ -3,13 +3,22 @@ import { useCollapsible, Collapsible } from '@docusaurus/theme-common';
 import clsx from 'clsx';
 import React from 'react';
 import { useRef, useState } from 'react';
+import type { ComponentProps, ReactElement, ReactNode } from 'react';
 
 import styles from './styles.module.css';
 import useIsBrowser from '@docusaurus/useIsBrowser';
 import ThemedImage from '@theme/ThemedImage';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 
-const DetailsStyling = ({ summary, children, ...props }): JSX.Element => {
+interface DetailsStylingProps extends ComponentProps<'details'> {
+  summary: ReactElement<{ children?: ReactNode }>;
+}
+
+const DetailsStyling = ({
+  summary,
+  children,
+  ...props
+}: DetailsStylingProps): ReactElement => {
   const isBrowser = useIsBrowser();
   const { collapsed, setCollapsed } = useCollapsible({
     initialState: !props.open,
@@ -72,7 +81,6 @@ const DetailsStyling = ({ summary, children, ...props }): JSX.Element => {
       <Collapsible
         lazy={false}
         collapsed={collapsed}
-        disableSSRStyle
         onCollapseTransitionEnd={newCollapsed => {
           setCollapsed(newCollapsed);
           setOpen(!newCollapsed);
