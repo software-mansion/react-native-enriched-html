@@ -47,7 +47,7 @@
 
 // determines the order in which the styles are applied
 - (NSInteger)stylePriority {
-  return 0;
+  return [self isParagraph] ? 0 : 2;
 }
 
 - (instancetype)initWithHost:(id<EnrichedViewHost>)host {

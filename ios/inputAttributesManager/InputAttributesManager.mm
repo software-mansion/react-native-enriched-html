@@ -61,14 +61,6 @@
   [_removedTypingAttributes removeAllObjects];
 }
 
-// Paragraph styles always go first, inline ones are ordered by their
-// stylePriority
-- (NSInteger)stylingOrderFor:(StyleBase *)style {
-  if (style == nullptr)
-    return NSIntegerMax;
-  return [style isParagraph] ? NSIntegerMin : [style stylePriority];
-}
-
 - (void)handleDirtyRangesStyling {
   // Filter out 0 length ranges for styling.
   NSPredicate *predicate = [NSPredicate
@@ -110,10 +102,8 @@
     NSArray *sortedStyleTypes = [presentStyles.allKeys
         sortedArrayWithOptions:NSSortStable
                usingComparator:^NSComparisonResult(NSNumber *a, NSNumber *b) {
-                 NSInteger aOrder =
-                     [self stylingOrderFor:_input->stylesDict[a]];
-                 NSInteger bOrder =
-                     [self stylingOrderFor:_input->stylesDict[b]];
+                 NSInteger aOrder = [_input->stylesDict[a] stylePriority];
+                 NSInteger bOrder = [_input->stylesDict[b] stylePriority];
                  if (aOrder == bOrder) {
                    return [a compare:b];
                  }
