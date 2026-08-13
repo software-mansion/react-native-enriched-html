@@ -1,0 +1,45 @@
+# Documentation
+
+## api-reference
+
+- [enriched-text-input](https://docs.swmansion.com/react-native-enriched-html/docs/api-reference/enriched-text-input)
+- [enriched-text](https://docs.swmansion.com/react-native-enriched-html/docs/api-reference/enriched-text)
+
+## core-functionalities
+
+- [handling-input-events](https://docs.swmansion.com/react-native-enriched-html/docs/core-functionalities/handling-input-events)
+- [rendering-rich-text](https://docs.swmansion.com/react-native-enriched-html/docs/core-functionalities/rendering-rich-text)
+- [styling-the-input](https://docs.swmansion.com/react-native-enriched-html/docs/core-functionalities/styling-the-input)
+- [web-support](https://docs.swmansion.com/react-native-enriched-html/docs/core-functionalities/web-support)
+
+## fundamentals
+
+- [core-concepts](https://docs.swmansion.com/react-native-enriched-html/docs/fundamentals/core-concepts)
+- [getting-started](https://docs.swmansion.com/react-native-enriched-html/docs/fundamentals/getting-started)
+- [html-format-and-supported-tags](https://docs.swmansion.com/react-native-enriched-html/docs/fundamentals/html-format-and-supported-tags)
+- [your-first-editor](https://docs.swmansion.com/react-native-enriched-html/docs/fundamentals/your-first-editor)
+
+## guides
+
+- [custom-context-menu](https://docs.swmansion.com/react-native-enriched-html/docs/guides/custom-context-menu)
+- [emojis](https://docs.swmansion.com/react-native-enriched-html/docs/guides/emojis)
+- [user-and-channel-mentions](https://docs.swmansion.com/react-native-enriched-html/docs/guides/user-and-channel-mentions)
+
+## misc
+
+- [comparison-with-other-libraries](https://docs.swmansion.com/react-native-enriched-html/docs/misc/comparison-with-other-libraries)
+- [compatibility](https://docs.swmansion.com/react-native-enriched-html/docs/misc/compatibility)
+- [contributing](https://docs.swmansion.com/react-native-enriched-html/docs/misc/contributing)
+- [known-limitations](https://docs.swmansion.com/react-native-enriched-html/docs/misc/known-limitations)
+- [roadmap](https://docs.swmansion.com/react-native-enriched-html/docs/misc/roadmap)
+
+## rich-text-formatting
+
+- [basic-styles](https://docs.swmansion.com/react-native-enriched-html/docs/rich-text-formatting/basic-styles)
+- [inline-images](https://docs.swmansion.com/react-native-enriched-html/docs/rich-text-formatting/inline-images)
+- [links](https://docs.swmansion.com/react-native-enriched-html/docs/rich-text-formatting/links)
+- [lists](https://docs.swmansion.com/react-native-enriched-html/docs/rich-text-formatting/lists)
+- [mentions](https://docs.swmansion.com/react-native-enriched-html/docs/rich-text-formatting/mentions)
+- [text-alignment](https://docs.swmansion.com/react-native-enriched-html/docs/rich-text-formatting/text-alignment)
+- [text-shortcuts](https://docs.swmansion.com/react-native-enriched-html/docs/rich-text-formatting/text-shortcuts)
+
