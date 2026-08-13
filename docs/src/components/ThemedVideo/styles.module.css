@@ -1,6 +1,6 @@
 .container {
-  display: 'flex';
-  margin: '16px 0';
+  display: flex;
+  margin: 16px 0;
 }
 
 .center {

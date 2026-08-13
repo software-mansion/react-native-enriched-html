@@ -55,7 +55,7 @@ table thead tr {
   height: 24px;
   width: 24px;
 
-  mask: url(/static/img/github.svg) no-repeat 100% 100%;
+  mask: url('../../static/img/github.svg') no-repeat 100% 100%;
   mask-size: cover;
   content: '';
 

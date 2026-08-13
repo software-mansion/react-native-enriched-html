@@ -17,7 +17,7 @@ const DetailsStyling = ({ summary, children, ...props }): JSX.Element => {
 
   const arrowIcon = {
     light: useBaseUrl('/img/Arrow.svg'),
-    dark: useBaseUrl('img/Arrow-dark.svg'),
+    dark: useBaseUrl('/img/Arrow-dark.svg'),
   };
 
   const detailsRef = useRef<HTMLDetailsElement>(null);

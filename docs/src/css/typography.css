@@ -1,24 +1,24 @@
 @font-face {
   font-family: 'Aeonik';
-  src: url('/static/fonts/Aeonik-Regular.otf') format('opentype');
+  src: url('../../static/fonts/Aeonik-Regular.otf') format('opentype');
   font-weight: 400;
 }
 
 @font-face {
   font-family: 'Aeonik';
-  src: url('/static/fonts/Aeonik-Medium.otf') format('opentype');
+  src: url('../../static/fonts/Aeonik-Medium.otf') format('opentype');
   font-weight: 500;
 }
 
 @font-face {
   font-family: 'Aeonik';
-  src: url('/static/fonts/Aeonik-Bold.otf') format('opentype');
+  src: url('../../static/fonts/Aeonik-Bold.otf') format('opentype');
   font-weight: 600;
 }
 
 @font-face {
   font-family: 'DM Mono';
-  src: url('/static/fonts/DMMono-Regular.ttf') format('truetype');
+  src: url('../../static/fonts/DMMono-Regular.ttf') format('truetype');
   font-weight: 400;
 }
 

@@ -1,3 +1,4 @@
+import type { BannerZone } from '@swmansion/t-rex-ui';
 
 export const TOP_BAR_BANNER = {
   rotateIntervalMs: 4000,
