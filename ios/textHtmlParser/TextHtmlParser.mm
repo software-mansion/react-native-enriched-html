@@ -154,16 +154,11 @@
   }
 
   // Respect the styling priority
-  NSArray *sortedInlineApply = [pendingInlineApply
-      sortedArrayWithOptions:NSSortStable
-             usingComparator:^NSComparisonResult(NSArray *a, NSArray *b) {
-               NSInteger aPriority = [((StyleBase *)a[0]) stylePriority];
-               NSInteger bPriority = [((StyleBase *)b[0]) stylePriority];
-               if (aPriority == bPriority)
-                 return NSOrderedSame;
-               return aPriority < bPriority ? NSOrderedAscending
-                                            : NSOrderedDescending;
-             }];
+  NSArray *sortedInlineApply =
+      [StyleUtils sortedArray:pendingInlineApply
+                    bySortKey:^NSInteger(NSArray *entry) {
+                      return [((StyleBase *)entry[0]) stylePriority];
+                    }];
 
   // Apply visual styling for inline styles
   for (NSArray *entry in sortedInlineApply) {

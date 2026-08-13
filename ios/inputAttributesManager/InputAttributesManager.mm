@@ -5,6 +5,7 @@
 #import "ParagraphAttributesUtils.h"
 #import "RangeUtils.h"
 #import "StyleHeaders.h"
+#import "StyleUtils.h"
 #import "ZeroWidthSpaceUtils.h"
 
 @implementation InputAttributesManager {
@@ -99,17 +100,11 @@
     // attributes (e.g. foreground color, font) are laid down before inline
     // styles override them on their specific sub-ranges. Inline styles among
     // themselves follow their stylePriority.
-    NSArray *sortedStyleTypes = [presentStyles.allKeys
-        sortedArrayWithOptions:NSSortStable
-               usingComparator:^NSComparisonResult(NSNumber *a, NSNumber *b) {
-                 NSInteger aOrder = [_input->stylesDict[a] stylePriority];
-                 NSInteger bOrder = [_input->stylesDict[b] stylePriority];
-                 if (aOrder == bOrder) {
-                   return [a compare:b];
-                 }
-                 return aOrder < bOrder ? NSOrderedAscending
-                                        : NSOrderedDescending;
-               }];
+    NSArray *sortedStyleTypes =
+        [StyleUtils sortedArray:presentStyles.allKeys
+                      bySortKey:^NSInteger(NSNumber *styleType) {
+                        return [_input->stylesDict[styleType] stylePriority];
+                      }];
 
     // re-apply meta-attributes and apply visual styling following the saved
     // occurences.

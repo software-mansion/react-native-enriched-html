@@ -287,4 +287,18 @@
   }
 }
 
++ (NSArray *)sortedArray:(NSArray *)array
+               bySortKey:(NSInteger (^)(id item))sortKeyForItem {
+  return [array sortedArrayWithOptions:NSSortStable
+                       usingComparator:^NSComparisonResult(id a, id b) {
+                         NSInteger aKey = sortKeyForItem(a);
+                         NSInteger bKey = sortKeyForItem(b);
+                         if (aKey == bKey) {
+                           return NSOrderedSame;
+                         }
+                         return aKey < bKey ? NSOrderedAscending
+                                            : NSOrderedDescending;
+                       }];
+}
+
 @end
