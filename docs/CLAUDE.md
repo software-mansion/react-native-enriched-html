@@ -34,8 +34,7 @@ highlighted code blocks, and Mermaid diagrams.
 ## Site configuration (`docusaurus.config.js`)
 
 - Version label: `presets` > `docs.versions.current.label` (now `1.x`).
-- `noIndex: true` and a blocking `static/robots.txt` keep the pre-launch
-  deploy out of search engines; remove both at launch.
+- `static/robots.txt` allows indexing and declares the generated sitemap.
 - Google Tag Manager is commented out in `plugins`; add a container id to
   enable analytics.
 - Algolia DocSearch credentials are placeholders. Apply for DocSearch only
