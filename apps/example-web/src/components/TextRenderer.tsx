@@ -13,7 +13,7 @@ import { WEB_DEFAULT_HTML_STYLE } from '../defaultHtmlStyle';
 import { EnrichedTextActions } from './EnrichedTextActions';
 
 const LINK_REGEX =
-  /^(?:enriched:\/\/\S+|(?:https?:\/\/)?(?:www\.)?swmansion\.com(?:\/\S*)?)$/i;
+  /^(?:enriched:\/\/\S+|(?:https?:\/\/)?(?:www\.)?swmansion\.com(?:\/\S*)?|https?:\/\/\S+)$/i;
 
 const SANITIZATION_CONFIG = {
   linkRegex: LINK_REGEX,
