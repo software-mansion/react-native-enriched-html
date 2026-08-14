@@ -138,15 +138,23 @@ export function setLink(
   text: string,
   url: string
 ) {
-  if (url.length === 0 || text.length === 0) {
-    return;
-  }
   const { state } = editor;
   const doc = state.doc;
   const from = nativePosToTiptapPos(doc, start);
   const to = nativePosToTiptapPos(doc, end);
 
   if (isRangeLinkBlocked(editor, from, to)) {
+    return;
+  }
+
+  if (text.length === 0) {
+    if (from !== to) {
+      editor.chain().focus().deleteRange({ from, to }).run();
+    }
+    return;
+  }
+
+  if (url.length === 0) {
     return;
   }
 
