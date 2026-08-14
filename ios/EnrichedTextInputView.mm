@@ -2000,10 +2000,11 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
     return NO;
   }
 
-  // To be sure, we re-run typingAttributes management right before the character
-  // actually lands. Sometimes, between a selection change and the next keystroke,
-  // typing attributes might get removed - this seems like a native TextKit issue.
-  if (range.length == 0 && text.length > 0) {
+  // To be sure, we re-run typingAttributes management right before the
+  // character actually lands. Sometimes, between a selection change and the
+  // next keystroke, typing attributes might get removed - this seems like a
+  // native TextKit issue.
+  if (textView.markedTextRange == nil && range.length == 0 && text.length > 0) {
     [attributesManager repeatRecentTypingAttributesManagement];
   }
 
