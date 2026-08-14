@@ -1,6 +1,6 @@
 {
   "name": "react-native-enriched-html",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "HTML-based Rich Text solution for React Native",
   "source": "./src/index.tsx",
   "main": "./lib/module/index.js",
@@ -44,11 +44,14 @@
   "scripts": {
     "example": "yarn workspace react-native-enriched-example",
     "example-web": "yarn workspace react-native-enriched-web-example",
+    "docs-install": "cd docs && yarn install",
+    "docs-start": "cd docs && yarn start",
     "test": "jest --passWithNoTests",
     "typecheck": "yarn typecheck:lib && yarn typecheck:example && yarn typecheck:example-web",
     "typecheck:lib": "tsc -p tsconfig.build.json",
     "typecheck:example": "tsc -p apps/example/tsconfig.json",
     "typecheck:example-web": "tsc -p apps/example-web/tsconfig.app.json",
+    "typecheck:docs": "tsc -p docs/tsconfig.json",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "lint:android": "cd apps/example/android && ./gradlew lintVerify",
     "lint:android:fix": "cd apps/example/android && ./gradlew lintFormat",
