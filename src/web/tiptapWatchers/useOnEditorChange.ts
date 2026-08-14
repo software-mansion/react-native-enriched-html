@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { type Editor } from '@tiptap/react';
 import type { NativeSyntheticEvent } from 'react-native';
-import { adaptWebToNativeEvent } from './adaptWebToNativeEvent';
+import { adaptWebToNativeEvent } from '../nativeMappers/adaptWebToNativeEvent';
 
 export const useOnEditorChange = <T extends { value: string }>(
   editor: Editor,

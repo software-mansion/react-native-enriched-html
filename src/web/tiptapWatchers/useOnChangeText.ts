@@ -1,7 +1,7 @@
 import { type Editor } from '@tiptap/react';
-import type { OnChangeTextEvent } from '../types';
+import type { OnChangeTextEvent } from '../../types';
 import type { NativeSyntheticEvent } from 'react-native';
-import { nativeLeafText } from './positionMapping';
+import { nativeLeafText } from '../nativeMappers/positionMapping';
 import { useOnEditorChange } from './useOnEditorChange';
 
 export const useOnChangeText = (
