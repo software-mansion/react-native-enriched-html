@@ -333,6 +333,21 @@ function App() {
         Push Text
       </button>
 
+      <button
+        className="btn btn-full"
+        onClick={() => {
+          if (!selection) return;
+          ref.current?.setLink(
+            selection.start,
+            selection.end,
+            '',
+            'swmansion.com'
+          );
+        }}
+      >
+        setLink(text="")
+      </button>
+
       {showHtmlOutput && <HtmlOutputPanel html={currentHtml} />}
 
       <TextRenderer htmlValue={enrichedTextValue} />
