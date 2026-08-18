@@ -52,7 +52,7 @@ export default function App() {
     setQuery(text);
 
     if (text.endsWith(':')) {
-      const strippedQuery = text.slice(0, text.length - 1);
+      const strippedQuery = text.slice(0, text.length - 1).toLowerCase();
       const autoChosenEmoji = EMOJIS.find(
         emoji => emoji.shortcode === strippedQuery
       );
