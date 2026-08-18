@@ -118,16 +118,20 @@ const htmlStyle: HtmlStyle = {
 };
 
 const styles = StyleSheet.create({
-  container: { gap: 8 },
+  container: { position: 'relative' },
   input: {
     fontSize: 18,
     color: '#232736',
     padding: 12,
+    marginBottom: 192,
     borderRadius: 12,
     minHeight: 96,
     backgroundColor: '#eef0ff',
   },
   picker: {
+    position: 'absolute',
+    top: 110,
+    width: '100%',
     borderWidth: 1,
     borderColor: '#dfe3f5',
     borderRadius: 12,
