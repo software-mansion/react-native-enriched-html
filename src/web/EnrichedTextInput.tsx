@@ -397,11 +397,13 @@ export const EnrichedTextInput = ({
       toggleCheckboxList: (checked: boolean) =>
         runFocused(editor, (c) => c.toggleCheckboxList(checked)),
       setLink: (start: number, end: number, text: string, url: string) =>
-        setLink(editor, start, end, text, url),
+        runSafelyInEditor(editor, (e) => setLink(e, start, end, text, url)),
       removeLink: (start: number, end: number) =>
-        removeLink(editor, start, end),
+        runSafelyInEditor(editor, (e) => removeLink(e, start, end)),
       startMention: (indicator: string) => {
-        startMention(editor, indicator, mentionIndicatorsRef.current);
+        runSafelyInEditor(editor, (e) =>
+          startMention(e, indicator, mentionIndicatorsRef.current)
+        );
       },
       setMention: (
         indicator: string,
@@ -409,11 +411,8 @@ export const EnrichedTextInput = ({
         attributes?: Record<string, string>
       ) => {
         checkMentionAttributes(attributes);
-        setMention(
-          editor,
-          indicator,
-          text,
-          sanitizeMentionAttributes(attributes)
+        runSafelyInEditor(editor, (e) =>
+          setMention(e, indicator, text, sanitizeMentionAttributes(attributes))
         );
       },
       setImage: (src: string, width: number, height: number) =>
