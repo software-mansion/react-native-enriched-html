@@ -88,11 +88,15 @@ import {
 } from './sanitization/htmlSanitizer';
 import { assertBrowserEnvironment } from './utils/assertBrowserEnvironment';
 
+function runSafelyInEditor(editor: Editor | null, toRun: () => void) {
+  !!editor && !editor.isDestroyed && toRun();
+}
+
 function runFocused(
   editor: Editor,
   apply: (chain: ChainedCommands) => ChainedCommands
 ) {
-  apply(editor.chain().focus()).run();
+  runSafelyInEditor(editor, () => apply(editor.chain().focus()).run());
 }
 
 export const EnrichedTextInput = ({
@@ -180,7 +184,9 @@ export const EnrichedTextInput = ({
       const text = nativeLeafText(doc, 0, doc.content.size);
       onSubmitEditingRef.current?.(adaptWebToNativeEvent(event, { text }));
       if (sb === 'blurAndSubmit') {
-        editorInstanceRef.current?.commands.blur();
+        runSafelyInEditor(editorInstanceRef.current, () =>
+          editorInstanceRef.current?.commands.blur()
+        );
       }
       return true;
     }
@@ -259,7 +265,9 @@ export const EnrichedTextInput = ({
       autofocus: autoFocus,
       onCreate: ({ editor: _editor }) => {
         // Setting initial content in this way ensures all custom plugins are run and applied
-        _editor.commands.setContent(tiptapContent ?? '');
+        runSafelyInEditor(_editor, () =>
+          _editor.commands.setContent(tiptapContent ?? '')
+        );
       },
       onFocus: ({ event }) => {
         onFocus?.(adaptWebToNativeEvent(event, { target: -1 }));
@@ -319,7 +327,9 @@ export const EnrichedTextInput = ({
   }, [editor, returnKeyType]);
 
   useEffect(() => {
-    editor?.commands.normalizeBoldInStyledHeadings();
+    runSafelyInEditor(editor, () =>
+      editor?.commands.normalizeBoldInStyledHeadings()
+    );
   }, [editor, resolvedHtmlStyle]);
 
   const getMentionCallbacks = useCallback(
@@ -336,14 +346,16 @@ export const EnrichedTextInput = ({
   useImperativeHandle(
     ref,
     (): EnrichedTextInputInstance => ({
-      focus: () => editor.commands.focus(),
-      blur: () => editor.commands.blur(),
+      focus: () => runSafelyInEditor(editor, () => editor.commands.focus()),
+      blur: () => runSafelyInEditor(editor, () => editor.commands.blur()),
       setValue: (value: string) =>
-        editor.commands.setContent(
-          prepareHtmlForTiptap(
-            value,
-            useHtmlNormalizerRef.current,
-            sanitizationConfigRef.current
+        runSafelyInEditor(editor, () =>
+          editor.commands.setContent(
+            prepareHtmlForTiptap(
+              value,
+              useHtmlNormalizerRef.current,
+              sanitizationConfigRef.current
+            )
           )
         ),
       setSelection: (start, end) => {
