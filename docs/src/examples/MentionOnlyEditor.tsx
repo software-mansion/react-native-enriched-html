@@ -70,7 +70,7 @@ export default function App() {
   };
 
   return (
-    <View style={styles.container}>
+    <View>
       <EnrichedTextInput
         ref={ref}
         style={styles.input}
@@ -118,7 +118,6 @@ const htmlStyle: HtmlStyle = {
 };
 
 const styles = StyleSheet.create({
-  container: { position: 'relative' },
   input: {
     fontSize: 18,
     color: '#232736',
@@ -130,7 +129,8 @@ const styles = StyleSheet.create({
   },
   picker: {
     position: 'absolute',
-    top: 110,
+    top: '100%',
+    marginTop: -176,
     width: '100%',
     borderWidth: 1,
     borderColor: '#dfe3f5',
