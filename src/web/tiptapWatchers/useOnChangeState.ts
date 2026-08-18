@@ -1,14 +1,14 @@
 import { useEffect, useRef } from 'react';
 import { type Editor } from '@tiptap/react';
-import type { OnChangeStateEvent } from '../types';
+import type { OnChangeStateEvent } from '../../types';
 import type { NativeSyntheticEvent } from 'react-native';
-import { adaptWebToNativeEvent } from './adaptWebToNativeEvent';
+import { adaptWebToNativeEvent } from '../nativeMappers/adaptWebToNativeEvent';
 import {
   getCurrentAlignment,
   isAnyParagraphFormatActive,
   isFormatBlocked,
-} from './formats/formatRules';
-import type { HtmlStyle } from '../types';
+} from '../formats/formatRules';
+import type { HtmlStyle } from '../../types';
 
 export const useOnChangeState = (
   editor: Editor | null,
