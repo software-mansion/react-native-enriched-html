@@ -88,15 +88,21 @@ import {
 } from './sanitization/htmlSanitizer';
 import { assertBrowserEnvironment } from './utils/assertBrowserEnvironment';
 
-function runSafelyInEditor(editor: Editor | null, toRun: () => void) {
-  !!editor && !editor.isDestroyed && toRun();
+function runSafelyInEditor<T>(
+  editor: Editor | null,
+  toRun: (editor: Editor) => T
+): T | null {
+  if (editor && !editor.isDestroyed) {
+    return toRun(editor);
+  }
+  return null;
 }
 
 function runFocused(
   editor: Editor,
   apply: (chain: ChainedCommands) => ChainedCommands
 ) {
-  runSafelyInEditor(editor, () => apply(editor.chain().focus()).run());
+  runSafelyInEditor(editor, (e) => apply(e.chain().focus()).run());
 }
 
 export const EnrichedTextInput = ({
@@ -184,9 +190,7 @@ export const EnrichedTextInput = ({
       const text = nativeLeafText(doc, 0, doc.content.size);
       onSubmitEditingRef.current?.(adaptWebToNativeEvent(event, { text }));
       if (sb === 'blurAndSubmit') {
-        runSafelyInEditor(editorInstanceRef.current, () =>
-          editorInstanceRef.current?.commands.blur()
-        );
+        runSafelyInEditor(editorInstanceRef.current, (e) => e.commands.blur());
       }
       return true;
     }
@@ -265,8 +269,8 @@ export const EnrichedTextInput = ({
       autofocus: autoFocus,
       onCreate: ({ editor: _editor }) => {
         // Setting initial content in this way ensures all custom plugins are run and applied
-        runSafelyInEditor(_editor, () =>
-          _editor.commands.setContent(tiptapContent ?? '')
+        runSafelyInEditor(_editor, (e) =>
+          e.commands.setContent(tiptapContent ?? '')
         );
       },
       onFocus: ({ event }) => {
@@ -327,8 +331,8 @@ export const EnrichedTextInput = ({
   }, [editor, returnKeyType]);
 
   useEffect(() => {
-    runSafelyInEditor(editor, () =>
-      editor?.commands.normalizeBoldInStyledHeadings()
+    runSafelyInEditor(editor, (e) =>
+      e.commands.normalizeBoldInStyledHeadings()
     );
   }, [editor, resolvedHtmlStyle]);
 
@@ -346,11 +350,11 @@ export const EnrichedTextInput = ({
   useImperativeHandle(
     ref,
     (): EnrichedTextInputInstance => ({
-      focus: () => runSafelyInEditor(editor, () => editor.commands.focus()),
-      blur: () => runSafelyInEditor(editor, () => editor.commands.blur()),
+      focus: () => runSafelyInEditor(editor, (e) => e.commands.focus()),
+      blur: () => runSafelyInEditor(editor, (e) => e.commands.blur()),
       setValue: (value: string) =>
-        runSafelyInEditor(editor, () =>
-          editor.commands.setContent(
+        runSafelyInEditor(editor, (e) =>
+          e.commands.setContent(
             prepareHtmlForTiptap(
               value,
               useHtmlNormalizerRef.current,
