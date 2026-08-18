@@ -90,10 +90,10 @@ import { assertBrowserEnvironment } from './utils/assertBrowserEnvironment';
 
 function runSafelyInEditor<T>(
   editor: Editor | null,
-  toRun: (editor: Editor) => T
+  callback: (editor: Editor) => T
 ): T | null {
   if (editor && !editor.isDestroyed) {
-    return toRun(editor);
+    return callback(editor);
   }
   return null;
 }
