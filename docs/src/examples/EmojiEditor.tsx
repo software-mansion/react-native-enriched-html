@@ -32,9 +32,9 @@ export default function App() {
 
   const suggestions = useMemo(() => {
     if (!open) return [];
-    // A trailing ":" (as in ":smile:") is part of the query - drop it.
-    const q = query.replace(/:$/, '').toLowerCase();
-    return EMOJIS.filter(emoji => emoji.shortcode.startsWith(q));
+    return EMOJIS.filter(emoji =>
+      emoji.shortcode.startsWith(query.toLowerCase())
+    );
   }, [open, query]);
 
   const openPicker = () => {
@@ -50,6 +50,16 @@ export default function App() {
   const updateQuery = ({ text }: OnChangeMentionEvent) => {
     setOpen(true);
     setQuery(text);
+
+    if (text.endsWith(':')) {
+      const strippedQuery = text.slice(0, text.length - 1);
+      const autoChosenEmoji = EMOJIS.find(
+        emoji => emoji.shortcode === strippedQuery
+      );
+      if (autoChosenEmoji) {
+        pick(autoChosenEmoji);
+      }
+    }
   };
 
   const pick = (emoji: Emoji) => {
