@@ -40,7 +40,6 @@ interface EnrichedTextInputProps extends Omit<ViewProps, 'children'> {
   editable?: boolean;
   mentionIndicators?: string[];
   defaultValue?: string;
-  maxLength?: number;
   placeholder?: string;
   placeholderTextColor?: ColorValue;
   cursorColor?: ColorValue;
@@ -230,22 +229,6 @@ Pass `null` to disable link detection completely.
 
 Links might get stripped if sanitization is not configured properly.
 For details, see [sanitization](/core-functionalities/web-support).
-
-:::
-
-### `maxLength` {#maxlength}
-
-Maximum number of characters the input's plain text may contain.
-
-Typing past the limit is rejected (extra characters are ignored). Multi-character insertions (dictation, IME composition, paste, and programmatic APIs like `defaultValue`/`setValue()`) are truncated to what fits.
-
-| Type     | Default Value | Platform          |
-| -------- | ------------- | ----------------- |
-| `number` | no limit      | iOS, Android, Web |
-
-:::note
-
-Programmatic insertions respect the limit too - e.g. `setLink()`, `setMention()`, `setImage()`.
 
 :::
 
