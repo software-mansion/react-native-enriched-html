@@ -575,8 +575,8 @@ a visible effect; unsupported values are silently ignored and fall back to
 ### `sanitizationConfig` {#sanitizationconfig}
 
 Web-only configuration for the HTML sanitization step, which runs on every HTML
-entry and exit point — `defaultValue`, `.setValue()`, `.insertValue()`, pasted
-HTML, `.getHTML()`, and [`onChangeHtml`](#onchangehtml).
+entry and exit point — `defaultValue`, `.setValue()`, pasted HTML, `.getHTML()`,
+and [`onChangeHtml`](#onchangehtml).
 
 ```ts
 interface SanitizationConfig {
@@ -743,9 +743,9 @@ Pass an empty array to disable all shortcuts.
 ### `useHtmlNormalizer` {#usehtmlnormalizer}
 
 If `true`, external HTML pasted or inserted into the input (for example from
-Google Docs, Word, or web pages, or via [`.insertValue()`](#insertvalue)) is
-normalized into the canonical tag subset that the enriched parser understands.
-See [Normalization](/fundamentals/core-concepts#normalization).
+Google Docs, Word, or web pages) is normalized into the canonical tag subset
+that the enriched parser understands. See
+[Normalization](/fundamentals/core-concepts#normalization).
 
 | Type      | Default | Platforms         |
 | --------- | ------- | ----------------- |
@@ -806,36 +806,6 @@ getHTML: () => Promise<string>;
 Returns a Promise that resolves with the current HTML content of the input.
 Useful when you need the HTML on demand (for example when saving) without the
 performance overhead of continuous parsing via `onChangeHtml`.
-
-### `.insertValue()`
-
-```ts
-insertValue: (value: string, start: number, end: number) => void;
-```
-
-Inserts (or replaces) content at the visible character range `[start, end)`.
-
-- `value: string` - the content to insert. Can be a plain text string or an HTML
-  string (for example `<html><h2>Hello</h2></html>`).
-- `start: number` - starting index of the range to replace (inclusive). If
-  `start` equals `end`, the content is inserted at that position without
-  replacing anything.
-- `end: number` - ending index of the range to replace (exclusive).
-
-Plain text inherits active inline styles at the insertion point (the same
-styles that would apply if the user typed there). When the editor is empty,
-`insertValue` behaves like [`setValue`](#setvalue).
-
-:::note
-
-Style rules apply to inserted content: if the target style is **blocked** by
-another currently active style (for example bold inside a code block), the
-incoming style is stripped. If the incoming content brings a style that
-**conflicts** with an existing one, the existing conflicting style is removed.
-See [Supported tags](/fundamentals/html-format-and-supported-tags) for the full
-conflict and blocking rules.
-
-:::
 
 ### `.setImage()`
 
