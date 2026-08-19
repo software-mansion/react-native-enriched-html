@@ -25,4 +25,5 @@ export type {
   OnMentionPressEvent,
   OnLinkPressEvent,
   TextShortcut,
+  OnImagePressEvent,
 } from './types';

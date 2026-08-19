@@ -785,6 +785,21 @@ Class<RCTComponentViewProtocol> EnrichedTextViewCls(void) {
   }
 }
 
+- (void)emitOnImagePressEvent:(MediaAttachment *)attachment {
+  if (!attachment)
+    return;
+  auto emitter = [self getEventEmitter];
+  if (emitter != nullptr) {
+    emitter->onImagePress(
+        {.image = {
+             .uri =
+                 attachment.uri ? [attachment.uri toCppString] : std::string{},
+             .width = attachment.width,
+             .height = attachment.height,
+         }});
+  }
+}
+
 // MARK: - Media attachments delegate
 
 - (void)mediaAttachmentDidUpdate:(MediaAttachment *)attachment {

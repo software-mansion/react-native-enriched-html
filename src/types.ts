@@ -869,6 +869,9 @@ export interface EnrichedTextProps extends ViewProps {
 
   /** Called when the user taps a mention node inside the rendered content. */
   onMentionPress?: (event: OnMentionPressEvent) => void;
+
+  /** Called when the user taps an inline image inside the rendered content. */
+  onImagePress?: (event: OnImagePressEvent) => void;
 }
 
 export interface EnrichedTextMentionStyleProperties extends MentionStyleProperties {
@@ -896,4 +899,12 @@ export interface OnMentionPressEvent {
   text: string;
   indicator: string;
   attributes: Record<string, string>;
+}
+
+export interface OnImagePressEvent {
+  image: {
+    uri: string;
+    width: number;
+    height: number;
+  };
 }
