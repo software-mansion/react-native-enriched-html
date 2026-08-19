@@ -1,5 +1,5 @@
 import type { RefObject } from 'react';
-import type { OnLinkDetected } from '../types';
+import type { OnLinkDetected } from '../../types';
 
 export interface LinkEmitterState {
   linkRegex?: RegExp | null;
