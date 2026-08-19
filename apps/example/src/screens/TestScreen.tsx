@@ -114,6 +114,14 @@ export function TestScreen({
             testID="set-value-button"
           />
           <Button
+            title="Insert Value"
+            onPress={editor.openInsertValueModal}
+            style={styles.rowButton}
+            testID="insert-value-button"
+          />
+        </View>
+        <View style={styles.buttonRow}>
+          <Button
             title="Dev Screen"
             onPress={onSwitch}
             style={styles.rowButton}
@@ -152,6 +160,12 @@ export function TestScreen({
         isOpen={editor.isValueModalOpen}
         onSubmit={editor.submitSetValue}
         onClose={editor.closeValueModal}
+      />
+      <ValueModal
+        avoidKeyboard
+        isOpen={editor.isInsertValueModalOpen}
+        onSubmit={editor.submitInsertValue}
+        onClose={editor.closeInsertValueModal}
       />
       <MentionPopup
         variant="user"
