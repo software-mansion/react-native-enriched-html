@@ -1,5 +1,5 @@
 import { useEffect, type RefObject } from 'react';
-import type { OnLinkPressEvent, OnMentionPressEvent } from '../types';
+import type { OnLinkPressEvent, OnMentionPressEvent } from '../../types';
 
 type OnLinkPressEventRef = RefObject<
   ((event: OnLinkPressEvent) => void) | undefined

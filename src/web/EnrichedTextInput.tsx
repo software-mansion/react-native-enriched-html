@@ -13,12 +13,12 @@ import type {
   EnrichedTextInputInstance,
   EnrichedTextInputProps,
 } from '../types';
-import { adaptWebToNativeEvent } from './adaptWebToNativeEvent';
+import { adaptWebToNativeEvent } from './nativeMappers/adaptWebToNativeEvent';
 import {
   tiptapPosToNativePos,
   nativePosToTiptapPos,
   nativeLeafText,
-} from './positionMapping';
+} from './nativeMappers/positionMapping';
 import {
   useEditor,
   EditorContent,
@@ -30,11 +30,11 @@ import Paragraph from '@tiptap/extension-paragraph';
 import Text from '@tiptap/extension-text';
 import History from '@tiptap/extension-history';
 import { Placeholder } from '@tiptap/extensions/placeholder';
-import { useOnChangeHtml } from './useOnChangeHtml';
-import { useOnChangeText } from './useOnChangeText';
-import { useOnChangeState } from './useOnChangeState';
-import { useOnLinkDetected } from './useOnLinkDetected';
-import type { LinkEmitterState } from './emitLinkDetected';
+import { useOnChangeHtml } from './tiptapWatchers/useOnChangeHtml';
+import { useOnChangeText } from './tiptapWatchers/useOnChangeText';
+import { useOnChangeState } from './tiptapWatchers/useOnChangeState';
+import { useOnLinkDetected } from './tiptapWatchers/useOnLinkDetected';
+import type { LinkEmitterState } from './tiptapWatchers/emitLinkDetected';
 import {
   prepareHtmlForTiptap,
   normalizeHtmlFromTiptap,
@@ -69,7 +69,7 @@ import { StrictMarksPlugin } from './pmPlugins/StrictMarksPlugin';
 import { MergeAdjacentSameKindBlocksPlugin } from './pmPlugins/MergeAdjacentSameKindBlocksPlugin';
 import { OrderedListMarkerWidthPlugin } from './pmPlugins/OrderedListMarkerWidthPlugin';
 import { StripMarksInCodeBlockPlugin } from './pmPlugins/StripMarksInCodeBlockPlugin';
-import { handleClipboardPasteImages } from './pasteImages';
+import { handleClipboardPasteImages } from './utils/pasteImages';
 import {
   MentionPlugin,
   setMention,
@@ -79,15 +79,15 @@ import {
 import { StripMarksOnImagePlugin } from './pmPlugins/StripMarksOnImagePlugin';
 import { ShortcutPlugin } from './pmPlugins/ShortcutPlugin';
 import { TextShortcutsPlugin } from './pmPlugins/TextShortcutsPlugin';
-import { returnKeyTypeToEnterKeyHint } from './returnKeyTypeToEnterKeyHint';
+import { returnKeyTypeToEnterKeyHint } from './nativeMappers/returnKeyTypeToEnterKeyHint';
 import { ENRICHED_TEXT_INPUT_CLASSNAME } from './constants/classNames';
 import { AutolinkPlugin } from './pmPlugins/AutolinkPlugin';
-import { useStableRef } from './useStableRef';
+import { useStableRef } from './utils/useStableRef';
 import {
   checkMentionAttributes,
   sanitizeMentionAttributes,
 } from './sanitization/htmlSanitizer';
-import { assertBrowserEnvironment } from './assertBrowserEnvironment';
+import { assertBrowserEnvironment } from './utils/assertBrowserEnvironment';
 
 function runFocused(
   editor: Editor,
