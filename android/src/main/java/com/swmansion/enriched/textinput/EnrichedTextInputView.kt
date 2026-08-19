@@ -1006,14 +1006,18 @@ class EnrichedTextInputView :
   }
 
   fun deleteAtSelection() {
-    runAsATransaction {
+    val inputConnection = onCreateInputConnection(EditorInfo())
+
+    if (inputConnection != null) {
       val start = selectionStart.coerceAtLeast(0)
       val end = selectionEnd.coerceAtLeast(0)
 
       if (start != end) {
-        text?.delete(start, end)
-      } else if (start > 0) {
-        text?.delete(start - 1, start)
+        // If we have selection - delete it
+        inputConnection.commitText("", 1)
+      } else {
+        // If we don't have selection - delete previous character
+        inputConnection.deleteSurroundingText(1, 0)
       }
     }
   }

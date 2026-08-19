@@ -1338,19 +1338,24 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
 }
 
 - (void)deleteAtSelection {
-  UITextRange *selectedRange = textView.selectedTextRange;
+  NSRange range = textView.selectedRange;
 
-  if (selectedRange == nil) {
-    return;
+  // Checking if there is anything to delete
+  if (range.location > 0 || range.length > 0) {
+    // If we have no selection - we want to manually set range
+    // to cover the character before the caret
+    if (range.length == 0) {
+      range.location -= 1;
+      range.length = 1;
+    }
+
+    // This imitates delete button on keyboard press
+    if ([textView.delegate textView:textView
+            shouldChangeTextInRange:range
+                    replacementText:@""]) {
+      [textView deleteBackward];
+    }
   }
-
-  if (selectedRange.empty) {
-    [self.textView deleteBackward];
-  } else {
-    [self.textView replaceRange:selectedRange withText:@""];
-  }
-
-  [self anyTextMayHaveBeenModified];
 }
 
 - (void)setCustomSelection:(NSInteger)visibleStart end:(NSInteger)visibleEnd {
