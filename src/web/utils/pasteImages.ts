@@ -5,9 +5,9 @@
 import type { Editor } from '@tiptap/react';
 import type { NativeSyntheticEvent } from 'react-native';
 
-import type { OnPasteImagesEvent } from '../types';
-import { adaptWebToNativeEvent } from './adaptWebToNativeEvent';
-import { isImageBlocked } from './formats/formatRules';
+import type { OnPasteImagesEvent } from '../../types';
+import { adaptWebToNativeEvent } from '../nativeMappers/adaptWebToNativeEvent';
+import { isImageBlocked } from '../formats/formatRules';
 import { readImageDimensionsFromBlob } from './pastedImageDimensions';
 
 const isImageLikeClipboardFile = (file: File, reportedMime: string) =>

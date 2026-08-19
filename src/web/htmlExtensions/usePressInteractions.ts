@@ -3,7 +3,7 @@ import type {
   OnLinkPressEvent,
   OnMentionPressEvent,
   OnImagePressEvent,
-} from '../types';
+} from '../../types';
 
 type OnLinkPressEventRef = RefObject<
   ((event: OnLinkPressEvent) => void) | undefined
