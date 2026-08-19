@@ -438,7 +438,7 @@ typedef struct {
       // the trigger may have consumed the whole paragraph (e.g. an empty
       // editor); don't let the empty-text reset wipe the alignment we just
       // set on the typing attributes. This is an issue only with alignment
-      // shortcuts, as alignment doesn't use ZWS, which makes e.g. headins
+      // shortcuts, as alignment doesn't use ZWS, which makes e.g. headings
       // survive the empty-text typing attributes reset
       input->preserveTypingAttributesOnNextEmptyCheck = YES;
       return YES;
