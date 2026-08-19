@@ -137,6 +137,7 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   _recentlyEmittedHtml = @"<html>\n<p></p>\n</html>";
   _emitHtml = NO;
   blockEmitting = NO;
+  preserveTypingAttributesOnNextEmptyCheck = NO;
   _emitFocusBlur = YES;
   _emitTextChange = NO;
   dotReplacementRange = nullptr;
@@ -1673,10 +1674,12 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
 
   // emptying input typing attributes management
   if (textView.textStorage.string.length == 0 &&
-      _recentInputString.length > 0) {
+      _recentInputString.length > 0 &&
+      !preserveTypingAttributesOnNextEmptyCheck) {
     // reset typing attribtues
     textView.typingAttributes = defaultTypingAttributes;
   }
+  preserveTypingAttributesOnNextEmptyCheck = NO;
 
   // mentions management: removal and editing
   MentionStyle *mentionStyleClass =
