@@ -1,4 +1,4 @@
-import { returnKeyTypeToEnterKeyHint } from '../returnKeyTypeToEnterKeyHint';
+import { returnKeyTypeToEnterKeyHint } from '../nativeMappers/returnKeyTypeToEnterKeyHint';
 
 describe('returnKeyTypeToEnterKeyHint', () => {
   test.each([
