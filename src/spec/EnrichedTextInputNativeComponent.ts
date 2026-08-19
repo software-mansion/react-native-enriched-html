@@ -5,6 +5,7 @@ import type {
   Float,
   Int32,
   UnsafeMixed,
+  WithDefault,
 } from 'react-native/Libraries/Types/CodegenTypes';
 import type { ColorValue, HostComponent, ViewProps } from 'react-native';
 import React from 'react';
@@ -377,6 +378,7 @@ export interface NativeProps extends ViewProps {
   returnKeyLabel?: string;
   submitBehavior?: string;
   allowFontScaling?: boolean;
+  maxLength?: WithDefault<Int32, -1>;
 
   // event callbacks
   onInputFocus?: DirectEventHandler<TargetedEvent>;
