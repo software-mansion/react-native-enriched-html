@@ -2,7 +2,10 @@ import Link, { type LinkOptions } from '@tiptap/extension-link';
 import { mergeAttributes, type CommandProps } from '@tiptap/core';
 import type { Editor } from '@tiptap/react';
 
-import { nativeLeafText, nativePosToTiptapPos } from '../positionMapping';
+import {
+  nativeLeafText,
+  nativePosToTiptapPos,
+} from '../nativeMappers/positionMapping';
 import { isLinkBlocked } from './formatRules';
 import { findAutolinkRangesInWord } from '../pmPlugins/AutolinkPlugin/autolinkRegex';
 
