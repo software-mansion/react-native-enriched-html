@@ -7,8 +7,11 @@ import {
   applyMarksToContent,
   isPlainEmptyDoc,
 } from './insertBlockContent';
-import { nativePosToTiptapPos, nativeLeafText } from './positionMapping';
-import { prepareHtmlForTiptap } from './normalization/tiptapHtmlNormalizer';
+import {
+  nativeLeafText,
+  nativePosToTiptapPos,
+} from '../nativeMappers/positionMapping';
+import { prepareHtmlForTiptap } from '../normalization/tiptapHtmlNormalizer';
 
 export function insertValue(
   editor: Editor,

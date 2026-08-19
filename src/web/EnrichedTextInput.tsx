@@ -8,7 +8,7 @@ import {
 } from 'react';
 import './EnrichedText.css';
 import type { Node } from '@tiptap/pm/model';
-import { insertValue } from './insertValue';
+import { insertValue } from './utils/insertValue';
 import type {
   EnrichedTextInputInstance,
   EnrichedTextInputProps,

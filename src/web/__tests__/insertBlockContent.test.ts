@@ -21,9 +21,12 @@ import { EnrichedOrderedList } from '../formats/EnrichedOrderedList';
 import { EnrichedCheckboxItem } from '../formats/EnrichedCheckboxItem';
 import { EnrichedCheckboxList } from '../formats/EnrichedCheckboxList';
 import { EnrichedTextAlign } from '../formats/EnrichedTextAlign';
-import { insertBlockContent, isPlainEmptyDoc } from '../insertBlockContent';
+import {
+  insertBlockContent,
+  isPlainEmptyDoc,
+} from '../utils/insertBlockContent';
 import { prepareHtmlForTiptap } from '../normalization/tiptapHtmlNormalizer';
-import { nativePosToTiptapPos } from '../positionMapping';
+import { nativePosToTiptapPos } from '../nativeMappers/positionMapping';
 
 const schema = getSchema([
   Document,
