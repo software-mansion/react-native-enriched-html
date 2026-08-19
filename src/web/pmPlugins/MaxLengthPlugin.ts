@@ -2,7 +2,7 @@ import { Extension } from '@tiptap/core';
 import type { Node as PMNode } from '@tiptap/pm/model';
 import { Plugin, PluginKey, type Transaction } from '@tiptap/pm/state';
 import { Mapping } from '@tiptap/pm/transform';
-import { nativeLeafText } from '../positionMapping';
+import { nativeLeafText } from '../nativeMappers/positionMapping';
 
 interface MaxLengthPluginOptions {
   getMaxLength: () => number | undefined;
