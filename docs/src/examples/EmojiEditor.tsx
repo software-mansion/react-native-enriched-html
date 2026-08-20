@@ -32,9 +32,9 @@ export default function App() {
 
   const suggestions = useMemo(() => {
     if (!open) return [];
-    // A trailing ":" (as in ":smile:") is part of the query - drop it.
-    const q = query.replace(/:$/, '').toLowerCase();
-    return EMOJIS.filter(emoji => emoji.shortcode.startsWith(q));
+    return EMOJIS.filter(emoji =>
+      emoji.shortcode.startsWith(query.toLowerCase())
+    );
   }, [open, query]);
 
   const openPicker = () => {
@@ -50,6 +50,16 @@ export default function App() {
   const updateQuery = ({ text }: OnChangeMentionEvent) => {
     setOpen(true);
     setQuery(text);
+
+    if (text.endsWith(':')) {
+      const strippedQuery = text.slice(0, text.length - 1).toLowerCase();
+      const autoChosenEmoji = EMOJIS.find(
+        emoji => emoji.shortcode === strippedQuery
+      );
+      if (autoChosenEmoji) {
+        pick(autoChosenEmoji);
+      }
+    }
   };
 
   const pick = (emoji: Emoji) => {
@@ -61,7 +71,7 @@ export default function App() {
   };
 
   return (
-    <View style={styles.container}>
+    <View>
       <EnrichedTextInput
         ref={ref}
         style={styles.input}
@@ -102,16 +112,20 @@ const htmlStyle: HtmlStyle = {
 };
 
 const styles = StyleSheet.create({
-  container: { gap: 8 },
   input: {
     fontSize: 18,
     color: '#232736',
     padding: 12,
+    marginBottom: 186,
     borderRadius: 12,
     minHeight: 96,
     backgroundColor: '#eef0ff',
   },
   picker: {
+    position: 'absolute',
+    top: '100%',
+    marginTop: -170,
+    width: '100%',
     borderWidth: 1,
     borderColor: '#dfe3f5',
     borderRadius: 12,
