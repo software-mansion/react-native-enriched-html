@@ -62,6 +62,10 @@
 }
 
 - (void)handleDirtyRangesStyling {
+  // snapshot edited ranges (including 0-length ones) before filtering, so
+  // we can use them when recalculating adjacent ordered lists
+  NSArray<NSValue *> *editedRangesForListRecalc = [_dirtyRanges copy];
+
   // Filter out 0 length ranges for styling.
   NSPredicate *predicate = [NSPredicate
       predicateWithBlock:^BOOL(NSValue *evaluatedObject, NSDictionary *_) {
@@ -122,6 +126,16 @@
       }
     }
   }
+  // refresh ordered lists adjacent to any edit
+  OrderedListStyle *orderedListStyle =
+      (OrderedListStyle *)_input->stylesDict[@([OrderedListStyle getType])];
+  if (orderedListStyle != nil) {
+    for (NSValue *rangeObj in editedRangesForListRecalc) {
+      [orderedListStyle
+          recalculateListsAroundEditedRange:[rangeObj rangeValue]];
+    }
+  }
+
   // do the typing attributes management, with no selection
   [self manageTypingAttributesWithOnlySelection:NO];
 
