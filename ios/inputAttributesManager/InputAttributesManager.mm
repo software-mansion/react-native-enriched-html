@@ -128,6 +128,22 @@
   [_dirtyRanges removeAllObjects];
 }
 
+- (void)restoreInlineStylesPresentInRange:(NSRange)range
+                                intoAttrs:(NSMutableDictionary *)attrs {
+  for (StyleBase *style in _input->stylesDict.allValues) {
+    if ([style isParagraph])
+      continue;
+    if ([_removedTypingAttributes containsObject:[style getKey]])
+      continue;
+
+    AttributeEntry *entry = [style getEntryIfPresent:range];
+    if (entry == nullptr)
+      continue;
+
+    attrs[entry.key] = entry.value;
+  }
+}
+
 - (void)manageTypingAttributesWithOnlySelection:(BOOL)onlySelectionChanged {
   EnrichedInputTextView *textView = _input->textView;
   NSRange selectedRange = textView.selectedRange;
@@ -152,6 +168,16 @@
 
       [ParagraphAttributesUtils resetTypingAttributes:_input
                                   preservingAlignment:savedAlignment];
+
+      // newlines could have been made within a valid inline style, so
+      // we want to preserve typingAttributes so they are correctly
+      // acknowledged when typing
+      if (paragraphRange.length == 1) {
+        NSMutableDictionary *newAttrs = [textView.typingAttributes mutableCopy];
+        [self restoreInlineStylesPresentInRange:paragraphRange
+                                      intoAttrs:newAttrs];
+        textView.typingAttributes = newAttrs;
+      }
       return;
     }
   }
@@ -188,23 +214,10 @@
   // getEntryIfPresent properly returns nullptr for styles that we don't want to
   // extend this way. Attributes from _removedTypingAttributes aren't added
   // because they were just removed.
-  for (StyleBase *style in _input->stylesDict.allValues) {
-    if ([style isParagraph])
-      continue;
-    if ([_removedTypingAttributes containsObject:[style getKey]])
-      continue;
-
-    AttributeEntry *entry = nullptr;
-
-    if (selectedRange.location > 0) {
-      entry =
-          [style getEntryIfPresent:NSMakeRange(selectedRange.location - 1, 1)];
-    }
-
-    if (entry == nullptr)
-      continue;
-
-    newAttrs[entry.key] = entry.value;
+  if (selectedRange.location > 0) {
+    [self restoreInlineStylesPresentInRange:NSMakeRange(
+                                                selectedRange.location - 1, 1)
+                                  intoAttrs:newAttrs];
   }
 
   // Apply active styles to typing attributes only for styles that require it so
