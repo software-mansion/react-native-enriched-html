@@ -1,4 +1,4 @@
-import { assertBrowserEnvironment } from '../assertBrowserEnvironment';
+import { assertBrowserEnvironment } from '../utils/assertBrowserEnvironment';
 
 describe('assertBrowserEnvironment', () => {
   // jsdom provides a full DOM, so the browser APIs are present by default.
