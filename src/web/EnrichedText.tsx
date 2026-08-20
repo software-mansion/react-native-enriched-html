@@ -17,13 +17,13 @@ import { buildMentionRulesCSS } from './styleConversion/buildMentionRulesCSS';
 import { sanitizeHtml } from './sanitization/htmlSanitizer';
 import { prepareHtmlForWeb } from './normalization/prepareHtmlForWeb';
 import { INLINE_IMAGE_CSS_VARIABLES } from './styleConversion/inlineImageCSSVariables';
-import { useImageErrorFallback } from './useImageErrorFallback';
-import { usePressInteractions } from './usePressInteractions';
+import { useImageErrorFallback } from './htmlExtensions/useImageErrorFallback';
+import { usePressInteractions } from './htmlExtensions/usePressInteractions';
 import { useEllipsizeMode } from './ellipsizeMode/useEllipsizeMode';
-import { adaptWebToNativeEvent } from './adaptWebToNativeEvent';
-import { useStableRef } from './useStableRef';
-import { assertBrowserEnvironment } from './assertBrowserEnvironment';
-import { useOrderedListMarkerWidth } from './useOrderedListMarkerWidth';
+import { adaptWebToNativeEvent } from './nativeMappers/adaptWebToNativeEvent';
+import { useStableRef } from './utils/useStableRef';
+import { assertBrowserEnvironment } from './utils/assertBrowserEnvironment';
+import { useOrderedListMarkerWidth } from './htmlExtensions/useOrderedListMarkerWidth';
 
 export const EnrichedText = memo(
   ({
