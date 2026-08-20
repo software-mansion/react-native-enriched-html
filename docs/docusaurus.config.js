@@ -134,6 +134,8 @@ const config = {
   ],
 
   plugins: [
+
+    require('./plugins/swm-geo'),
     reactNativeWebPlugin,
     enrichedHtmlLocalSourcePlugin,
     function transpileTRexUiTheme() {
