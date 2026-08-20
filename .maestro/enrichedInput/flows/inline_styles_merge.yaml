@@ -16,7 +16,10 @@ appId: swmansion.enriched.example
 - tapOn:
     id: 'toolbar-underline'
 
-- inputText: 'First line'
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: 'First line'
 - pressKey: Enter
 
 - tapOn:
@@ -25,11 +28,14 @@ appId: swmansion.enriched.example
     id: 'toolbar-italic'
 - tapOn:
     id: 'toolbar-underline'
-- inputText: 'Second line'
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: 'Second line'
 
 - tapOn:
     id: 'editor-input'
-    point: '5%,75%'
+    point: '4%,75%'
 
 - pressKey: Backspace
 

@@ -13,12 +13,18 @@ appId: swmansion.enriched.example
 - tapOn:
     id: "link-modal-text-input"
 
-- inputText: ${LINK_TEXT}
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: ${LINK_TEXT}
 
 - tapOn:
     id: "link-modal-url-input"
 
-- inputText: ${LINK_URL}
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: ${LINK_URL}
 
 - tapOn:
     id: "link-modal-submit-button"

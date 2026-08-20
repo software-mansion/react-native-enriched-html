@@ -91,6 +91,7 @@ nitrogen/
 
 # Maestro screenshot diffs
 .maestro/**/*_diff.png
+reports/
 
 # Claude skills
 .claude/skills/*-internal.md

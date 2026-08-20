@@ -11,13 +11,22 @@ appId: swmansion.enriched.example
 
 - tapOn:
     id: "toolbar-checkbox-list"
-- inputText: "Item one"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "Item one"
 - pressKey: Enter
-- inputText: "Item two"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "Item two"
 - pressKey: Enter
 
 - pressKey: Backspace
-- inputText: "Plain text"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "Plain text"
 - pressKey: Enter
 
 - tapOn:

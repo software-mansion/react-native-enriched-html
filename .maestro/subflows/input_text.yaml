@@ -1,0 +1,16 @@
+appId: swmansion.enriched.example
+---
+
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - inputText:
+          text: ${TEXT}
+          keyPress: true
+
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - inputText: ${TEXT}

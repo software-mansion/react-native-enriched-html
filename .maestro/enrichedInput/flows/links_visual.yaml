@@ -7,14 +7,30 @@ appId: swmansion.enriched.example
     id: 'toggle-screen-button'
 
 - tapOn:
-    id: "editor-input"
+    id: 'editor-input'
 
 # autolinks break on text change or paste
-- inputText: 'swmansion.com'
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: 'swmansion.com'
 
-- doubleTapOn:
-    id: 'editor-input'
-    point: '20%, 50%'
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - doubleTapOn:
+          id: 'editor-input'
+          point: '20%, 50%'
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - longPressOn:
+          id: 'editor-input'
+          point: '20%, 50%'
+      - tapOn:
+          text: 'Select all'
 - tapOn:
     text: 'Copy'
 
@@ -28,15 +44,11 @@ appId: swmansion.enriched.example
     point: '50%, 70%'
 - tapOn:
     text: 'Paste'
-- inputText: 'm'
 
-- pressKey: Enter
-- inputText: 'swm'
-- longPressOn:
-    id: 'editor-input'
-    point: '50%, 75%'
-- tapOn:
-    text: 'Paste'
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: 'm'
 
 - runFlow:
     file: '../subflows/capture_or_assert_screenshot.yaml'
@@ -49,9 +61,22 @@ appId: swmansion.enriched.example
     env:
       VALUE: '<html><p><a href="example.com">example.com</a></p></html>'
 
-- doubleTapOn:
-    id: 'editor-input'
-    point: '20%, 50%'
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - doubleTapOn:
+          id: 'editor-input'
+          point: '20%, 50%'
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - longPressOn:
+          id: 'editor-input'
+          point: '20%, 50%'
+      - tapOn:
+          text: 'Select all'
 - tapOn:
     text: 'Copy'
 
