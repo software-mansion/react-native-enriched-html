@@ -42,7 +42,7 @@ jobs:
 
       - name: Check docs llms.txt
         run: |
-          file=docs/build/llms.txt
+          file=build/llms.txt
           if [ ! -s "$file" ]; then
             echo "::error::$file is missing or empty"
             exit 1
