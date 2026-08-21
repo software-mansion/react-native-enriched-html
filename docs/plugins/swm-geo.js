@@ -3,6 +3,22 @@ const path = require('node:path');
 
 const ORGANIZATION_ID = 'https://swmansion.com/#organization';
 const SECTIONS = { docs: 'Documentation', blog: 'Blog', examples: 'Examples' };
+const ACRONYMS = { api: 'API', ui: 'UI' };
+
+const titleCase = (segment) =>
+  segment
+    .split(/[-_]/)
+    .map((word) => ACRONYMS[word] ?? word.replace(/^./, (c) => c.toUpperCase()))
+    .join(' ');
+
+// With `routeBasePath: '/'` there is no `docs/` prefix to match, so group by
+// the folder the page lives in instead of dropping everything into `Pages`.
+const sectionOf = (relative) => {
+  const parts = relative.split('/').filter(Boolean);
+  if (SECTIONS[parts[0]]) return SECTIONS[parts[0]];
+  if (parts.length < 2) return 'Pages';
+  return titleCase(parts[0]);
+};
 
 const decode = (value) =>
   value
@@ -79,7 +95,7 @@ function buildLlmsTxt({ siteConfig, routesPaths, readPage }) {
     const page = describe(html, title);
     if (!page.title) continue;
 
-    const section = SECTIONS[relative.split('/')[0]] ?? 'Pages';
+    const section = sectionOf(relative);
     const line = `- [${page.title}](${url.replace(/\/$/, '')}${route})${page.description ? `: ${page.description}` : ''}`;
 
     if (!grouped.has(section)) grouped.set(section, []);
@@ -89,7 +105,16 @@ function buildLlmsTxt({ siteConfig, routesPaths, readPage }) {
   const lines = [`# ${title}`];
   if (tagline) lines.push('', `> ${tagline}`);
 
-  for (const section of ['Documentation', 'Examples', 'Blog', 'Pages']) {
+  const preferred = ['Documentation', 'Examples', 'Blog'];
+  const order = [
+    ...preferred.filter((section) => grouped.has(section)),
+    ...[...grouped.keys()]
+      .filter((section) => !preferred.includes(section) && section !== 'Pages')
+      .sort(),
+    ...(grouped.has('Pages') ? ['Pages'] : []),
+  ];
+
+  for (const section of order) {
     const entries = grouped.get(section);
     if (!entries?.length) continue;
     lines.push('', `## ${section}`, '', ...entries.sort());
@@ -116,7 +141,9 @@ module.exports = function swmGeoPlugin(context) {
           {
             tagName: 'script',
             attributes: { type: 'application/ld+json' },
-            innerHTML: JSON.stringify(buildStructuredData(context.siteConfig)),
+            innerHTML: JSON.stringify(
+              buildStructuredData(context.siteConfig),
+            ).replace(/</g, '\\u003c'),
           },
         ],
       };
