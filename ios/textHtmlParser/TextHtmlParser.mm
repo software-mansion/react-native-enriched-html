@@ -1,5 +1,6 @@
 #import "TextHtmlParser.h"
 #import "AlignmentEntry.h"
+#import "ArrayExtension.h"
 #import "EnrichedTextView.h"
 #import "HtmlParser.h"
 #import "LinkData.h"
@@ -155,10 +156,9 @@
 
   // Respect the styling priority
   NSArray *sortedInlineApply =
-      [StyleUtils sortedArray:pendingInlineApply
-                    bySortKey:^NSInteger(NSArray *entry) {
-                      return [((StyleBase *)entry[0]) stylePriority];
-                    }];
+      [pendingInlineApply sortedArrayBySortKey:^NSInteger(NSArray *entry) {
+        return [((StyleBase *)entry[0]) stylePriority];
+      }];
 
   // Apply visual styling for inline styles
   for (NSArray *entry in sortedInlineApply) {

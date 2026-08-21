@@ -30,7 +30,4 @@
 + (void)removeStyleConflict:(StyleType)conflicting
                        from:(StyleType)conflicted
                     forHost:(id<EnrichedViewHost>)host;
-
-+ (NSArray *)sortedArray:(NSArray *)array
-               bySortKey:(NSInteger (^)(id item))sortKeyForItem;
 @end
