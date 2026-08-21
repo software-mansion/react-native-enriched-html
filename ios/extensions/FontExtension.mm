@@ -1,4 +1,5 @@
 #import "FontExtension.h"
+#import <CoreText/CoreText.h>
 #import <React/RCTLog.h>
 
 @implementation UIFont (FontExtension)
@@ -67,6 +68,12 @@
         @"[EnrichedTextInput]: Couldn't apply heading style to the font.");
     return self;
   }
+}
+
+- (BOOL)coversCharacters:(const unichar *)chars count:(CFIndex)count {
+  CGGlyph glyphs[2] = {0, 0};
+  return CTFontGetGlyphsForCharacters((__bridge CTFontRef)self, chars, glyphs,
+                                      count);
 }
 
 @end
