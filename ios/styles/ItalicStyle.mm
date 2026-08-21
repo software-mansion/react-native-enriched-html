@@ -16,6 +16,8 @@ typedef NS_ENUM(NSInteger, ItalicKind) {
   ItalicKindOblique,
 };
 
+// contains all characters except whitespaces, newlines,
+// control characters and ZWS
 static NSCharacterSet *NonNeutralCharacters(void) {
   static NSCharacterSet *nonNeutral = nil;
   static dispatch_once_t onceToken;
@@ -23,7 +25,6 @@ static NSCharacterSet *NonNeutralCharacters(void) {
     NSMutableCharacterSet *set =
         [[NSCharacterSet whitespaceAndNewlineCharacterSet] mutableCopy];
     [set formUnionWithCharacterSet:[NSCharacterSet controlCharacterSet]];
-    // ZWS
     [set addCharactersInString:[NSString
                                    stringWithFormat:@"%C", (unichar)0x200B]];
     nonNeutral = [[set invertedSet] copy];
@@ -56,10 +57,6 @@ static BOOL FontCoversCharacters(UIFont *font, const unichar *chars,
   return NO;
 }
 
-- (void)applyStyling:(NSRange)range {
-  [self applyItalicInTextStorage:self.host.textView.textStorage inRange:range];
-}
-
 // some styles might apply a new font (inline code), so we need to apply
 // the italic last, that way we know if the used font supports italics
 // or we need to apply a slant
@@ -67,27 +64,27 @@ static BOOL FontCoversCharacters(UIFont *font, const unichar *chars,
   return 3;
 }
 
-- (void)applyItalicInTextStorage:(NSTextStorage *)textStorage
-                         inRange:(NSRange)range {
-  if (textStorage == nullptr || range.length == 0 ||
-      NSMaxRange(range) > textStorage.length) {
+- (void)applyStyling:(NSRange)range {
+  if (self.host.textView.textStorage == nullptr || range.length == 0 ||
+      NSMaxRange(range) > self.host.textView.textStorage.length) {
     return;
   }
 
   // we process each present font
-  [textStorage enumerateAttribute:NSFontAttributeName
-                          inRange:range
-                          options:0
-                       usingBlock:^(id _Nullable value, NSRange fontRange,
-                                    BOOL *_Nonnull stop) {
-                         UIFont *font = (UIFont *)value;
-                         if (font == nullptr) {
-                           return;
-                         }
-                         [self applyItalicForFont:font
-                                    inTextStorage:textStorage
-                                          inRange:fontRange];
-                       }];
+  [self.host.textView.textStorage
+      enumerateAttribute:NSFontAttributeName
+                 inRange:range
+                 options:0
+              usingBlock:^(id _Nullable value, NSRange fontRange,
+                           BOOL *_Nonnull stop) {
+                UIFont *font = (UIFont *)value;
+                if (font == nullptr) {
+                  return;
+                }
+                [self applyItalicForFont:font
+                           inTextStorage:self.host.textView.textStorage
+                                 inRange:fontRange];
+              }];
 }
 
 - (void)applyItalicForFont:(UIFont *)font
