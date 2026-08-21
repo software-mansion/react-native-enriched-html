@@ -1,10 +1,12 @@
 #import "InputAttributesManager.h"
 #import "AlignmentUtils.h"
+#import "ArrayExtension.h"
 #import "AttributeEntry.h"
 #import "EnrichedTextInputView.h"
 #import "ParagraphAttributesUtils.h"
 #import "RangeUtils.h"
 #import "StyleHeaders.h"
+#import "StyleUtils.h"
 #import "ZeroWidthSpaceUtils.h"
 
 @implementation InputAttributesManager {
@@ -97,15 +99,11 @@
 
     // Sort style types so paragraph styles come first. Their broad visual
     // attributes (e.g. foreground color, font) are laid down before inline
-    // styles override them on their specific sub-ranges.
+    // styles override them on their specific sub-ranges. Inline styles among
+    // themselves follow their stylePriority.
     NSArray *sortedStyleTypes = [presentStyles.allKeys
-        sortedArrayUsingComparator:^NSComparisonResult(NSNumber *a,
-                                                       NSNumber *b) {
-          BOOL aPara = [_input->stylesDict[a] isParagraph];
-          BOOL bPara = [_input->stylesDict[b] isParagraph];
-          if (aPara == bPara)
-            return NSOrderedSame;
-          return aPara ? NSOrderedAscending : NSOrderedDescending;
+        sortedArrayBySortKey:^NSInteger(NSNumber *styleType) {
+          return [_input->stylesDict[styleType] stylePriority];
         }];
 
     // re-apply meta-attributes and apply visual styling following the saved
