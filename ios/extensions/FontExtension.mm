@@ -41,8 +41,6 @@
   if (fontDescriptor != nullptr) {
     return [UIFont fontWithDescriptor:fontDescriptor size:0];
   } else {
-    RCTLogWarn(
-        @"[EnrichedTextInput]: Couldn't apply italic trait to the font.");
     return self;
   }
 }
