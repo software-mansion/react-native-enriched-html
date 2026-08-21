@@ -61,7 +61,7 @@ static BOOL FontCoversCharacters(UIFont *font, const unichar *chars,
 }
 
 // some styles might apply a new font (inline code), so we need to apply
-// the italic last, that way knowing if the used font supports italics
+// the italic last, that way we know if the used font supports italics
 // or we need to apply a slant
 - (NSInteger)stylePriority {
   return 3;
