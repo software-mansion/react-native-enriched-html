@@ -11,7 +11,7 @@
   NSMutableArray<NSValue *> *_dirtyRanges;
   NSSet *_customAttributesKeys;
   NSMutableSet *_removedTypingAttributes;
-  BOOL _recentManagedTypingAttributesOnlySelection;
+  BOOL _recentOnlySelectionStatus;
 }
 
 - (instancetype)initWithInput:(EnrichedTextInputView *)input {
@@ -19,7 +19,7 @@
   _input = input;
   _dirtyRanges = [[NSMutableArray alloc] init];
   _removedTypingAttributes = [[NSMutableSet alloc] init];
-  _recentManagedTypingAttributesOnlySelection = NO;
+  _recentOnlySelectionStatus = NO;
 
   // setup customAttributes
   NSMutableSet *_customAttrsSet = [[NSMutableSet alloc] init];
@@ -131,7 +131,7 @@
 }
 
 - (void)manageTypingAttributesWithOnlySelection:(BOOL)onlySelectionChanged {
-  _recentManagedTypingAttributesOnlySelection = onlySelectionChanged;
+  _recentOnlySelectionStatus = onlySelectionChanged;
   EnrichedInputTextView *textView = _input->textView;
   NSRange selectedRange = textView.selectedRange;
 
@@ -223,8 +223,7 @@
 }
 
 - (void)repeatRecentTypingAttributesManagement {
-  [self manageTypingAttributesWithOnlySelection:
-            _recentManagedTypingAttributesOnlySelection];
+  [self manageTypingAttributesWithOnlySelection:_recentOnlySelectionStatus];
 }
 
 @end
