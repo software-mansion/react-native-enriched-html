@@ -11,9 +11,6 @@ typedef NS_ENUM(NSInteger, ItalicKind) {
   ItalicKindOblique,
 };
 
-// slant used when a font has no italic face
-extern const CGFloat kObliquenessFallback;
-
 @interface ItalicUtils : NSObject
 
 + (void)applyItalicForFont:(UIFont *)font
