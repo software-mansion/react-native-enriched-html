@@ -2,9 +2,6 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const ORGANIZATION_ID = 'https://swmansion.com/#organization';
-// Section names come from the folder a page lives in. `docs` is the only
-// segment worth renaming - `blog` and `examples` already title-case to
-// themselves, so listing them bought nothing.
 const SECTION_NAMES = { docs: 'Documentation' };
 const ACRONYMS = { api: 'API', ui: 'UI' };
 
