@@ -394,7 +394,9 @@ typedef struct {
 
     // we don't allow for paragraph style shortcuts in non-plain text
     // paragraphs, where the only exception is a text alignment, which we can
-    // always apply
+    // always apply. paragraphHasActiveStyle doesn't consider text alignment,
+    // so we can apply paragraph style shortcuts also when text alignment
+    // is already applied
     if (type != Alignment && paragraphHasActiveStyle) {
       continue;
     }
