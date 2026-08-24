@@ -1,20 +1,19 @@
 appId: swmansion.enriched.example
 ---
-
 - tapOn:
-    id: "toolbar-image"
+    id: 'toolbar-image'
 
 - waitForAnimationToEnd
 - extendedWaitUntil:
     visible:
-      id: "image-modal-submit-button"
+      id: 'image-modal-submit-button'
     timeout: 10000
 
 - addMedia:
-    - "../../assets/sample_image.jpg"
+    - '../../assets/sample_image.jpg'
 
 - tapOn:
-    id: "image-modal-submit-button"
+    id: 'image-modal-submit-button'
 
 - runFlow:
-    file: "pick_first_image.yaml"
+    file: 'pick_first_image.yaml'

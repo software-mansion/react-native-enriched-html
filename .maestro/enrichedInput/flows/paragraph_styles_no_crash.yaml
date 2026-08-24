@@ -11,42 +11,60 @@ appId: swmansion.enriched.example
 
 - tapOn:
     id: "toolbar-unordered-list"
-- inputText: "Unordered"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "Unordered"
 - pressKey: Enter
 - tapOn:
     id: "toolbar-unordered-list"
 
 - tapOn:
     id: "toolbar-ordered-list"
-- inputText: "Ordered"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "Ordered"
 - pressKey: Enter
 - tapOn:
     id: "toolbar-ordered-list"
 
 - tapOn:
     id: "toolbar-checkbox-list"
-- inputText: "Checkbox"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "Checkbox"
 - pressKey: Enter
 - tapOn:
     id: "toolbar-checkbox-list"
 
 - tapOn:
     id: "toolbar-code-block"
-- inputText: "Code"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "Code"
 - pressKey: Enter
 - tapOn:
     id: "toolbar-code-block"
 
 - tapOn:
     id: "toolbar-quote"
-- inputText: "Quote"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "Quote"
 - pressKey: Enter
 - tapOn:
     id: "toolbar-quote"
 
 - tapOn:
     id: "toolbar-heading-1"
-- inputText: "Heading"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "Heading"
 
 - assertVisible:
     id: "editor-input"

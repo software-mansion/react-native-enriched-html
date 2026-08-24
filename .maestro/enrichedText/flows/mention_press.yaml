@@ -18,6 +18,7 @@ appId: swmansion.enriched.example
     id: 'enriched-text'
     point: '5%,50%'
 
+- waitForAnimationToEnd
 - runFlow:
     file: '../subflows/capture_or_assert_screenshot.yaml'
     env:

@@ -14,7 +14,10 @@ appId: swmansion.enriched.example
 
 - waitForAnimationToEnd
 
-- inputText: "snippet"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "snippet"
 
 - assertVisible:
     id: "toolbar-link"

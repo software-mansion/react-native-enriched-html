@@ -18,9 +18,15 @@ appId: swmansion.enriched.example
 - tapOn:
     id: 'toolbar-strikethrough'
 
-- inputText: 'First line'
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: 'First line'
 - pressKey: Enter
-- inputText: 'Second line'
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: 'Second line'
 
 - tapOn:
     id: 'toolbar-code-block'

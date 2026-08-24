@@ -16,7 +16,10 @@ appId: swmansion.enriched.example
     when:
         platform: android
     commands: 
-        - inputText: "XXXXXXXXXXXXXXXXXXXXXXXX"
+        - runFlow:
+            file: '../../subflows/input_text.yaml'
+            env:
+              TEXT: "XXXXXXXXXXXXXXXXXXXXXXXX"
         - tapOn:
             id: "editor-input"
             point: "50%,50%"
@@ -29,7 +32,10 @@ appId: swmansion.enriched.example
     when:
         platform: ios
     commands:
-        - inputText: "XXXXXXXXXXX XXXXXXXXXXXXX"
+        - runFlow:
+            file: '../../subflows/input_text.yaml'
+            env:
+              TEXT: "XXXXXXXXXXX XXXXXXXXXXXXX"
         - tapOn:
             id: "editor-input"
             point: "50%,50%"

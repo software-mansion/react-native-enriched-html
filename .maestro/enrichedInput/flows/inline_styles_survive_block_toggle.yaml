@@ -11,11 +11,17 @@ appId: swmansion.enriched.example
 
 - tapOn:
     id: "toolbar-bold"
-- inputText: "Bold"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: "Bold"
 
 - tapOn:
     id: "toolbar-bold"
-- inputText: " regular"
+- runFlow:
+    file: '../../subflows/input_text.yaml'
+    env:
+      TEXT: " regular"
 
 - tapOn:
     id: "toolbar-quote"

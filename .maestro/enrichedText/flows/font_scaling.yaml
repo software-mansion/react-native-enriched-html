@@ -14,18 +14,13 @@ tags:
 - runFlow:
     file: '../subflows/set_enriched_text_value.yaml'
     env:
-      VALUE: >
-        <html>
-          <p>Example</p>
-          <p>Text</p>
-          <h6>Heading 6</h6>
-          <ol>
-            <li>Element 1</li>
-            <li>Element 2</li>
-          </ol>
-        </html>
+      VALUE: <html><p>Example</p><p>Text</p><h6>Heading 6</h6><ol><li>Element 1</li><li>Element 2</li></ol></html>
 
-- scroll
+- swipe:
+    direction: UP
+    waitToSettleTimeoutMs: 1000
+
+- waitForAnimationToEnd
 
 - runFlow:
     file: '../subflows/capture_or_assert_screenshot.yaml'

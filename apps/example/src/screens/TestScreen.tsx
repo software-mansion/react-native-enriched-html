@@ -71,8 +71,8 @@ export function TestScreen({
             htmlStyle={htmlStyle}
             placeholder="Type something here..."
             placeholderTextColor="rgb(0, 26, 114)"
-            selectionColor="deepskyblue"
-            cursorColor="dodgerblue"
+            selectionColor="transparent"
+            cursorColor="transparent"
             autoCapitalize="sentences"
             linkRegex={LINK_REGEX}
             onChangeText={(e) => editor.handleChangeText(e.nativeEvent)}
@@ -212,6 +212,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Nunito-Regular',
     paddingVertical: 12,
     paddingHorizontal: 14,
+    tintColor: 'transparent',
   },
   editorInputMax: {
     maxHeight: 400,
