@@ -2,7 +2,10 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const ORGANIZATION_ID = 'https://swmansion.com/#organization';
-const SECTIONS = { docs: 'Documentation', blog: 'Blog', examples: 'Examples' };
+// Section names come from the folder a page lives in. `docs` is the only
+// segment worth renaming - `blog` and `examples` already title-case to
+// themselves, so listing them bought nothing.
+const SECTION_NAMES = { docs: 'Documentation' };
 const ACRONYMS = { api: 'API', ui: 'UI' };
 
 const titleCase = (segment) =>
@@ -11,11 +14,9 @@ const titleCase = (segment) =>
     .map((word) => ACRONYMS[word] ?? word.replace(/^./, (c) => c.toUpperCase()))
     .join(' ');
 
-// With `routeBasePath: '/'` there is no `docs/` prefix to match, so group by
-// the folder the page lives in instead of dropping everything into `Pages`.
 const sectionOf = (relative) => {
   const parts = relative.split('/').filter(Boolean);
-  if (SECTIONS[parts[0]]) return SECTIONS[parts[0]];
+  if (SECTION_NAMES[parts[0]]) return SECTION_NAMES[parts[0]];
   if (parts.length < 2) return 'Pages';
   return titleCase(parts[0]);
 };
@@ -105,11 +106,11 @@ function buildLlmsTxt({ siteConfig, routesPaths, readPage }) {
   const lines = [`# ${title}`];
   if (tagline) lines.push('', `> ${tagline}`);
 
-  const preferred = ['Documentation', 'Examples', 'Blog'];
+  // Documentation first, the rest alphabetically, loose pages last.
   const order = [
-    ...preferred.filter((section) => grouped.has(section)),
+    ...(grouped.has('Documentation') ? ['Documentation'] : []),
     ...[...grouped.keys()]
-      .filter((section) => !preferred.includes(section) && section !== 'Pages')
+      .filter((section) => section !== 'Documentation' && section !== 'Pages')
       .sort(),
     ...(grouped.has('Pages') ? ['Pages'] : []),
   ];
