@@ -11,7 +11,7 @@
 - ⚡ Fully native input and display components (Supports New Architecture only)
 - 💻 HTML-based parsing with live, synchronous text styling
 - 🎨 Fully customizable styles for seamless UI integration
-- 🌐 Solid mobile and web support
+- 🌐 Solid mobile and Web support
 
 `EnrichedTextInput`, the rich text input component is an uncontrolled input. This means that it doesn't use any state or props to store its value, but instead directly interacts with the underlying platform-specific components. Thanks to this, the component is really performant and simple to use while offering complex and advanced features no other solution has.
 
@@ -19,379 +19,43 @@
 
 ![react-native-enriched-html-demo](https://github.com/user-attachments/assets/a2c968c0-9b85-492f-ac71-af64ef231fbf)
 
-Since 2012 [Software Mansion](https://swmansion.com) is a software agency with experience in building web and mobile apps. We are Core React Native Contributors and experts in dealing with all kinds of React Native issues.
-We can help you build your next dream product –
-[Hire us](https://swmansion.com/contact/projects?utm_source=react-native-enriched-html&utm_medium=readme).
-
-## Table of Contents
-
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Supported Tags](#supported-tags)
-- [Non Parametrized Styles](#non-parametrized-styles)
-- [Links](#links)
-- [Mentions](#mentions)
-- [Inline Images](#inline-images)
-- [Style Detection](#style-detection)
-- [Other Events](#other-events)
-- [Context Menu Items](#context-menu-items)
-- [Customizing \<EnrichedTextInput /> styles](#customizing-enrichedtextinput--styles)
-- [EnrichedText component](#enrichedtext-component)
-- [API Reference](#api-reference)
-- [Known limitations](#known-limitations)
-- [Contributing](#contributing)
-- [License](#license)
-
-## Prerequisites
-
-- `react-native-enriched-html` currently supports Android, iOS and Web.
-- It works only with [the React Native New Architecture (Fabric)](https://reactnative.dev/architecture/landing-page) and supports following React Native releases: `0.81`, `0.82`, `0.83`, `0.84`, `0.85` and `0.86`.
-
 ## Installation
 
-### Bare react native app
+Check out the detailed [installation instructions](https://docs.swmansion.com/react-native-enriched-html/#installation).
 
-#### 1. Install the library
+## Compatibility
 
-```sh
-yarn add react-native-enriched-html
-```
+At the moment, the library offers stable support for iOS, Android and Web.
 
-> [!TIP]
-> To try the latest features before they land in a stable release, install the nightly build:
->
-> ```sh
-> yarn add react-native-enriched-html@nightly
-> ```
->
-> Nightly versions are published to npm automatically and may contain breaking changes.
+The full list of compatible React Native versions is available [here](https://docs.swmansion.com/react-native-enriched-html/misc/compatibility/#supported-react-native-versions).
 
-#### 2. Install iOS dependencies
+## Documentation
 
-The library includes native code so you will need to re-build the native app to use it.
+To find more about `react-native-enriched-html` including usage guides, API references, known limitations or our contributing guide, visit the official [documentation](https://docs.swmansion.com/react-native-enriched-html/).
 
-```sh
-cd ios && bundler install && bundler exec pod install
-```
+## Examples
 
-### Expo app
-
-#### 1. Install the library
-
-```sh
-npx expo install react-native-enriched-html
-```
-
-#### 2. Run prebuild
-
-The library includes native code so you will need to re-build the native app to use it.
-
-```sh
-npx expo prebuild
-```
-
-> [!NOTE]
-> The library won't work in Expo Go as it needs native changes.
-
-## Usage
-
-Here's a simple example of an input that lets you toggle bold on its text and shows whether bold is currently active via the button color.
-
-```tsx
-import { EnrichedTextInput } from 'react-native-enriched-html';
-import type {
-  EnrichedTextInputInstance,
-  OnChangeStateEvent,
-} from 'react-native-enriched-html';
-import { useState, useRef } from 'react';
-import { View, Button, StyleSheet } from 'react-native';
-
-export default function App() {
-  const ref = useRef<EnrichedTextInputInstance>(null);
-
-  const [stylesState, setStylesState] = useState<OnChangeStateEvent | null>();
-
-  return (
-    <View style={styles.container}>
-      <EnrichedTextInput
-        ref={ref}
-        onChangeState={(e) => setStylesState(e.nativeEvent)}
-        style={styles.input}
-      />
-      <Button
-        title={stylesState?.bold.isActive ? 'Unbold' : 'Bold'}
-        color={stylesState?.bold.isActive ? 'green' : 'gray'}
-        onPress={() => ref.current?.toggleBold()}
-      />
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  input: {
-    width: '100%',
-    fontSize: 20,
-    padding: 10,
-    maxHeight: 200,
-    backgroundColor: 'lightgray',
-  },
-});
-```
-
-Summary of what happens here:
-
-1. Any methods imperatively called on the input to e.g. toggle some style must be used through a `ref` of `EnrichedTextInputInstance` type. Here, `toggleBold` method that is called on the button press calls `ref.current?.toggleBold()`, which toggles the bold styling within the current selection.
-2. All style state information is emitted by the `onChangeState` event. Set up a proper callback that accepts a `NativeSyntheticEvent<OnChangeStateEvent>` argument. The event payload provides a nested object for each style (e.g., `bold`, `italic`), containing three properties to guide your UI logic:
-
-- `isActive`: Indicates if the style is currently applied (highlight the button).
-- `isBlocking`: Indicates if the style is blocked by another active style (disable the button).
-- `isConflicting`: Indicates if the style is in conflict with another active style.
-
-## Supported Tags
-
-`react-native-enriched-html` uses both standard and custom HTML tags in its output and accepts them as input.
-
-Not all styles can be combined freely. There are two kinds of restrictions:
-
-- **Conflicting** - toggling a style that conflicts with an already active style will automatically remove the active one. For example: toggling `<h2>` on a `<blockquote>` paragraph will remove the blockquote and apply the heading.
-- **Blocking** - a style that is blocked cannot be toggled at all while the blocking style is active. For example: `<b>` is blocked inside `<codeblock>`, so the bold cannot be applied where codeblock is active.
-
-These states are reported via the [onChangeState](docs/INPUT_API_REFERENCE.md#onchangestate) event (`isConflicting` and `isBlocking` properties).
-
-### Inline tags
-
-| Style         | HTML tag    | Conflicts with               | Blocked by             |
-| ------------- | ----------- | ---------------------------- | ---------------------- |
-| Bold          | `<b>`       | --                           | `<codeblock>`          |
-| Italic        | `<i>`       | --                           | `<codeblock>`          |
-| Underline     | `<u>`       | --                           | `<codeblock>`          |
-| Strikethrough | `<s>`       | --                           | `<codeblock>`          |
-| Inline code   | `<code>`    | `<a>`, `<mention>`           | `<codeblock>`, `<img>` |
-| Link          | `<a>`       | `<code>`, `<a>`, `<mention>` | `<codeblock>`, `<img>` |
-| Mention       | `<mention>` | `<code>`, `<a>`              | `<codeblock>`, `<img>` |
-| Image         | `<img>`     | `<a>`, `<mention>`           | `<code>`               |
-
-> [!NOTE]
-> Headings also block bold when `bold: true` is set on the heading style in the [htmlStyle](docs/INPUT_API_REFERENCE.md#htmlstyle) prop. In that case, the heading itself renders as bold, so toggling bold on top of it is redundant and therefore blocked.
-
-### Paragraph tags
-
-Some paragraph styles are container elements that wrap each line of text inside them with an **inner content tag**. For example: each line inside `<ul>` is wrapped in `<li>` and each line inside `<codeblock>` is wrapped in `<p>`.
-
-Only one paragraph-level style can be active per paragraph - all paragraph styles conflict with each other.
-
-| Style          | HTML tag                    | Inner content tag       | Conflicts with                                                                                                                                                        | Blocked by |
-| -------------- | --------------------------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| Heading 1      | `<h1>`                      | --                      | `<h2>`, `<h3>`, `<h4>`, `<h5>`, `<h6>`, `<ul>`, `<ol>`, `<ul data-type="checkbox">`, `<blockquote>`, `<codeblock>`                                                    | --         |
-| Heading 2      | `<h2>`                      | --                      | `<h1>`, `<h3>`, `<h4>`, `<h5>`, `<h6>`, `<ul>`, `<ol>`, `<ul data-type="checkbox">`, `<blockquote>`, `<codeblock>`                                                    | --         |
-| Heading 3      | `<h3>`                      | --                      | `<h1>`, `<h2>`, `<h4>`, `<h5>`, `<h6>`, `<ul>`, `<ol>`, `<ul data-type="checkbox">`, `<blockquote>`, `<codeblock>`                                                    | --         |
-| Heading 4      | `<h4>`                      | --                      | `<h1>`, `<h2>`, `<h3>`, `<h5>`, `<h6>`, `<ul>`, `<ol>`, `<ul data-type="checkbox">`, `<blockquote>`, `<codeblock>`                                                    | --         |
-| Heading 5      | `<h5>`                      | --                      | `<h1>`, `<h2>`, `<h3>`, `<h4>`, `<h6>`, `<ul>`, `<ol>`, `<ul data-type="checkbox">`, `<blockquote>`, `<codeblock>`                                                    | --         |
-| Heading 6      | `<h6>`                      | --                      | `<h1>`, `<h2>`, `<h3>`, `<h4>`, `<h5>`, `<ul>`, `<ol>`, `<ul data-type="checkbox">`, `<blockquote>`, `<codeblock>`                                                    | --         |
-| Unordered list | `<ul>`                      | `<li>`                  | `<h1>`, `<h2>`, `<h3>`, `<h4>`, `<h5>`, `<h6>`, `<ol>`, `<ul data-type="checkbox">`, `<blockquote>`, `<codeblock>`                                                    | --         |
-| Ordered list   | `<ol>`                      | `<li>`                  | `<h1>`, `<h2>`, `<h3>`, `<h4>`, `<h5>`, `<h6>`, `<ul>`, `<ul data-type="checkbox">`, `<blockquote>`, `<codeblock>`                                                    | --         |
-| Checkbox list  | `<ul data-type="checkbox">` | `<li>` / `<li checked>` | `<h1>`, `<h2>`, `<h3>`, `<h4>`, `<h5>`, `<h6>`, `<ul>`, `<ol>`, `<blockquote>`, `<codeblock>`                                                                         | --         |
-| Blockquote     | `<blockquote>`              | `<p>`                   | `<h1>`, `<h2>`, `<h3>`, `<h4>`, `<h5>`, `<h6>`, `<ul>`, `<ol>`, `<ul data-type="checkbox">`, `<codeblock>`                                                            | --         |
-| Codeblock      | `<codeblock>`               | `<p>`                   | `<h1>`, `<h2>`, `<h3>`, `<h4>`, `<h5>`, `<h6>`, `<b>`, `<u>`, `<i>`, `<s>`, `<ul>`, `<ol>`, `<ul data-type="checkbox">`, `<blockquote>`, `<code>`, `<mention>`, `<a>` | --         |
-
-Plain text paragraphs are wrapped in `<p>` tags. Empty paragraphs are represented as `<br>`.
-
-## Non Parametrized Styles
-
-Supported styles:
-
-- bold
-- italic
-- underline
-- strikethrough
-- inline code
-- H1, H2, H3, H4, H5 and H6 headings
-- codeblock
-- blockquote
-- ordered list
-- unordered list
-- checkbox list
-
-Each of the styles can be toggled the same way as in the example from [usage section](#usage); call a proper `toggle` function on the component ref.
-
-Each call toggles the style within the current text selection. We can still divide styles into two categories based on how they treat the selection:
-
-- Inline styles (bold, italic, underline, strikethrough, inline code). They are being toggled on exactly the character range that is currently selected. When toggling the style with just the cursor in place (no selection), the style is ready to be used and will be applied to the next characters that the user inputs.
-
-- Paragraph styles (headings, codeblock, blockquote, lists). They are being toggled on the entire paragraph that the selection is in. By paragraph, we mean a part of the text between two newlines (enters) or the text's beginning/ending.
-  If the selection spans more than one paragraph, logically more of them will be affected by the toggle. Toggling these styles with the cursor in place (no selection) makes changes to the very paragraph the cursor is in.
-
-## Links
-
-The links are here, just like in any other editor, a piece of text with a URL attributed to it. They can be added in two ways: automatically or manually.
-
-### Automatic links detection
-
-`react-native-enriched-html` automatically detects words that appear to be some URLs and makes them links.
-You can customize this behavior by providing your own regular expression via [linkRegex](docs/INPUT_API_REFERENCE.md#linkregex) prop.
-
-### Applying links manually
-
-Links can also be added by calling [`setLink`](docs/INPUT_API_REFERENCE.md#setlink) method on the input ref:
-
-The `start`, `end` and `text` arguments for the method can be easily taken from [onChangeSelection](docs/INPUT_API_REFERENCE.md#onchangeselection) event payload as it returns exact `start` and `end` of the selection and the `text` it spans. This way, you just set the underlying URL to whatever is selected in there.
-
-Passing a different `text` than the one in the selection will properly replace it before applying the link.
-
-A complete example of a setup that supports both setting links on the selected text, as well as putting them in the place of cursor and editing existing links can be found in the example app code.
-
-## Mentions
-
-Mentions are meant to be a customisable style that lets you put mentioning phrases in the input, e.g. `@someone` or `#some_channel` or `[any_character_you_like]something`.
-
-### Mention Indicators
-
-There is a [mentionIndicators](docs/INPUT_API_REFERENCE.md#mentionindicators) prop that lets you define what characters can start a mention. By default, it is set to `[ @ ]`, meaning that typing a `@` character in the input will start the creation of a mention.
-
-### Starting a mention
-
-There are two ways in which a mention can be started; either by typing one of the `mentionIndicators` set or by calling a [startMention](docs/INPUT_API_REFERENCE.md#startmention) method on the input ref.
-
-### Mention related events
-
-`react-native-enriched-html` emits 3 different events that help handling mentions' editing:
-
-- [onStartMention](docs/INPUT_API_REFERENCE.md#onstartmention) is emitted whenever mention is started in one of the ways from the [previous section](#starting-a-mention) or the user has come back (moved selection) to some unfinished mention they have started. It can be used for opening proper tools you use in the app to edit a mention (e.g. a list for choosing from users or channels that the mention will affect).
-- [onChangeMention](docs/INPUT_API_REFERENCE.md#onchangemention) is emitted whenever user put or removed some characters after a mention indicator. This way you can react to active mention editing by, for example, filtering users in your displayed list based on the typed text.
-- [onEndMention](docs/INPUT_API_REFERENCE.md#onendmention) is emitted whenever user is no longer editing a mention: they might have put a space or changed the cursor position to be no longer near the indicator. You can use it to hide appropriate tools that were used for mention editing.
-
-### Setting a mention
-
-Whenever you feel ready with the currently edited mention (so most likely user chooses something from your additional mention editor), you can complete it by calling [setMention](docs/INPUT_API_REFERENCE.md#setmention) ref method.
-
-## Inline images
-
-You can insert an image into the input using [setImage](docs/INPUT_API_REFERENCE.md#setimage) ref method.
-
-The image will be put into a single line in the input and will affect the line's height as well as input's height. Keep in mind, that image will replace currently selected text or insert into the cursor position if there is no text selection.
-
-## Style Detection
-
-All of the above styles can be detected with the use of [onChangeState](docs/INPUT_API_REFERENCE.md#onchangestate) event payload.
-
-You can find some examples in the [usage section](#usage) or in the example app.
-
-## Other Events
-
-`react-native-enriched-html` emits a few more events that may be of use:
-
-- [onFocus](docs/INPUT_API_REFERENCE.md#onfocus) - emits whenever input focuses.
-- [onBlur](docs/INPUT_API_REFERENCE.md) - emits whenever input blurs.
-- [onChangeText](docs/INPUT_API_REFERENCE.md#onchangetext) - returns the input's text anytime it changes.
-- [onChangeHtml](docs/INPUT_API_REFERENCE.md#onchangehtml) - returns HTML string parsed from current input text and styles anytime it would change. As parsing the HTML on each input change is a pretty expensive operation, not assigning the event's callback will speed up iOS input a bit.
-- [onChangeSelection](docs/INPUT_API_REFERENCE.md#onchangeselection) - returns all the data needed for working with selections (as of now it's mainly useful for [links](#links)).
-- [onLinkDetected](docs/INPUT_API_REFERENCE.md#onlinkdetected) - returns link's detailed info whenever user selection is near one.
-- [onMentionDetected](docs/INPUT_API_REFERENCE.md#onmentiondetected) - returns mention's detailed info whenever user selection is near one.
-- [onKeyPress](docs/INPUT_API_REFERENCE.md#onkeypress) - emits whenever a key is pressed. Follows react-native TextInput's onKeyPress event [spec](https://reactnative.dev/docs/textinput#onkeypress).
-- [onPasteImages](docs/INPUT_API_REFERENCE.md#onpasteimages) - returns an array of images details whenever an image/GIF is pasted into the input.
-
-## Context Menu Items
-
-> **Note:** This feature is currently supported on Android and iOS 16+.
-
-You can extend the native text editing menu with custom items using the [contextMenuItems](docs/INPUT_API_REFERENCE.md#contextmenuitems) prop. Each item has a `text` (title), `visible` flag and an `onPress` callback. Items appear in the specified order, before the system actions.
-
-```tsx
-<EnrichedTextInput
-  ref={ref}
-  contextMenuItems={[
-    {
-      text: 'Paste Link',
-      onPress: ({ text, selection, styleState }) => {
-        if (!styleState.link.isBlocking) {
-          ref.current?.setLink(selection.start, selection.end, text, url);
-        }
-      },
-      visible: true,
-    },
-  ]}
-/>
-```
-
-## Customizing \<EnrichedTextInput /> styles
-
-`react-native-enriched-html` allows customizing styles of the `<EnrichedTextInput />` component. See [htmlStyle](docs/INPUT_API_REFERENCE.md#htmlstyle) prop.
-
-## EnrichedText component
-
-`react-native-enriched-html` provides an `EnrichedText` component that renders the HTML output of `EnrichedTextInput` with all supported styles, interactive links, and mentions.
-
-```tsx
-import { EnrichedText } from 'react-native-enriched-html';
-import type {
-  OnLinkPressEvent,
-  OnMentionPressEvent,
-} from 'react-native-enriched-html';
-import { StyleSheet } from 'react-native';
-
-export default function App() {
-  const html =
-    '<html><p>Hello, <b>world</b>! Visit <a href="https://swmansion.com">Software Mansion</a>.</p></html>';
-
-  const handleLinkPress = (e: OnLinkPressEvent) => {
-    console.log('Link pressed:', e.url);
-  };
-
-  const handleMentionPress = (e: OnMentionPressEvent) => {
-    console.log('Mention pressed:', e.text, e.indicator, e.attributes);
-  };
-
-  return (
-    <EnrichedText
-      style={styles.text}
-      numberOfLines={3}
-      ellipsizeMode="tail"
-      onLinkPress={handleLinkPress}
-      onMentionPress={handleMentionPress}
-    >
-      {html}
-    </EnrichedText>
-  );
-}
-
-const styles = StyleSheet.create({
-  text: {
-    fontSize: 16,
-    color: 'black',
-  },
-});
-```
-
-## API Reference
-
-See the [EnrichedTextInput API Reference](docs/INPUT_API_REFERENCE.md) for a detailed overview of all the props, methods, and events available for `EnrichedTextInput`.
-
-See the [EnrichedText API Reference](docs/TEXT_API_REFERENCE.md) for the `EnrichedText` component.
-
-## Known limitations
-
-- Only one level of lists is supported. We currently do not support nested lists.
-
-## Contributing
-
-See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the repository and the development workflow.
+The source code for the example mobile and web apps is under the [`apps`](https://github.com/software-mansion/react-native-enriched-html/tree/main/apps) directory.
+You can also see the live preview of the library's capabilities by visiting the [official documentation](https://docs.swmansion.com/react-native-enriched-html/) filled with interactive examples.
 
 ## License
 
 `react-native-enriched-html` library is licensed under [The MIT License](./LICENSE).
+
+## Community Discord
+
+[Join the Software Mansion Community Discord](https://discord.swmansion.com) to chat about `react-native-enriched-html` or other Software Mansion libraries.
+
+## Created by Software Mansion
+
+Since 2012 [Software Mansion](https://swmansion.com) is a software agency with experience in building web and mobile apps. We are Core React Native Contributors and experts in dealing with all kinds of React Native issues.
+We can help you build your next dream product –
+[Hire us](https://swmansion.com/contact/projects?utm_source=react-native-enriched-html&utm_medium=readme).
 
 ---
 
 Built by [Software Mansion](https://swmansion.com/) and sponsored by [Filament](https://filament.dm/).
 
 [<img width="128" height="69" alt="Software Mansion Logo" src="https://github.com/user-attachments/assets/f0e18471-a7aa-4e80-86ac-87686a86fe56" />](https://swmansion.com/)
-&nbsp;&nbsp;&nbsp;
-<img width="48" height="48" alt="" src="https://github.com/user-attachments/assets/46c6bf1f-2685-497e-b699-d5a94b2582a3" />
 &nbsp;&nbsp;&nbsp;
 [<img width="80" height="80" alt="Filament Logo" src="https://github.com/user-attachments/assets/4103ab79-da34-4164-aa5f-dcf08815bf65" />](https://filament.dm/)
