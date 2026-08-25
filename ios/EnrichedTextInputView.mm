@@ -1676,7 +1676,8 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   if (textView.textStorage.string.length == 0 &&
       _recentInputString.length > 0 &&
       !preserveTypingAttributesOnNextEmptyCheck) {
-    // reset typing attribtues
+// reset typing attributes if we emptied the string
+// adding alignment via shortcuts wants to preserve typing attributes, so we don't reset then
     textView.typingAttributes = defaultTypingAttributes;
   }
   preserveTypingAttributesOnNextEmptyCheck = NO;
