@@ -11,14 +11,16 @@ class EnrichedTextInputViewLayoutManager(
     val text = view.text
     val paint = view.paint
 
-    val needUpdate = MeasurementStore.store(view.id, text, paint)
-    if (!needUpdate) return
+    MeasurementStore.store(view.id, text, paint) {
+      val stateWrapper = view.stateWrapper ?: return@store false
 
-    val counter = forceHeightRecalculationCounter
-    forceHeightRecalculationCounter++
-    val state = Arguments.createMap()
-    state.putInt("forceHeightRecalculationCounter", counter)
-    view.stateWrapper?.updateState(state)
+      forceHeightRecalculationCounter++
+      val state = Arguments.createMap()
+      state.putInt("forceHeightRecalculationCounter", forceHeightRecalculationCounter)
+      stateWrapper.updateState(state)
+
+      true
+    }
   }
 
   fun releaseMeasurementStore() {

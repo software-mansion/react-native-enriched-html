@@ -44,7 +44,8 @@ object MeasurementStore {
     id: Int,
     spannable: Spannable?,
     paint: TextPaint,
-  ): Boolean {
+    invalidateShadowNode: () -> Boolean,
+  ) {
     val cachedWidth = data[id]?.cachedWidth ?: 0f
     val cachedSize = data[id]?.cachedSize ?: 0L
     val initialized = data[id]?.initialized ?: true
@@ -52,8 +53,14 @@ object MeasurementStore {
     val size = measure(cachedWidth, spannable, paint)
     val paintParams = PaintParams(paint.typeface, paint.textSize)
 
-    data[id] = MeasurementParams(initialized, cachedWidth, size, spannable, paintParams)
-    return cachedSize != size
+    // stateWrapper might be null during the first measures,
+    // we want to cache the size only when it was actually
+    // handled in the shadow node. The cached size and the actual
+    // rendered one should be in sync.
+    val invalidated = cachedSize != size && invalidateShadowNode()
+    val storedSize = if (invalidated) size else cachedSize
+
+    data[id] = MeasurementParams(initialized, cachedWidth, storedSize, spannable, paintParams)
   }
 
   fun release(id: Int) {
