@@ -351,7 +351,7 @@ typedef struct {
 ///     codeblock), then reset typing attrs to defaults preserving alignment
 ///     — without this, the new paragraph style would inherit stale typing
 ///     attributes from the previous style.
-///  6. Apply the paragraph style with withTyping:YES so the next typed
+///  6. Apply the paragraph style withTyping:YES so the next typed
 ///     character inherits it immediately.
 + (BOOL)tryHandlingParagraphShortcutsInRange:(NSRange)range
                              replacementText:(NSString *)text
