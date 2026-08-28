@@ -13,6 +13,7 @@
 - (void)didRemoveTypingAttribute:(NSString *)key;
 - (void)clearRemovedTypingAttributes;
 - (void)manageTypingAttributesWithOnlySelection:(BOOL)onlySelectionChanged;
+- (void)repeatRecentTypingAttributesManagement;
 - (void)handleDirtyRangesStyling;
 - (NSSet<NSString *> *)customAttributesKeys;
 @end

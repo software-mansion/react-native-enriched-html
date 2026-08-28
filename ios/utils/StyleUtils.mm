@@ -229,19 +229,28 @@
                               forHost:(id<EnrichedViewHost>)host {
   NSMutableArray<NSNumber *> *resultArray =
       [[NSMutableArray<NSNumber *> alloc] init];
+
+  // There might be a case where the given `range` doesn't have a conflicting
+  // style, but it is present in typing attributes. In that case, run `detect:`
+  // for good measure, since it considers typing attributes (unlike `any:`).
+  NSRange selectedRange = host.textView.selectedRange;
+  BOOL caretWithinRange = range.length >= 1 && selectedRange.length == 0 &&
+                          selectedRange.location >= range.location &&
+                          selectedRange.location <= NSMaxRange(range);
+
   for (NSNumber *type in types) {
     StyleBase *style = host.stylesDict[type];
 
-    if (range.length >= 1) {
-      if ([style any:range]) {
-        [resultArray addObject:type];
-      }
-    } else {
-      if ([style detect:range]) {
-        [resultArray addObject:type];
-      }
+    BOOL present = range.length >= 1 ? [style any:range] : [style detect:range];
+    if (!present && caretWithinRange) {
+      present = [style detect:selectedRange];
+    }
+
+    if (present) {
+      [resultArray addObject:type];
     }
   }
+
   return resultArray;
 }
 
