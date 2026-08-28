@@ -32,3 +32,8 @@ We may add support for more tags and related functionality over time - see the
 not supported yet, the best way to let us know is to open a
 [GitHub issue](https://github.com/software-mansion/react-native-enriched-html/issues)
 in our repo.
+
+## Tapping outside the editor doesn't blur it
+
+On mobile, tapping outside of an `EnrichedTextInput` does not blur it. This is
+a limitation of React Native itself, not something specific to this library.
