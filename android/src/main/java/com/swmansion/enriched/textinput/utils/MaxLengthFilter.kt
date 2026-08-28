@@ -65,8 +65,8 @@ object MaxLength {
     val localCut = cut - start
     if (iterator.isBoundary(localCut)) return cut
 
-    val next = iterator.following(localCut)
-    return if (next == BreakIterator.DONE) end else start + next
+    val prev = iterator.preceding(localCut)
+    return if (prev == BreakIterator.DONE) start else start + prev
   }
 }
 
