@@ -39,6 +39,7 @@ interface EnrichedTextProps extends ViewProps {
   allowFontScaling?: boolean;
   onLinkPress?: (event: OnLinkPressEvent) => void;
   onMentionPress?: (event: OnMentionPressEvent) => void;
+  onImagePress?: (event: OnImagePressEvent) => void;
 }
 ```
 
@@ -208,6 +209,33 @@ interface OnMentionPressEvent {
 | Type                                   | Platforms         |
 | -------------------------------------- | ----------------- |
 | `(event: OnMentionPressEvent) => void` | Android, iOS, Web |
+
+### `onImagePress` {#onimagepress}
+
+Called when the user presses an inline image. Receives an `OnImagePressEvent`
+with the image's URI and dimensions. See
+[Inline images](/rich-text-formatting/inline-images) for how images are
+inserted and rendered.
+
+```ts
+interface OnImagePressEvent {
+  image: {
+    uri: string;
+    width: number;
+    height: number;
+  };
+}
+```
+
+| Type                                 | Platforms         |
+| ------------------------------------ | ----------------- |
+| `(event: OnImagePressEvent) => void` | Android, iOS, Web |
+
+:::note
+
+No visual feedback is applied on press.
+
+:::
 
 ## EnrichedTextHtmlStyle type
 
