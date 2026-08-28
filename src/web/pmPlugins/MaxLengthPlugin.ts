@@ -148,7 +148,7 @@ export const MaxLengthPlugin = Extension.create<MaxLengthPluginOptions>({
         key: new PluginKey('maxLength'),
         appendTransaction: (transactions, _oldState, newState) => {
           const maxLength = this.options.getMaxLength();
-          if (maxLength == null) return null;
+          if (maxLength == null || maxLength < 0) return null;
           if (!transactions.some((tr) => tr.docChanged)) return null;
 
           let overflow = docPlainLength(newState.doc) - maxLength;

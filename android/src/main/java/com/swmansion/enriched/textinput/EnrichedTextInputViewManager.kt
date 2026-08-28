@@ -166,7 +166,7 @@ class EnrichedTextInputViewManager :
     view: EnrichedTextInputView?,
     maxLength: Int,
   ) {
-    view?.maxLength = maxLength
+    view?.maxLength = if (maxLength < 0) MaxLength.UNLIMITED else maxLength
   }
 
   @ReactProp(name = "mentionIndicators")
