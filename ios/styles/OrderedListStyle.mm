@@ -146,18 +146,20 @@
   NSUInteger location = self.host.textView.selectedRange.location;
   NSUInteger length = self.host.textView.textStorage.length;
 
-  if (location < length) {
+  NSParagraphStyle *existingStyle = nil;
+  if (length > 0) {
     // applying styling to typing attributes always happen after applying
     // the styles, so we can lookup the existing style for the indent
-    NSParagraphStyle *existingStyle =
+    NSUInteger lookupLocation = MIN(location, length - 1);
+    existingStyle =
         [self.host.textView.textStorage attribute:NSParagraphStyleAttributeName
-                                          atIndex:location
+                                          atIndex:lookupLocation
                                    effectiveRange:NULL];
+  }
 
-    if (existingStyle) {
-      pStyle.headIndent = existingStyle.headIndent;
-      pStyle.firstLineHeadIndent = existingStyle.firstLineHeadIndent;
-    }
+  if (existingStyle) {
+    pStyle.headIndent = existingStyle.headIndent;
+    pStyle.firstLineHeadIndent = existingStyle.firstLineHeadIndent;
   } else {
     CGFloat fallbackIndent = [self headIndentForItemCount:1];
     pStyle.headIndent = fallbackIndent;
