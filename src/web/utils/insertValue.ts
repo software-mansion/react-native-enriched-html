@@ -20,21 +20,27 @@ export function insertValue(
   end: number,
   useHtmlNormalizer: boolean | undefined
 ): void {
-  if (!value) return;
-
   const doc = editor.state.doc;
   const docLength = nativeLeafText(doc, 0, doc.content.size).length;
-
-  if (docLength === 0 && isPlainEmptyDoc(doc)) {
-    editor.commands.setContent(prepareHtmlForTiptap(value, useHtmlNormalizer));
-    return;
-  }
 
   const from = nativePosToTiptapPos(doc, Math.min(start, docLength));
   const to = nativePosToTiptapPos(
     doc,
     Math.min(Math.max(start, end), docLength)
   );
+
+  if (!value) {
+    if (start === end) return;
+
+    editor.chain().focus().deleteRange({ from, to }).run();
+    return;
+  }
+
+  if (docLength === 0 && isPlainEmptyDoc(doc)) {
+    editor.commands.setContent(prepareHtmlForTiptap(value, useHtmlNormalizer));
+    return;
+  }
+
   const content = prepareHtmlForTiptap(value, useHtmlNormalizer);
 
   const parsedRaw = createNodeFromContent(content, editor.schema, {
