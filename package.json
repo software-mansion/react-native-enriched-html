@@ -51,7 +51,7 @@
     "typecheck:lib": "tsc -p tsconfig.build.json",
     "typecheck:example": "tsc -p apps/example/tsconfig.json",
     "typecheck:example-web": "tsc -p apps/example-web/tsconfig.app.json",
-    "typecheck:docs": "tsc -p docs/tsconfig.json",
+    "typecheck:docs": "cd docs && yarn typecheck",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "lint:android": "cd apps/example/android && ./gradlew lintVerify",
     "lint:android:fix": "cd apps/example/android && ./gradlew lintFormat",
