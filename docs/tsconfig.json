@@ -1,6 +1,8 @@
 {
   "extends": "@docusaurus/tsconfig",
   "compilerOptions": {
+    "ignoreDeprecations": "6.0",
+    "baseUrl": ".",
     "strict": true,
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "paths": {
