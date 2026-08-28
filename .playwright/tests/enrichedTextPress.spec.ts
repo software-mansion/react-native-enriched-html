@@ -225,7 +225,7 @@ test.describe('EnrichedText image press', () => {
     await expect(imagePress(page)).toHaveText('null');
   });
 
-  test('pressing an empty-src placeholder does not emit onImagePress', async ({
+  test('pressing an empty-src placeholder does emit onImagePress', async ({
     page,
   }) => {
     await gotoTestEnrichedText(page);
@@ -240,7 +240,11 @@ test.describe('EnrichedText image press', () => {
 
     await page.locator(`${sel.displayInner} img`).click();
 
-    await expect(imagePress(page)).toHaveText('null');
+    await expect
+      .poll(async () =>
+        JSON.parse((await imagePress(page).textContent()) || 'null')
+      )
+      .toEqual({ image: { uri: '', width: 40, height: 40 } });
   });
 
   test('pressing a broken-URL placeholder does emit onImagePress', async ({

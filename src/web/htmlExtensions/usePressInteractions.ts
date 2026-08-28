@@ -90,11 +90,7 @@ export function usePressInteractions(
 function getImageAttributes(
   image: HTMLImageElement
 ): ImageAttributes | undefined {
-  const uri = image.getAttribute('src');
-
-  if (!uri) {
-    return undefined;
-  }
+  const uri = image.getAttribute('src') ?? '';
 
   const { width, height } = getImageDimensions(image);
 
