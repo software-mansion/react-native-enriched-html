@@ -28,3 +28,11 @@ We may add support for more tags and related functionality over time - see the
 not supported yet, the best way to let us know is to open a
 [GitHub issue](https://github.com/software-mansion/react-native-enriched-html/issues)
 in our repo.
+
+## No global blur support on mobile
+
+On mobile, you can use `Keyboard.dismiss()` and `keyboardShouldPersistTaps` to blur
+the React Native's `TextInput` on taps outside of it. This doesn't work
+with `EnrichedTextInput`. This is a limitation of React Native itself, not
+something specific to this library: React Native doesn't expose
+`TextInputState` publicly, so we can't register our input in the React Native state.
