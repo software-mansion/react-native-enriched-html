@@ -16,17 +16,19 @@ export function TestMaxLength() {
   const [maxLengthInput, setMaxLengthInput] = useState('10');
   const [htmlInput, setHtmlInput] = useState('<html><p></p></html>');
   const [editorHtml, setEditorHtml] = useState('');
-  const [selStartInput, setSelStartInput] = useState('0');
-  const [selEndInput, setSelEndInput] = useState('0');
-  const [linkStartInput, setLinkStartInput] = useState('0');
-  const [linkEndInput, setLinkEndInput] = useState('0');
-  const [linkTextInput, setLinkTextInput] = useState('link');
-  const [linkUrlInput, setLinkUrlInput] = useState('https://example.com');
-  const [mentionIndicatorInput, setMentionIndicatorInput] = useState('@');
-  const [mentionTextInput, setMentionTextInput] = useState('Jane');
-  const [imageSrcInput, setImageSrcInput] = useState('/pw-e2e-ok.png');
-  const [imageWidthInput, setImageWidthInput] = useState('40');
-  const [imageHeightInput, setImageHeightInput] = useState('40');
+  const [selection, setSelection] = useState({ start: '0', end: '0' });
+  const [link, setLink] = useState({
+    start: '0',
+    end: '0',
+    text: 'link',
+    url: 'https://example.com',
+  });
+  const [mention, setMention] = useState({ indicator: '@', text: 'Jane' });
+  const [imageInput, setImageInput] = useState({
+    src: '/pw-e2e-ok.png',
+    width: '40',
+    height: '40',
+  });
 
   const maxLength =
     maxLengthInput.trim() === '' ? undefined : toInteger(maxLengthInput);
@@ -85,17 +87,17 @@ export function TestMaxLength() {
         <input
           data-testid="test-max-length-selection-start"
           type="number"
-          value={selStartInput}
+          value={selection.start}
           onChange={(e) => {
-            setSelStartInput(e.target.value);
+            setSelection((prev) => ({ ...prev, start: e.target.value }));
           }}
         />
         <input
           data-testid="test-max-length-selection-end"
           type="number"
-          value={selEndInput}
+          value={selection.end}
           onChange={(e) => {
-            setSelEndInput(e.target.value);
+            setSelection((prev) => ({ ...prev, end: e.target.value }));
           }}
         />
         <button
@@ -103,8 +105,8 @@ export function TestMaxLength() {
           data-testid="test-max-length-apply-selection-button"
           onClick={() =>
             ref.current?.setSelection(
-              toInteger(selStartInput),
-              toInteger(selEndInput)
+              toInteger(selection.start),
+              toInteger(selection.end)
             )
           }
         >
@@ -116,31 +118,31 @@ export function TestMaxLength() {
         <input
           data-testid="test-max-length-setlink-start"
           type="number"
-          value={linkStartInput}
+          value={link.start}
           onChange={(e) => {
-            setLinkStartInput(e.target.value);
+            setLink((prev) => ({ ...prev, start: e.target.value }));
           }}
         />
         <input
           data-testid="test-max-length-setlink-end"
           type="number"
-          value={linkEndInput}
+          value={link.end}
           onChange={(e) => {
-            setLinkEndInput(e.target.value);
+            setLink((prev) => ({ ...prev, end: e.target.value }));
           }}
         />
         <input
           data-testid="test-max-length-setlink-text"
-          value={linkTextInput}
+          value={link.text}
           onChange={(e) => {
-            setLinkTextInput(e.target.value);
+            setLink((prev) => ({ ...prev, text: e.target.value }));
           }}
         />
         <input
           data-testid="test-max-length-setlink-url"
-          value={linkUrlInput}
+          value={link.url}
           onChange={(e) => {
-            setLinkUrlInput(e.target.value);
+            setLink((prev) => ({ ...prev, url: e.target.value }));
           }}
         />
         <button
@@ -148,10 +150,10 @@ export function TestMaxLength() {
           data-testid="test-max-length-apply-setlink-button"
           onClick={() =>
             ref.current?.setLink(
-              toInteger(linkStartInput),
-              toInteger(linkEndInput),
-              linkTextInput,
-              linkUrlInput
+              toInteger(link.start),
+              toInteger(link.end),
+              link.text,
+              link.url
             )
           }
         >
@@ -162,16 +164,16 @@ export function TestMaxLength() {
       <div>
         <input
           data-testid="test-max-length-mention-indicator"
-          value={mentionIndicatorInput}
+          value={mention.indicator}
           onChange={(e) => {
-            setMentionIndicatorInput(e.target.value);
+            setMention((prev) => ({ ...prev, indicator: e.target.value }));
           }}
         />
         <input
           data-testid="test-max-length-mention-text"
-          value={mentionTextInput}
+          value={mention.text}
           onChange={(e) => {
-            setMentionTextInput(e.target.value);
+            setMention((prev) => ({ ...prev, text: e.target.value }));
           }}
         />
         <button
@@ -181,7 +183,7 @@ export function TestMaxLength() {
             e.preventDefault();
           }}
           onClick={() =>
-            ref.current?.setMention(mentionIndicatorInput, mentionTextInput, {
+            ref.current?.setMention(mention.indicator, mention.text, {
               id: '1',
             })
           }
@@ -194,7 +196,7 @@ export function TestMaxLength() {
           onMouseDown={(e) => {
             e.preventDefault();
           }}
-          onClick={() => ref.current?.startMention(mentionIndicatorInput)}
+          onClick={() => ref.current?.startMention(mention.indicator)}
         >
           startMention
         </button>
@@ -203,25 +205,25 @@ export function TestMaxLength() {
       <div>
         <input
           data-testid="test-max-length-image-src"
-          value={imageSrcInput}
+          value={imageInput.src}
           onChange={(e) => {
-            setImageSrcInput(e.target.value);
+            setImageInput((prev) => ({ ...prev, src: e.target.value }));
           }}
         />
         <input
           data-testid="test-max-length-image-width"
           type="number"
-          value={imageWidthInput}
+          value={imageInput.width}
           onChange={(e) => {
-            setImageWidthInput(e.target.value);
+            setImageInput((prev) => ({ ...prev, width: e.target.value }));
           }}
         />
         <input
           data-testid="test-max-length-image-height"
           type="number"
-          value={imageHeightInput}
+          value={imageInput.height}
           onChange={(e) => {
-            setImageHeightInput(e.target.value);
+            setImageInput((prev) => ({ ...prev, height: e.target.value }));
           }}
         />
         <button
@@ -229,9 +231,9 @@ export function TestMaxLength() {
           data-testid="test-max-length-set-image-button"
           onClick={() =>
             ref.current?.setImage(
-              imageSrcInput,
-              toInteger(imageWidthInput),
-              toInteger(imageHeightInput)
+              imageInput.src,
+              toInteger(imageInput.width),
+              toInteger(imageInput.height)
             )
           }
         >
