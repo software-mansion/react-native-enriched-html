@@ -8,19 +8,18 @@ class EnrichedTextInputViewLayoutManager(
   private var forceHeightRecalculationCounter: Int = 0
 
   fun invalidateLayout() {
+    val stateWrapper = view.stateWrapper ?: return
+
     val text = view.text
     val paint = view.paint
 
-    MeasurementStore.store(view.id, text, paint) {
-      val stateWrapper = view.stateWrapper ?: return@store false
+    val needUpdate = MeasurementStore.store(view.id, text, paint)
+    if (!needUpdate) return
 
-      forceHeightRecalculationCounter++
-      val state = Arguments.createMap()
-      state.putInt("forceHeightRecalculationCounter", forceHeightRecalculationCounter)
-      stateWrapper.updateState(state)
-
-      true
-    }
+    forceHeightRecalculationCounter++
+    val state = Arguments.createMap()
+    state.putInt("forceHeightRecalculationCounter", forceHeightRecalculationCounter)
+    stateWrapper.updateState(state)
   }
 
   fun releaseMeasurementStore() {
