@@ -150,14 +150,11 @@ export function setLink(
     return;
   }
 
-  if (text.length === 0) {
-    if (from !== to) {
-      editor.chain().focus().deleteRange({ from, to }).run();
-    }
-    return;
+  if (text.length === 0 && from !== to) {
+    editor.chain().focus().deleteRange({ from, to }).run();
   }
 
-  if (url.length === 0) {
+  if (text.length === 0 || url.length === 0) {
     return;
   }
 
