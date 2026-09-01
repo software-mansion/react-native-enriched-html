@@ -429,12 +429,12 @@ class EnrichedTextInputView :
     if (maxLength == MaxLength.UNLIMITED) return pasted
 
     val currentText = text ?: return pasted
-    val keptLength = MaxLength.plainLengthOf(currentText) - MaxLength.plainLengthOf(currentText, start, end)
+    val keptLength = MaxLength.plainTextLengthOf(currentText) - MaxLength.plainTextLengthOf(currentText, start, end)
     val capacity = maxLength - keptLength
 
-    if (MaxLength.plainLengthOf(pasted) <= capacity) return pasted
+    if (MaxLength.plainTextLengthOf(pasted) <= capacity) return pasted
 
-    val cut = MaxLength.cutIndexIn(pasted, 0, pasted.length, capacity)
+    val cut = MaxLength.cutIndexToFitWithin(pasted, 0, pasted.length, capacity)
     if (cut == 0) return if (start == end) null else SpannableString("")
 
     return pasted.subSequence(0, cut) as? Spannable ?: SpannableString(pasted.subSequence(0, cut))

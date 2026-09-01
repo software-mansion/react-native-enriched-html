@@ -13,7 +13,7 @@ import com.swmansion.enriched.textinput.spans.EnrichedInputLinkSpan
 import com.swmansion.enriched.textinput.spans.EnrichedInputMentionSpan
 import com.swmansion.enriched.textinput.spans.EnrichedSpans
 import com.swmansion.enriched.textinput.utils.getSafeSpanBoundaries
-import com.swmansion.enriched.textinput.utils.replaceCountingInserted
+import com.swmansion.enriched.textinput.utils.replaceAndCountInserted
 import com.swmansion.enriched.textinput.utils.safelyRemoveZWS
 
 class ParametrizedStyles(
@@ -58,7 +58,7 @@ class ParametrizedStyles(
       spannable.removeSpan(span)
     }
 
-    val insertedLength = spannable.replaceCountingInserted(start, end, text)
+    val insertedLength = spannable.replaceAndCountInserted(start, end, text)
 
     // maxLength may have shortened the text, the link covers only what really
     // made it into the input then
@@ -353,7 +353,7 @@ class ParametrizedStyles(
     // an image takes a single character and can't be truncated, so it is simply
     // not added when maxLength leaves no room for it
     val insertedLength =
-      spannable.replaceCountingInserted(start, originalEnd, EnrichedConstants.ORC_STRING)
+      spannable.replaceAndCountInserted(start, originalEnd, EnrichedConstants.ORC_STRING)
     if (insertedLength == 0) return
 
     val (imageStart, imageEnd) = spannable.getSafeSpanBoundaries(start, start + insertedLength)
@@ -369,7 +369,7 @@ class ParametrizedStyles(
     val spannable = view.text as SpannableStringBuilder
     val (start, end) = selection.getInlineSelection()
 
-    spannable.replaceCountingInserted(start, end, indicator)
+    spannable.replaceAndCountInserted(start, end, indicator)
   }
 
   fun setMentionSpan(
@@ -391,7 +391,7 @@ class ParametrizedStyles(
     val end = mentionEnd ?: selectionEnd
 
     view.runAsATransaction {
-      val insertedLength = spannable.replaceCountingInserted(start, end, text)
+      val insertedLength = spannable.replaceAndCountInserted(start, end, text)
       val (safeStart, safeEnd) = spannable.getSafeSpanBoundaries(start, start + insertedLength)
 
       if (insertedLength == text.length) {

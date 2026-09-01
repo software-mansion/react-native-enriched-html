@@ -20,11 +20,7 @@ fun Spannable.getSafeSpanBoundaries(
   return Pair(safeStart, safeEnd)
 }
 
-/**
- * Replaces `[start, end)` with [text] and returns how many characters actually landed in the
- * buffer - the `maxLength` filter may have shortened, or entirely rejected, the replacement.
- */
-fun SpannableStringBuilder.replaceCountingInserted(
+fun SpannableStringBuilder.replaceAndCountInserted(
   start: Int,
   end: Int,
   text: CharSequence,

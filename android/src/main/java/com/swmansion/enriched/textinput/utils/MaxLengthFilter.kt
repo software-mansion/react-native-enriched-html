@@ -6,25 +6,16 @@ import com.swmansion.enriched.common.EnrichedConstants
 import com.swmansion.enriched.textinput.EnrichedTextInputView
 import java.text.BreakIterator
 
-/**
- * Helpers enforcing the `maxLength` prop.
- */
 object MaxLength {
   const val UNLIMITED = -1
 
-  /** Length of [text] as seen by the user (zero width spaces excluded). */
-  fun plainLengthOf(
+  fun plainTextLengthOf(
     text: CharSequence,
     start: Int = 0,
     end: Int = text.length,
   ): Int = text.subSequence(start, end).count { it != EnrichedConstants.ZWS }
 
-  /**
-   * Index in `[start, end]` at which [text] has to be cut so that at most [capacity] plain
-   * characters are kept. The cut point snaps outwards to a whole grapheme cluster, so emoji,
-   * surrogate pairs and combining marks never end up split in half.
-   */
-  fun cutIndexIn(
+  fun cutIndexToFitWithin(
     text: CharSequence,
     start: Int,
     end: Int,
@@ -35,7 +26,7 @@ object MaxLength {
 
     while (index < end) {
       if (text[index] != EnrichedConstants.ZWS) {
-        // zero width spaces are free, any other character needs the capacity
+        // zero width spaces are not counted, any other character needs the capacity
         if (kept >= capacity) break
         kept++
       }
@@ -83,15 +74,15 @@ class MaxLengthFilter(
     val maxLength = view.maxLength
     if (maxLength == MaxLength.UNLIMITED) return null
 
-    val keptLength = MaxLength.plainLengthOf(dest) - MaxLength.plainLengthOf(dest, dstart, dend)
+    val keptLength = MaxLength.plainTextLengthOf(dest) - MaxLength.plainTextLengthOf(dest, dstart, dend)
     val capacity = maxLength - keptLength
 
-    if (MaxLength.plainLengthOf(source, start, end) <= capacity) {
+    if (MaxLength.plainTextLengthOf(source, start, end) <= capacity) {
       // null keeps the original change
       return null
     }
 
-    val cut = MaxLength.cutIndexIn(source, start, end, capacity)
+    val cut = MaxLength.cutIndexToFitWithin(source, start, end, capacity)
 
     return if (cut <= start) "" else source.subSequence(start, cut)
   }
