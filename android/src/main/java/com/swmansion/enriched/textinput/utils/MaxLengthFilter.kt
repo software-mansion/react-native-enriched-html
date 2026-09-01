@@ -44,6 +44,8 @@ object MaxLength {
   ): Int {
     if (cut <= start || cut >= end) return cut
 
+    // here we handle potential composing characters - emojis,
+    // surrogate pairs, etc. We don't want to split them in half
     val iterator = BreakIterator.getCharacterInstance()
     iterator.setText(text.subSequence(start, end).toString())
 
