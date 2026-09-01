@@ -17,13 +17,7 @@ object MaxLength {
     text: CharSequence,
     start: Int = 0,
     end: Int = text.length,
-  ): Int {
-    var length = 0
-    for (i in start until end) {
-      if (text[i] != EnrichedConstants.ZWS) length++
-    }
-    return length
-  }
+  ): Int = text.subSequence(start, end).count { it != EnrichedConstants.ZWS }
 
   /**
    * Index in `[start, end]` at which [text] has to be cut so that at most [capacity] plain
