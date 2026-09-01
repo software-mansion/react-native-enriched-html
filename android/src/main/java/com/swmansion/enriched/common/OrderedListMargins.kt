@@ -2,7 +2,6 @@ package com.swmansion.enriched.common
 
 import android.graphics.Paint
 import android.text.Spannable
-import android.text.style.ParagraphStyle
 import com.swmansion.enriched.common.spans.EnrichedOrderedListSpan
 import com.swmansion.enriched.textinput.utils.getSafeSpanBoundaries
 
@@ -65,9 +64,7 @@ private fun forceOrderedListRelayout(
 
   if (start < 0 || end < 0 || start > end) return
 
-  class EmptySpan : ParagraphStyle
-
   val (safeStart, safeEnd) = text.getSafeSpanBoundaries(start, end)
-  text.getSpans(safeStart, safeEnd, EmptySpan::class.java).forEach { text.removeSpan(it) }
-  text.setSpan(EmptySpan(), safeStart, safeEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+  text.getSpans(safeStart, safeEnd, EmptyParagraphSpan::class.java).forEach { text.removeSpan(it) }
+  text.setSpan(EmptyParagraphSpan(), safeStart, safeEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
 }
