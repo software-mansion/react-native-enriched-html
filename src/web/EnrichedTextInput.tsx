@@ -8,6 +8,7 @@ import {
 } from 'react';
 import './EnrichedText.css';
 import type { Node } from '@tiptap/pm/model';
+import { insertValue } from './utils/insertValue';
 import type {
   EnrichedTextInputInstance,
   EnrichedTextInputProps,
@@ -406,6 +407,8 @@ export const EnrichedTextInput = ({
       measureInWindow: () => {},
       measureLayout: () => {},
       setNativeProps: () => {},
+      insertValue: (value: string, start: number, end: number) =>
+        insertValue(editor, value, start, end, useHtmlNormalizerRef.current),
       setTextAlignment: (alignment) => {
         if (alignment === 'auto') {
           runFocused(editor, (c) => c.unsetTextAlign());

@@ -3,11 +3,16 @@ package com.swmansion.enriched.textinput.utils
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.SpannableStringBuilder
+import com.swmansion.enriched.common.EnrichedConstants
 import com.swmansion.enriched.common.EnrichedSpanFlags
+import com.swmansion.enriched.common.spans.EnrichedImageSpan
+import com.swmansion.enriched.common.spans.EnrichedMentionSpan
 import com.swmansion.enriched.common.spans.interfaces.EnrichedBlockSpan
 import com.swmansion.enriched.common.spans.interfaces.EnrichedParagraphSpan
 import com.swmansion.enriched.common.spans.interfaces.EnrichedSpan
+import com.swmansion.enriched.textinput.spans.EnrichedInputAlignmentSpan
 import com.swmansion.enriched.textinput.spans.EnrichedSpans
+import com.swmansion.enriched.textinput.spans.interfaces.EnrichedInputSpan
 import com.swmansion.enriched.textinput.styles.HtmlStyle
 
 fun Spannable.getSafeSpanBoundaries(
@@ -62,25 +67,25 @@ private fun getStyleForSpan(span: EnrichedSpan): String? =
       config.clazz.isInstance(span)
     }?.key
 
-private fun Spannable.removeBlockedPasteStyles(
-  start: Int,
-  pastedSpannable: Spannable,
+private fun Spannable.removeBlockedIncomingStyles(
+  insertStart: Int,
+  incomingSpannable: Spannable,
   htmlStyle: HtmlStyle,
 ): Spannable {
-  val pastedSpans = pastedSpannable.getSpans(0, pastedSpannable.length, EnrichedSpan::class.java)
+  val incomingSpans = incomingSpannable.getSpans(0, incomingSpannable.length, EnrichedSpan::class.java)
 
-  for (span in pastedSpans) {
+  for (span in incomingSpans) {
     val style = getStyleForSpan(span) ?: continue
     val blockingStyles = EnrichedSpans.getMergingConfigForStyle(style, htmlStyle)?.blockingStyles ?: continue
     if (blockingStyles.isEmpty()) continue
 
-    val spanStart = pastedSpannable.getSpanStart(span)
-    val spanEnd = pastedSpannable.getSpanEnd(span)
+    val spanStart = incomingSpannable.getSpanStart(span)
+    val spanEnd = incomingSpannable.getSpanEnd(span)
     if (spanStart == -1 || spanEnd == -1 || spanStart == spanEnd) continue
 
-    val pastedStart = start + spanStart
-    val pastedEnd = start + spanEnd
-    if (blockingStyles.any { hasStyleInRange(it, pastedStart, pastedEnd) }) {
+    val absoluteStart = insertStart + spanStart
+    val absoluteEnd = insertStart + spanEnd
+    if (blockingStyles.any { hasStyleInRange(it, absoluteStart, absoluteEnd) }) {
       removeSpan(span)
     }
   }
@@ -88,50 +93,145 @@ private fun Spannable.removeBlockedPasteStyles(
   return this
 }
 
+private fun isBlockLevel(span: Any): Boolean = span is EnrichedParagraphSpan || span is EnrichedBlockSpan
+
+/**
+ * Clears a conflicting span over [rangeStart, rangeEnd), keeping whatever falls outside it so that
+ * untouched text does not lose its styling. A continuous block style spanning several paragraphs
+ * therefore only loses the affected ones. Mentions and images carry a single entity and cannot be
+ * split, so they are dropped as a whole.
+ */
+private fun SpannableStringBuilder.clearConflictingSpan(
+  span: EnrichedSpan,
+  rangeStart: Int,
+  rangeEnd: Int,
+  htmlStyle: HtmlStyle,
+) {
+  val spanStart = getSpanStart(span)
+  val spanEnd = getSpanEnd(span)
+  val flags = getSpanFlags(span)
+  removeSpan(span)
+
+  if (span !is EnrichedInputSpan || span is EnrichedMentionSpan || span is EnrichedImageSpan) return
+
+  // Block level styles own whole lines, so their leftovers must not swallow the separating newline
+  val isBlock = isBlockLevel(span)
+  val leftEnd = if (isBlock && rangeStart > 0 && this[rangeStart - 1] == '\n') rangeStart - 1 else rangeStart
+  val rightStart = if (isBlock && rangeEnd < length && this[rangeEnd] == '\n') rangeEnd + 1 else rangeEnd
+
+  if (spanStart < leftEnd) {
+    val left = span.rebuildWithStyle(htmlStyle)
+    setSpan(left, spanStart, leftEnd, EnrichedSpanFlags.forSpan(left, flags))
+  }
+
+  if (rightStart < spanEnd) {
+    val right = span.rebuildWithStyle(htmlStyle)
+    setSpan(right, rightStart, spanEnd, EnrichedSpanFlags.forSpan(right, flags))
+  }
+}
+
+/**
+ * Drops the document styles that the merged in content conflicts with, mirroring how toggling a
+ * style clears its conflicts: block level styles resolve over the whole paragraph, inline ones only
+ * over the range they cover. Spans that arrived with [mergedSpannable] are left alone.
+ */
+private fun SpannableStringBuilder.removeConflictingStyles(
+  mergedSpannable: Spannable,
+  htmlStyle: HtmlStyle,
+) {
+  val mergedSpans = mergedSpannable.getSpans(0, mergedSpannable.length, EnrichedSpan::class.java)
+
+  for (span in mergedSpans) {
+    val spanStart = getSpanStart(span)
+    val spanEnd = getSpanEnd(span)
+
+    if (spanStart == -1 || spanEnd == -1 || spanStart == spanEnd) continue
+
+    val style = getStyleForSpan(span) ?: continue
+    val conflictingStyles = EnrichedSpans.getMergingConfigForStyle(style, htmlStyle)?.conflictingStyles ?: continue
+    if (conflictingStyles.isEmpty()) continue
+
+    val (rangeStart, rangeEnd) =
+      if (isBlockLevel(span)) getParagraphBounds(spanStart, spanEnd) else Pair(spanStart, spanEnd)
+
+    for (conflictingStyle in conflictingStyles) {
+      val type = EnrichedSpans.allSpans[conflictingStyle]?.clazz ?: continue
+
+      for (existing in getSpans(rangeStart, rangeEnd, type)) {
+        if (existing !is EnrichedSpan || mergedSpans.any { it === existing }) {
+          continue
+        }
+        clearConflictingSpan(existing, rangeStart, rangeEnd, htmlStyle)
+      }
+    }
+  }
+}
+
 fun Spannable.mergeSpannables(
   start: Int,
   end: Int,
   string: String,
-  htmlStyle: HtmlStyle? = null,
+  htmlStyle: HtmlStyle,
 ): Spannable = this.mergeSpannables(start, end, SpannableString(string), htmlStyle)
 
 fun Spannable.mergeSpannables(
   start: Int,
   end: Int,
   spannable: Spannable,
-  htmlStyle: HtmlStyle? = null,
+  htmlStyle: HtmlStyle,
 ): Spannable {
   var finalStart = start
   var finalEnd = end
-
   val builder = SpannableStringBuilder(this)
-  val startBlockSpans = spannable.getSpans(0, 0, EnrichedBlockSpan::class.java)
-  val startParagraphSpans = spannable.getSpans(0, 0, EnrichedParagraphSpan::class.java)
-  val endBlockSpans = spannable.getSpans(this.length, this.length, EnrichedBlockSpan::class.java)
-  val endParagraphSpans = spannable.getSpans(this.length, this.length, EnrichedParagraphSpan::class.java)
   val (paragraphStart, paragraphEnd) = this.getParagraphBounds(start, end)
-  val isNewLineStart = startBlockSpans.isNotEmpty() || startParagraphSpans.isNotEmpty()
-  val isNewLineEnd = endBlockSpans.isNotEmpty() || endParagraphSpans.isNotEmpty()
 
-  val pastedHasOwnStyles =
+  val incomingHasOwnBlockStyles =
     spannable.getSpans(0, spannable.length, EnrichedBlockSpan::class.java).isNotEmpty() ||
       spannable.getSpans(0, spannable.length, EnrichedParagraphSpan::class.java).isNotEmpty()
 
-  if (isNewLineStart && start != paragraphStart) {
-    builder.insert(start, "\n")
-    finalStart = start + 1
-    finalEnd = end + 1
-  }
+  val incomingHasAlignmentStyles =
+    spannable.getSpans(0, spannable.length, EnrichedInputAlignmentSpan::class.java).isNotEmpty()
 
-  if (isNewLineEnd && end != paragraphEnd) {
-    builder.insert(finalEnd, "\n")
+  // ZWS anchors are not content, so a line holding nothing else still counts as empty
+  val hasContentBefore = (paragraphStart until start).any { this[it] != EnrichedConstants.ZWS }
+  val hasContentAfter = (end until paragraphEnd).any { this[it] != EnrichedConstants.ZWS }
+
+  if ((incomingHasOwnBlockStyles || incomingHasAlignmentStyles) && !hasContentBefore && !hasContentAfter) {
+    finalStart = paragraphStart
+    finalEnd = paragraphEnd
   }
 
   builder.replace(finalStart, finalEnd, spannable)
 
-  // Manually extend existing paragraph/block spans to cover the pasted text.
-  if (!pastedHasOwnStyles) {
-    val pasteEnd = finalStart + spannable.length
+  if (incomingHasOwnBlockStyles) {
+    // Extend each incoming block/paragraph span to cover its own paragraph so the style applies
+    // to existing text on the same line, matching toggle semantics
+    val insertEnd = finalStart + spannable.length
+
+    val incomingBlockSpans = builder.getSpans(finalStart, insertEnd, EnrichedBlockSpan::class.java)
+    val incomingParagraphSpans = builder.getSpans(finalStart, insertEnd, EnrichedParagraphSpan::class.java)
+    val incomingSpans = incomingBlockSpans.toList() + incomingParagraphSpans.toList()
+
+    for (span in incomingSpans) {
+      val spanStart = builder.getSpanStart(span)
+      val spanEnd = builder.getSpanEnd(span)
+      if (spanStart == -1) continue
+
+      val (spanParaStart, spanParaEnd) = builder.getParagraphBounds(spanStart, spanEnd)
+      if (spanStart <= spanParaStart && spanEnd >= spanParaEnd) continue
+
+      val flags = builder.getSpanFlags(span)
+      builder.removeSpan(span)
+      builder.setSpan(
+        span,
+        spanParaStart.coerceAtMost(spanStart),
+        spanParaEnd.coerceAtLeast(spanEnd),
+        EnrichedSpanFlags.forSpan(span, flags),
+      )
+    }
+  } else {
+    // No own styles - extend existing paragraph/block spans to cover the inserted text
+    val insertEnd = finalStart + spannable.length
 
     val affectedParagraphSpans = builder.getSpans(finalStart, finalStart, EnrichedParagraphSpan::class.java)
     val affectedBlockSpans = builder.getSpans(finalStart, finalStart, EnrichedBlockSpan::class.java)
@@ -140,18 +240,78 @@ fun Spannable.mergeSpannables(
     for (span in affectedSpans) {
       val spanStart = builder.getSpanStart(span)
       val spanEnd = builder.getSpanEnd(span)
-      if (spanStart == -1 || spanEnd >= pasteEnd) continue
+      if (spanStart == -1 || spanEnd >= insertEnd) continue
 
-      val (_, newParagraphEnd) = builder.getParagraphBounds(spanStart, pasteEnd)
+      val (_, newParagraphEnd) = builder.getParagraphBounds(spanStart, insertEnd)
       val flags = builder.getSpanFlags(span)
       builder.removeSpan(span)
       builder.setSpan(span, spanStart, newParagraphEnd, EnrichedSpanFlags.forSpan(span, flags))
     }
   }
 
-  htmlStyle?.let {
-    builder.removeBlockedPasteStyles(finalStart, spannable, it)
+  // Stretch incoming alignment spans to paragraph bounds and remove existing alignments
+  // in the same paragraphs.
+  if (incomingHasAlignmentStyles) {
+    val insertEnd = finalStart + spannable.length
+    val incomingAlignments = builder.getSpans(finalStart, insertEnd, EnrichedInputAlignmentSpan::class.java)
+
+    for (span in incomingAlignments) {
+      val spanStart = builder.getSpanStart(span)
+      val spanEnd = builder.getSpanEnd(span)
+      if (spanStart == -1) continue
+
+      val (spanParaStart, spanParaEnd) = builder.getParagraphBounds(spanStart, spanEnd)
+
+      // Remove/trim existing alignment spans in this paragraph that aren't from the incoming content
+      val allAlignments = builder.getSpans(spanParaStart, spanParaEnd, EnrichedInputAlignmentSpan::class.java)
+      for (existing in allAlignments) {
+        if (existing === span) continue
+        val exStart = builder.getSpanStart(existing)
+        if (exStart == -1 || exStart in finalStart until insertEnd) continue
+        val exEnd = builder.getSpanEnd(existing)
+        builder.removeSpan(existing)
+
+        if (exStart < spanParaStart) {
+          val topEnd = if (spanParaStart > 0 && builder[spanParaStart - 1] == '\n') spanParaStart - 1 else spanParaStart
+          if (exStart < topEnd) {
+            builder.setSpan(
+              EnrichedInputAlignmentSpan(existing.cssValue),
+              exStart,
+              topEnd,
+              EnrichedSpanFlags.forSpan(existing, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE),
+            )
+          }
+        }
+        if (exEnd > spanParaEnd) {
+          val bottomStart = if (spanParaEnd < builder.length && builder[spanParaEnd] == '\n') spanParaEnd + 1 else spanParaEnd
+          if (bottomStart < exEnd) {
+            builder.setSpan(
+              EnrichedInputAlignmentSpan(existing.cssValue),
+              bottomStart,
+              exEnd,
+              EnrichedSpanFlags.forSpan(existing, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE),
+            )
+          }
+        }
+      }
+
+      // Stretch the incoming alignment span to cover the full paragraph
+      if (spanStart > spanParaStart || spanEnd < spanParaEnd) {
+        val flags = builder.getSpanFlags(span)
+        builder.removeSpan(span)
+        builder.setSpan(
+          span,
+          spanParaStart,
+          spanParaEnd,
+          EnrichedSpanFlags.forSpan(span, flags),
+        )
+      }
+    }
   }
+
+  // Blocking runs first so styles that never made it in are not treated as conflict winners
+  builder.removeBlockedIncomingStyles(finalStart, spannable, htmlStyle)
+  builder.removeConflictingStyles(spannable, htmlStyle)
 
   return builder
 }

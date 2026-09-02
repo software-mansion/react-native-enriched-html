@@ -216,7 +216,7 @@
     [alignmentStyle addAlignment:entry.alignment
                            range:finalRange
                       withTyping:NO
-                  withDirtyRange:NO];
+                  withDirtyRange:YES];
   }
 }
 

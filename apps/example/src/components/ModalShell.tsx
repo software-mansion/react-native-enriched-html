@@ -36,5 +36,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    // without that during iOS e2e tests the modal is not visible when opened for the second time
+    zIndex: 2,
   },
 });

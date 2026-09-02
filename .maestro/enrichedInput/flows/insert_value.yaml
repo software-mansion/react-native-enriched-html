@@ -1,0 +1,134 @@
+appId: swmansion.enriched.example
+---
+# Verifies insertValue behaviour for different scenarios
+
+- launchApp
+
+- tapOn:
+    id: 'toggle-screen-button'
+
+# ── Scenario 1: plain text into empty editor ─────────────────────────────────
+- tapOn:
+    id: 'focus-button'
+
+- runFlow:
+    file: '../subflows/insert_editor_value.yaml'
+    env:
+      VALUE: 'Hello, world!'
+
+- runFlow:
+    file: '../subflows/capture_or_assert_screenshot.yaml'
+    env:
+      SCREENSHOT_NAME: 'insert_value_plain_into_empty'
+
+# ── Scenario 2: plain text inherits active inline style ───────────────────────
+- tapOn:
+    id: 'clear-button'
+- tapOn:
+    id: 'focus-button'
+
+- inputText: 'before'
+- tapOn:
+    id: 'toolbar-bold'
+
+- runFlow:
+    file: '../subflows/insert_editor_value.yaml'
+    env:
+      VALUE: 'BOLD'
+
+- runFlow:
+    file: '../subflows/capture_or_assert_screenshot.yaml'
+    env:
+      SCREENSHOT_NAME: 'insert_value_inherits_inline_style'
+
+# ── Scenario 3: plain text into empty paragraph-styled line ───────────────────
+- tapOn:
+    id: 'clear-button'
+- tapOn:
+    id: 'focus-button'
+
+- tapOn:
+    id: 'toolbar-heading-1'
+
+- runFlow:
+    file: '../subflows/insert_editor_value.yaml'
+    env:
+      VALUE: 'Heading'
+
+- runFlow:
+    file: '../subflows/capture_or_assert_screenshot.yaml'
+    env:
+      SCREENSHOT_NAME: 'insert_value_into_empty_paragraph_style'
+
+# ── Scenario 4: heading HTML into empty line ──────────────────────────────────
+- tapOn:
+    id: 'clear-button'
+- tapOn:
+    id: 'focus-button'
+
+- runFlow:
+    file: '../subflows/insert_editor_value.yaml'
+    env:
+      VALUE: '<html><h2>Hello</h2></html>'
+
+- runFlow:
+    file: '../subflows/capture_or_assert_screenshot.yaml'
+    env:
+      SCREENSHOT_NAME: 'insert_value_heading_into_empty_line'
+
+# ── Scenario 5: heading HTML into line with existing content ──────────────────
+- tapOn:
+    id: 'clear-button'
+- tapOn:
+    id: 'focus-button'
+
+- inputText: 'before'
+
+- runFlow:
+    file: '../subflows/insert_editor_value.yaml'
+    env:
+      VALUE: '<html><h3>inserted</h3></html>'
+
+- runFlow:
+    file: '../subflows/capture_or_assert_screenshot.yaml'
+    env:
+      SCREENSHOT_NAME: 'insert_value_heading_into_nonempty_line'
+
+# ── Scenario 6: bold HTML blocked inside code block ───────────────────────────
+- tapOn:
+    id: 'clear-button'
+- tapOn:
+    id: 'focus-button'
+
+- tapOn:
+    id: 'toolbar-code-block'
+
+- inputText: 'code'
+
+- runFlow:
+    file: '../subflows/insert_editor_value.yaml'
+    env:
+      VALUE: '<html><b>bold</b></html>'
+
+- runFlow:
+    file: '../subflows/capture_or_assert_screenshot.yaml'
+    env:
+      SCREENSHOT_NAME: 'insert_value_bold_blocked_in_codeblock'
+
+# ── Scenario 7: multi-paragraph HTML at caret ─────────────────────────────────
+- tapOn:
+    id: 'clear-button'
+- tapOn:
+    id: 'focus-button'
+
+- inputText: 'One'
+
+- runFlow:
+    file: '../subflows/insert_editor_value.yaml'
+    env:
+      VALUE: '<html><h4>heading</h4><p>normal</p></html>'
+
+- runFlow:
+    file: '../subflows/capture_or_assert_screenshot.yaml'
+    env:
+      SCREENSHOT_NAME: 'insert_value_multi_paragraph'

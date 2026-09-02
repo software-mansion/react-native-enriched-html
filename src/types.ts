@@ -564,6 +564,13 @@ export interface EnrichedTextInputInstance extends NativeMethods {
   setTextAlignment: (
     alignment: 'left' | 'center' | 'right' | 'justify' | 'auto'
   ) => void;
+
+  /** Inserts (or replaces) content at the visible character range `[start, end)`.
+   * @param value - Content to insert.
+   * @param start - Start index of the range to insert the content at.
+   * @param end - End index of the range to insert the content at.
+   */
+  insertValue: (value: string, start: number, end: number) => void;
 }
 
 export interface ContextMenuItem {
