@@ -1,16 +1,19 @@
 #import "InputAttributesManager.h"
 #import "AlignmentUtils.h"
+#import "ArrayExtension.h"
 #import "AttributeEntry.h"
 #import "EnrichedTextInputView.h"
 #import "ParagraphAttributesUtils.h"
 #import "RangeUtils.h"
 #import "StyleHeaders.h"
+#import "StyleUtils.h"
 #import "ZeroWidthSpaceUtils.h"
 
 @implementation InputAttributesManager {
   NSMutableArray<NSValue *> *_dirtyRanges;
   NSSet *_customAttributesKeys;
   NSMutableSet *_removedTypingAttributes;
+  BOOL _recentOnlySelectionStatus;
 }
 
 - (instancetype)initWithInput:(EnrichedTextInputView *)input {
@@ -18,6 +21,7 @@
   _input = input;
   _dirtyRanges = [[NSMutableArray alloc] init];
   _removedTypingAttributes = [[NSMutableSet alloc] init];
+  _recentOnlySelectionStatus = NO;
 
   // setup customAttributes
   NSMutableSet *_customAttrsSet = [[NSMutableSet alloc] init];
@@ -97,15 +101,11 @@
 
     // Sort style types so paragraph styles come first. Their broad visual
     // attributes (e.g. foreground color, font) are laid down before inline
-    // styles override them on their specific sub-ranges.
+    // styles override them on their specific sub-ranges. Inline styles among
+    // themselves follow their stylePriority.
     NSArray *sortedStyleTypes = [presentStyles.allKeys
-        sortedArrayUsingComparator:^NSComparisonResult(NSNumber *a,
-                                                       NSNumber *b) {
-          BOOL aPara = [_input->stylesDict[a] isParagraph];
-          BOOL bPara = [_input->stylesDict[b] isParagraph];
-          if (aPara == bPara)
-            return NSOrderedSame;
-          return aPara ? NSOrderedAscending : NSOrderedDescending;
+        sortedArrayBySortKey:^NSInteger(NSNumber *styleType) {
+          return [_input->stylesDict[styleType] stylePriority];
         }];
 
     // re-apply meta-attributes and apply visual styling following the saved
@@ -128,7 +128,24 @@
   [_dirtyRanges removeAllObjects];
 }
 
+- (void)restoreInlineStylesPresentInRange:(NSRange)range
+                                intoAttrs:(NSMutableDictionary *)attrs {
+  for (StyleBase *style in _input->stylesDict.allValues) {
+    if ([style isParagraph])
+      continue;
+    if ([_removedTypingAttributes containsObject:[style getKey]])
+      continue;
+
+    AttributeEntry *entry = [style getEntryIfPresent:range];
+    if (entry == nullptr)
+      continue;
+
+    attrs[entry.key] = entry.value;
+  }
+}
+
 - (void)manageTypingAttributesWithOnlySelection:(BOOL)onlySelectionChanged {
+  _recentOnlySelectionStatus = onlySelectionChanged;
   EnrichedInputTextView *textView = _input->textView;
   NSRange selectedRange = textView.selectedRange;
 
@@ -152,6 +169,16 @@
 
       [ParagraphAttributesUtils resetTypingAttributes:_input
                                   preservingAlignment:savedAlignment];
+
+      // newlines could have been made within a valid inline style, so
+      // we want to preserve typingAttributes so they are correctly
+      // acknowledged when typing
+      if (paragraphRange.length == 1) {
+        NSMutableDictionary *newAttrs = [textView.typingAttributes mutableCopy];
+        [self restoreInlineStylesPresentInRange:paragraphRange
+                                      intoAttrs:newAttrs];
+        textView.typingAttributes = newAttrs;
+      }
       return;
     }
   }
@@ -188,23 +215,10 @@
   // getEntryIfPresent properly returns nullptr for styles that we don't want to
   // extend this way. Attributes from _removedTypingAttributes aren't added
   // because they were just removed.
-  for (StyleBase *style in _input->stylesDict.allValues) {
-    if ([style isParagraph])
-      continue;
-    if ([_removedTypingAttributes containsObject:[style getKey]])
-      continue;
-
-    AttributeEntry *entry = nullptr;
-
-    if (selectedRange.location > 0) {
-      entry =
-          [style getEntryIfPresent:NSMakeRange(selectedRange.location - 1, 1)];
-    }
-
-    if (entry == nullptr)
-      continue;
-
-    newAttrs[entry.key] = entry.value;
+  if (selectedRange.location > 0) {
+    [self restoreInlineStylesPresentInRange:NSMakeRange(
+                                                selectedRange.location - 1, 1)
+                                  intoAttrs:newAttrs];
   }
 
   // Apply active styles to typing attributes only for styles that require it so
@@ -217,6 +231,10 @@
   }
 
   textView.typingAttributes = newAttrs;
+}
+
+- (void)repeatRecentTypingAttributesManagement {
+  [self manageTypingAttributesWithOnlySelection:_recentOnlySelectionStatus];
 }
 
 @end
