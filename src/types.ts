@@ -564,6 +564,12 @@ export interface EnrichedTextInputInstance extends NativeMethods {
   setTextAlignment: (
     alignment: 'left' | 'center' | 'right' | 'justify' | 'auto'
   ) => void;
+
+  /**
+   * Deletes text at current selection. If there is no selection - deletes one character
+   * backwards.
+   */
+  deleteAtSelection: () => void;
 }
 
 export interface ContextMenuItem {
