@@ -568,7 +568,7 @@ class EnrichedTextInputView :
   }
 
   fun setLineHeight(height: Float) {
-    lineHeight = if (height == 0f) null else height
+    lineHeight = if (height <= 0f) null else height
     applyLineSpacing()
     layoutManager.invalidateLayout()
     forceScrollToSelection()
