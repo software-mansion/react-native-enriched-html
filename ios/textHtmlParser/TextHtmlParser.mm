@@ -1,5 +1,6 @@
 #import "TextHtmlParser.h"
 #import "AlignmentEntry.h"
+#import "ArrayExtension.h"
 #import "EnrichedTextView.h"
 #import "HtmlParser.h"
 #import "LinkData.h"
@@ -153,8 +154,14 @@
     }
   }
 
+  // Respect the styling priority
+  NSArray *sortedInlineApply =
+      [pendingInlineApply sortedArrayBySortKey:^NSInteger(NSArray *entry) {
+        return [((StyleBase *)entry[0]) stylePriority];
+      }];
+
   // Apply visual styling for inline styles
-  for (NSArray *entry in pendingInlineApply) {
+  for (NSArray *entry in sortedInlineApply) {
     StyleBase *style = entry[0];
     NSRange adjustedStyleRange = [((NSValue *)entry[1]) rangeValue];
     [style applyStyling:adjustedStyleRange];
