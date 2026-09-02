@@ -20,7 +20,10 @@ export default function App() {
       <Pressable
         key={alignment}
         style={[styles.button, isActive && styles.buttonActive]}
-        onPress={() => ref.current?.setTextAlignment(alignment)}>
+        onPress={() => {
+          const alignmentToSet = isActive ? 'auto' : alignment;
+          ref.current?.setTextAlignment(alignmentToSet);
+        }}>
         <Text style={[styles.text, isActive && styles.textActive]}>
           {alignment}
         </Text>
