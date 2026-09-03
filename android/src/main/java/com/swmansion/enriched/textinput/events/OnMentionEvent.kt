@@ -13,6 +13,12 @@ class OnMentionEvent(
 ) : Event<OnMentionEvent>(surfaceId, viewId) {
   override fun getEventName(): String = EVENT_NAME
 
+  // start/change/end can be emitted as a burst within a single frame
+  // (e.g. when switching mentions: end -> start -> change).
+  // The default coalescing would merge them in the batch and drop the
+  // intermediate ones, so it must be disabled to deliver every event in order.
+  override fun canCoalesce(): Boolean = false
+
   override fun getEventData(): WritableMap? {
     val eventData: WritableMap = Arguments.createMap()
     eventData.putString("indicator", indicator)

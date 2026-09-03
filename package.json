@@ -1,6 +1,6 @@
 {
   "name": "react-native-enriched-html",
-  "version": "1.0.0",
+  "version": "1.1.1",
   "description": "HTML-based Rich Text solution for React Native",
   "source": "./src/index.tsx",
   "main": "./lib/module/index.js",
@@ -44,11 +44,14 @@
   "scripts": {
     "example": "yarn workspace react-native-enriched-example",
     "example-web": "yarn workspace react-native-enriched-web-example",
+    "docs-install": "cd docs && yarn install",
+    "docs-start": "cd docs && yarn start",
     "test": "jest --passWithNoTests",
     "typecheck": "yarn typecheck:lib && yarn typecheck:example && yarn typecheck:example-web",
     "typecheck:lib": "tsc -p tsconfig.build.json",
     "typecheck:example": "tsc -p apps/example/tsconfig.json",
     "typecheck:example-web": "tsc -p apps/example-web/tsconfig.app.json",
+    "typecheck:docs": "cd docs && yarn typecheck",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "lint:android": "cd apps/example/android && ./gradlew lintVerify",
     "lint:android:fix": "cd apps/example/android && ./gradlew lintFormat",
@@ -83,7 +86,7 @@
   "bugs": {
     "url": "https://github.com/software-mansion/react-native-enriched-html/issues"
   },
-  "homepage": "https://github.com/software-mansion/react-native-enriched-html#readme",
+  "homepage": "https://enriched.swmansion.com/html",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
@@ -116,12 +119,13 @@
     "@eslint/js": "^9.22.0",
     "@evilmartians/lefthook": "^1.5.0",
     "@playwright/test": "1.58.2",
-    "@react-native-community/cli": "20.0.0",
-    "@react-native/eslint-config": "^0.81.0",
+    "@react-native-community/cli": "20.2.0",
+    "@react-native/eslint-config": "^0.87.0",
+    "@react-native/jest-preset": "^0.87.0",
     "@release-it/conventional-changelog": "^9.0.2",
     "@types/jest": "^29.5.5",
-    "@types/react": "^19.1.0",
-    "@types/react-dom": "^19.1.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
     "clang-format": "^1.8.0",
     "commitlint": "^19.6.1",
     "del-cli": "^5.1.0",
@@ -132,17 +136,17 @@
     "jest-environment-jsdom": "^29.7.0",
     "playwright": "1.58.2",
     "prettier": "^3.0.3",
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
-    "react-native": "0.81.0",
-    "react-native-builder-bob": "^0.40.18",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native": "0.87.0",
+    "react-native-builder-bob": "^0.43.0",
     "release-it": "^17.10.0",
     "turbo": "^1.10.7",
-    "typescript": "^5.8.3"
+    "typescript": "^6.0.3"
   },
   "peerDependencies": {
     "react": "*",
-    "react-native": "*"
+    "react-native": ">=0.82.0"
   },
   "workspaces": [
     "apps/example",
@@ -156,7 +160,7 @@
     "projects": [
       {
         "displayName": "native",
-        "preset": "react-native",
+        "preset": "@react-native/jest-preset",
         "modulePathIgnorePatterns": [
           "<rootDir>/apps/example/node_modules",
           "<rootDir>/lib/"

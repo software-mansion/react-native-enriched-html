@@ -55,6 +55,8 @@ class EnrichedSelection(
     start = finalStart
     end = finalEnd
     validateStyles()
+
+    view.parametrizedStyles?.afterSelectionChangedMentions(finalStart, finalEnd)
     emitSelectionChangeEvent(view.text, finalStart, finalEnd)
   }
 

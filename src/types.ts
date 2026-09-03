@@ -2,7 +2,10 @@ import type { RefObject } from 'react';
 import type {
   ColorValue,
   DimensionValue,
-  NativeMethods,
+  HostInstance,
+  MeasureInWindowOnSuccessCallback,
+  MeasureLayoutOnSuccessCallback,
+  MeasureOnSuccessCallback,
   NativeSyntheticEvent,
   ReturnKeyTypeOptions,
   TargetedEvent,
@@ -34,7 +37,7 @@ export interface EnrichedInputStyle {
   display?: TextStyle['display'];
   end?: DimensionValue;
   flex?: number;
-  flexBasis?: DimensionValue;
+  flexBasis?: string | number;
   flexGrow?: number;
   flexShrink?: number;
   height?: DimensionValue;
@@ -430,7 +433,16 @@ export type BlurEvent = NativeSyntheticEvent<TargetedEvent>;
  * to the component's `ref` prop. All methods are safe to call after the
  * component has mounted.
  */
-export interface EnrichedTextInputInstance extends NativeMethods {
+export interface EnrichedTextInputInstance {
+  measureInWindow: (callback: MeasureInWindowOnSuccessCallback) => void;
+  measure: (callback: MeasureOnSuccessCallback) => void;
+  measureLayout: (
+    relativeToNativeComponentRef: HostInstance | number,
+    onSuccess: MeasureLayoutOnSuccessCallback,
+    onFail?: () => void
+  ) => void;
+  setNativeProps: (nativeProps: object) => void;
+
   /** Focuses the editor, opening the software keyboard on mobile. */
   focus: () => void;
 
@@ -583,6 +595,25 @@ export interface ContextMenuItem {
 export interface OnChangeMentionEvent {
   indicator: string;
   text: string;
+}
+
+/**
+ * Web-only configuration for the HTML sanitization step.
+ *
+ * @platform web
+ */
+export interface SanitizationConfig {
+  /**
+   * Regular expression used to decide which link URIs survive sanitization.
+   * Maps directly to DOMPurify's `ALLOWED_URI_REGEXP`, so it fully replaces
+   * the default allow-list rather than extending it — include the standard
+   * protocols you still want to permit in addition to any custom ones.
+   *
+   * When omitted, DOMPurify's built-in default is used.
+   *
+   * @platform web
+   */
+  linkRegex?: RegExp;
 }
 
 /**
@@ -758,9 +789,16 @@ export interface EnrichedTextInputProps extends Omit<ViewProps, 'children'> {
    * normalized through the HTML normalizer before being applied.
    * This converts arbitrary HTML into the canonical tag subset that the enriched
    * parser understands.
-   * Disabled by default.
+   * Enabled by default.
    */
   useHtmlNormalizer?: boolean;
+
+  /**
+   * Web-only configuration for the HTML sanitization step.
+   *
+   * @platform web
+   */
+  sanitizationConfig?: SanitizationConfig;
 
   /**
    * If true, fonts will scale to respect the system's accessibility text size.
@@ -772,11 +810,22 @@ export interface EnrichedTextInputProps extends Omit<ViewProps, 'children'> {
 /**
  * Imperative handle exposed via `ref` on `<EnrichedText />`.
  *
- * Inherits the full React Native `NativeMethods` surface (`measure`,
- * `measureInWindow`, `measureLayout`, `setNativeProps`, `focus`, `blur`).
+ * Exposes native measurement helpers (`measure`, `measureInWindow`,
+ * `measureLayout`, `setNativeProps`, `focus`, `blur`).
  * Obtain a reference with `useRef<EnrichedTextInstance>(null)`.
  */
-export interface EnrichedTextInstance extends NativeMethods {}
+export interface EnrichedTextInstance {
+  measureInWindow: (callback: MeasureInWindowOnSuccessCallback) => void;
+  measure: (callback: MeasureOnSuccessCallback) => void;
+  measureLayout: (
+    relativeToNativeComponentRef: HostInstance | number,
+    onSuccess: MeasureLayoutOnSuccessCallback,
+    onFail?: () => void
+  ) => void;
+  setNativeProps: (nativeProps: object) => void;
+  focus: () => void;
+  blur: () => void;
+}
 
 /**
  * Props for the `<EnrichedText />` read-only rich-text rendering component.
@@ -784,7 +833,7 @@ export interface EnrichedTextInstance extends NativeMethods {}
 export interface EnrichedTextProps extends ViewProps {
   /**
    * Ref to the imperative handle that exposes native measurement and focus
-   * methods inherited from `NativeMethods`.
+   * methods.
    * Create with `useRef<EnrichedTextInstance>(null)`.
    */
   ref?: RefObject<EnrichedTextInstance | null>;
@@ -800,9 +849,16 @@ export interface EnrichedTextProps extends ViewProps {
 
   /**
    * If true, external HTML will be normalized through the HTML normalizer
-   * before being rendered. Disabled by default.
+   * before being rendered. Enabled by default.
    */
   useHtmlNormalizer?: boolean;
+
+  /**
+   * Web-only configuration for the HTML sanitization step.
+   *
+   * @platform web
+   */
+  sanitizationConfig?: SanitizationConfig;
 
   /**
    * How to truncate text when it overflows `numberOfLines`.

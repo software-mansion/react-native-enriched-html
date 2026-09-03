@@ -124,6 +124,27 @@ test.describe('visual: complex lists and layouts', () => {
   });
 });
 
+test.describe('visual: extended ordered list margin', () => {
+  test('ordered list adds a necessary margin to fit larger marker values', async ({
+    page,
+  }) => {
+    const htmlBefore = `<html><ol>${'<li>*</li>'.repeat(9)}</ol></html>`;
+
+    await gotoTestEnrichedText(page);
+    await setEnrichedTextValue(page, htmlBefore);
+    await expect(displayLocator(page)).toHaveScreenshot(
+      'enriched-text-ordered-list-extended-margin-before.png'
+    );
+
+    const htmlAfter = `<html><ol>${'<li>*</li>'.repeat(10)}</ol></html>`;
+
+    await setEnrichedTextValue(page, htmlAfter);
+    await expect(displayLocator(page)).toHaveScreenshot(
+      'enriched-text-ordered-list-extended-margin-after.png'
+    );
+  });
+});
+
 test.describe('visual: typography, blocks, and wrapping', () => {
   const cases = [
     {
@@ -227,7 +248,7 @@ test.describe('visual: images', () => {
     {
       name: 'image placeholder inside lists',
       snapshot: 'enriched-text-images-placeholder-list.png',
-      html: '<html><ol><li>List with a broken image <img src="" width="20" height="20" /> inside.</li></ol></html>',
+      html: '<html><ol><li>List with a broken image <img src="/pw-e2e-broken.png" width="20" height="20" /> inside.</li></ol></html>',
     },
   ];
 

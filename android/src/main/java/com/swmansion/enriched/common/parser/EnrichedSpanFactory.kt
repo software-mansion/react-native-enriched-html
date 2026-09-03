@@ -37,6 +37,7 @@ interface EnrichedSpanFactory<T> {
   fun createLinkSpan(
     url: String,
     style: T,
+    isManual: Boolean,
   ): EnrichedLinkSpan
 
   fun createMentionSpan(

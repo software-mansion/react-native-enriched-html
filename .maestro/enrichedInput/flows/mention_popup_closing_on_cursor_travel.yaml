@@ -1,0 +1,45 @@
+appId: swmansion.enriched.example
+---
+# fix PR #637 - mention popups not closing when switching between mentions
+
+- launchApp
+
+- tapOn:
+    id: "toggle-screen-button"
+
+- tapOn:
+    id: "editor-input"
+
+- inputText: "mentions #gen @J"
+
+# user popup visible
+- runFlow:
+    file: "../subflows/capture_or_assert_fullscreen_screenshot.yaml"
+    env:
+      SCREENSHOT_NAME: "mention_popup_closing_on_cursor_travel_1"
+
+- tapOn:
+    id: "focus-button"
+
+- tapOn:
+    id: "editor-input"
+    point: "30%, 50%"
+
+# channel popup visible
+- runFlow:
+    file: "../subflows/capture_or_assert_fullscreen_screenshot.yaml"
+    env:
+      SCREENSHOT_NAME: "mention_popup_closing_on_cursor_travel_2"
+
+- tapOn:
+    id: "focus-button"
+
+- tapOn:
+    id: "editor-input"
+    point: "10%, 50%"
+
+# no popup visible
+- runFlow:
+    file: "../subflows/capture_or_assert_fullscreen_screenshot.yaml"
+    env:
+      SCREENSHOT_NAME: "mention_popup_closing_on_cursor_travel_3"

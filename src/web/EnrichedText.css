@@ -17,6 +17,10 @@
   margin-bottom: 0;
 }
 
+.et-view p:empty::before {
+  content: '\200B';
+}
+
 .eti-editor p.is-editor-empty:first-child::before {
   color: var(--et-placeholder-text-color, #adb5bd);
   content: attr(data-placeholder);
@@ -47,6 +51,7 @@
   font-weight: var(--et-h1-font-weight);
   margin: 0;
   line-height: normal;
+  color: inherit;
 }
 .eti-editor h2,
 .et-view h2 {
@@ -54,6 +59,7 @@
   font-weight: var(--et-h2-font-weight);
   margin: 0;
   line-height: normal;
+  color: inherit;
 }
 .eti-editor h3,
 .et-view h3 {
@@ -61,6 +67,7 @@
   font-weight: var(--et-h3-font-weight);
   margin: 0;
   line-height: normal;
+  color: inherit;
 }
 .eti-editor h4,
 .et-view h4 {
@@ -68,6 +75,7 @@
   font-weight: var(--et-h4-font-weight);
   margin: 0;
   line-height: normal;
+  color: inherit;
 }
 .eti-editor h5,
 .et-view h5 {
@@ -75,6 +83,7 @@
   font-weight: var(--et-h5-font-weight);
   margin: 0;
   line-height: normal;
+  color: inherit;
 }
 .eti-editor h6,
 .et-view h6 {
@@ -82,6 +91,7 @@
   font-weight: var(--et-h6-font-weight);
   margin: 0;
   line-height: normal;
+  color: inherit;
 }
 
 .eti-editor blockquote,
@@ -116,24 +126,58 @@
 .et-view a {
   color: var(--et-link-color);
   text-decoration-line: var(--et-link-text-decoration-line);
+  transition: none;
+}
+
+.et-view a:active {
+  color: var(--et-link-press-color);
+}
+
+.eti-editor li,
+.et-view li {
+  margin: 0;
+  min-height: 1.2em;
+}
+
+@supports (min-height: 1lh) {
+  .eti-editor li,
+  .et-view li {
+    min-height: 1lh;
+  }
+}
+
+/* Zero-width space to correctly display empty list elements */
+.eti-editor ul:not([data-type]) > li > p:empty::after,
+.et-view ul:not([data-type]) > li > p:empty::after,
+.eti-editor ol > li > p:empty::after,
+.et-view ol > li > p:empty::after,
+.eti-editor ul[data-type='checkboxList'] > li > div:empty::after,
+.et-view ul[data-type="checkbox"] > li > label:empty::after {
+  content: '\200b';
 }
 
 .eti-editor ul:not([data-type]),
 .et-view ul:not([data-type]) {
   margin: 0;
   list-style: none;
-  padding-left: calc(var(--et-ul-margin-left, 16px) + var(--et-ul-gap-width, 16px));
+  padding-left: calc(
+    var(--et-ul-margin-left, 16px) +
+    var(--et-ul-bullet-size, 8px) +
+    var(--et-ul-gap-width, 16px)
+  );
 }
 
 .eti-editor ul:not([data-type]) > li,
 .et-view ul:not([data-type]) > li {
   margin: 0;
+  display: flex;
+  align-items: baseline;
 }
 
 .eti-editor ul:not([data-type]) > li::before,
 .et-view ul:not([data-type]) > li::before {
   content: '';
-  display: inline-block;
+  flex-shrink: 0;
   width: var(--et-ul-bullet-size, 8px);
   height: var(--et-ul-bullet-size, 8px);
   border-radius: 50%;
@@ -142,16 +186,21 @@
   margin-left: calc(-1 * (var(--et-ul-bullet-size, 8px) + var(--et-ul-gap-width, 16px)));
   margin-right: var(--et-ul-gap-width, 16px);
 
-  vertical-align: middle;
   position: relative;
-  top: -0.1em;
+  top: calc(var(--et-ul-bullet-size, 8px) * 0.5 - 0.35em);
 }
 
 .eti-editor ol,
 .et-view ol {
   margin: 0;
   list-style: none;
-  padding-left: calc(var(--et-ol-margin-left, 16px) + var(--et-ol-gap-width, 16px));
+  /* marker column grows to fit the widest counter ("N."), floored at the
+     configured margin. */
+  --et-ol-marker-col: max(
+    var(--et-ol-margin-left, 16px),
+    calc((var(--et-ol-digits, 1) + 1) * 1ch)
+  );
+  padding-left: calc(var(--et-ol-marker-col) + var(--et-ol-gap-width, 16px));
   counter-reset: et-ol;
 }
 
@@ -159,31 +208,31 @@
 .et-view ol > li {
   margin: 0;
   counter-increment: et-ol;
+  display: flex;
+  align-items: baseline;
 }
 
 .eti-editor ol > li::before,
 .et-view ol > li::before {
   content: counter(et-ol) '.';
-  display: inline-block;
-  width: var(--et-ol-margin-left, 16px);
+  flex-shrink: 0;
+  width: var(--et-ol-marker-col, var(--et-ol-margin-left, 16px));
   text-align: right;
-  margin-right: calc(var(--et-ol-gap-width, 16px) / 2);
-  margin-left: calc(-1 * (var(--et-ol-margin-left, 16px) + (var(--et-ol-gap-width, 16px) / 2)));
+  margin-right: calc(var(--et-ol-gap-width, 16px));
+  margin-left: calc(-1 * (var(--et-ol-marker-col, var(--et-ol-margin-left, 16px)) + var(--et-ol-gap-width, 16px)));
 
   color: var(--et-ol-marker-color, currentColor);
   font-weight: var(--et-ol-marker-font-weight, inherit);
   white-space: nowrap;
-  vertical-align: baseline;
 }
 
-.eti-editor li > p,
-.et-view li > p {
-  display: inline;
-  margin: 0;
-}
-
-.eti-editor li,
-.et-view li {
+.eti-editor ul:not([data-type]) > li > p,
+.et-view ul:not([data-type]) > li > p,
+.eti-editor ol > li > p,
+.et-view ol > li > p {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
   margin: 0;
 }
 
@@ -223,25 +272,32 @@
 .eti-editor ul[data-type='checkboxList'] {
   margin: 0;
   list-style: none;
-  padding-left: calc(var(--et-checkbox-margin-left, 16px) + var(--et-checkbox-gap-width, 16px));
+  padding-left: calc(
+    var(--et-checkbox-margin-left, 16px) +
+    var(--et-checkbox-box-size, 24px) +
+    var(--et-checkbox-gap-width, 16px)
+  );
 }
 
 .eti-editor ul[data-type='checkboxList'] > li {
   margin: 0;
+  display: flex;
+  align-items: baseline;
 }
 
 .eti-editor ul[data-type='checkboxList'] > li > label {
   display: inline-flex;
   align-items: center;
+  flex-shrink: 0;
   width: var(--et-checkbox-box-size, 24px);
   height: var(--et-checkbox-box-size, 24px);
 
   margin-left: calc(-1 * (var(--et-checkbox-box-size, 24px) + var(--et-checkbox-gap-width, 16px)));
   margin-right: var(--et-checkbox-gap-width, 16px);
 
-  vertical-align: middle;
+  margin-top: 0;
   position: relative;
-  top: -0.1em;
+  top: calc(var(--et-checkbox-box-size, 24px) * 0.5 - 0.35em);
 }
 
 .eti-editor ul[data-type='checkboxList'] > li > label input[type='checkbox'] {
@@ -252,9 +308,10 @@
   accent-color: var(--et-checkbox-box-color, #0000ff);
 }
 
-.eti-editor ul[data-type='checkboxList'] > li > div,
-.eti-editor ul[data-type='checkboxList'] > li > div > p {
-  display: inline;
+.eti-editor ul[data-type='checkboxList'] > li > div {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
   margin: 0;
 }
 
@@ -262,40 +319,42 @@
   margin: 0;
   list-style: none;
   padding-left: calc(
-    var(--et-checkbox-margin-left, 16px) + var(--et-checkbox-gap-width, 16px)
+    var(--et-checkbox-margin-left, 16px) +
+    var(--et-checkbox-box-size, 24px) +
+    var(--et-checkbox-gap-width, 16px)
   );
 }
 
 .et-view ul[data-type="checkbox"] > li {
-  margin: 0
+  margin: 0;
+  display: flex;
+  align-items: baseline;
 }
 
 .et-view ul[data-type="checkbox"] > li > input[type='checkbox'] {
-  display: inline-block;
-  align-items: center;
+  flex-shrink: 0;
 
   margin-left: calc(-1 * (var(--et-checkbox-box-size, 24px) + var(--et-checkbox-gap-width, 16px)));
   margin-right: var(--et-checkbox-gap-width, 16px);
-
-  margin-top: 0;
   margin-bottom: 0;
-
-  vertical-align: middle;
-  position: relative;
-  top: -0.1em;
 
   width: var(--et-checkbox-box-size, 24px);
   height: var(--et-checkbox-box-size, 24px);
-  flex-shrink: 0;
   accent-color: var(--et-checkbox-box-color, #0000ff);
 
   /* disable checkbox press style as it's read-only */
   pointer-events: none;
   -webkit-tap-highlight-color: transparent;
+
+  margin-top: 0;
+  position: relative;
+  top: calc(var(--et-checkbox-box-size, 24px) * 0.5 - 0.35em);
 }
 
 .et-view ul[data-type="checkbox"] > li > label {
-  display: inline;
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
   margin: 0;
   padding: 0;
 }
@@ -307,7 +366,9 @@
   vertical-align: text-bottom;
 }
 
-.et-view img.error {
+.et-view img.error,
+.et-view img:not([src]),
+.et-view img[src=""] {
   content: linear-gradient(transparent, transparent);
   background-color: currentColor;
   -webkit-mask: var(--et-broken-image-glyph) no-repeat center / contain;

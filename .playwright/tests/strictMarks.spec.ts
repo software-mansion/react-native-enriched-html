@@ -343,7 +343,7 @@ test.describe('strict marks', () => {
   }) => {
     await setEditorHtml(
       page,
-      '<html><p><mention text="@Jane" indicator="@" id="1" type="user">@Jane</mention></p></html>'
+      '<html><p><mention text="@Jane" indicator="@" id="1">@Jane</mention></p></html>'
     );
 
     const editor = editorLocator(page);
@@ -356,7 +356,7 @@ test.describe('strict marks', () => {
         const html = await getSerializedHtml(page);
         return (
           html.includes(
-            '<mention text="@Jane" indicator="@" id="1" type="user">@Jane</mention>'
+            '<mention text="@Jane" indicator="@" id="1">@Jane</mention>'
           ) && !html.includes('@Jane after</mention>')
         );
       })

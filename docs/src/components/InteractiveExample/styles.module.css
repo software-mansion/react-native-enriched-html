@@ -1,0 +1,70 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  contain: content;
+  background-color: var(--swm-off-background);
+  border: 1px solid var(--swm-border);
+  border-radius: var(--ifm-global-radius);
+  margin-bottom: var(--ifm-leading);
+  overflow: hidden;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5em 1.25em;
+  border-bottom: 1px solid var(--swm-border);
+}
+
+.tabs {
+  display: flex;
+  gap: 1.5em;
+}
+
+.tab {
+  padding: 0 0 2px 0;
+  border: none;
+  border-bottom: 1px solid transparent;
+  background-color: transparent;
+  color: var(--swm-interactive-button-color);
+  cursor: pointer;
+  font-family: var(--swm-body-font);
+  font-weight: 500;
+  font-size: 16px;
+}
+
+.tabActive {
+  color: var(--swm-interactive-button-active);
+  border-bottom-color: var(--swm-interactive-button-active);
+}
+
+.reset {
+  padding: 2px 12px;
+  border: 1px solid var(--swm-border);
+  border-radius: 20px;
+  background-color: transparent;
+  color: var(--swm-interactive-button-color);
+  cursor: pointer;
+  font-family: var(--swm-body-font);
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.reset:hover {
+  color: var(--swm-interactive-button-active);
+}
+
+.preview {
+  padding: 1.5em;
+}
+
+.loading {
+  color: var(--swm-interactive-button-color);
+}
+
+.code [class*='codeBlockContainer'] {
+  box-shadow: none;
+  margin-bottom: 0;
+  border-radius: 0;
+}

@@ -15,10 +15,10 @@
 #import "StyleUtils.h"
 #import "TextBlockTapGestureRecognizer.h"
 #import "TextInsertionUtils.h"
-#import "UIView+React.h"
 #import "WordsUtils.h"
 #import "ZeroWidthSpaceUtils.h"
 #import <React/RCTConversions.h>
+#import <React/UIView+React.h>
 #import <ReactNativeEnrichedHtml/EnrichedTextInputViewComponentDescriptor.h>
 #import <ReactNativeEnrichedHtml/EventEmitters.h>
 #import <ReactNativeEnrichedHtml/Props.h>
@@ -719,6 +719,15 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
     textShortcuts = shortcuts;
   }
 
+  // linkRegex
+  LinkRegexConfig *oldRegexConfig =
+      [[LinkRegexConfig alloc] initWithLinkRegexProp:oldViewProps.linkRegex];
+  LinkRegexConfig *newRegexConfig =
+      [[LinkRegexConfig alloc] initWithLinkRegexProp:newViewProps.linkRegex];
+  if (![newRegexConfig isEqualToConfig:oldRegexConfig]) {
+    [config setLinkRegexConfig:newRegexConfig];
+  }
+
   // default value - must be set before placeholder to make sure it correctly
   // shows on first mount
   if (newViewProps.defaultValue != oldViewProps.defaultValue) {
@@ -773,15 +782,6 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
       }
     }
     [config setMentionIndicators:newIndicators];
-  }
-
-  // linkRegex
-  LinkRegexConfig *oldRegexConfig =
-      [[LinkRegexConfig alloc] initWithLinkRegexProp:oldViewProps.linkRegex];
-  LinkRegexConfig *newRegexConfig =
-      [[LinkRegexConfig alloc] initWithLinkRegexProp:newViewProps.linkRegex];
-  if (![newRegexConfig isEqualToConfig:oldRegexConfig]) {
-    [config setLinkRegexConfig:newRegexConfig];
   }
 
   // selection color sets both selection and cursor on iOS (just as in RN)
@@ -1717,18 +1717,23 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   }
 
   if (![textView.textStorage.string isEqualToString:_recentInputString]) {
-    // emit onChangeText event
     auto emitter = [self getEventEmitter];
-    if (emitter != nullptr && _emitTextChange) {
+    if (emitter != nullptr) {
       // set the recent input string only if the emitter is defined
+      // to properly emit the initial onChangeText event
+      // as anyTextMayHaveBeenModified also runs before the emitter's
+      // initialization
       _recentInputString = [textView.textStorage.string copy];
 
-      // emit string without zero width spaces
-      NSString *stringToBeEmitted = [[textView.textStorage.string
-          stringByReplacingOccurrencesOfString:@"\u200B"
-                                    withString:@""] copy];
+      // emit onChangeText event
+      if (_emitTextChange) {
+        // emit string without zero width spaces
+        NSString *stringToBeEmitted = [[textView.textStorage.string
+            stringByReplacingOccurrencesOfString:@"\u200B"
+                                      withString:@""] copy];
 
-      emitter->onChangeText({.value = [stringToBeEmitted toCppString]});
+        emitter->onChangeText({.value = [stringToBeEmitted toCppString]});
+      }
     }
   }
   // all the visible (not meta) attributes handling in the ranges that could
@@ -1915,8 +1920,9 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
             replacementText:(NSString *)text {
   // Capture the attributes at range.location that are being replaced
   // (autocorrect / predictive) so didProcessEditing: can re-stamp them onto the
-  // replacement.
-  if (range.length > 0) {
+  // replacement. Only capture for genuine replacements (text.length > 0), not
+  // for deletions/backspace (text.length == 0).
+  if (range.length > 0 && text.length > 0) {
     _capturedAttributesBeforeChange =
         [textView.textStorage attributesAtIndex:range.location
                                  effectiveRange:NULL];
@@ -1992,6 +1998,14 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
                                                                 input:self]) {
     [self anyTextMayHaveBeenModified];
     return NO;
+  }
+
+  // To be sure, we re-run typingAttributes management right before the
+  // character actually lands. Sometimes, between a selection change and the
+  // next keystroke, typing attributes might get removed - this seems like a
+  // native TextKit issue.
+  if (textView.markedTextRange == nil && text.length > 0) {
+    [attributesManager repeatRecentTypingAttributesManagement];
   }
 
   return YES;

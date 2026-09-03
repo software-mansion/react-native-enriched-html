@@ -282,6 +282,11 @@ TEST(GumboParserTest, EnrichedTagRemappings) {
   EXPECT_EQ(
       GumboParser::normalizeHtml("<img src='x' width='100' height='100' />"),
       "<img src=\"x\" width=\"100\" height=\"100\" />");
+  EXPECT_EQ(GumboParser::normalizeHtml("<img width=\"100\" height=\"100\" />"),
+            "<img src=\"\" width=\"100\" height=\"100\" />");
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<img src=\"\" width=\"100\" height=\"100\" />"),
+            "<img src=\"\" width=\"100\" height=\"100\" />");
 
   // Lists
   EXPECT_EQ(GumboParser::normalizeHtml("<ul><li>x</li></ul>"),
@@ -307,13 +312,20 @@ TEST(GumboParserTest, EnrichedTagRemappings) {
   EXPECT_EQ(
       GumboParser::normalizeHtml(
           "<mention text='@John Doe' indicator='@' id='1'>@John Doe</mention>"),
-      "<mention id=\"1\" text=\"@John Doe\" indicator=\"@\">@John "
+      "<mention text=\"@John Doe\" indicator=\"@\" id=\"1\">@John "
       "Doe</mention>");
   EXPECT_EQ(
       GumboParser::normalizeHtml("<mention text=\"@John Doe\" indicator=\"@\" "
                                  "id=\"1\">@John Doe</mention>"),
-      "<mention id=\"1\" text=\"@John Doe\" indicator=\"@\">@John "
+      "<mention text=\"@John Doe\" indicator=\"@\" id=\"1\">@John "
       "Doe</mention>");
+  // Custom mention attributes are preserved
+  EXPECT_EQ(
+      GumboParser::normalizeHtml(
+          "<mention id=\"1\" text=\"@John Doe\" indicator=\"@\" type=\"user\" "
+          "data-custom=\"custom data\">@John Doe</mention>"),
+      "<mention id=\"1\" text=\"@John Doe\" indicator=\"@\" type=\"user\" "
+      "data-custom=\"custom data\">@John Doe</mention>");
 
   // Link
   EXPECT_EQ(GumboParser::normalizeHtml(
@@ -401,7 +413,7 @@ TEST(GumboParserTest, DivRemappings) {
           "</b>hello<div><br></div><div>hi</div></li></ul></div></div></"
           "blockquote></span>"),
       "<p>what do you think of this craziness</p><blockquote><p><b>another one "
-      "</b>hello</p><p>hi</p></blockquote>");
+      "</b>hello</p><br><p>hi</p></blockquote>");
 }
 
 TEST(GumboParserTest, ListFlattening) {
@@ -508,4 +520,101 @@ TEST(GumboParserTest, BrRemappings) {
                 "href='https://google.com'>Net</a></p>"),
             "<p><b>Asdasdasd</b></p><br><br><p>Sent with <a "
             "href=\"https://google.com\">Net</a></p>");
+  // A <br> between blockquote paragraphs is preserved.
+  EXPECT_EQ(
+      GumboParser::normalizeHtml(
+          "<blockquote><p>this is a pretty short blockquote.</p><br><p>This is "
+          "a line after an empty line.</p></blockquote>"),
+      "<blockquote><p>this is a pretty short blockquote.</p><br><p>This is a "
+      "line after an empty line.</p></blockquote>");
+}
+
+// Preserve text alignment
+TEST(GumboParserTest, TextAlignment) {
+  EXPECT_EQ(GumboParser::normalizeHtml("<p style=\"text-align: left\">x</p>"),
+            "<p style=\"text-align: left\">x</p>");
+  EXPECT_EQ(GumboParser::normalizeHtml("<p style=\"text-align: center\">x</p>"),
+            "<p style=\"text-align: center\">x</p>");
+  EXPECT_EQ(GumboParser::normalizeHtml("<p style=\"text-align: right\">x</p>"),
+            "<p style=\"text-align: right\">x</p>");
+  EXPECT_EQ(
+      GumboParser::normalizeHtml("<p style=\"text-align: justify\">x</p>"),
+      "<p style=\"text-align: justify\">x</p>");
+
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<ul style=\"text-align: center\"><li>x</li></ul>"),
+            "<ul style=\"text-align: center\"><li>x</li></ul>");
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<ol style=\"text-align: right\"><li>x</li></ol>"),
+            "<ol style=\"text-align: right\"><li>x</li></ol>");
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<ul data-type=\"checkbox\" style=\"text-align: center\">"
+                "<li>x</li></ul>"),
+            "<ul data-type=\"checkbox\" style=\"text-align: center\">"
+            "<li>x</li></ul>");
+
+  EXPECT_EQ(
+      GumboParser::normalizeHtml("<h1 style=\"text-align: center\">x</h1>"),
+      "<h1 style=\"text-align: center\">x</h1>");
+  EXPECT_EQ(
+      GumboParser::normalizeHtml("<h6 style=\"text-align: justify\">x</h6>"),
+      "<h6 style=\"text-align: justify\">x</h6>");
+
+  // Value is normalized to lowercase
+  EXPECT_EQ(GumboParser::normalizeHtml("<p style=\"text-align: CENTER\">x</p>"),
+            "<p style=\"text-align: center\">x</p>");
+
+  // Coexists with inline formatting on the same tag
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<p style=\"font-weight: bold; text-align: center\">x</p>"),
+            "<p style=\"text-align: center\"><b>x</b></p>");
+
+  // Invalid value is stripped
+  EXPECT_EQ(GumboParser::normalizeHtml("<p style=\"text-align: bogus\">x</p>"),
+            "<p>x</p>");
+
+  // Not emitted on non-alignable tags
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<ul><li style=\"text-align: center\">x</li></ul>"),
+            "<ul><li>x</li></ul>");
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<blockquote style=\"text-align: center\">x</blockquote>"),
+            "<blockquote><p>x</p></blockquote>");
+
+  // Preserved per-paragraph when a <p> blocks are flattened
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<blockquote><p style=\"text-align: left\">l</p>"
+                "<p style=\"text-align: center\">c</p>"
+                "<p style=\"text-align: right\">r</p></blockquote>"),
+            "<blockquote><p style=\"text-align: left\">l</p>"
+            "<p style=\"text-align: center\">c</p>"
+            "<p style=\"text-align: right\">r</p></blockquote>");
+}
+
+TEST(GumboParserTest, InterBlockWhitespace) {
+  // Pretty-printed consecutive paragraphs must not gain empty <p>s from the
+  // newlines between them (those would later serialize as extra <br>s).
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<p>Asdasd</p>\n<p>Asdasd</p>\n<p>Asdasda</p>"),
+            "<p>Asdasd</p><p>Asdasd</p><p>Asdasda</p>");
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<p>Asdasd</p>\n\n<p>Asdasd</p>\n\n<p>Asdasda</p>"),
+            "<p>Asdasd</p><p>Asdasd</p><p>Asdasda</p>");
+  EXPECT_EQ(
+      GumboParser::normalizeHtml(
+          "<html>\n<p>Asdasd</p>\n<p>Asdasd</p>\n<p>Asdasda</p>\n</html>"),
+      "<p>Asdasd</p><p>Asdasd</p><p>Asdasda</p>");
+  EXPECT_EQ(GumboParser::normalizeHtml("<p>Asdasd</p> <p>Asdasd</p>"),
+            "<p>Asdasd</p><p>Asdasd</p>");
+
+  // Significant inline content between blocks is still wrapped in <p>.
+  EXPECT_EQ(GumboParser::normalizeHtml("<p>a</p> hello <p>b</p>"),
+            "<p>a</p><p> hello </p><p>b</p>");
+
+  // Spaces inside text / between inlines must be preserved.
+  EXPECT_EQ(GumboParser::normalizeHtml("hello world"), "hello world");
+  EXPECT_EQ(GumboParser::normalizeHtml("<p>hello world</p>"),
+            "<p>hello world</p>");
+  EXPECT_EQ(GumboParser::normalizeHtml("<b>hello</b> <i>world</i>"),
+            "<b>hello</b> <i>world</i>");
 }

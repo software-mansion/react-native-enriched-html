@@ -1,6 +1,7 @@
 #import "HtmlParser.h"
 #import "AlignmentEntry.h"
 #import "AlignmentUtils.h"
+#import "EnrichedConfig.h"
 #import "ImageData.h"
 #import "LinkData.h"
 #import "MentionParams.h"
@@ -414,7 +415,9 @@
   return fixedHtml;
 }
 
-+ (NSArray *_Nonnull)getTextAndStylesFromHtml:(NSString *_Nonnull)fixedHtml {
++ (NSArray *_Nonnull)getTextAndStylesFromHtml:(NSString *_Nonnull)fixedHtml
+                                       config:
+                                           (EnrichedConfig *_Nullable)config {
   NSMutableString *plainText = [[NSMutableString alloc] initWithString:@""];
   NSMutableDictionary *ongoingTags = [[NSMutableDictionary alloc] init];
   NSMutableArray *initiallyProcessedTags = [[NSMutableArray alloc] init];
@@ -667,7 +670,7 @@
       [styleArr addObject:@([ItalicStyle getType])];
     } else if ([tagName isEqualToString:@"img"]) {
       NSRegularExpression *srcRegex =
-          [NSRegularExpression regularExpressionWithPattern:@"src=\"([^\"]+)\""
+          [NSRegularExpression regularExpressionWithPattern:@"src=\"([^\"]*)\""
                                                     options:0
                                                       error:nullptr];
       NSTextCheckingResult *match =
@@ -759,7 +762,9 @@
       LinkData *linkData = [[LinkData alloc] init];
       linkData.url = url;
       linkData.text = text;
-      linkData.isManual = ![text isEqualToString:url];
+      linkData.isManual = ![text isEqualToString:url] ||
+                          ![LinkStyle matchesLinkRegexWithConfig:url
+                                                          config:config];
 
       stylePair.styleValue = linkData;
     } else if ([tagName isEqualToString:@"mention"]) {
@@ -952,7 +957,16 @@
             inCheckboxList = NO;
           }
         } else {
-          [result appendString:@"\n<br>"];
+          NSString *cssStyleString =
+              [self prepareCssStyleString:currentRange.location
+                             isOpeningTag:YES
+                                     host:host];
+          if (cssStyleString.length > 0) {
+            [result appendString:[NSString stringWithFormat:@"\n<p%@></p>",
+                                                            cssStyleString]];
+          } else {
+            [result appendString:@"\n<br>"];
+          }
         }
       } else {
         // newline finishes a paragraph and all style tags need to be closed
@@ -1327,8 +1341,9 @@
         ImageData *data = [imageStyle getImageDataAt:location];
         if (data != nullptr && data.uri != nullptr) {
           return [NSString
-              stringWithFormat:@"img src=\"%@\" width=\"%f\" height=\"%f\"",
-                               data.uri, data.width, data.height];
+              stringWithFormat:@"img src=\"%@\" width=\"%d\" height=\"%d\"",
+                               data.uri, (int)floor(data.width),
+                               (int)floor(data.height)];
         }
       }
       return @"img";
@@ -1450,7 +1465,7 @@
 }
 
 + (void)checkForAlignments:(NSArray *)tagData
-                 plainText:(NSString *)plainText
+                 plainText:(NSMutableString *)plainText
            foundAlignments:(NSMutableArray<AlignmentEntry *> *)foundAlignments
        precedingImageCount:(NSInteger)precedingImageCount {
   if (tagData == nil) {
@@ -1467,6 +1482,12 @@
     // Calculate range relative to plainText
     NSInteger actualStart = startLoc + precedingImageCount;
     NSInteger length = plainText.length - startLoc;
+
+    // Empty aligned paragraphs have no characters to attach alignment to.
+    if (length == 0) {
+      [plainText appendString:@"\u200B"];
+      length = 1;
+    }
 
     if (length > 0) {
       AlignmentEntry *entry = [[AlignmentEntry alloc] init];
