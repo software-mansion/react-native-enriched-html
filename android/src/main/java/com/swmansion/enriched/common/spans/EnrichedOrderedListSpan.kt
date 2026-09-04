@@ -10,6 +10,8 @@ import android.text.style.LeadingMarginSpan
 import android.text.style.MetricAffectingSpan
 import com.swmansion.enriched.common.EnrichedStyle
 import com.swmansion.enriched.common.spans.interfaces.EnrichedParagraphSpan
+import kotlin.math.ceil
+import kotlin.math.max
 
 open class EnrichedOrderedListSpan(
   var index: Int,
@@ -17,6 +19,27 @@ open class EnrichedOrderedListSpan(
 ) : MetricAffectingSpan(),
   LeadingMarginSpan,
   EnrichedParagraphSpan {
+  var columnMargin = enrichedStyle.olMarginLeft
+
+  // Computes the marker column width from the widest marker in the list ("<highestIndex>.").
+  // Returns true when the column width actually changed, so callers can force a relayout.
+  fun updateColumnMargin(
+    paint: Paint,
+    highestIndex: Int,
+  ): Boolean {
+    val highestIndexText = "$highestIndex."
+
+    val originalTypeface = paint.typeface
+    paint.typeface = getTypeface(enrichedStyle.olMarkerFontWeight, originalTypeface)
+    val highestIndexWidth = ceil(paint.measureText(highestIndexText)).toInt()
+    paint.typeface = originalTypeface
+
+    val newColumnMargin = max(enrichedStyle.olMarginLeft, highestIndexWidth)
+    if (newColumnMargin == columnMargin) return false
+    columnMargin = newColumnMargin
+    return true
+  }
+
   override fun updateMeasureState(p0: TextPaint) {
     // Do nothing, but inform layout that this span affects text metrics
   }
@@ -25,7 +48,7 @@ open class EnrichedOrderedListSpan(
     // Do nothing, but inform layout that this span affects text metrics
   }
 
-  override fun getLeadingMargin(first: Boolean): Int = enrichedStyle.olMarginLeft + enrichedStyle.olGapWidth
+  override fun getLeadingMargin(first: Boolean): Int = columnMargin + enrichedStyle.olGapWidth
 
   override fun drawLeadingMargin(
     canvas: Canvas,
@@ -42,17 +65,17 @@ open class EnrichedOrderedListSpan(
     layout: Layout?,
   ) {
     if (first) {
+      val originalColor = paint.color
+      val originalTypeface = paint.typeface
+      paint.color = enrichedStyle.olMarkerColor ?: originalColor
+      paint.typeface = getTypeface(enrichedStyle.olMarkerFontWeight, originalTypeface)
+
       val text = "$index."
       val width = paint.measureText(text)
 
       val yPosition = baseline.toFloat()
-      val xPosition = (enrichedStyle.olMarginLeft + x - width / 2) * dir
+      val xPosition = (columnMargin + x - width) * dir
 
-      val originalColor = paint.color
-      val originalTypeface = paint.typeface
-
-      paint.color = enrichedStyle.olMarkerColor ?: originalColor
-      paint.typeface = getTypeface(enrichedStyle.olMarkerFontWeight, originalTypeface)
       canvas.drawText(text, xPosition, yPosition, paint)
 
       paint.color = originalColor
