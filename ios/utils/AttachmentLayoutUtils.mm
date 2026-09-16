@@ -67,10 +67,8 @@
 #if !TARGET_OS_OSX
                            imgView.contentMode =
                                UIViewContentModeScaleAspectFit;
-                           imgView.tintColor = [UIColor labelColor];
 #else
               imgView.imageScaling = NSImageScaleProportionallyUpOrDown;
-              imgView.contentTintColor = [UIColor labelColor];
               // Enables animation of GIF images.
               imgView.animates = YES;
 #endif
@@ -83,6 +81,13 @@
                          if (!CGRectEqualToRect(imgView.frame, rect)) {
                            imgView.frame = rect;
                          }
+
+#if !TARGET_OS_OSX
+                         imgView.tintColor = [config primaryColor];
+#else
+            imgView.contentTintColor = [config primaryColor];
+#endif
+
                          UIImage *targetImage =
                              attachment.storedAnimatedImage ?: attachment.image;
 

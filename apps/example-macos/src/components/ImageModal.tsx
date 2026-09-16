@@ -55,18 +55,21 @@ export const ImageModal: FC<ImageModalProps> = ({
         <View style={styles.content}>
           <TextInput
             placeholder="Width"
+            placeholderTextColor="gray"
             style={styles.input}
             value={width}
             onChangeText={setWidth}
           />
           <TextInput
             placeholder="Height"
+            placeholderTextColor="gray"
             style={styles.input}
             value={height}
             onChangeText={setHeight}
           />
           <TextInput
             placeholder="Remote URL"
+            placeholderTextColor="gray"
             style={styles.input}
             value={url}
             autoCapitalize="none"
