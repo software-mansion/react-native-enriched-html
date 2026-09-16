@@ -45,6 +45,7 @@ class ShortcutsHandler(
 
       val resolvedStyle = resolveStyleName(styleName) ?: continue
 
+      view.setSelection(effectiveTriggerStart, effectiveTriggerStart)
       s.replace(effectiveTriggerStart, effectiveTriggerStart + trigger.length, "")
       view.verifyAndToggleStyle(resolvedStyle)
       return
