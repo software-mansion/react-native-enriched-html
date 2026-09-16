@@ -5,6 +5,7 @@ import type {
   OnChangeSelectionEvent,
   OnChangeStateEvent,
   OnLinkDetected,
+  OnPasteImagesEvent,
 } from 'react-native-enriched-html';
 import type { MentionItem } from '../components/MentionPopup';
 import { useChannelMention } from './useChannelMention';
@@ -66,6 +67,12 @@ export function useEditorState() {
 
   const handleSelectionChange = (sel: OnChangeSelectionEvent) => {
     setSelection(sel);
+  };
+
+  const handlePasteImagesEvent = (e: OnPasteImagesEvent) => {
+    e.images.forEach((image) => {
+      ref.current?.setImage(image.uri, image.width, image.height);
+    });
   };
 
   const openLinkModal = () => setIsLinkModalOpen(true);
@@ -179,6 +186,7 @@ export function useEditorState() {
     handleChangeState,
     handleLinkDetected,
     handleSelectionChange,
+    handlePasteImagesEvent,
     handleStartMention,
     handleChangeMention,
     handleEndMention,

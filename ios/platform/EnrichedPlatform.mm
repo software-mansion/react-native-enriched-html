@@ -153,7 +153,13 @@ UIBezierPath *EnrichedRoundedRectPath(CGRect rect, UIRectCorner corners,
   // AppKit internally resets typingAttributes on selectedRange
   // changes, so we skip it if not needed
   if (!NSEqualRanges(self.selectedRange, range)) {
+    // AppKit internally resets typingAttributes on selectedRange changes, so we
+    // manually re-apply them
+    NSDictionary<NSAttributedStringKey, id> *preEditTypingAttrs =
+        [self.typingAttributes copy];
+
     self.selectedRange = range;
+    self.typingAttributes = preEditTypingAttrs;
   }
 }
 

@@ -196,6 +196,15 @@
 
   for (NSString *key in _input->textView.typingAttributes.allKeys) {
     if ([_customAttributesKeys containsObject:key]) {
+#if TARGET_OS_OSX
+      // AppKit internally applies styles present in the previous character,
+      // we want the inline images to not be extendable
+      StyleBase *imageStyle = _input->stylesDict[@([ImageStyle getType])];
+      if (imageStyle != nil && [[imageStyle getKey] isEqualToString:key]) {
+        continue;
+      }
+#endif
+
       if ([key isEqualToString:NSParagraphStyleAttributeName]) {
         // NSParagraphStyle for paragraph styles -> only keep the textLists
         // property

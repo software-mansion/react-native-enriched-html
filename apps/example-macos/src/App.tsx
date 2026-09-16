@@ -148,6 +148,7 @@ export default function App() {
             onChangeSelection={(e) =>
               editor.handleSelectionChange(e.nativeEvent)
             }
+            onPasteImages={(e) => editor.handlePasteImagesEvent(e.nativeEvent)}
             onLinkDetected={editor.handleLinkDetected}
             onStartMention={editor.handleStartMention}
             onChangeMention={editor.handleChangeMention}
