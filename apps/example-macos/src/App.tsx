@@ -1,4 +1,3 @@
-import { useRef, useState } from 'react';
 import {
   Pressable,
   SafeAreaView,
@@ -7,12 +6,11 @@ import {
   Text,
   View,
 } from 'react-native';
-import {
-  EnrichedText,
-  EnrichedTextInput,
-  type EnrichedTextInputInstance,
-  type OnChangeStateEvent,
-} from 'react-native-enriched-html';
+import { EnrichedText, EnrichedTextInput } from 'react-native-enriched-html';
+import { ImageModal } from './components/ImageModal';
+import { LinkModal } from './components/LinkModal';
+import { MentionPopup } from './components/MentionPopup';
+import { useEditorState } from './hooks/useEditorState';
 
 interface ToolbarButtonProps {
   label: string;
@@ -31,10 +29,11 @@ function ToolbarButton({ label, active, onPress }: ToolbarButtonProps) {
   );
 }
 
+export const LINK_REGEX =
+  /^(?:enriched:\/\/\S+|(?:https?:\/\/)?(?:www\.)?swmansion\.com(?:\/\S*)?)$/i;
+
 export default function App() {
-  const ref = useRef<EnrichedTextInputInstance>(null);
-  const [styleState, setStyleState] = useState<OnChangeStateEvent | null>(null);
-  const [html, setHtml] = useState('');
+  const editor = useEditorState();
 
   return (
     <SafeAreaView style={styles.container}>
@@ -43,72 +42,152 @@ export default function App() {
         <View style={styles.toolbar}>
           <ToolbarButton
             label="B"
-            active={styleState?.bold.isActive}
-            onPress={() => ref.current?.toggleBold()}
+            active={editor.stylesState?.bold.isActive}
+            onPress={() => editor.ref.current?.toggleBold()}
           />
           <ToolbarButton
             label="I"
-            active={styleState?.italic.isActive}
-            onPress={() => ref.current?.toggleItalic()}
+            active={editor.stylesState?.italic.isActive}
+            onPress={() => editor.ref.current?.toggleItalic()}
           />
           <ToolbarButton
             label="U"
-            active={styleState?.underline.isActive}
-            onPress={() => ref.current?.toggleUnderline()}
+            active={editor.stylesState?.underline.isActive}
+            onPress={() => editor.ref.current?.toggleUnderline()}
           />
           <ToolbarButton
             label="S"
-            active={styleState?.strikeThrough.isActive}
-            onPress={() => ref.current?.toggleStrikeThrough()}
+            active={editor.stylesState?.strikeThrough.isActive}
+            onPress={() => editor.ref.current?.toggleStrikeThrough()}
           />
           <ToolbarButton
             label="Code"
-            active={styleState?.inlineCode.isActive}
-            onPress={() => ref.current?.toggleInlineCode()}
+            active={editor.stylesState?.inlineCode.isActive}
+            onPress={() => editor.ref.current?.toggleInlineCode()}
           />
           <ToolbarButton
             label="H1"
-            active={styleState?.h1.isActive}
-            onPress={() => ref.current?.toggleH1()}
+            active={editor.stylesState?.h1.isActive}
+            onPress={() => editor.ref.current?.toggleH1()}
+          />
+          <ToolbarButton
+            label="H4"
+            active={editor.stylesState?.h4.isActive}
+            onPress={() => editor.ref.current?.toggleH4()}
           />
           <ToolbarButton
             label="Quote"
-            active={styleState?.blockQuote.isActive}
-            onPress={() => ref.current?.toggleBlockQuote()}
+            active={editor.stylesState?.blockQuote.isActive}
+            onPress={() => editor.ref.current?.toggleBlockQuote()}
           />
           <ToolbarButton
             label="Code block"
-            active={styleState?.codeBlock.isActive}
-            onPress={() => ref.current?.toggleCodeBlock()}
+            active={editor.stylesState?.codeBlock.isActive}
+            onPress={() => editor.ref.current?.toggleCodeBlock()}
           />
           <ToolbarButton
             label="1."
-            active={styleState?.orderedList.isActive}
-            onPress={() => ref.current?.toggleOrderedList()}
+            active={editor.stylesState?.orderedList.isActive}
+            onPress={() => editor.ref.current?.toggleOrderedList()}
           />
           <ToolbarButton
             label="•"
-            active={styleState?.unorderedList.isActive}
-            onPress={() => ref.current?.toggleUnorderedList()}
+            active={editor.stylesState?.unorderedList.isActive}
+            onPress={() => editor.ref.current?.toggleUnorderedList()}
           />
           <ToolbarButton
             label="☑"
-            active={styleState?.checkboxList.isActive}
-            onPress={() => ref.current?.toggleCheckboxList(false)}
+            active={editor.stylesState?.checkboxList.isActive}
+            onPress={() => editor.ref.current?.toggleCheckboxList(false)}
+          />
+          <ToolbarButton
+            label="Link"
+            active={editor.stylesState?.link.isActive}
+            onPress={editor.openLinkModal}
+          />
+          <ToolbarButton
+            label="Image"
+            active={editor.stylesState?.image.isActive}
+            onPress={editor.openImageModal}
+          />
+          <ToolbarButton
+            label="@"
+            active={editor.stylesState?.mention.isActive}
+            onPress={() => editor.ref.current?.startMention('@')}
+          />
+          <ToolbarButton
+            label="<-"
+            active={editor.stylesState?.alignment === 'left'}
+            onPress={() => editor.ref.current?.setTextAlignment('left')}
+          />
+          <ToolbarButton
+            label="<->"
+            active={editor.stylesState?.alignment === 'center'}
+            onPress={() => editor.ref.current?.setTextAlignment('center')}
+          />
+          <ToolbarButton
+            label="->"
+            active={editor.stylesState?.alignment === 'right'}
+            onPress={() => editor.ref.current?.setTextAlignment('right')}
+          />
+          <ToolbarButton
+            label="< - >"
+            active={editor.stylesState?.alignment === 'justify'}
+            onPress={() => editor.ref.current?.setTextAlignment('justify')}
+          />
+          <ToolbarButton label="Refresh" onPress={editor.refresh} />
+        </View>
+        <View style={styles.editorContainer}>
+          <EnrichedTextInput
+            ref={editor.ref}
+            mentionIndicators={['@', '#']}
+            style={styles.input}
+            placeholder="Type something rich..."
+            onChangeState={(e) => editor.handleChangeState(e.nativeEvent)}
+            onChangeHtml={(e) => editor.handleChangeHtml(e.nativeEvent.value)}
+            onChangeSelection={(e) =>
+              editor.handleSelectionChange(e.nativeEvent)
+            }
+            onLinkDetected={editor.handleLinkDetected}
+            onStartMention={editor.handleStartMention}
+            onChangeMention={editor.handleChangeMention}
+            onEndMention={editor.handleEndMention}
+            linkRegex={LINK_REGEX}
+          />
+          <MentionPopup
+            variant="user"
+            data={editor.userMention.data}
+            isOpen={editor.isUserPopupOpen}
+            onItemPress={editor.handleUserMentionSelected}
+          />
+          <MentionPopup
+            variant="channel"
+            data={editor.channelMention.data}
+            isOpen={editor.isChannelPopupOpen}
+            onItemPress={editor.handleChannelMentionSelected}
           />
         </View>
-        <EnrichedTextInput
-          ref={ref}
-          style={styles.input}
-          placeholder="Type something rich..."
-          onChangeState={(e) => setStyleState(e.nativeEvent)}
-          onChangeHtml={(e) => setHtml(e.nativeEvent.value)}
-        />
         <Text style={styles.heading}>HTML output</Text>
-        <Text style={styles.html}>{html}</Text>
+        <Text style={styles.html}>{editor.currentHtml}</Text>
         <Text style={styles.heading}>EnrichedText</Text>
-        <EnrichedText style={styles.text}>{html}</EnrichedText>
+        <EnrichedText style={styles.text}>{editor.currentHtml}</EnrichedText>
       </ScrollView>
+      <LinkModal
+        isOpen={editor.isLinkModalOpen}
+        editedText={
+          editor.insideCurrentLink
+            ? editor.currentLink.text
+            : (editor.selection?.text ?? '')
+        }
+        editedUrl={editor.insideCurrentLink ? editor.currentLink.url : ''}
+        onSubmit={editor.submitLink}
+        onClose={editor.closeLinkModal}
+      />
+      <ImageModal
+        isOpen={editor.isImageModalOpen}
+        onSubmit={editor.submitImage}
+        onClose={editor.closeImageModal}
+      />
     </SafeAreaView>
   );
 }
@@ -149,8 +228,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#000',
   },
+  editorContainer: {
+    width: 400,
+  },
   input: {
     minHeight: 120,
+    width: '100%',
     borderWidth: 1,
     borderColor: '#8888',
     borderRadius: 8,
