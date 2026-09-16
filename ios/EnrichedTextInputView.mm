@@ -746,7 +746,7 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
     blockEmitting = NO;
 
     textView.typingAttributes = defaultTypingAttributes;
-    textView.selectedRange = prevSelectedRange;
+    [textView enrichedSetSelectedRange:prevSelectedRange];
 
     // make sure the newest lineHeight is applied
     [self refreshLineHeight];
@@ -814,7 +814,9 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
       // we've got some seemingly proper html
       [parser replaceWholeFromHtml:initiallyProcessedHtml];
     }
-    textView.selectedRange = NSRange(textView.textStorage.string.length, 0);
+    [textView
+        enrichedSetSelectedRange:NSRange(textView.textStorage.string.length,
+                                         0)];
   }
 
   // placeholderTextColor
@@ -1415,7 +1417,8 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   }
 
   // set selectedRange and check for changes
-  textView.selectedRange = NSRange(textView.textStorage.string.length, 0);
+  [textView
+      enrichedSetSelectedRange:NSRange(textView.textStorage.string.length, 0)];
   [self anyTextMayHaveBeenModified];
 }
 
@@ -1425,7 +1428,8 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   NSUInteger actualStart = [self getActualIndex:visibleStart text:text];
   NSUInteger actualEnd = [self getActualIndex:visibleEnd text:text];
 
-  textView.selectedRange = NSMakeRange(actualStart, actualEnd - actualStart);
+  [textView enrichedSetSelectedRange:NSMakeRange(actualStart,
+                                                 actualEnd - actualStart)];
 }
 
 // Helper: Walks through the string skipping ZWSPs to find the Nth visible
@@ -2167,7 +2171,7 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   // character actually lands. Sometimes, between a selection change and the
   // next keystroke, typing attributes might get removed - this seems like a
   // native TextKit issue.
-  if (textView.markedTextRange == nil && text.length > 0) {
+  if (!textView.enrichedHasMarkedText && text.length > 0) {
     [attributesManager repeatRecentTypingAttributesManagement];
   }
 
@@ -2225,9 +2229,23 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   // submitBehavior and the paragraph model keep working.
   if (commandSelector == @selector(insertLineBreak:) ||
       commandSelector == @selector(insertNewlineIgnoringFieldEditor:)) {
-    [view insertNewline:nil];
+    // We want to wire the manual newline insertion through the
+    // shouldChangeTextInRange pipeline.
+    NSRange selectedRange = view.selectedRange;
+    if ([view shouldChangeTextInRange:selectedRange replacementString:@"\n"]) {
+      [view insertNewline:nil];
+    }
     return YES;
   }
+
+  // Sometimes when you put a cursor at the very beginning of the line,
+  // backspace press handling was supressed. We force it here.
+  if (commandSelector == @selector(deleteBackward:) &&
+      view.selectedRange.location == 0 && view.selectedRange.length == 0) {
+    [self handleShouldChangeTextInRange:NSMakeRange(0, 0) replacementText:@""];
+    return YES;
+  }
+
   return NO;
 }
 #endif
@@ -2273,7 +2291,7 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   NSString *initiallyProcessedHtml = [parser initiallyProcessHtml:currentHtml];
   [parser replaceWholeFromHtml:initiallyProcessedHtml];
 
-  textView.selectedRange = prevSelectedRange;
+  [textView enrichedSetSelectedRange:prevSelectedRange];
   [self anyTextMayHaveBeenModified];
 }
 #endif
@@ -2305,7 +2323,7 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   // Move the cursor to the end of the currently tapped checkbox line.
   // Without this, the cursor may remain at its previous position,
   // potentially inside a different checkbox line.
-  textView.selectedRange = NSMakeRange(endOfLineIndex, 0);
+  [textView enrichedSetSelectedRange:NSMakeRange(endOfLineIndex, 0)];
 }
 
 #if !TARGET_OS_OSX

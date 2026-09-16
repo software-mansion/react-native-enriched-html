@@ -8,7 +8,11 @@
 #import "TextListsUtils.h"
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
-@implementation EnrichedInputTextView
+@implementation EnrichedInputTextView {
+#if TARGET_OS_OSX
+  NSArray<NSTextList *> *_enrichedShadowTextLists;
+#endif
+}
 
 #if !TARGET_OS_OSX
 
@@ -382,6 +386,39 @@
     [input handleDidEndEditing];
   }
   return result;
+}
+
+// NSParagraphStyle.textLists is often not persisted and stripped
+// by AppKit. We manually persist that attribute and reapply it
+// on the setter/getter level.
+- (void)setTypingAttributes:
+    (NSDictionary<NSAttributedStringKey, id> *)typingAttributes {
+  NSParagraphStyle *intendedStyle =
+      typingAttributes[NSParagraphStyleAttributeName];
+  _enrichedShadowTextLists =
+      intendedStyle != nil ? (intendedStyle.textLists ?: @[]) : nil;
+  [super setTypingAttributes:typingAttributes];
+}
+
+- (NSDictionary<NSAttributedStringKey, id> *)typingAttributes {
+  NSDictionary<NSAttributedStringKey, id> *attrs = [super typingAttributes];
+  if (_enrichedShadowTextLists == nil) {
+    return attrs;
+  }
+
+  NSParagraphStyle *currentStyle = attrs[NSParagraphStyleAttributeName];
+  NSArray<NSTextList *> *currentLists = currentStyle.textLists ?: @[];
+  if ([currentLists isEqualToArray:_enrichedShadowTextLists]) {
+    return attrs;
+  }
+
+  NSMutableParagraphStyle *patchedStyle =
+      [currentStyle mutableCopy] ?: [[NSMutableParagraphStyle alloc] init];
+  patchedStyle.textLists = _enrichedShadowTextLists;
+  NSMutableDictionary<NSAttributedStringKey, id> *patchedAttrs =
+      [attrs mutableCopy] ?: [NSMutableDictionary new];
+  patchedAttrs[NSParagraphStyleAttributeName] = patchedStyle;
+  return patchedAttrs;
 }
 
 - (void)mouseDown:(NSEvent *)event {

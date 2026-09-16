@@ -1,5 +1,5 @@
-#import <UIKit/UIKit.h>
 #pragma once
+#import "EnrichedPlatform.h"
 
 typedef NS_ENUM(NSInteger, ItalicKind) {
   // character must not be slanted at all (whitespace, control characters,

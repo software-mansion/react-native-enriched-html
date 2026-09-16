@@ -39,6 +39,7 @@ NS_INLINE void EnrichedBringSubviewToFront(UIView *parent, UIView *child) {
 
 - (void)enrichedEndEditing;
 - (void)enrichedSetTintColor:(nullable UIColor *)color;
+- (void)enrichedSetSelectedRange:(NSRange)range;
 
 @end
 
@@ -120,6 +121,9 @@ void EnrichedBringSubviewToFront(NSView *parent, NSView *child);
 
 // UITextView.tintColor — maps to insertion point + selection highlight.
 - (void)enrichedSetTintColor:(nullable NSColor *)color;
+
+// UITextView.selectedRange
+- (void)enrichedSetSelectedRange:(NSRange)range;
 
 @end
 

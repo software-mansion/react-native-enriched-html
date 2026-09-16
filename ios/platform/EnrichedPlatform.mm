@@ -35,6 +35,10 @@ UIBezierPath *EnrichedRoundedRectPath(CGRect rect, UIRectCorner corners,
   }
 }
 
+- (void)enrichedSetSelectedRange:(NSRange)range {
+  self.selectedRange = range;
+}
+
 @end
 
 #else // TARGET_OS_OSX
@@ -143,6 +147,14 @@ UIBezierPath *EnrichedRoundedRectPath(CGRect rect, UIRectCorner corners,
   attributes[NSBackgroundColorAttributeName] =
       [color colorWithAlphaComponent:0.25];
   self.selectedTextAttributes = attributes;
+}
+
+- (void)enrichedSetSelectedRange:(NSRange)range {
+  // AppKit internally resets typingAttributes on selectedRange
+  // changes, so we skip it if not needed
+  if (!NSEqualRanges(self.selectedRange, range)) {
+    self.selectedRange = range;
+  }
 }
 
 @end

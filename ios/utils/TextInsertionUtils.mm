@@ -22,13 +22,23 @@
 
   NSAttributedString *newAttrStr =
       [[NSAttributedString alloc] initWithString:text attributes:copiedAttrs];
+
+#if TARGET_OS_OSX
+  NSDictionary<NSAttributedStringKey, id> *preEditTypingAttrs =
+      [textView.typingAttributes copy];
+#endif
+
   [textView.textStorage insertAttributedString:newAttrStr atIndex:index];
+
+#if TARGET_OS_OSX
+  textView.typingAttributes = preEditTypingAttrs;
+#endif
 
   if (withSelection) {
     if (!textView.enrichedIsFirstResponder) {
       [textView reactFocus];
     }
-    textView.selectedRange = NSMakeRange(index + text.length, 0);
+    [textView enrichedSetSelectedRange:NSMakeRange(index + text.length, 0)];
   }
 }
 
@@ -43,6 +53,11 @@
   }
 
   EnrichedBaseTextView *textView = host.textView;
+#if TARGET_OS_OSX
+  NSDictionary<NSAttributedStringKey, id> *preEditTypingAttrs =
+      [textView.typingAttributes copy];
+#endif
+
   [textView.textStorage replaceCharactersInRange:range withString:text];
   if (additionalAttrs != nullptr) {
     [textView.textStorage
@@ -50,11 +65,16 @@
                 range:NSMakeRange(range.location, [text length])];
   }
 
+#if TARGET_OS_OSX
+  textView.typingAttributes = preEditTypingAttrs;
+#endif
+
   if (withSelection) {
     if (!textView.enrichedIsFirstResponder) {
       [textView reactFocus];
     }
-    textView.selectedRange = NSMakeRange(range.location + text.length, 0);
+    [textView
+        enrichedSetSelectedRange:NSMakeRange(range.location + text.length, 0)];
   }
 }
 @end
