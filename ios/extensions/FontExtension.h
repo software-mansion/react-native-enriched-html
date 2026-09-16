@@ -8,4 +8,5 @@
 - (UIFont *)setItalic;
 - (UIFont *)withFontTraits:(UIFont *)from;
 - (UIFont *)setSize:(CGFloat)size;
+- (BOOL)coversCharacters:(const unichar *)chars count:(CFIndex)count;
 @end

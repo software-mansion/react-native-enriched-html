@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://docs.swmansion.com/react-native-enriched-html/sitemap.xml

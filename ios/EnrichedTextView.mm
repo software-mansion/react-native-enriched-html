@@ -154,6 +154,12 @@ Class<RCTComponentViewProtocol> EnrichedTextViewCls(void) {
     stylePropChanged = YES;
   }
 
+  // lineHeight
+  if (newViewProps.lineHeight != oldViewProps.lineHeight) {
+    [newConfig setPrimaryLineHeight:newViewProps.lineHeight];
+    stylePropChanged = YES;
+  }
+
   // fontWeight
   if (newViewProps.fontWeight != oldViewProps.fontWeight) {
     if (!newViewProps.fontWeight.empty()) {

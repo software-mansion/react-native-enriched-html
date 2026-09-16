@@ -15,10 +15,10 @@
 #import "StyleUtils.h"
 #import "TextBlockTapGestureRecognizer.h"
 #import "TextInsertionUtils.h"
-#import "UIView+React.h"
 #import "WordsUtils.h"
 #import "ZeroWidthSpaceUtils.h"
 #import <React/RCTConversions.h>
+#import <React/UIView+React.h>
 #import <ReactNativeEnrichedHtml/EnrichedTextInputViewComponentDescriptor.h>
 #import <ReactNativeEnrichedHtml/EventEmitters.h>
 #import <ReactNativeEnrichedHtml/Props.h>
@@ -1998,6 +1998,14 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
                                                                 input:self]) {
     [self anyTextMayHaveBeenModified];
     return NO;
+  }
+
+  // To be sure, we re-run typingAttributes management right before the
+  // character actually lands. Sometimes, between a selection change and the
+  // next keystroke, typing attributes might get removed - this seems like a
+  // native TextKit issue.
+  if (textView.markedTextRange == nil && text.length > 0) {
+    [attributesManager repeatRecentTypingAttributesManagement];
   }
 
   return YES;

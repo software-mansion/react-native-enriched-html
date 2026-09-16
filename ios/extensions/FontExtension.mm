@@ -1,4 +1,5 @@
 #import "FontExtension.h"
+#import <CoreText/CoreText.h>
 #import <React/RCTLog.h>
 
 @implementation UIFont (FontExtension)
@@ -40,8 +41,6 @@
   if (fontDescriptor != nullptr) {
     return [UIFont fontWithDescriptor:fontDescriptor size:0];
   } else {
-    RCTLogWarn(
-        @"[EnrichedTextInput]: Couldn't apply italic trait to the font.");
     return self;
   }
 }
@@ -67,6 +66,12 @@
         @"[EnrichedTextInput]: Couldn't apply heading style to the font.");
     return self;
   }
+}
+
+- (BOOL)coversCharacters:(const unichar *)chars count:(CFIndex)count {
+  CGGlyph glyphs[2] = {0, 0};
+  return CTFontGetGlyphsForCharacters((__bridge CTFontRef)self, chars, glyphs,
+                                      count);
 }
 
 @end
