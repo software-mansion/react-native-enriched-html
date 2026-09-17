@@ -35,8 +35,8 @@ class ShortcutsHandler(
     val paragraphHasActiveStyle = startsWithZws && paragraphHasNonAlignmentSpan(s, start, end)
 
     for ((trigger, styleName) in shortcuts) {
-      val isAlignmentShortcut = isAlignmentShortcutStyle(styleName)
       if (isInlineShortcutStyle(styleName)) continue
+      val isAlignmentShortcut = isAlignmentShortcutStyle(styleName)
       if (paragraphHasActiveStyle && !isAlignmentShortcut) continue
       if (trigger.isEmpty()) continue
       if (!s.substring(effectiveTriggerStart, end).startsWith(trigger)) continue
