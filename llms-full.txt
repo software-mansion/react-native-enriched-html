@@ -709,6 +709,9 @@ list item), typing the trigger pattern has no effect.
 
 :::
 
+**[Text alignment](/rich-text-formatting/text-alignment)** shortcuts fire with the same scheme
+as paragraph styles, but don't require a plain paragraph to be effective.
+
 **[Inline styles](/fundamentals/html-format-and-supported-tags#inline-tags)**
 fire when a closing delimiter is typed around text (e.g. `**text**` → bold). The
 trigger is the delimiter string (e.g. `**`, `*`, `~~`). Supported styles:
@@ -3925,6 +3928,9 @@ things:
   e.g. `'# '` for a heading, `'- '` for a bulleted list. Since a paragraph can only hold
   one paragraph style, these only fire on a **plain** paragraph: if the line is
   already a heading or a list item, typing the prefix does nothing.
+
+* **Alignment shortcuts** (`left`, `center`, `right`, `justify`) can be applied with no limits,
+  to any already styled paragraph.
 
 * **Inline shortcuts** (`bold`, `italic`, `underline`, `strikethrough`,
   `inline_code`) fire when you type a **closing delimiter** around some text, so
