@@ -45,3 +45,10 @@ than a crash.
 > Images can also arrive by pasting rather than through `setImage` - the editor
 > surfaces those through the [`onPasteImages`](/api-reference/enriched-text-input#onpasteimages) event, which hands you each image's URI,
 > MIME type, and dimensions so you can upload or resize before inserting.
+
+## Handling image presses
+
+When rendering content with [`EnrichedText`](/core-functionalities/rendering-rich-text),
+use [**`onImagePress`**](/api-reference/enriched-text#onimagepress) to react when
+the user taps an inline image. The callback receives the image's URI and
+dimensions. No visual feedback is applied on press.
