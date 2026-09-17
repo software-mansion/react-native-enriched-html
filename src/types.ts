@@ -222,6 +222,8 @@ export interface HtmlStyle {
   a?: {
     color?: ColorValue;
     textDecorationLine?: 'underline' | 'none';
+    /** @platform web */
+    pressColor?: ColorValue;
   };
   mention?: Record<string, MentionStyleProperties> | MentionStyleProperties;
   ol?: {
@@ -260,7 +262,11 @@ export type TextShortcutStyle =
   | 'codeblock'
   | 'unordered_list'
   | 'ordered_list'
-  | 'checkbox_list';
+  | 'checkbox_list'
+  | 'left'
+  | 'center'
+  | 'right'
+  | 'justify';
 
 /**
  * Defines a single text shortcut: a character sequence that, when typed is replaced by the corresponding paragraph or inline style.
@@ -723,6 +729,15 @@ export interface EnrichedTextInputProps extends Omit<ViewProps, 'children'> {
   /** Called when the editor auto-detects a URL matching `linkRegex`. */
   onLinkDetected?: (e: OnLinkDetected) => void;
 
+  /**
+   * Web only. Called when the user clicks a link inside the editor. If not
+   * provided, clicking a link has no effect (the default, cross-platform
+   * behavior).
+   *
+   * @platform web
+   */
+  onLinkPress?: (event: OnLinkPressEvent) => void;
+
   /** Called when the editor resolves a mention node. */
   onMentionDetected?: (e: OnMentionDetected) => void;
 
@@ -892,6 +907,9 @@ export interface EnrichedTextProps extends ViewProps {
 
   /** Called when the user taps a mention node inside the rendered content. */
   onMentionPress?: (event: OnMentionPressEvent) => void;
+
+  /** Called when the user taps an inline image inside the rendered content. */
+  onImagePress?: (event: OnImagePressEvent) => void;
 }
 
 export interface EnrichedTextMentionStyleProperties extends MentionStyleProperties {
@@ -903,7 +921,10 @@ export interface EnrichedTextHtmlStyle extends Omit<
   HtmlStyle,
   'a' | 'mention'
 > {
-  a?: HtmlStyle['a'] & {
+  a?: Omit<NonNullable<HtmlStyle['a']>, 'pressColor'> & {
+    // the documentation comment below is to suppress the base HtmlStyle's
+    // web-only note about pressColor, as in EnrichedText it is cross-platform
+    /***/
     pressColor?: ColorValue;
   };
   mention?:
@@ -919,4 +940,12 @@ export interface OnMentionPressEvent {
   text: string;
   indicator: string;
   attributes: Record<string, string>;
+}
+
+export interface OnImagePressEvent {
+  image: {
+    uri: string;
+    width: number;
+    height: number;
+  };
 }
