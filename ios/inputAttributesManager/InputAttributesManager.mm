@@ -7,6 +7,7 @@
 #import "RangeUtils.h"
 #import "StyleHeaders.h"
 #import "StyleUtils.h"
+#import "TextListsUtils.h"
 #import "ZeroWidthSpaceUtils.h"
 
 @implementation InputAttributesManager {
@@ -244,9 +245,32 @@
   // the cursor correctly reflects the current formatting state (e.g. heading
   // size).
   for (StyleBase *style in _input->stylesDict.allValues) {
-    if ([style appliesStylingToTyping] && [style detect:selectedRange]) {
+    BOOL isActive = [style detect:selectedRange];
+
+    if ([style appliesStylingToTyping] && isActive) {
       [style applyStylingToTypingAttrs:newAttrs];
     }
+
+#if TARGET_OS_OSX
+    // AppKit often clears textLists from typingAttributes, so we can't trust
+    // the existing typingAttributes, grabbing the intact NSParagraphStyle
+    // directly from the current paragraph's text storage.
+    if ([style isParagraph] && isActive) {
+      NSRange paraRange =
+          [textView.textStorage.string paragraphRangeForRange:selectedRange];
+
+      if (paraRange.location < textView.textStorage.length) {
+        NSParagraphStyle *pStyle =
+            [textView.textStorage attribute:NSParagraphStyleAttributeName
+                                    atIndex:paraRange.location
+                             effectiveRange:nil];
+
+        if (pStyle != nil && pStyle.textLists.count > 0) {
+          newAttrs[NSParagraphStyleAttributeName] = [pStyle mutableCopy];
+        }
+      }
+    }
+#endif
   }
 
   textView.typingAttributes = newAttrs;
