@@ -198,7 +198,12 @@
     if ([_customAttributesKeys containsObject:key]) {
 #if TARGET_OS_OSX
       // AppKit internally applies styles present in the previous character,
-      // we want the inline images to not be extendable
+      // we want the inline images and links to not be extendable
+      StyleBase *linkStyle = _input->stylesDict[@([LinkStyle getType])];
+      if (linkStyle != nil && [[linkStyle getKey] isEqualToString:key]) {
+        continue;
+      }
+
       StyleBase *imageStyle = _input->stylesDict[@([ImageStyle getType])];
       if (imageStyle != nil && [[imageStyle getKey] isEqualToString:key]) {
         continue;
