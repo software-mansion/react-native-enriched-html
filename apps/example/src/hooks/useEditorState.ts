@@ -25,6 +25,7 @@ import {
   DEFAULT_IMAGE_WIDTH,
   prepareImageDimensions,
 } from '../utils/prepareImageDimensions';
+import { launchImageLibrary } from 'react-native-image-picker';
 
 type CurrentLinkState = OnLinkDetected;
 
@@ -211,7 +212,10 @@ export function useEditorState() {
       return;
     }
 
-    const response: any = undefined;
+    const response = await launchImageLibrary({
+      mediaType: 'photo',
+      selectionLimit: 1,
+    });
 
     if (response?.assets?.[0] === undefined) return;
 
