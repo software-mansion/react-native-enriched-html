@@ -694,6 +694,11 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
     useHtmlNormalizer = newViewProps.useHtmlNormalizer;
   }
 
+  // applyLinkOnPaste
+  if (newViewProps.applyLinkOnPaste != oldViewProps.applyLinkOnPaste) {
+    applyLinkOnPaste = newViewProps.applyLinkOnPaste;
+  }
+
   // textShortcuts
   bool textShortcutsChanged =
       newViewProps.textShortcuts.size() != oldViewProps.textShortcuts.size();
@@ -1520,27 +1525,31 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   }
 }
 
-- (void)addLinkAt:(NSInteger)start
+// return value informs us whether the link has been properly added or not
+- (BOOL)addLinkAt:(NSInteger)start
               end:(NSInteger)end
              text:(NSString *)text
               url:(NSString *)url {
   LinkStyle *linkStyleClass = (LinkStyle *)stylesDict[@([LinkStyle getType])];
   if (linkStyleClass == nullptr) {
-    return;
+    return NO;
   }
 
   // translate the output start-end notation to range
   NSRange linkRange = NSMakeRange(start, end - start);
-  if ([StyleUtils handleStyleBlocksAndConflicts:[LinkStyle getType]
-                                          range:linkRange
-                                        forHost:self]) {
-    LinkData *linkData = [[LinkData alloc] init];
-    linkData.text = text;
-    linkData.url = url;
-    linkData.isManual = YES;
-    [linkStyleClass addLink:linkData range:linkRange withSelection:YES];
-    [self anyTextMayHaveBeenModified];
+  if (![StyleUtils handleStyleBlocksAndConflicts:[LinkStyle getType]
+                                           range:linkRange
+                                         forHost:self]) {
+    return NO;
   }
+
+  LinkData *linkData = [[LinkData alloc] init];
+  linkData.text = text;
+  linkData.url = url;
+  linkData.isManual = YES;
+  [linkStyleClass addLink:linkData range:linkRange withSelection:YES];
+  [self anyTextMayHaveBeenModified];
+  return YES;
 }
 
 - (void)removeLinkAt:(NSInteger)start end:(NSInteger)end {

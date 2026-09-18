@@ -187,6 +187,31 @@
     return;
   }
 
+  // applyLinkOnPaste: pasting a bare URL over selected text turns the selection
+  // into a link pointing to that URL instead of replacing it.
+  if (typedInput->applyLinkOnPaste && currentRange.length > 0) {
+    NSCharacterSet *whitespace =
+        [NSCharacterSet whitespaceAndNewlineCharacterSet];
+    NSString *candidate = [[self plainTextIn:pasteboard]
+        stringByTrimmingCharactersInSet:whitespace];
+    NSString *linkUrl =
+        [self linkTextIfMatchesLinkRegex:candidate] ? candidate : nullptr;
+
+    if (linkUrl != nullptr) {
+      NSString *selectedText = [typedInput->textView.textStorage.string
+          substringWithRange:currentRange];
+
+      if ([selectedText stringByTrimmingCharactersInSet:whitespace].length >
+              0 &&
+          [typedInput addLinkAt:currentRange.location
+                            end:NSMaxRange(currentRange)
+                           text:selectedText
+                            url:linkUrl]) {
+        return;
+      }
+    }
+  }
+
   if ([pasteboardTypes containsObject:UTTypeHTML.identifier]) {
     // we try processing the html contents
 
@@ -224,6 +249,30 @@
   }
 
   [typedInput anyTextMayHaveBeenModified];
+}
+
+- (BOOL)linkTextIfMatchesLinkRegex:(NSString *)text {
+  if (text.length == 0) {
+    return false;
+  }
+
+  NSRange whitespaceRange =
+      [text rangeOfCharacterFromSet:[NSCharacterSet
+                                        whitespaceAndNewlineCharacterSet]];
+  if (whitespaceRange.location != NSNotFound) {
+    return false;
+  }
+
+  EnrichedTextInputView *input = (EnrichedTextInputView *)_input;
+  if (input == nullptr) {
+    return false;
+  }
+
+  if (![LinkStyle matchesLinkRegexWithConfig:text config:input.config]) {
+    return false;
+  }
+
+  return true;
 }
 
 - (NSDictionary *)detectImageFormat:(NSString *)type {
@@ -270,15 +319,13 @@
   return nil;
 }
 
-- (void)tryHandlingPlainTextItemsIn:(UIPasteboard *)pasteboard
-                              range:(NSRange)range
-                              input:(EnrichedTextInputView *)input {
+- (NSString *)plainTextIn:(UIPasteboard *)pasteboard {
   NSArray *existingTypes = pasteboard.pasteboardTypes;
   NSArray *handledTypes = @[
     UTTypeUTF8PlainText.identifier, UTTypePlainText.identifier,
     UTTypeURL.identifier
   ];
-  NSString *plainText;
+  NSString *plainText = nil;
 
   for (NSString *type in handledTypes) {
     if (![existingTypes containsObject:type]) {
@@ -296,6 +343,14 @@
       plainText = [(NSURL *)value absoluteString];
     }
   }
+
+  return plainText;
+}
+
+- (void)tryHandlingPlainTextItemsIn:(UIPasteboard *)pasteboard
+                              range:(NSRange)range
+                              input:(EnrichedTextInputView *)input {
+  NSString *plainText = [self plainTextIn:pasteboard];
 
   if (!plainText) {
     return;

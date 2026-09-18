@@ -68,6 +68,7 @@ import { StrictMarksPlugin } from './pmPlugins/StrictMarksPlugin';
 import { MergeAdjacentSameKindBlocksPlugin } from './pmPlugins/MergeAdjacentSameKindBlocksPlugin';
 import { OrderedListMarkerWidthPlugin } from './pmPlugins/OrderedListMarkerWidthPlugin';
 import { StripMarksInCodeBlockPlugin } from './pmPlugins/StripMarksInCodeBlockPlugin';
+import { handleApplyLinkOnPaste } from './utils/applyLinkOnPaste';
 import { handleClipboardPasteImages } from './utils/pasteImages';
 import {
   MentionPlugin,
@@ -131,6 +132,7 @@ export const EnrichedTextInput = ({
   onChangeMention,
   onEndMention,
   linkRegex,
+  applyLinkOnPaste = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.applyLinkOnPaste,
   htmlStyle,
   useHtmlNormalizer = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.useHtmlNormalizer,
   sanitizationConfig,
@@ -169,6 +171,7 @@ export const EnrichedTextInput = ({
   const onKeyPressRef = useStableRef(onKeyPress);
   const onLinkPressRef = useStableRef(onLinkPress);
   const useHtmlNormalizerRef = useStableRef(useHtmlNormalizer);
+  const applyLinkOnPasteRef = useStableRef(applyLinkOnPaste);
   const sanitizationConfigRef = useStableRef(sanitizationConfig);
   const mentionCallbacksRef = useStableRef(mentionCallbacks);
   const textShortcutsRef = useStableRef(textShortcuts);
@@ -300,6 +303,12 @@ export const EnrichedTextInput = ({
             event,
             () => editorInstanceRef.current,
             () => onPasteImagesRef.current
+          ) ||
+          handleApplyLinkOnPaste(
+            event,
+            () => editorInstanceRef.current,
+            () => applyLinkOnPasteRef.current,
+            () => linkEmitterRef.current.linkRegex
           ),
         attributes: {
           autoCapitalize,

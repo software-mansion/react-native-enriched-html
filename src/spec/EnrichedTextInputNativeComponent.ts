@@ -369,6 +369,7 @@ export interface NativeProps extends ViewProps {
   htmlStyle?: HtmlStyleInternal;
   scrollEnabled?: boolean;
   linkRegex?: LinkNativeRegex;
+  applyLinkOnPaste?: boolean;
   contextMenuItems?: ReadonlyArray<Readonly<ContextMenuItemConfig>>;
   textShortcuts: ReadonlyArray<Readonly<TextShortcut>>;
   returnKeyType?: string;

@@ -127,6 +127,7 @@ class EnrichedTextInputView :
   var shouldEmitOnChangeText: Boolean = false
   var experimentalSynchronousEvents: Boolean = false
   var useHtmlNormalizer: Boolean = false
+  var applyLinkOnPaste: Boolean = false
 
   // Pair: (trigger, style)
   var textShortcuts: List<Pair<String, String>> = emptyList()
@@ -376,6 +377,10 @@ class EnrichedTextInputView :
     val end = selectionEnd.coerceAtLeast(0)
     val lengthBefore = currentText.length
 
+    if (applyLinkOnPaste && start < end && linkifySelectionOnPaste(currentText, start, end, item)) {
+      return
+    }
+
     val pastedSpannable: Spannable =
       when {
         item.htmlText != null -> {
@@ -403,6 +408,41 @@ class EnrichedTextInputView :
     // Update links and mentions in the newly pasted range
     val editable = text as? Editable ?: return
     parametrizedStyles?.afterTextChanged(editable, start.coerceAtMost(pasteEnd), pasteEnd)
+  }
+
+  // Pasting a bare URL over selected text turns the selection into a link
+  // pointing to that URL instead of replacing it (the applyLinkOnPaste prop).
+  private fun linkifySelectionOnPaste(
+    currentText: Spannable,
+    start: Int,
+    end: Int,
+    item: ClipData.Item,
+  ): Boolean {
+    val regex = linkRegex ?: return false
+    val pasted = item.text?.toString()?.trim() ?: return false
+
+    if (pasted.isEmpty() || pasted.any { it.isWhitespace() }) {
+      return false
+    }
+
+    if (!regex.matcher(pasted).matches()) return false
+
+    if (currentText.substring(start, end).isBlank()) return false
+
+    val styles = parametrizedStyles ?: return false
+    if (!verifyStyle(EnrichedSpans.LINK)) return false
+
+    // verifyStyle may remove conflicting styles and shift the selection
+    val freshStart = selectionStart.coerceAtLeast(0)
+    val freshEnd = selectionEnd.coerceAtLeast(0)
+    if (freshStart >= freshEnd) return false
+
+    val selectedText = (text as Spannable).substring(freshStart, freshEnd)
+    if (selectedText.isBlank()) return false
+
+    styles.setLinkSpan(freshStart, freshEnd, selectedText, pasted)
+    setSelection((freshStart + selectedText.length).coerceIn(0, text?.length ?: 0))
+    return true
   }
 
   fun requestFocusProgrammatically() {
