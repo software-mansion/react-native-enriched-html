@@ -44,6 +44,7 @@ export const EnrichedText = memo(
     onBlur,
     onLinkPress,
     onMentionPress,
+    onImagePress,
   }: EnrichedTextProps) => {
     assertBrowserEnvironment('EnrichedText');
 
@@ -126,11 +127,17 @@ export const EnrichedText = memo(
 
     const onLinkPressRef = useStableRef(onLinkPress);
     const onMentionPressRef = useStableRef(onMentionPress);
+    const onImagePressRef = useStableRef(onImagePress);
 
     useOrderedListMarkerWidth(containerRef, finalHtml);
 
     useImageErrorFallback(containerRef);
-    usePressInteractions(containerRef, onLinkPressRef, onMentionPressRef);
+    usePressInteractions(
+      containerRef,
+      onLinkPressRef,
+      onMentionPressRef,
+      onImagePressRef
+    );
 
     return (
       <>

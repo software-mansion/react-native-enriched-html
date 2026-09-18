@@ -28,6 +28,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (CGSize)measureSize:(CGFloat)maxWidth;
 - (void)emitOnLinkPressEvent:(NSString *)url;
 - (void)emitOnMentionPressEvent:(MentionParams *)mention;
+- (void)emitOnImagePressEvent:(MediaAttachment *)attachment;
 @end
 
 NS_ASSUME_NONNULL_END

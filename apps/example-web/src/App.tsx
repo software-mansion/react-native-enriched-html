@@ -290,6 +290,10 @@ function App() {
           htmlStyle={WEB_DEFAULT_HTML_STYLE}
           linkRegex={LINK_REGEX}
           sanitizationConfig={SANITIZATION_CONFIG}
+          textShortcuts={[
+            { trigger: '++', style: 'center' },
+            { trigger: '##', style: 'h6' },
+          ]}
         />
         <MentionPopup
           variant="user"

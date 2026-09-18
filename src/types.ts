@@ -262,7 +262,11 @@ export type TextShortcutStyle =
   | 'codeblock'
   | 'unordered_list'
   | 'ordered_list'
-  | 'checkbox_list';
+  | 'checkbox_list'
+  | 'left'
+  | 'center'
+  | 'right'
+  | 'justify';
 
 /**
  * Defines a single text shortcut: a character sequence that, when typed is replaced by the corresponding paragraph or inline style.
@@ -903,6 +907,9 @@ export interface EnrichedTextProps extends ViewProps {
 
   /** Called when the user taps a mention node inside the rendered content. */
   onMentionPress?: (event: OnMentionPressEvent) => void;
+
+  /** Called when the user taps an inline image inside the rendered content. */
+  onImagePress?: (event: OnImagePressEvent) => void;
 }
 
 export interface EnrichedTextMentionStyleProperties extends MentionStyleProperties {
@@ -933,4 +940,12 @@ export interface OnMentionPressEvent {
   text: string;
   indicator: string;
   attributes: Record<string, string>;
+}
+
+export interface OnImagePressEvent {
+  image: {
+    uri: string;
+    width: number;
+    height: number;
+  };
 }
