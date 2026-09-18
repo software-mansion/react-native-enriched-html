@@ -6,7 +6,6 @@ let headerSearchPaths: [String] = [
     "cpp/GumboParser",
     "cpp/parser",
     "ios",
-    ".",
 ]
 
 let cSettings: [CSetting] = headerSearchPaths.map { .headerSearchPath($0) }
