@@ -669,6 +669,15 @@ export interface EnrichedTextInputProps extends Omit<ViewProps, 'children'> {
   /** Controls automatic capitalization of typed text. Defaults to `"sentences"`. */
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
 
+  /** If false, disables auto-correct. Defaults `true`. */
+  autoCorrect?: boolean;
+
+  /** If false, disables spell-check style (i.e. red underlines). The default value is inherited from the `autoCorrect` prop.
+   *
+   * @platform ios
+   */
+  spellCheck?: boolean;
+
   /** Style overrides applied to the rendered HTML content inside the editor. */
   htmlStyle?: HtmlStyle;
 

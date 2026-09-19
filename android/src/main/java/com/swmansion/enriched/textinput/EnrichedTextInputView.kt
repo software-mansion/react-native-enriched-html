@@ -614,6 +614,18 @@ class EnrichedTextInputView :
     }
   }
 
+  fun setAutoCorrect(autoCorrect: Boolean) {
+    val flagsToUnset = InputType.TYPE_TEXT_FLAG_AUTO_CORRECT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+
+    val flagsToSet =
+      when (autoCorrect) {
+        true -> InputType.TYPE_TEXT_FLAG_AUTO_CORRECT
+        false -> InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+      }
+
+    this.inputType = (this.inputType and flagsToUnset.inv()) or flagsToSet
+  }
+
   fun setAutoCapitalize(flagName: String?) {
     val flag =
       when (flagName) {
