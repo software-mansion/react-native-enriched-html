@@ -73,10 +73,12 @@
   }
 
   // fix the selection if needed
-  if ([host.textView isFirstResponder]) {
-    host.textView.selectedRange =
-        NSMakeRange(preRemoveSelection.location + postRemoveLocationOffset,
-                    preRemoveSelection.length + postRemoveLengthOffset);
+  if (host.textView.enrichedIsFirstResponder) {
+    [host.textView
+        enrichedSetSelectedRange:NSMakeRange(preRemoveSelection.location +
+                                                 postRemoveLocationOffset,
+                                             preRemoveSelection.length +
+                                                 postRemoveLengthOffset)];
   }
 }
 
@@ -167,10 +169,12 @@
   }
 
   // fix the selection if needed
-  if ([host.textView isFirstResponder]) {
-    host.textView.selectedRange =
-        NSMakeRange(preAddSelection.location + postAddLocationOffset,
-                    preAddSelection.length + postAddLengthOffset);
+  if (host.textView.enrichedIsFirstResponder) {
+    [host.textView
+        enrichedSetSelectedRange:NSMakeRange(preAddSelection.location +
+                                                 postAddLocationOffset,
+                                             preAddSelection.length +
+                                                 postAddLengthOffset)];
   }
 }
 

@@ -256,7 +256,7 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
   }
 
   [self.host.textView reactFocus];
-  self.host.textView.selectedRange = newSelect;
+  [self.host.textView enrichedSetSelectedRange:newSelect];
 }
 
 // handles removing no longer valid mentions

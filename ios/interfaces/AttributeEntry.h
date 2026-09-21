@@ -1,5 +1,5 @@
 #pragma once
-#import <UIKit/UIKit.h>
+#import "platform/EnrichedPlatform.h"
 
 @interface AttributeEntry : NSObject
 

@@ -3,7 +3,7 @@
 @implementation AttachmentLayoutUtils
 
 + (void)handleAttachmentUpdate:(MediaAttachment *)attachment
-                      textView:(UITextView *)textView
+                      textView:(EnrichedBaseTextView *)textView
                  onLayoutBlock:(dispatch_block_t)layoutBlock {
   NSTextStorage *storage = textView.textStorage;
   NSRange fullRange = NSMakeRange(0, storage.length);
@@ -32,7 +32,7 @@
 }
 
 + (NSMutableDictionary<NSValue *, UIImageView *> *)
-    layoutAttachmentsInTextView:(UITextView *)textView
+    layoutAttachmentsInTextView:(EnrichedBaseTextView *)textView
                          config:(EnrichedConfig *)config
                   existingViews:
                       (NSMutableDictionary<NSValue *, UIImageView *> *)
@@ -64,9 +64,14 @@
                          if (!imgView) {
                            // It doesn't exist yet, create it
                            imgView = [[UIImageView alloc] initWithFrame:rect];
+#if !TARGET_OS_OSX
                            imgView.contentMode =
                                UIViewContentModeScaleAspectFit;
-                           imgView.tintColor = [UIColor labelColor];
+#else
+              imgView.imageScaling = NSImageScaleProportionallyUpOrDown;
+              // Enables animation of GIF images.
+              imgView.animates = YES;
+#endif
 
                            // Add it directly to the TextView
                            [textView addSubview:imgView];
@@ -76,6 +81,13 @@
                          if (!CGRectEqualToRect(imgView.frame, rect)) {
                            imgView.frame = rect;
                          }
+
+#if !TARGET_OS_OSX
+                         imgView.tintColor = [config primaryColor];
+#else
+            imgView.contentTintColor = [config primaryColor];
+#endif
+
                          UIImage *targetImage =
                              attachment.storedAnimatedImage ?: attachment.image;
 
@@ -87,7 +99,7 @@
 
                          // Ensure it is visible on top
                          imgView.hidden = NO;
-                         [textView bringSubviewToFront:imgView];
+                         EnrichedBringSubviewToFront(textView, imgView);
 
                          activeAttachmentViews[key] = imgView;
                          // Remove from the old map so we know it has been
@@ -107,7 +119,7 @@
 
 + (CGRect)frameForAttachment:(ImageAttachment *)attachment
                      atRange:(NSRange)range
-                    textView:(UITextView *)textView
+                    textView:(EnrichedBaseTextView *)textView
                       config:(EnrichedConfig *)config {
   NSLayoutManager *layoutManager = textView.layoutManager;
   NSTextContainer *textContainer = textView.textContainer;
@@ -134,8 +146,8 @@
   CGFloat targetY =
       CGRectGetMaxY(lineRect) + font.descender - attachmentSize.height;
   CGRect rect =
-      CGRectMake(glyphRect.origin.x + textView.textContainerInset.left,
-                 targetY + textView.textContainerInset.top,
+      CGRectMake(glyphRect.origin.x + textView.enrichedTextContainerInset.left,
+                 targetY + textView.enrichedTextContainerInset.top,
                  attachmentSize.width, attachmentSize.height);
 
   return CGRectIntegral(rect);

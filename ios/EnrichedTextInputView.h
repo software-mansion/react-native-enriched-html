@@ -7,8 +7,8 @@
 #import "interfaces/EnrichedViewHost.h"
 #import "interfaces/LinkData.h"
 #import "interfaces/MediaAttachment.h"
+#import "platform/EnrichedPlatform.h"
 #import <React/RCTViewComponentView.h>
-#import <UIKit/UIKit.h>
 
 #ifndef EnrichedTextInputViewNativeComponent_h
 #define EnrichedTextInputViewNativeComponent_h
@@ -48,6 +48,9 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)emitOnPasteImagesEvent:(NSArray<NSDictionary *> *)images;
 - (void)anyTextMayHaveBeenModified;
 - (void)scheduleRelayoutIfNeeded;
+- (void)handleDidBeginEditing;
+- (void)handleDidEndEditing;
+- (void)handleCheckboxTapAtIndex:(NSUInteger)charIndex;
 
 @end
 

@@ -1,4 +1,4 @@
-#import <UIKit/UIKit.h>
+#import "platform/EnrichedPlatform.h"
 
 @interface WordsUtils : NSObject
 + (NSArray<NSDictionary *> *)getAffectedWordsFromText:(NSString *)text

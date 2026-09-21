@@ -2,7 +2,7 @@
 
 #import "EnrichedTextInputView.h"
 #import "interfaces/StyleTypeEnum.h"
-#import <UIKit/UIKit.h>
+#import "platform/EnrichedPlatform.h"
 
 NS_ASSUME_NONNULL_BEGIN
 

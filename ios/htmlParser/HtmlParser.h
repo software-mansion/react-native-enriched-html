@@ -1,6 +1,6 @@
 #pragma once
 #import "interfaces/EnrichedViewHost.h"
-#import <UIKit/UIKit.h>
+#import "platform/EnrichedPlatform.h"
 
 @class EnrichedConfig;
 

@@ -3,8 +3,8 @@
 #import "interfaces/EnrichedViewHost.h"
 #import "interfaces/MediaAttachment.h"
 #import "interfaces/MentionParams.h"
+#import "platform/EnrichedPlatform.h"
 #import <React/RCTViewComponentView.h>
-#import <UIKit/UIKit.h>
 
 #ifndef EnrichedTextViewNativeComponent_h
 #define EnrichedTextViewNativeComponent_h
@@ -14,7 +14,7 @@ NS_ASSUME_NONNULL_BEGIN
 @interface EnrichedTextView
     : RCTViewComponentView <EnrichedViewHost, MediaAttachmentDelegate> {
 @public
-  UITextView *textView;
+  EnrichedBaseTextView *textView;
 @public
   EnrichedConfig *config;
 @public

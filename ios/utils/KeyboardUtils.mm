@@ -1,5 +1,7 @@
 #import "KeyboardUtils.h"
 
+#if !TARGET_OS_OSX
+
 @implementation KeyboardUtils
 + (UIReturnKeyType)getUIReturnKeyTypeFromReturnKeyType:
     (NSString *)returnKeyType {
@@ -28,3 +30,5 @@
 }
 
 @end
+
+#endif
