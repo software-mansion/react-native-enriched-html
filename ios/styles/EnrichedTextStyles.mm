@@ -33,6 +33,9 @@
 @implementation EnrichedTextH6Style
 @end
 
+@implementation EnrichedTextCustomStyle
+@end
+
 @implementation EnrichedTextBlockQuoteStyle
 @end
 

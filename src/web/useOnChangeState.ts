@@ -99,6 +99,10 @@ function buildState(
       isBlocking: isFormatBlocked('image', editor, htmlStyle),
     },
     alignment: getCurrentAlignment(editor) ?? 'auto',
+    customStyle: {
+      foregroundColor: '',
+      backgroundColor: '',
+    },
   };
 }
 

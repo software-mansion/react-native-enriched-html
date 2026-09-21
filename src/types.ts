@@ -380,6 +380,10 @@ export interface OnChangeStateEvent {
     isBlocking: boolean;
   };
   alignment: string;
+  customStyle: {
+    foregroundColor: string;
+    backgroundColor: string;
+  };
 }
 
 export interface OnLinkDetected {
@@ -564,6 +568,10 @@ export interface EnrichedTextInputInstance extends NativeMethods {
   setTextAlignment: (
     alignment: 'left' | 'center' | 'right' | 'justify' | 'auto'
   ) => void;
+  setStyle: (customStyle: {
+    foregroundColor?: ColorValue | null;
+    backgroundColor?: ColorValue | null;
+  }) => void;
 }
 
 export interface ContextMenuItem {

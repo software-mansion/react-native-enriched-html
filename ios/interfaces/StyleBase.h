@@ -12,6 +12,7 @@
 - (NSString *)getValue;
 - (NSString *)getMarkerPrefix;
 - (BOOL)isParagraph;
+- (NSInteger)stylePriority;
 - (BOOL)needsZWS;
 - (BOOL)appliesStylingToTyping;
 - (instancetype)initWithHost:(id<EnrichedViewHost>)host;
