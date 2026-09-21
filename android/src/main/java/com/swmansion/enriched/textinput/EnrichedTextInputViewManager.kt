@@ -294,6 +294,13 @@ class EnrichedTextInputViewManager :
     view?.setLinkRegex(config)
   }
 
+  override fun setApplyLinkOnPaste(
+    view: EnrichedTextInputView?,
+    value: Boolean,
+  ) {
+    view?.applyLinkOnPaste = value
+  }
+
   override fun setAndroidExperimentalSynchronousEvents(
     view: EnrichedTextInputView?,
     value: Boolean,

@@ -41,6 +41,8 @@ NS_ASSUME_NONNULL_BEGIN
   NSArray<NSDictionary *> *textShortcuts;
 @public
   BOOL preserveTypingAttributesOnNextEmptyCheck;
+@public
+  BOOL applyLinkOnPaste;
 }
 - (CGSize)measureSize:(CGFloat)maxWidth;
 - (void)emitOnLinkDetectedEvent:(LinkData *)linkData range:(NSRange)range;
@@ -48,6 +50,10 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)emitOnPasteImagesEvent:(NSArray<NSDictionary *> *)images;
 - (void)anyTextMayHaveBeenModified;
 - (void)scheduleRelayoutIfNeeded;
+- (BOOL)addLinkAt:(NSInteger)start
+              end:(NSInteger)end
+             text:(NSString *)text
+              url:(NSString *)url;
 
 @end
 

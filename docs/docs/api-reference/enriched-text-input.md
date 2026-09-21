@@ -205,6 +205,16 @@ The recognized mention indicators. Each item must be a 1-character string. See
 | ---------- | ------- | ----------------- |
 | `string[]` | `['@']` | Android, iOS, Web |
 
+### `applyLinkOnPaste` {#applylinkonpaste}
+
+If `true`, pasting clipboard content that consists solely of a URL while some text is selected turns the selection into a link pointing to that URL, instead of replacing the selected text with the pasted content.
+
+The pasted content is recognized as a URL when it matches [`linkRegex`](#linkregex). The paste falls back to the regular behavior when the selection is empty or whitespace-only, or when the link style cannot be applied at the selection (e.g. inside a conflicting style). Has no effect when link detection is disabled with `linkRegex={null}`.
+
+| Type   | Default Value | Platform          |
+| ------ | ------------- | ----------------- |
+| `bool` | `false`       | iOS, Android, Web |
+
 ### `linkRegex` {#linkregex}
 
 A custom regex pattern for detecting links in the input. If not provided, a

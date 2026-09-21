@@ -289,6 +289,7 @@ function App() {
           mentionIndicators={['@', '#']}
           htmlStyle={WEB_DEFAULT_HTML_STYLE}
           linkRegex={LINK_REGEX}
+          applyLinkOnPaste
           sanitizationConfig={SANITIZATION_CONFIG}
           textShortcuts={[
             { trigger: '++', style: 'center' },
