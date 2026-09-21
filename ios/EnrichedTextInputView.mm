@@ -913,7 +913,6 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
       _emitFocusBlur = YES;
     }
   }
-#endif
 
   // autoCorrect
   if (newViewProps.autoCorrect != oldViewProps.autoCorrect) {
@@ -928,6 +927,7 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
                                      ? UITextSpellCheckingTypeYes
                                      : UITextSpellCheckingTypeNo;
   }
+#endif
 
   // isOnChangeHtmlSet
   _emitHtml = newViewProps.isOnChangeHtmlSet;

@@ -2555,7 +2555,7 @@ SPEC CHECKSUMS:
   ReactAppDependencyProvider: db0eebc7a9e85c8976d5ea10706d790753a53889
   ReactCodegen: b70cc4acc2bdfe4f7bb765db75b3c6fd14c7aa39
   ReactCommon: bc273d1cfc32a36ea662e81293e0961de8c21c77
-  ReactNativeEnrichedHtml: 950aa14a7759967d0eb88b8103b4550101565e71
+  ReactNativeEnrichedHtml: 6d24ce69b270c4e4fbe92d0b10646171ade9ad30
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Yoga: a88f30ac6f89fded00f9840e7d043315e5ab4fe0
 

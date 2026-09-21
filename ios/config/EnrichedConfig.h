@@ -3,7 +3,6 @@
 #import "interfaces/MentionStyleProps.h"
 #import "interfaces/TextDecorationLineEnum.h"
 #import "platform/EnrichedPlatform.h"
-#import <UIKit/UIKit.h>
 
 @interface EnrichedConfig : NSObject <NSCopying>
 - (instancetype)init;

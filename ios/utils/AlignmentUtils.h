@@ -2,7 +2,6 @@
 #import "interfaces/AlignmentEntry.h"
 #import "interfaces/StyleHeaders.h"
 #import "platform/EnrichedPlatform.h"
-#import <UIKit/UIKit.h>
 
 @interface AlignmentUtils : NSObject
 

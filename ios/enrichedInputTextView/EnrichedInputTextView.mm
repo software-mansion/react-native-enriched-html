@@ -4,6 +4,7 @@
 #import "htmlParser/HtmlParser.h"
 #import "platform/EnrichedPlatform.h"
 #import "utils/AlignmentUtils.h"
+#import "utils/CheckboxHitTestUtils.h"
 #import "utils/TextInsertionUtils.h"
 #import "utils/TextListsUtils.h"
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>

@@ -2,7 +2,6 @@
 #import "config/EnrichedConfig.h"
 #import "interfaces/ImageAttachment.h"
 #import "platform/EnrichedPlatform.h"
-#import <UIKit/UIKit.h>
 
 @interface AttachmentLayoutUtils : NSObject
 

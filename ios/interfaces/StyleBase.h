@@ -1,9 +1,9 @@
 #pragma once
 #import "AttributeEntry.h"
-#import "EnrichedPlatform.h"
 #import "EnrichedViewHost.h"
 #import "StylePair.h"
 #import "StyleTypeEnum.h"
+#import "platform/EnrichedPlatform.h"
 
 @interface StyleBase : NSObject
 @property(nonatomic, weak) id<EnrichedViewHost> host;

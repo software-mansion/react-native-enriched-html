@@ -1,5 +1,5 @@
 #pragma once
-#import "EnrichedPlatform.h"
+#import "platform/EnrichedPlatform.h"
 
 @interface EnrichedInputTextView : EnrichedBaseTextView
 @property(nonatomic, weak) id input;

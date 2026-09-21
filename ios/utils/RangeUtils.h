@@ -1,5 +1,5 @@
 #pragma once
-#import "EnrichedPlatform.h"
+#import "platform/EnrichedPlatform.h"
 
 @interface RangeUtils : NSObject
 + (NSArray *)getSeparateParagraphsRangesIn:(EnrichedBaseTextView *)textView

@@ -1,4 +1,4 @@
-#import "EnrichedPlatform.h"
+#import "platform/EnrichedPlatform.h"
 
 @class MediaAttachment;
 

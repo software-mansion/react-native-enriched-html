@@ -3,7 +3,6 @@
 #import "config/EnrichedConfig.h"
 #import "inputAttributesManager/InputAttributesManager.h"
 #import "platform/EnrichedPlatform.h"
-#import <UIKit/UIKit.h>
 
 @protocol EnrichedViewHost <NSObject>
 @required
