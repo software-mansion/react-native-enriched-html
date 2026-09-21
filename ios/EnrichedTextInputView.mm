@@ -1126,7 +1126,7 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   // detect custom style change
   CustomStyle *customStyle = stylesDict[@([CustomStyle getType])];
   CustomStyleData *currentCustomStyle =
-      [customStyle getCustomStyleDataAt:textView.selectedRange.location];
+      [customStyle getCustomStyleDataInRange:textView.selectedRange];
   if (currentCustomStyle != _recentlyEmittedCustomStyle &&
       ![currentCustomStyle isEqual:_recentlyEmittedCustomStyle]) {
     updateNeeded = YES;
@@ -1939,7 +1939,7 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
 
     CustomStyle *customStyle = stylesDict[@([CustomStyle getType])];
     CustomStyleData *contextCustomStyleData =
-        [customStyle getCustomStyleDataAt:textView.selectedRange.location];
+        [customStyle getCustomStyleDataInRange:textView.selectedRange];
 
     emitter->onContextMenuItemPress(
         {.itemText = [itemText toCppString],

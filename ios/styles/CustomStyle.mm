@@ -84,7 +84,7 @@ static NSString *const CustomStyleAttributeName = @"EnrichedCustomStyle";
 }
 
 - (AttributeEntry *)getEntryIfPresent:(NSRange)range {
-  CustomStyleData *data = [self getCustomStyleDataAt:range.location];
+  CustomStyleData *data = [self getCustomStyleDataInRange:range];
   if (data == nil || data.isEmpty)
     return nullptr;
 
@@ -137,6 +137,39 @@ static NSString *const CustomStyleAttributeName = @"EnrichedCustomStyle";
   }
 
   return [self getStoredCustomStyleDataAt:location];
+}
+
+- (CustomStyleData *_Nullable)getCustomStyleDataInRange:(NSRange)range {
+  if (range.length == 0)
+    return [self getCustomStyleDataAt:range.location];
+
+  NSMutableSet *foregroundColors = [NSMutableSet set];
+  NSMutableSet *backgroundColors = [NSMutableSet set];
+
+  [self.host.textView.textStorage
+      enumerateAttribute:CustomStyleAttributeName
+                 inRange:range
+                 options:0
+              usingBlock:^(id value, NSRange subRange, BOOL *stop) {
+                CustomStyleData *data =
+                    [value isKindOfClass:[CustomStyleData class]]
+                        ? (CustomStyleData *)value
+                        : nil;
+                [foregroundColors
+                    addObject:data.foregroundColor ?: (id)[NSNull null]];
+                [backgroundColors
+                    addObject:data.backgroundColor ?: (id)[NSNull null]];
+              }];
+
+  UIColor *foregroundColor = [self getSingleColorFromSet:foregroundColors];
+  UIColor *backgroundColor = [self getSingleColorFromSet:backgroundColors];
+  if (foregroundColor == nil && backgroundColor == nil)
+    return nil;
+
+  CustomStyleData *data = [[CustomStyleData alloc] init];
+  data.foregroundColor = foregroundColor;
+  data.backgroundColor = backgroundColor;
+  return data;
 }
 
 // Reads CustomStyleData directly from textStorage, bypassing typingAttributes.
@@ -192,6 +225,13 @@ static NSString *const CustomStyleAttributeName = @"EnrichedCustomStyle";
     [self.host.attributesManager
         didRemoveTypingAttribute:CustomStyleAttributeName];
   }
+}
+
+- (UIColor *_Nullable)getSingleColorFromSet:(NSSet *)colors {
+  if (colors.count != 1)
+    return nil;
+  id value = colors.anyObject;
+  return value == [NSNull null] ? nil : (UIColor *)value;
 }
 
 @end
