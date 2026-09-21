@@ -100,25 +100,30 @@ function buildState(
     },
     alignment: getCurrentAlignment(editor) ?? 'auto',
     customStyle: {
-      foregroundColor: '',
-      backgroundColor: '',
+      foregroundColor:
+        editor.getAttributes('customStyle').foregroundColor ?? '',
+      backgroundColor:
+        editor.getAttributes('customStyle').backgroundColor ?? '',
     },
   };
 }
 
 function hashState(state: OnChangeStateEvent): string {
-  return Object.values(state)
-    .map((formatState) => {
-      if (typeof formatState === 'string') return formatState;
-      return String(
-        getFormatHash(
-          formatState.isActive,
-          formatState.isConflicting,
-          formatState.isBlocking
-        )
-      );
+  const formatEntries = Object.entries(state).filter(
+    ([key]) => key !== 'alignment' && key !== 'customStyle'
+  );
+  const formatHash = formatEntries
+    .map(([, formatState]) => {
+      const s = formatState as {
+        isActive: boolean;
+        isConflicting: boolean;
+        isBlocking: boolean;
+      };
+      return String(getFormatHash(s.isActive, s.isConflicting, s.isBlocking));
     })
     .join('');
+
+  return `${formatHash}|${state.alignment}|${state.customStyle.foregroundColor}|${state.customStyle.backgroundColor}`;
 }
 
 function getFormatHash(

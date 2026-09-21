@@ -568,6 +568,14 @@ export interface EnrichedTextInputInstance extends NativeMethods {
   setTextAlignment: (
     alignment: 'left' | 'center' | 'right' | 'justify' | 'auto'
   ) => void;
+
+  /**
+   * Sets the custom text and background colors for the current text selection.
+   *
+   * @param customStyle - An object specifying the colors to apply.
+   * Provide `foregroundColor` to change the text color, and `backgroundColor` to change
+   * the text highlight color. Passing `null` for a property will remove that specific style.
+   */
   setStyle: (customStyle: {
     foregroundColor?: ColorValue | null;
     backgroundColor?: ColorValue | null;
