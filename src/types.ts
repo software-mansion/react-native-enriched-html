@@ -1,13 +1,13 @@
 import type { RefObject } from 'react';
-import {
-  type ColorValue,
-  type DimensionValue,
-  type NativeMethods,
-  type NativeSyntheticEvent,
-  type ReturnKeyTypeOptions,
-  type TargetedEvent,
-  type TextStyle,
-  type ViewProps,
+import type {
+  ColorValue,
+  DimensionValue,
+  NativeMethods,
+  NativeSyntheticEvent,
+  ReturnKeyTypeOptions,
+  TargetedEvent,
+  TextStyle,
+  ViewProps,
 } from 'react-native';
 
 /**

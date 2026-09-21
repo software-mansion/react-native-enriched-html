@@ -34,18 +34,11 @@ static NSString *const CustomStyleAttributeName = @"EnrichedCustomStyle";
   if (range.length == 0)
     return;
 
-  NSUInteger storageLength = self.host.textView.textStorage.length;
-  if (storageLength == 0)
-    return;
-
-  NSRange safeRange = NSMakeRange(
-      range.location, MIN(range.length, storageLength - range.location));
-
   // Enumerate each sub-range that carries its own CustomStyleData so that
   // characters with different data values each get the correct visual attrs.
   [self.host.textView.textStorage
       enumerateAttribute:CustomStyleAttributeName
-                 inRange:safeRange
+                 inRange:range
                  options:0
               usingBlock:^(id value, NSRange subRange, BOOL *stop) {
                 if (![value isKindOfClass:[CustomStyleData class]])
@@ -168,16 +161,9 @@ static NSString *const CustomStyleAttributeName = @"EnrichedCustomStyle";
     // Enumerate each existing sub-range and merge the partial update into its
     // own data so per-character differences (e.g. fg color on some chars) are
     // preserved when only one field (e.g. bg color) is being changed.
-    NSUInteger storageLength = self.host.textView.textStorage.length;
-    if (storageLength == 0)
-      return;
-
-    NSRange safeRange = NSMakeRange(
-        range.location, MIN(range.length, storageLength - range.location));
-
     [self.host.textView.textStorage
         enumerateAttribute:CustomStyleAttributeName
-                   inRange:safeRange
+                   inRange:range
                    options:0
                 usingBlock:^(id value, NSRange subRange, BOOL *stop) {
                   CustomStyleData *existing =

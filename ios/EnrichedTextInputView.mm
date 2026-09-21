@@ -2003,9 +2003,8 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
             replacementText:(NSString *)text {
   // Capture the attributes at range.location that are being replaced
   // (autocorrect / predictive) so didProcessEditing: can re-stamp them onto the
-  // replacement. Skip pure deletions (text.length == 0) — there is no incoming
-  // text to receive attributes, and capturing here would cause the deleted
-  // character's CustomStyleData to be re-stamped onto the widened editedRange.
+  // replacement. Only capture for genuine replacements (text.length > 0), not
+  // for deletions/backspace (text.length == 0).
   if (range.length > 0 && text.length > 0) {
     _capturedAttributesBeforeChange =
         [textView.textStorage attributesAtIndex:range.location
