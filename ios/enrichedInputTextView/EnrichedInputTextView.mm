@@ -195,7 +195,7 @@
     NSString *candidate = [[self plainTextIn:pasteboard]
         stringByTrimmingCharactersInSet:whitespace];
     NSString *linkUrl =
-        [self linkTextIfMatchesLinkRegex:candidate] ? candidate : nullptr;
+        [self textMatchesLinkRegex:candidate] ? candidate : nullptr;
 
     if (linkUrl != nullptr) {
       NSString *selectedText = [typedInput->textView.textStorage.string
@@ -251,7 +251,7 @@
   [typedInput anyTextMayHaveBeenModified];
 }
 
-- (BOOL)linkTextIfMatchesLinkRegex:(NSString *)text {
+- (BOOL)textMatchesLinkRegex:(NSString *)text {
   if (text.length == 0) {
     return false;
   }
