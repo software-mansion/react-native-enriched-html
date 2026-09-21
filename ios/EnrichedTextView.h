@@ -1,9 +1,9 @@
 #pragma once
-#import "EnrichedConfig.h"
-#import "EnrichedPlatform.h"
-#import "EnrichedViewHost.h"
-#import "MediaAttachment.h"
-#import "MentionParams.h"
+#import "config/EnrichedConfig.h"
+#import "interfaces/EnrichedViewHost.h"
+#import "interfaces/MediaAttachment.h"
+#import "interfaces/MentionParams.h"
+#import "platform/EnrichedPlatform.h"
 #import <React/RCTViewComponentView.h>
 
 #ifndef EnrichedTextViewNativeComponent_h

@@ -89,6 +89,14 @@ If `true`, the input respects the system's accessibility font scaling settings.
 | --------- | ------- | ------------ |
 | `boolean` | `true`  | Android, iOS |
 
+### `autoCorrect` {#autocorrect}
+
+If false, disables auto-correct.
+
+| Type      | Default | Platforms    |
+| --------- | ------- | ------------ |
+| `boolean` | `true`  | Android, iOS |
+
 ### `autoFocus` {#autofocus}
 
 If `true`, focuses the input when it mounts.
@@ -632,6 +640,14 @@ cursor (caret) also uses this color.
 | Type                                           | Default        | Platforms         |
 | ---------------------------------------------- | -------------- | ----------------- |
 | [`color`](https://reactnative.dev/docs/colors) | system default | Android, iOS, Web |
+
+### `spellCheck` {#spellcheck}
+
+If false, disables spell-check style (i.e. red underlines). The default value is inherited from the [`autoCorrect`](#autocorrect) prop.
+
+| Type      | Default                       | Platforms |
+| --------- | ----------------------------- | --------- |
+| `boolean` | [`autoCorrect`](#autocorrect) | iOS       |
 
 ### `style` {#style}
 

@@ -1,7 +1,8 @@
 #pragma once
-#import "EnrichedConfig.h"
-#import "EnrichedPlatform.h"
-#import "ImageAttachment.h"
+#import "config/EnrichedConfig.h"
+#import "interfaces/ImageAttachment.h"
+#import "platform/EnrichedPlatform.h"
+#import <UIKit/UIKit.h>
 
 @interface AttachmentLayoutUtils : NSObject
 

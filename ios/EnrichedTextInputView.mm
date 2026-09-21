@@ -1,28 +1,28 @@
 #import "EnrichedTextInputView.h"
-#import "AlignmentUtils.h"
-#import "AttachmentLayoutUtils.h"
 #import "CoreText/CoreText.h"
-#import "DotReplacementUtils.h"
-#import "HtmlParser.h"
-#import "ImageAttachment.h"
-#import "KeyboardUtils.h"
-#import "LayoutManagerExtension.h"
-#import "ParagraphAttributesUtils.h"
-#import "RCTFabricComponentsPlugins.h"
-#import "ShortcutsUtils.h"
-#import "StringExtension.h"
-#import "StyleHeaders.h"
-#import "StyleUtils.h"
-#import "TextBlockTapGestureRecognizer.h"
-#import "TextInsertionUtils.h"
-#import "WordsUtils.h"
-#import "ZeroWidthSpaceUtils.h"
+#import "extensions/LayoutManagerExtension.h"
+#import "extensions/StringExtension.h"
+#import "generated/ReactCodegen/ReactNativeEnrichedSpec/EventEmitters.h"
+#import "generated/ReactCodegen/ReactNativeEnrichedSpec/Props.h"
+#import "generated/ReactCodegen/ReactNativeEnrichedSpec/RCTComponentViewHelpers.h"
+#import "htmlParser/HtmlParser.h"
+#import "interfaces/ImageAttachment.h"
+#import "interfaces/StyleHeaders.h"
+#import "internals/EnrichedTextInputViewComponentDescriptor.h"
+#import "utils/AlignmentUtils.h"
+#import "utils/AttachmentLayoutUtils.h"
+#import "utils/DotReplacementUtils.h"
+#import "utils/KeyboardUtils.h"
+#import "utils/ParagraphAttributesUtils.h"
+#import "utils/ShortcutsUtils.h"
+#import "utils/StyleUtils.h"
+#import "utils/TextBlockTapGestureRecognizer.h"
+#import "utils/TextInsertionUtils.h"
+#import "utils/WordsUtils.h"
+#import "utils/ZeroWidthSpaceUtils.h"
 #import <React/RCTConversions.h>
+#import <React/RCTFabricComponentsPlugins.h>
 #import <React/UIView+React.h>
-#import <ReactNativeEnrichedHtml/EnrichedTextInputViewComponentDescriptor.h>
-#import <ReactNativeEnrichedHtml/EventEmitters.h>
-#import <ReactNativeEnrichedHtml/Props.h>
-#import <ReactNativeEnrichedHtml/RCTComponentViewHelpers.h>
 #import <folly/dynamic.h>
 #import <react/utils/ManagedObjectWrapper.h>
 
@@ -914,6 +914,20 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
     }
   }
 #endif
+
+  // autoCorrect
+  if (newViewProps.autoCorrect != oldViewProps.autoCorrect) {
+    textView.autocorrectionType = newViewProps.autoCorrect
+                                      ? UITextAutocorrectionTypeYes
+                                      : UITextAutocorrectionTypeNo;
+  }
+
+  // spellCheck
+  if (newViewProps.spellCheck != oldViewProps.spellCheck) {
+    textView.spellCheckingType = newViewProps.spellCheck
+                                     ? UITextSpellCheckingTypeYes
+                                     : UITextSpellCheckingTypeNo;
+  }
 
   // isOnChangeHtmlSet
   _emitHtml = newViewProps.isOnChangeHtmlSet;

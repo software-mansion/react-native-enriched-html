@@ -1,5 +1,6 @@
 #pragma once
-#import "EnrichedPlatform.h"
+#import "platform/EnrichedPlatform.h"
+#import <UIKit/UIKit.h>
 
 typedef NS_ENUM(NSInteger, TextBlockTapKind) {
   TextBlockTapKindNone = 0,

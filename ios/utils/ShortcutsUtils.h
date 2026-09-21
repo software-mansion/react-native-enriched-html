@@ -1,8 +1,9 @@
 #pragma once
 
-#import "EnrichedPlatform.h"
 #import "EnrichedTextInputView.h"
-#import "StyleTypeEnum.h"
+#import "interfaces/StyleTypeEnum.h"
+#import "platform/EnrichedPlatform.h"
+#import <UIKit/UIKit.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
