@@ -351,8 +351,25 @@ class EnrichedTextInputView :
         handleCustomCopy()
         return true
       }
+
+      android.R.id.pasteAsPlainText -> {
+        handlePasteAsPlainText()
+        return true
+      }
     }
     return super.onTextContextMenuItem(id)
+  }
+
+  private fun handlePasteAsPlainText() {
+    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+    val clip = clipboard.primaryClip ?: return
+    if (clip.itemCount == 0) return
+
+    val item = clip.getItemAt(0)
+    val plainText = item.coerceToText(context).toString()
+    val plainTextItem = ClipData.Item(plainText)
+
+    handleTextPaste(plainTextItem)
   }
 
   private fun handleCustomCopy() {
