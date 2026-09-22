@@ -366,7 +366,7 @@ class EnrichedTextInputView :
     if (clip.itemCount == 0) return
 
     val item = clip.getItemAt(0)
-val plainText = item.coerceToText(context).toString()
+    val plainText = item.coerceToText(context).toString()
     val plainTextItem = ClipData.Item(plainText)
 
     handleTextPaste(plainTextItem)
