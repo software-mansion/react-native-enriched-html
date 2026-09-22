@@ -111,7 +111,7 @@
     "@tiptap/extensions": "3.31.3",
     "@tiptap/pm": "3.31.3",
     "@tiptap/react": "3.31.3",
-    "dompurify": "3.4.11"
+    "dompurify": "3.4.15"
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^19.6.0",
