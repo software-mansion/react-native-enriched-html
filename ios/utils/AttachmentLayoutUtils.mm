@@ -123,6 +123,13 @@
                                       effectiveRange:NULL];
   CGSize attachmentSize = attachment.bounds.size;
 
+  CGFloat maxWidth = textContainer.size.width;
+  if (attachmentSize.width > maxWidth && maxWidth > 0) {
+    CGFloat scale = maxWidth / attachmentSize.width;
+    attachmentSize.width = maxWidth;
+    attachmentSize.height = attachmentSize.height * scale;
+  }
+
   UIFont *font = [storage attribute:NSFontAttributeName
                             atIndex:range.location
                      effectiveRange:NULL];

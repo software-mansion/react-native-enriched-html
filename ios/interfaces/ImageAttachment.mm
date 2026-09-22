@@ -49,6 +49,13 @@ static NSCache<NSString *, UIImage *> *ImageAttachmentCache(void) {
                             characterIndex:(NSUInteger)charIndex {
   CGRect baseBounds = self.bounds;
 
+  CGFloat maxWidth = textContainer.size.width;
+  if (baseBounds.size.width > maxWidth && maxWidth > 0) {
+    CGFloat scale = maxWidth / baseBounds.size.width;
+    baseBounds.size.width = maxWidth;
+    baseBounds.size.height = baseBounds.size.height * scale;
+  }
+
   if (!textContainer.layoutManager.textStorage ||
       charIndex >= textContainer.layoutManager.textStorage.length) {
     return baseBounds;
