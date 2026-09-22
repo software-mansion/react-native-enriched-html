@@ -29,6 +29,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)emitOnLinkPressEvent:(NSString *)url;
 - (void)emitOnMentionPressEvent:(MentionParams *)mention;
 - (void)emitOnImagePressEvent:(MediaAttachment *)attachment;
+- (void)layoutAttachments;
 @end
 
 NS_ASSUME_NONNULL_END
