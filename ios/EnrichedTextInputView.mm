@@ -1659,8 +1659,11 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   [attributesManager
       manageTypingAttributesWithOnlySelection:onlySelectionChanged];
 
-  // always update active styles
-  [self tryUpdatingActiveStyles];
+  // When text changed, anyTextMayHaveBeenModified runs tryUpdatingActiveStyles
+  if ([_recentInputString isEqualToString:currentString]) {
+    // update active styles
+    [self tryUpdatingActiveStyles];
+  }
 }
 
 - (void)handleWordModificationBasedChanges:(NSString *)word
