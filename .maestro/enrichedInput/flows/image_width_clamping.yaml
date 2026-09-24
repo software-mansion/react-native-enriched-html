@@ -1,0 +1,21 @@
+appId: swmansion.enriched.example
+---
+# verifies the image width is clamped down to the total available space, and wraps properly
+- launchApp
+
+- tapOn:
+    id: "toggle-screen-button"
+
+- runFlow:
+    file: "../subflows/set_editor_value.yaml"
+    env:
+      VALUE: >
+        <html><p><img src="https://picsum.photos/id/20/200/200" width="100" height="100"/><img src="https://picsum.photos/id/20/200/200" width="100" height="100"/><img src="https://picsum.photos/id/20/200/200" width="100" height="100"/><img src="https://picsum.photos/id/140/400/100" width="400" height="100"/></p></html>
+
+- tapOn:
+    id: "size-max-button"
+
+- runFlow:
+    file: "../subflows/capture_or_assert_screenshot.yaml"
+    env:
+      SCREENSHOT_NAME: "image_width_clamping"
