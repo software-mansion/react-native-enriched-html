@@ -4,6 +4,7 @@
 #import "StyleHeaders.h"
 #import "StyleUtils.h"
 #import "TextInsertionUtils.h"
+#import "TextListsUtils.h"
 
 @implementation OrderedListStyle
 
@@ -23,29 +24,61 @@
   return YES;
 }
 
+- (NSString *)getMarkerPrefix {
+  return @"EnrichedOrderedList";
+}
+
+- (BOOL)styleCondition:(id)value range:(NSRange)range {
+  NSParagraphStyle *pStyle = (NSParagraphStyle *)value;
+  if (pStyle == nil)
+    return NO;
+  return [TextListsUtils textLists:pStyle.textLists
+                    containsPrefix:[self getMarkerPrefix]];
+}
+
 - (void)applyStyling:(NSRange)range {
   // lists are drawn manually
 
-  // if the widest counter ("N.") width overflows the initially given margin,
-  // we expand that margin. Every item in the same contiguous list must share
-  // the same column width, so we expand to the full ordered list occurrence and
-  // re-indent all of it - even when only a single paragraph is dirty (e.g. an
-  // item was just added)
-  NSInteger itemCount = 0;
-  NSRange listRange =
-      [OrderedListMetricsUtils contiguousOrderedListRangeContaining:range
-                                                           forStyle:self
-                                                          itemCount:&itemCount];
+  // the margin is precomputed by recalculateListsAroundEditedRange: and
+  // stored in the "EnrichedOrderedList:<margin>" marker, so here we just
+  // read it back and apply it
+  [self.host.textView.textStorage
+      enumerateAttribute:NSParagraphStyleAttributeName
+                 inRange:range
+                 options:0
+              usingBlock:^(id _Nullable value, NSRange range,
+                           BOOL *_Nonnull stop) {
+                NSParagraphStyle *existing = (NSParagraphStyle *)value;
+                NSTextList *marker = [TextListsUtils
+                    firstTextListWithPrefix:[self getMarkerPrefix]
+                                    inArray:existing.textLists];
+                if (marker == nullptr) {
+                  return;
+                }
+                CGFloat listHeadIndent = [OrderedListMetricsUtils
+                    marginFromMarkerFormat:marker.markerFormat];
 
-  [self applyIndentForListRange:listRange itemCount:itemCount];
+                // skip re-styling paragraphs that don't require it
+                if (existing.headIndent == listHeadIndent &&
+                    existing.firstLineHeadIndent == listHeadIndent) {
+                  return;
+                }
+                NSMutableParagraphStyle *pStyle = [existing mutableCopy];
+                pStyle.headIndent = listHeadIndent;
+                pStyle.firstLineHeadIndent = listHeadIndent;
+                [self.host.textView.textStorage
+                    addAttribute:NSParagraphStyleAttributeName
+                           value:pStyle
+                           range:range];
+              }];
 }
 
 // re-styling is normally run only on dirty-ranges, but a dirty-range
-// may change an ordered list structure and those lists need to be
-// re-styled. E.g. it happens when we remove an ordered list
+// may change an ordered list structure and those lists' margins need to be
+// re-computed. E.g. it happens when we remove an ordered list
 // element - it affects the adjacent lists, as their ordinals are different
 // and the computed margin might be stale
-- (void)recalculateListsAroundEditedRange:(NSRange)range {
+- (NSArray<NSValue *> *)recalculateListsAroundEditedRange:(NSRange)range {
   NSUInteger length = self.host.textView.textStorage.string.length;
   NSUInteger start = range.location;
   NSUInteger end = NSMaxRange(range);
@@ -87,15 +120,19 @@
                                     forStyle:self
                                    itemCount:&itemCount];
     [handled addObject:[NSValue valueWithRange:listRange]];
-    [self applyIndentForListRange:listRange itemCount:itemCount];
+    [self updateMarginMarkerForListRange:listRange itemCount:itemCount];
   }
+
+  return handled;
 }
 
-- (void)applyIndentForListRange:(NSRange)listRange
-                      itemCount:(NSInteger)itemCount {
-  CGFloat listHeadIndent =
+- (void)updateMarginMarkerForListRange:(NSRange)listRange
+                             itemCount:(NSInteger)itemCount {
+  CGFloat margin =
       [OrderedListMetricsUtils headIndentForItemCount:itemCount
                                                config:self.host.config];
+  NSString *markerFormat =
+      [OrderedListMetricsUtils markerFormatWithMargin:margin];
 
   [self.host.textView.textStorage
       enumerateAttribute:NSParagraphStyleAttributeName
@@ -104,17 +141,23 @@
               usingBlock:^(id _Nullable value, NSRange range,
                            BOOL *_Nonnull stop) {
                 NSParagraphStyle *existing = (NSParagraphStyle *)value;
+
                 // skip re-styling paragraphs that don't require it
-                if (existing != nullptr &&
-                    existing.headIndent == listHeadIndent &&
-                    existing.firstLineHeadIndent == listHeadIndent) {
+                NSTextList *existingMarker = [TextListsUtils
+                    firstTextListWithPrefix:[self getMarkerPrefix]
+                                    inArray:existing.textLists];
+                if ([existingMarker.markerFormat
+                        isEqualToString:markerFormat]) {
                   return;
                 }
+
                 NSMutableParagraphStyle *pStyle =
                     existing ? [existing mutableCopy]
                              : [[NSMutableParagraphStyle alloc] init];
-                pStyle.headIndent = listHeadIndent;
-                pStyle.firstLineHeadIndent = listHeadIndent;
+                pStyle.textLists =
+                    [TextListsUtils textListsByAdding:markerFormat
+                                  withExclusivePrefix:[self getMarkerPrefix]
+                                              toArray:pStyle.textLists];
                 [self.host.textView.textStorage
                     addAttribute:NSParagraphStyleAttributeName
                            value:pStyle

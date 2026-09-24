@@ -13,4 +13,8 @@
                                        forStyle:(OrderedListStyle *)style
                                       itemCount:(NSInteger *)outCount;
 
++ (NSString *)markerFormatWithMargin:(CGFloat)margin;
+
++ (CGFloat)marginFromMarkerFormat:(NSString *)markerFormat;
+
 @end

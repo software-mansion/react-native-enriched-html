@@ -300,7 +300,7 @@ static void const *kInputKey = &kInputKey;
                                        }
 
                                        if ([markerFormat
-                                               isEqualToString:
+                                               hasPrefix:
                                                    @"EnrichedOrderedList"]) {
                                          CGPoint glyphLocation =
                                              [self locationForGlyphAtIndex:

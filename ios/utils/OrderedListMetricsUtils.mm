@@ -148,4 +148,17 @@ static NSInteger countParagraphsInRange(NSRange listRange, NSString *text) {
   return listRange;
 }
 
++ (NSString *)markerFormatWithMargin:(CGFloat)margin {
+  return [NSString stringWithFormat:@"EnrichedOrderedList:%f", margin];
+}
+
++ (CGFloat)marginFromMarkerFormat:(NSString *)markerFormat {
+  NSArray<NSString *> *components =
+      [markerFormat componentsSeparatedByString:@":"];
+  if (components.count < 2) {
+    return 0;
+  }
+  return components.lastObject.doubleValue;
+}
+
 @end
