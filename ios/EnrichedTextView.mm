@@ -1,21 +1,21 @@
 #import "EnrichedTextView.h"
-#import "AttachmentLayoutUtils.h"
-#import "EnrichedTextStyleHeaders.h"
-#import "EnrichedTextTextView.h"
-#import "EnrichedTextTouchHandler.h"
-#import "LayoutManagerExtension.h"
-#import "LinkData.h"
-#import "MentionParams.h"
-#import "MentionStyleProps.h"
-#import "RCTFabricComponentsPlugins.h"
-#import "StringExtension.h"
-#import "StyleUtils.h"
-#import "TextDecorationLineEnum.h"
-#import "TextHtmlParser.h"
+#import "enrichedTextTextView/EnrichedTextTextView.h"
+#import "extensions/LayoutManagerExtension.h"
+#import "extensions/StringExtension.h"
+#import "generated/ReactCodegen/ReactNativeEnrichedSpec/EventEmitters.h"
+#import "generated/ReactCodegen/ReactNativeEnrichedSpec/Props.h"
+#import "interfaces/EnrichedTextStyleHeaders.h"
+#import "interfaces/LinkData.h"
+#import "interfaces/MentionParams.h"
+#import "interfaces/MentionStyleProps.h"
+#import "interfaces/TextDecorationLineEnum.h"
+#import "internals/EnrichedTextComponentDescriptor.h"
+#import "textHtmlParser/TextHtmlParser.h"
+#import "utils/AttachmentLayoutUtils.h"
+#import "utils/EnrichedTextTouchHandler.h"
+#import "utils/StyleUtils.h"
 #import <React/RCTConversions.h>
-#import <ReactNativeEnrichedHtml/EnrichedTextComponentDescriptor.h>
-#import <ReactNativeEnrichedHtml/EventEmitters.h>
-#import <ReactNativeEnrichedHtml/Props.h>
+#import <React/RCTFabricComponentsPlugins.h>
 #import <folly/dynamic.h>
 #import <react/utils/ManagedObjectWrapper.h>
 
@@ -788,6 +788,21 @@ Class<RCTComponentViewProtocol> EnrichedTextViewCls(void) {
             mention.indicator ? [mention.indicator toCppString] : std::string{},
         .attributes = attrsObj,
     });
+  }
+}
+
+- (void)emitOnImagePressEvent:(MediaAttachment *)attachment {
+  if (!attachment)
+    return;
+  auto emitter = [self getEventEmitter];
+  if (emitter != nullptr) {
+    emitter->onImagePress(
+        {.image = {
+             .uri =
+                 attachment.uri ? [attachment.uri toCppString] : std::string{},
+             .width = attachment.width,
+             .height = attachment.height,
+         }});
   }
 }
 

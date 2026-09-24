@@ -1,28 +1,28 @@
 #import "EnrichedTextInputView.h"
-#import "AlignmentUtils.h"
-#import "AttachmentLayoutUtils.h"
 #import "CoreText/CoreText.h"
-#import "DotReplacementUtils.h"
-#import "HtmlParser.h"
-#import "ImageAttachment.h"
-#import "KeyboardUtils.h"
-#import "LayoutManagerExtension.h"
-#import "ParagraphAttributesUtils.h"
-#import "RCTFabricComponentsPlugins.h"
-#import "ShortcutsUtils.h"
-#import "StringExtension.h"
-#import "StyleHeaders.h"
-#import "StyleUtils.h"
-#import "TextBlockTapGestureRecognizer.h"
-#import "TextInsertionUtils.h"
-#import "WordsUtils.h"
-#import "ZeroWidthSpaceUtils.h"
+#import "extensions/LayoutManagerExtension.h"
+#import "extensions/StringExtension.h"
+#import "generated/ReactCodegen/ReactNativeEnrichedSpec/EventEmitters.h"
+#import "generated/ReactCodegen/ReactNativeEnrichedSpec/Props.h"
+#import "generated/ReactCodegen/ReactNativeEnrichedSpec/RCTComponentViewHelpers.h"
+#import "htmlParser/HtmlParser.h"
+#import "interfaces/ImageAttachment.h"
+#import "interfaces/StyleHeaders.h"
+#import "internals/EnrichedTextInputViewComponentDescriptor.h"
+#import "utils/AlignmentUtils.h"
+#import "utils/AttachmentLayoutUtils.h"
+#import "utils/DotReplacementUtils.h"
+#import "utils/KeyboardUtils.h"
+#import "utils/ParagraphAttributesUtils.h"
+#import "utils/ShortcutsUtils.h"
+#import "utils/StyleUtils.h"
+#import "utils/TextBlockTapGestureRecognizer.h"
+#import "utils/TextInsertionUtils.h"
+#import "utils/WordsUtils.h"
+#import "utils/ZeroWidthSpaceUtils.h"
 #import <React/RCTConversions.h>
+#import <React/RCTFabricComponentsPlugins.h>
 #import <React/UIView+React.h>
-#import <ReactNativeEnrichedHtml/EnrichedTextInputViewComponentDescriptor.h>
-#import <ReactNativeEnrichedHtml/EventEmitters.h>
-#import <ReactNativeEnrichedHtml/Props.h>
-#import <ReactNativeEnrichedHtml/RCTComponentViewHelpers.h>
 #import <folly/dynamic.h>
 #import <react/utils/ManagedObjectWrapper.h>
 
@@ -137,6 +137,7 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   _recentlyEmittedHtml = @"<html>\n<p></p>\n</html>";
   _emitHtml = NO;
   blockEmitting = NO;
+  preserveTypingAttributesOnNextEmptyCheck = NO;
   _emitFocusBlur = YES;
   _emitTextChange = NO;
   dotReplacementRange = nullptr;
@@ -827,6 +828,20 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
       [textView reactFocus];
       _emitFocusBlur = YES;
     }
+  }
+
+  // autoCorrect
+  if (newViewProps.autoCorrect != oldViewProps.autoCorrect) {
+    textView.autocorrectionType = newViewProps.autoCorrect
+                                      ? UITextAutocorrectionTypeYes
+                                      : UITextAutocorrectionTypeNo;
+  }
+
+  // spellCheck
+  if (newViewProps.spellCheck != oldViewProps.spellCheck) {
+    textView.spellCheckingType = newViewProps.spellCheck
+                                     ? UITextSpellCheckingTypeYes
+                                     : UITextSpellCheckingTypeNo;
   }
 
   // isOnChangeHtmlSet
@@ -1673,10 +1688,14 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
 
   // emptying input typing attributes management
   if (textView.textStorage.string.length == 0 &&
-      _recentInputString.length > 0) {
-    // reset typing attribtues
+      _recentInputString.length > 0 &&
+      !preserveTypingAttributesOnNextEmptyCheck) {
+    // reset typing attributes if we emptied the string
+    // adding alignment via shortcuts wants to preserve typing attributes, so we
+    // don't reset then
     textView.typingAttributes = defaultTypingAttributes;
   }
+  preserveTypingAttributesOnNextEmptyCheck = NO;
 
   // mentions management: removal and editing
   MentionStyle *mentionStyleClass =

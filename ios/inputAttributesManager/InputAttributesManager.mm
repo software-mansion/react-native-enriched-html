@@ -1,13 +1,13 @@
 #import "InputAttributesManager.h"
-#import "AlignmentUtils.h"
-#import "ArrayExtension.h"
-#import "AttributeEntry.h"
 #import "EnrichedTextInputView.h"
-#import "ParagraphAttributesUtils.h"
-#import "RangeUtils.h"
-#import "StyleHeaders.h"
-#import "StyleUtils.h"
-#import "ZeroWidthSpaceUtils.h"
+#import "extensions/ArrayExtension.h"
+#import "interfaces/AttributeEntry.h"
+#import "interfaces/StyleHeaders.h"
+#import "utils/AlignmentUtils.h"
+#import "utils/ParagraphAttributesUtils.h"
+#import "utils/RangeUtils.h"
+#import "utils/StyleUtils.h"
+#import "utils/ZeroWidthSpaceUtils.h"
 
 @implementation InputAttributesManager {
   NSMutableArray<NSValue *> *_dirtyRanges;
@@ -211,6 +211,11 @@
   // Typing attributes get reset (except alignment) when only selection changed
   // to an empty line (or empty line with newline).
   if (onlySelectionChanged) {
+    // if there is no content, there is no need to clear the typing attributes
+    if (textView.textStorage.string.length == 0) {
+      return;
+    }
+
     NSRange paragraphRange =
         [textView.textStorage.string paragraphRangeForRange:selectedRange];
     // User changed selection to an empty line (or empty line with a newline).

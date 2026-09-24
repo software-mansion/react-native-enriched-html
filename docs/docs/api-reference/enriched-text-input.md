@@ -89,6 +89,14 @@ If `true`, the input respects the system's accessibility font scaling settings.
 | --------- | ------- | ------------ |
 | `boolean` | `true`  | Android, iOS |
 
+### `autoCorrect` {#autocorrect}
+
+If false, disables auto-correct.
+
+| Type      | Default | Platforms    |
+| --------- | ------- | ------------ |
+| `boolean` | `true`  | Android, iOS |
+
 ### `autoFocus` {#autofocus}
 
 If `true`, focuses the input when it mounts.
@@ -633,6 +641,14 @@ cursor (caret) also uses this color.
 | ---------------------------------------------- | -------------- | ----------------- |
 | [`color`](https://reactnative.dev/docs/colors) | system default | Android, iOS, Web |
 
+### `spellCheck` {#spellcheck}
+
+If false, disables spell-check style (i.e. red underlines). The default value is inherited from the [`autoCorrect`](#autocorrect) prop.
+
+| Type      | Default                       | Platforms |
+| --------- | ----------------------------- | --------- |
+| `boolean` | [`autoCorrect`](#autocorrect) | iOS       |
+
 ### `style` {#style}
 
 Controls the layout, dimensions, typography, borders, shadows, opacity, and
@@ -704,6 +720,9 @@ already has an active paragraph style (for example it is already a heading or a
 list item), typing the trigger pattern has no effect.
 
 :::
+
+**[Text alignment](/rich-text-formatting/text-alignment)** shortcuts fire with the same scheme
+as paragraph styles, but don't require a plain paragraph to be effective.
 
 **[Inline styles](/fundamentals/html-format-and-supported-tags#inline-tags)**
 fire when a closing delimiter is typed around text (e.g. `**text**` → bold). The

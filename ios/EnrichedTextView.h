@@ -1,8 +1,8 @@
 #pragma once
-#import "EnrichedConfig.h"
-#import "EnrichedViewHost.h"
-#import "MediaAttachment.h"
-#import "MentionParams.h"
+#import "config/EnrichedConfig.h"
+#import "interfaces/EnrichedViewHost.h"
+#import "interfaces/MediaAttachment.h"
+#import "interfaces/MentionParams.h"
 #import <React/RCTViewComponentView.h>
 #import <UIKit/UIKit.h>
 
@@ -28,6 +28,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (CGSize)measureSize:(CGFloat)maxWidth;
 - (void)emitOnLinkPressEvent:(NSString *)url;
 - (void)emitOnMentionPressEvent:(MentionParams *)mention;
+- (void)emitOnImagePressEvent:(MediaAttachment *)attachment;
 @end
 
 NS_ASSUME_NONNULL_END
