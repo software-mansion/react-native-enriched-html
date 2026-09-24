@@ -99,8 +99,8 @@ class EnrichedTextView : AppCompatTextView {
       val availableWidth = widthSize - totalPaddingLeft - totalPaddingRight
 
       if (availableWidth > 0) {
-        val spannable = text as? Spannable
-        val spans = spannable?.getSpans(0, spannable.length, EnrichedTextImageSpan::class.java)
+        val spanned = text as? Spanned
+        val spans = spanned?.getSpans(0, spanned.length, EnrichedTextImageSpan::class.java)
 
         // we need to update the image bounds, potentially clamping
         // the width to the available one
