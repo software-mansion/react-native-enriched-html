@@ -23,6 +23,7 @@ import java.io.File
 open class EnrichedImageSpan :
   ImageSpan,
   EnrichedInlineSpan {
+  var containerWidth: Int? = null
   private var width: Int = 0
   private var height: Int = 0
 
@@ -53,8 +54,19 @@ open class EnrichedImageSpan :
   override fun getDrawable(): Drawable {
     val drawable = super.getDrawable()
     val scale = Resources.getSystem().displayMetrics.density
+    val maxWidth = this.containerWidth
 
-    drawable.setBounds(0, 0, (width * scale).toInt(), (height * scale).toInt())
+    var targetWidth = (width * scale).toInt()
+    var targetHeight = (height * scale).toInt()
+
+    // clamp down the width to the maximum available container space
+    if (maxWidth != null && targetWidth > maxWidth && maxWidth > 0) {
+      val aspectRatio = targetHeight.toFloat() / targetWidth.toFloat()
+      targetWidth = maxWidth
+      targetHeight = (targetWidth * aspectRatio).toInt()
+    }
+
+    drawable.setBounds(0, 0, targetWidth, targetHeight)
     return drawable
   }
 

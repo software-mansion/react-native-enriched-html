@@ -19,6 +19,7 @@ import com.facebook.yoga.YogaMeasureOutput
 import com.swmansion.enriched.common.allowFontScalingFromProps
 import com.swmansion.enriched.common.parser.EnrichedParser
 import com.swmansion.enriched.common.pixelFromSpOrDp
+import com.swmansion.enriched.textinput.spans.EnrichedInputImageSpan
 import com.swmansion.enriched.textinput.spans.EnrichedLineHeightSpan
 import com.swmansion.enriched.textinput.styles.HtmlStyle
 import java.util.concurrent.ConcurrentHashMap
@@ -169,6 +170,13 @@ object MeasurementStore {
       } else {
         rawText
       }
+
+    // we need to update the image bounds, potentially clamping
+    // the width to the available one
+    (text as? Spannable)?.let { spannable ->
+      val imageSpans = spannable.getSpans(0, spannable.length, EnrichedInputImageSpan::class.java)
+      imageSpans.forEach { it.containerWidth = width.toInt() }
+    }
 
     val typeface = applyStyles(defaultView.typeface, fontStyle, fontWeight, fontFamily, context.assets)
     val paintParams = PaintParams(typeface, fontSize)
