@@ -2,7 +2,7 @@
 #import "StyleHeaders.h"
 #import <UIKit/UIKit.h>
 
-@interface OrderedListMetricsUtils : NSObject
+@interface OrderedListUtils : NSObject
 
 + (NSInteger)digitCountOf:(NSInteger)n;
 

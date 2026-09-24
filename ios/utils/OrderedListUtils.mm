@@ -1,4 +1,4 @@
-#import "OrderedListMetricsUtils.h"
+#import "OrderedListUtils.h"
 
 typedef struct {
   CGFloat digitWidth;
@@ -66,7 +66,7 @@ static NSInteger countParagraphsInRange(NSRange listRange, NSString *text) {
   return count;
 }
 
-@implementation OrderedListMetricsUtils
+@implementation OrderedListUtils
 
 + (NSInteger)digitCountOf:(NSInteger)n {
   return digitCountOf(n);

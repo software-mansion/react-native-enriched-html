@@ -1,5 +1,5 @@
 #import "EnrichedTextInputView.h"
-#import "OrderedListMetricsUtils.h"
+#import "OrderedListUtils.h"
 #import "RangeUtils.h"
 #import "StyleHeaders.h"
 #import "StyleUtils.h"
@@ -55,7 +55,7 @@
                 if (marker == nullptr) {
                   return;
                 }
-                CGFloat listHeadIndent = [OrderedListMetricsUtils
+                CGFloat listHeadIndent = [OrderedListUtils
                     marginFromMarkerFormat:marker.markerFormat];
 
                 // skip re-styling paragraphs that don't require it
@@ -115,7 +115,7 @@
     }
 
     NSInteger itemCount = 0;
-    NSRange listRange = [OrderedListMetricsUtils
+    NSRange listRange = [OrderedListUtils
         contiguousOrderedListRangeContaining:NSMakeRange(seed, 0)
                                     forStyle:self
                                    itemCount:&itemCount];
@@ -128,11 +128,9 @@
 
 - (void)updateMarginMarkerForListRange:(NSRange)listRange
                              itemCount:(NSInteger)itemCount {
-  CGFloat margin =
-      [OrderedListMetricsUtils headIndentForItemCount:itemCount
-                                               config:self.host.config];
-  NSString *markerFormat =
-      [OrderedListMetricsUtils markerFormatWithMargin:margin];
+  CGFloat margin = [OrderedListUtils headIndentForItemCount:itemCount
+                                                     config:self.host.config];
+  NSString *markerFormat = [OrderedListUtils markerFormatWithMargin:margin];
 
   [self.host.textView.textStorage
       enumerateAttribute:NSParagraphStyleAttributeName
@@ -194,8 +192,7 @@
     pStyle.firstLineHeadIndent = existingStyle.firstLineHeadIndent;
   } else {
     CGFloat fallbackIndent =
-        [OrderedListMetricsUtils headIndentForItemCount:1
-                                                 config:self.host.config];
+        [OrderedListUtils headIndentForItemCount:1 config:self.host.config];
     pStyle.headIndent = fallbackIndent;
     pStyle.firstLineHeadIndent = fallbackIndent;
   }
