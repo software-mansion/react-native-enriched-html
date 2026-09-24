@@ -1,10 +1,10 @@
 #import "EnrichedTextInputView.h"
-#import "OrderedListUtils.h"
-#import "TextListsUtils.h"
 #import "interfaces/StyleHeaders.h"
+#import "utils/OrderedListUtils.h"
 #import "utils/RangeUtils.h"
 #import "utils/StyleUtils.h"
 #import "utils/TextInsertionUtils.h"
+#import "utils/TextListsUtils.h"
 
 @implementation OrderedListStyle
 
