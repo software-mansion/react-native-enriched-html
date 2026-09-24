@@ -23,6 +23,7 @@ import com.swmansion.enriched.common.GumboNormalizer
 import com.swmansion.enriched.common.allowFontScalingFromProps
 import com.swmansion.enriched.common.parser.EnrichedParser
 import com.swmansion.enriched.common.pixelFromSpOrDp
+import com.swmansion.enriched.text.spans.EnrichedTextImageSpan
 import com.swmansion.enriched.textinput.spans.EnrichedLineHeightSpan
 import kotlin.math.ceil
 
@@ -164,6 +165,13 @@ object MeasurementStore {
     val rawText = getInitialText(context, fontSize.toInt(), props)
     val lineHeight = lineHeightFromProps(props)
     val allowFontScaling = allowFontScalingFromProps(props)
+
+    // we need to update the image bounds, potentially clamping
+    // the width to the available one
+    (rawText as? Spannable)?.let { spannable ->
+      val imageSpans = spannable.getSpans(0, spannable.length, EnrichedTextImageSpan::class.java)
+      imageSpans.forEach { it.containerWidth = width.toInt() }
+    }
 
     val measuredText: CharSequence =
       if (lineHeight > 0f) {

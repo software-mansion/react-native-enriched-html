@@ -175,6 +175,31 @@ class EnrichedTextInputView :
     super.scrollTo(0, y)
   }
 
+  override fun onMeasure(
+    widthMeasureSpec: Int,
+    heightMeasureSpec: Int,
+  ) {
+    val widthMode = MeasureSpec.getMode(widthMeasureSpec)
+    val widthSize = MeasureSpec.getSize(widthMeasureSpec)
+
+    if (widthMode != MeasureSpec.UNSPECIFIED) {
+      val availableWidth = widthSize - totalPaddingLeft - totalPaddingRight
+
+      if (availableWidth > 0) {
+        val spannable = text as? Spannable
+        val spans = spannable?.getSpans(0, spannable.length, EnrichedInputImageSpan::class.java)
+
+        // we need to update the image bounds, potentially clamping
+        // the width to the available one
+        spans?.forEach {
+          it.containerWidth = availableWidth
+        }
+      }
+    }
+
+    super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+  }
+
   override fun onCreateInputConnection(outAttrs: EditorInfo): InputConnection? {
     var inputConnection = super.onCreateInputConnection(outAttrs)
 
