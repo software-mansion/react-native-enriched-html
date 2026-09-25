@@ -1,12 +1,22 @@
 import { codegenNativeComponent, type ColorValue } from 'react-native';
 import type { CodegenTypes, HostComponent, ViewProps } from 'react-native';
 
-type Heading = {
-  fontSize?: CodegenTypes.Float;
+type BaseStyle = {
   bold?: boolean;
+  italic?: boolean;
+  underline?: boolean;
+  strikethrough?: boolean;
 };
 
+type Heading = {
+  fontSize?: CodegenTypes.Float;
+} & BaseStyle;
+
 export interface EnrichedTextHtmlStyleInternal {
+  bold?: BaseStyle;
+  italic?: BaseStyle;
+  underline?: BaseStyle;
+  strikethrough?: BaseStyle;
   h1?: Heading;
   h2?: Heading;
   h3?: Heading;
@@ -18,22 +28,22 @@ export interface EnrichedTextHtmlStyleInternal {
     borderWidth?: CodegenTypes.Float;
     gapWidth?: CodegenTypes.Float;
     color?: ColorValue;
-  };
+  } & BaseStyle;
   codeblock?: {
     color?: ColorValue;
     borderRadius?: CodegenTypes.Float;
     backgroundColor?: ColorValue;
-  };
+  } & BaseStyle;
   code?: {
     color?: ColorValue;
     backgroundColor?: ColorValue;
-  };
+  } & BaseStyle;
   a?: {
     color?: ColorValue;
     textDecorationLine?: string;
     pressColor?: ColorValue;
     pressTextDecorationLine?: string;
-  };
+  } & BaseStyle;
   // This is a workaround for the fact that codegen does not support Records.
   // On native Android side this will become a ReadableMap, on native iOS we can work with a folly::dynamic object.
   mention?: CodegenTypes.UnsafeMixed;
@@ -42,19 +52,19 @@ export interface EnrichedTextHtmlStyleInternal {
     marginLeft?: CodegenTypes.Float;
     markerFontWeight?: string;
     markerColor?: ColorValue;
-  };
+  } & BaseStyle;
   ul?: {
     bulletColor?: ColorValue;
     bulletSize?: CodegenTypes.Float;
     marginLeft?: CodegenTypes.Float;
     gapWidth?: CodegenTypes.Float;
-  };
+  } & BaseStyle;
   ulCheckbox?: {
     gapWidth?: CodegenTypes.Float;
     boxSize?: CodegenTypes.Float;
     marginLeft?: CodegenTypes.Float;
     boxColor?: ColorValue;
-  };
+  } & BaseStyle;
 }
 
 export interface OnLinkPressEvent {

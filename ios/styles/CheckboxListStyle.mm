@@ -37,7 +37,7 @@
   return MAX(currentLineHeight, boxSize);
 }
 
-- (void)applyStyling:(NSRange)range {
+- (void)applySpecificStyling:(NSRange)range {
   CGFloat listHeadIndent = [self headIndent];
 
   [self.host.textView.textStorage

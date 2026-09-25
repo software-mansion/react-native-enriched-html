@@ -5,6 +5,7 @@
 #import "generated/ReactCodegen/ReactNativeEnrichedSpec/EventEmitters.h"
 #import "generated/ReactCodegen/ReactNativeEnrichedSpec/Props.h"
 #import "interfaces/EnrichedTextStyleHeaders.h"
+#import "interfaces/InlineStyleConfig.h"
 #import "interfaces/LinkData.h"
 #import "interfaces/MentionParams.h"
 #import "interfaces/MentionStyleProps.h"
@@ -515,6 +516,57 @@ Class<RCTComponentViewProtocol> EnrichedTextViewCls(void) {
       stylePropChanged = YES;
     }
   }
+
+  // inline style configs
+  auto applyInlineStyleIfChanged = [&](StyleType type, const auto &newIS,
+                                       const auto &oldIS) {
+    if (newIS.bold != oldIS.bold || newIS.italic != oldIS.italic ||
+        newIS.underline != oldIS.underline ||
+        newIS.strikethrough != oldIS.strikethrough || isFirstMount) {
+      InlineStyleConfig *config = [[InlineStyleConfig alloc] init];
+      config.bold = newIS.bold;
+      config.italic = newIS.italic;
+      config.underline = newIS.underline;
+      config.strikethrough = newIS.strikethrough;
+      [newConfig setInlineStyle:config forType:type];
+      stylePropChanged = YES;
+    }
+  };
+
+  applyInlineStyleIfChanged(Bold, newViewProps.htmlStyle.bold,
+                            oldViewProps.htmlStyle.bold);
+  applyInlineStyleIfChanged(Italic, newViewProps.htmlStyle.italic,
+                            oldViewProps.htmlStyle.italic);
+  applyInlineStyleIfChanged(Underline, newViewProps.htmlStyle.underline,
+                            oldViewProps.htmlStyle.underline);
+  applyInlineStyleIfChanged(Strikethrough, newViewProps.htmlStyle.strikethrough,
+                            oldViewProps.htmlStyle.strikethrough);
+  applyInlineStyleIfChanged(H1, newViewProps.htmlStyle.h1,
+                            oldViewProps.htmlStyle.h1);
+  applyInlineStyleIfChanged(H2, newViewProps.htmlStyle.h2,
+                            oldViewProps.htmlStyle.h2);
+  applyInlineStyleIfChanged(H3, newViewProps.htmlStyle.h3,
+                            oldViewProps.htmlStyle.h3);
+  applyInlineStyleIfChanged(H4, newViewProps.htmlStyle.h4,
+                            oldViewProps.htmlStyle.h4);
+  applyInlineStyleIfChanged(H5, newViewProps.htmlStyle.h5,
+                            oldViewProps.htmlStyle.h5);
+  applyInlineStyleIfChanged(H6, newViewProps.htmlStyle.h6,
+                            oldViewProps.htmlStyle.h6);
+  applyInlineStyleIfChanged(BlockQuote, newViewProps.htmlStyle.blockquote,
+                            oldViewProps.htmlStyle.blockquote);
+  applyInlineStyleIfChanged(CodeBlock, newViewProps.htmlStyle.codeblock,
+                            oldViewProps.htmlStyle.codeblock);
+  applyInlineStyleIfChanged(InlineCode, newViewProps.htmlStyle.code,
+                            oldViewProps.htmlStyle.code);
+  applyInlineStyleIfChanged(Link, newViewProps.htmlStyle.a,
+                            oldViewProps.htmlStyle.a);
+  applyInlineStyleIfChanged(OrderedList, newViewProps.htmlStyle.ol,
+                            oldViewProps.htmlStyle.ol);
+  applyInlineStyleIfChanged(UnorderedList, newViewProps.htmlStyle.ul,
+                            oldViewProps.htmlStyle.ul);
+  applyInlineStyleIfChanged(CheckboxList, newViewProps.htmlStyle.ulCheckbox,
+                            oldViewProps.htmlStyle.ulCheckbox);
 
   // mention
   folly::dynamic oldMentionStyle = oldViewProps.htmlStyle.mention;

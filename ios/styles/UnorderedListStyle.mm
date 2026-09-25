@@ -27,7 +27,7 @@
          [self.host.config unorderedListGapWidth];
 }
 
-- (void)applyStyling:(NSRange)range {
+- (void)applySpecificStyling:(NSRange)range {
   // lists are drawn manually
   // margin before bullet + gap between bullet and paragraph
   CGFloat listHeadIndent = [self headIndent];

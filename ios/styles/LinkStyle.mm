@@ -24,7 +24,7 @@ static NSString *const AutomaticLinkAttributeName = @"EnrichedAutomaticLink";
   return NO;
 }
 
-- (void)applyStyling:(NSRange)range {
+- (void)applySpecificStyling:(NSRange)range {
   LinkData *data = [self getLinkDataAt:range.location];
   if (data == nullptr || data.url == nullptr) {
     return;

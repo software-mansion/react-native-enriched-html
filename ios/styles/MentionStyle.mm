@@ -39,7 +39,7 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
   return self;
 }
 
-- (void)applyStyling:(NSRange)range {
+- (void)applySpecificStyling:(NSRange)range {
   if (range.length == 0) {
     return;
   }

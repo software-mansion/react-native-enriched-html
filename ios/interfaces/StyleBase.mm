@@ -1,5 +1,9 @@
 #import "StyleBase.h"
 #import "AttributeEntry.h"
+#import "config/EnrichedConfig.h"
+#import "extensions/FontExtension.h"
+#import "interfaces/InlineStyleConfig.h"
+#import "utils/ItalicUtils.h"
 #import "utils/OccurenceUtils.h"
 #import "utils/RangeUtils.h"
 #import "utils/TextListsUtils.h"
@@ -252,8 +256,73 @@
                }];
 }
 
-// This method gets overridden
 - (void)applyStyling:(NSRange)range {
+  [self applySpecificStyling:range];
+  [self applyInlineStyles:range];
+}
+
+// This method gets overridden
+- (void)applySpecificStyling:(NSRange)range {
+}
+
+- (void)applyInlineStyles:(NSRange)range {
+  InlineStyleConfig *config =
+      [self.host.config inlineStyleForType:[[self class] getType]];
+  if (config == nullptr) {
+    return;
+  }
+
+  if (config.bold) {
+    [self.host.textView.textStorage
+        enumerateAttribute:NSFontAttributeName
+                   inRange:range
+                   options:0
+                usingBlock:^(id _Nullable value, NSRange subRange,
+                             BOOL *_Nonnull stop) {
+                  UIFont *font = (UIFont *)value;
+                  if (font == nullptr) {
+                    return;
+                  }
+                  if (config.bold) {
+                    font = [font setBold];
+                  }
+                  [self.host.textView.textStorage
+                      addAttribute:NSFontAttributeName
+                             value:font
+                             range:subRange];
+                }];
+  }
+
+  if (config.italic) {
+    [self.host.textView.textStorage
+        enumerateAttribute:NSFontAttributeName
+                   inRange:range
+                   options:0
+                usingBlock:^(id _Nullable value, NSRange subRange,
+                             BOOL *_Nonnull stop) {
+                  UIFont *font = (UIFont *)value;
+                  if (font == nullptr) {
+                    return;
+                  }
+
+                  [ItalicUtils applyItalicForFont:font
+                                    inTextStorage:self.host.textView.textStorage
+                                          inRange:range];
+                }];
+  }
+
+  if (config.underline) {
+    [self.host.textView.textStorage addAttribute:NSUnderlineStyleAttributeName
+                                           value:@(NSUnderlineStyleSingle)
+                                           range:range];
+  }
+
+  if (config.strikethrough) {
+    [self.host.textView.textStorage
+        addAttribute:NSStrikethroughStyleAttributeName
+               value:@(NSUnderlineStyleSingle)
+               range:range];
+  }
 }
 
 // This method gets overridden when the style needs to apply certain typing

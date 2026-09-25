@@ -27,7 +27,7 @@
          [self.host.config orderedListGapWidth];
 }
 
-- (void)applyStyling:(NSRange)range {
+- (void)applySpecificStyling:(NSRange)range {
   // lists are drawn manually
   // margin before marker + gap between marker and paragraph
   CGFloat listHeadIndent = [self headIndent];

@@ -23,7 +23,7 @@
   return 3;
 }
 
-- (void)applyStyling:(NSRange)range {
+- (void)applySpecificStyling:(NSRange)range {
   if (self.host.textView.textStorage == nullptr || range.length == 0 ||
       NSMaxRange(range) > self.host.textView.textStorage.length) {
     return;

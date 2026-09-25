@@ -25,7 +25,7 @@
          [self.host.config blockquoteGapWidth];
 }
 
-- (void)applyStyling:(NSRange)range {
+- (void)applySpecificStyling:(NSRange)range {
   CGFloat indent = [self headIndent];
   [self.host.textView.textStorage
       enumerateAttribute:NSParagraphStyleAttributeName

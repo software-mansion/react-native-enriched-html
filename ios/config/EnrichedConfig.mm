@@ -1,4 +1,5 @@
 #import "config/EnrichedConfig.h"
+#import "interfaces/InlineStyleConfig.h"
 #import <React/RCTFont.h>
 
 @implementation EnrichedConfig {
@@ -61,6 +62,9 @@
 
   // text only
   UIColor *_linkPressColor;
+
+  // inline style configs keyed by StyleType
+  NSMutableDictionary<NSNumber *, InlineStyleConfig *> *_inlineStyleConfigs;
 }
 
 - (instancetype)init {
@@ -68,6 +72,7 @@
   _primaryFontNeedsRecreation = YES;
   _monospacedFontNeedsRecreation = YES;
   _olMarkerFontNeedsRecreation = YES;
+  _inlineStyleConfigs = [[NSMutableDictionary alloc] init];
   return self;
 }
 
@@ -129,6 +134,13 @@
 
   // text only
   copy->_linkPressColor = [_linkPressColor copy];
+
+  // inline style configs
+  copy->_inlineStyleConfigs = [[NSMutableDictionary alloc] init];
+  for (NSNumber *key in _inlineStyleConfigs) {
+    copy->_inlineStyleConfigs[key] = [_inlineStyleConfigs[key] copy];
+  }
+
   return copy;
 }
 
@@ -674,6 +686,20 @@
   UIGraphicsEndImageContext();
 
   return result;
+}
+
+// MARK: - Inline style configs
+
+- (InlineStyleConfig *)inlineStyleForType:(StyleType)type {
+  return _inlineStyleConfigs[@(type)];
+}
+
+- (void)setInlineStyle:(InlineStyleConfig *)config forType:(StyleType)type {
+  if (config != nullptr) {
+    _inlineStyleConfigs[@(type)] = config;
+  } else {
+    [_inlineStyleConfigs removeObjectForKey:@(type)];
+  }
 }
 
 // MARK: - Input only props

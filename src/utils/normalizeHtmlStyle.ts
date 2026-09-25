@@ -40,24 +40,10 @@ const convertToHtmlStyleInternal = (
     DEFAULT_HTML_STYLE
   );
 
-  let markerFontWeight: string | undefined;
-  if (style.ol?.markerFontWeight) {
-    if (typeof style.ol?.markerFontWeight === 'number') {
-      markerFontWeight = String(style.ol?.markerFontWeight);
-    } else if (typeof style.ol?.markerFontWeight === 'string') {
-      markerFontWeight = style.ol?.markerFontWeight;
-    }
-  }
-
-  const olStyles = {
-    ...style.ol,
-    markerFontWeight: markerFontWeight,
-  };
-
   return {
     ...style,
     mention: mentionStyles,
-    ol: olStyles,
+    ol: parseOlStyles(style),
   };
 };
 

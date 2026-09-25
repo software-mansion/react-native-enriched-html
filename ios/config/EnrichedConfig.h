@@ -1,6 +1,8 @@
 #pragma once
+#import "interfaces/InlineStyleConfig.h"
 #import "interfaces/LinkRegexConfig.h"
 #import "interfaces/MentionStyleProps.h"
+#import "interfaces/StyleTypeEnum.h"
 #import "interfaces/TextDecorationLineEnum.h"
 #import <UIKit/UIKit.h>
 
@@ -102,6 +104,10 @@
 - (void)setCheckboxListBoxColor:(UIColor *)newValue;
 - (UIImage *)checkboxCheckedImage;
 - (UIImage *)checkboxUncheckedImage;
+
+// MARK: - Inline style configs
+- (InlineStyleConfig *)inlineStyleForType:(StyleType)type;
+- (void)setInlineStyle:(InlineStyleConfig *)config forType:(StyleType)type;
 
 // MARK: - Input only props
 - (LinkRegexConfig *)linkRegexConfig;

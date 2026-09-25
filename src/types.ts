@@ -186,18 +186,29 @@ export interface EnrichedInputStyle {
   letterSpacing?: number;
 }
 
-interface HeadingStyle {
+interface HeadingStyle extends BaseStyle {
   fontSize?: number;
-  bold?: boolean;
 }
 
-export interface MentionStyleProperties {
+export interface MentionStyleProperties extends BaseStyle {
   color?: ColorValue;
   backgroundColor?: ColorValue;
+  /** @deprecated in favor of the `underline` property */
   textDecorationLine?: 'underline' | 'none';
 }
 
+export interface BaseStyle {
+  bold?: boolean;
+  italic?: boolean;
+  underline?: boolean;
+  strikethrough?: boolean;
+}
+
 export interface HtmlStyle {
+  bold?: Omit<BaseStyle, 'bold'>;
+  italic?: Omit<BaseStyle, 'italic'>;
+  underline?: Omit<BaseStyle, 'underline'>;
+  strikethrough?: Omit<BaseStyle, 'strikethrough'>;
   h1?: HeadingStyle;
   h2?: HeadingStyle;
   h3?: HeadingStyle;
@@ -209,41 +220,42 @@ export interface HtmlStyle {
     borderWidth?: number;
     gapWidth?: number;
     color?: ColorValue;
-  };
+  } & BaseStyle;
   codeblock?: {
     color?: ColorValue;
     borderRadius?: number;
     backgroundColor?: ColorValue;
-  };
+  } & BaseStyle;
   code?: {
     color?: ColorValue;
     backgroundColor?: ColorValue;
-  };
+  } & BaseStyle;
   a?: {
     color?: ColorValue;
+    /** @deprecated in favor of the `underline` property */
     textDecorationLine?: 'underline' | 'none';
     /** @platform web */
     pressColor?: ColorValue;
-  };
+  } & BaseStyle;
   mention?: Record<string, MentionStyleProperties> | MentionStyleProperties;
   ol?: {
     gapWidth?: number;
     marginLeft?: number;
     markerFontWeight?: TextStyle['fontWeight'];
     markerColor?: ColorValue;
-  };
+  } & BaseStyle;
   ul?: {
     bulletColor?: ColorValue;
     bulletSize?: number;
     marginLeft?: number;
     gapWidth?: number;
-  };
+  } & BaseStyle;
   ulCheckbox?: {
     boxSize?: number;
     gapWidth?: number;
     marginLeft?: number;
     boxColor?: ColorValue;
-  };
+  } & BaseStyle;
 }
 
 export type TextShortcutStyle =

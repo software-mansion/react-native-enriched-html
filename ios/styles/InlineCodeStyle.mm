@@ -18,7 +18,7 @@
   return NO;
 }
 
-- (void)applyStyling:(NSRange)range {
+- (void)applySpecificStyling:(NSRange)range {
   // we don't want to apply inline code to newline characters, it looks bad
   NSArray *nonNewlineRanges =
       [RangeUtils getNonNewlineRangesIn:self.host.textView range:range];

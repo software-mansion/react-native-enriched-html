@@ -20,7 +20,7 @@
   return YES;
 }
 
-- (void)applyStyling:(NSRange)range {
+- (void)applySpecificStyling:(NSRange)range {
   [self.host.textView.textStorage
       enumerateAttribute:NSFontAttributeName
                  inRange:range
