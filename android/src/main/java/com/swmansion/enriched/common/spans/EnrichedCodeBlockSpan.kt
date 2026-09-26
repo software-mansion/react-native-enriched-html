@@ -8,22 +8,25 @@ import android.graphics.Typeface
 import android.text.Spanned
 import android.text.TextPaint
 import android.text.style.LineBackgroundSpan
-import android.text.style.MetricAffectingSpan
 import com.swmansion.enriched.common.EnrichedStyle
+import com.swmansion.enriched.common.spans.base.EnrichedSpanBase
 import com.swmansion.enriched.common.spans.interfaces.EnrichedBlockSpan
 
 open class EnrichedCodeBlockSpan(
-  private val enrichedStyle: EnrichedStyle,
-) : MetricAffectingSpan(),
+  override val enrichedStyle: EnrichedStyle,
+) : EnrichedSpanBase(enrichedStyle),
   LineBackgroundSpan,
   EnrichedBlockSpan {
+  override fun getBaseStyle() = enrichedStyle.baseStyles["codeblock"]
+
   override fun updateDrawState(paint: TextPaint) {
     paint.typeface = Typeface.MONOSPACE
+    super.updateDrawState(paint)
     paint.color = enrichedStyle.codeBlockColor
   }
-
   override fun updateMeasureState(paint: TextPaint) {
     paint.typeface = Typeface.MONOSPACE
+    super.updateMeasureState(paint)
   }
 
   override fun drawBackground(

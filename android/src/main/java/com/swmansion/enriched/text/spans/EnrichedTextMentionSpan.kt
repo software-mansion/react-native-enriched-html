@@ -15,7 +15,7 @@ class EnrichedTextMentionSpan(
   private val text: String,
   private val indicator: String,
   private val attributes: Map<String, String>,
-  private val enrichedStyle: EnrichedStyle,
+  override val enrichedStyle: EnrichedStyle,
 ) : EnrichedMentionSpan(text, indicator, attributes, enrichedStyle),
   EnrichedTextSpan,
   EnrichedTextClickableSpan {

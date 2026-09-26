@@ -8,7 +8,7 @@ class EnrichedInputStrikeThroughSpan(
   htmlStyle: HtmlStyle,
 ) : EnrichedStrikeThroughSpan(htmlStyle),
   EnrichedInputSpan {
-  override val dependsOnHtmlStyle: Boolean = false
+  override val dependsOnHtmlStyle: Boolean = true
 
   override fun rebuildWithStyle(htmlStyle: HtmlStyle): EnrichedInputStrikeThroughSpan = EnrichedInputStrikeThroughSpan(htmlStyle)
 }

@@ -1,11 +1,18 @@
 package com.swmansion.enriched.common.spans
 
-import android.text.style.StrikethroughSpan
+import android.text.TextPaint
 import com.swmansion.enriched.common.EnrichedStyle
+import com.swmansion.enriched.common.spans.base.EnrichedSpanBase
 import com.swmansion.enriched.common.spans.interfaces.EnrichedInlineSpan
 
-@Suppress("UNUSED_PARAMETER")
 open class EnrichedStrikeThroughSpan(
-  private val enrichedStyle: EnrichedStyle,
-) : StrikethroughSpan(),
-  EnrichedInlineSpan
+  enrichedStyle: EnrichedStyle,
+) : EnrichedSpanBase(enrichedStyle),
+  EnrichedInlineSpan {
+  override fun getBaseStyle() = enrichedStyle.baseStyles["strikethrough"]
+
+  override fun updateDrawState(paint: TextPaint) {
+    super.updateDrawState(paint)
+    paint.isStrikeThruText = true
+  }
+}

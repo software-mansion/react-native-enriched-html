@@ -6,6 +6,7 @@ import com.facebook.react.bridge.ReactContext
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.views.text.ReactTypefaceUtils.parseFontWeight
 import com.swmansion.enriched.common.EnrichedStyle
+import com.swmansion.enriched.common.BaseStyle
 import com.swmansion.enriched.common.MentionStyle
 import com.swmansion.enriched.common.pixelFromSpOrDp
 import kotlin.math.ceil
@@ -57,6 +58,8 @@ data class EnrichedTextStyle(
   override val inlineCodeBackgroundColor: Int,
   // Mentions
   override val mentionsStyle: Map<String, MentionStyle>,
+  // Base styles
+  override val baseStyles: Map<String, BaseStyle>,
 ) : EnrichedStyle {
   companion object {
     fun fromReadableMap(
@@ -118,6 +121,16 @@ data class EnrichedTextStyle(
         inlineCodeColor = parseColor(context, inlineCode, "color"),
         inlineCodeBackgroundColor = parseColorWithOpacity(context, inlineCode, "backgroundColor", 80),
         mentionsStyle = parseMentionsStyle(context, mentions),
+        baseStyles = BaseStyle.TYPE_KEYS.associateWith { key -> parseBaseStyle(map.getMap(key)) },
+      )
+    }
+
+    private fun parseBaseStyle(map: ReadableMap?): BaseStyle {
+      return BaseStyle(
+        bold = map?.getBoolean("bold") == true,
+        italic = map?.getBoolean("italic") == true,
+        underline = map?.getBoolean("underline") == true,
+        strikethrough = map?.getBoolean("strikethrough") == true,
       )
     }
 

@@ -5,19 +5,17 @@ import android.graphics.Paint
 import android.text.Layout
 import android.text.TextPaint
 import android.text.style.LeadingMarginSpan
-import android.text.style.MetricAffectingSpan
 import com.swmansion.enriched.common.EnrichedStyle
+import com.swmansion.enriched.common.spans.base.EnrichedSpanBase
 import com.swmansion.enriched.common.spans.interfaces.EnrichedBlockSpan
 
 // https://android.googlesource.com/platform/frameworks/base/+/refs/heads/main/core/java/android/text/style/QuoteSpan.java
 open class EnrichedBlockQuoteSpan(
-  private val enrichedStyle: EnrichedStyle,
-) : MetricAffectingSpan(),
+  override val enrichedStyle: EnrichedStyle,
+) : EnrichedSpanBase(enrichedStyle),
   LeadingMarginSpan,
   EnrichedBlockSpan {
-  override fun updateMeasureState(p0: TextPaint) {
-    // Do nothing, but inform layout that this span affects text metrics
-  }
+  override fun getBaseStyle() = enrichedStyle.baseStyles["blockquote"]
 
   override fun getLeadingMargin(p0: Boolean): Int = enrichedStyle.blockquoteStripeWidth + enrichedStyle.blockquoteGapWidth
 
@@ -44,10 +42,11 @@ open class EnrichedBlockQuoteSpan(
     p.color = color
   }
 
-  override fun updateDrawState(textPaint: TextPaint?) {
+  override fun updateDrawState(paint: TextPaint) {
+    super.updateDrawState(paint)
     val color = enrichedStyle.blockquoteColor
     if (color != null) {
-      textPaint?.color = color
+      paint.color = color
     }
   }
 }

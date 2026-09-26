@@ -8,7 +8,7 @@ class EnrichedInputItalicSpan(
   htmlStyle: HtmlStyle,
 ) : EnrichedItalicSpan(htmlStyle),
   EnrichedInputSpan {
-  override val dependsOnHtmlStyle: Boolean = false
+  override val dependsOnHtmlStyle: Boolean = true
 
   override fun rebuildWithStyle(htmlStyle: HtmlStyle): EnrichedInputItalicSpan = EnrichedInputItalicSpan(htmlStyle)
 }

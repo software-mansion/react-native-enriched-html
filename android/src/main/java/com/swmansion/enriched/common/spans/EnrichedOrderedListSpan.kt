@@ -5,25 +5,18 @@ import android.graphics.Paint
 import android.graphics.Typeface
 import android.os.Build
 import android.text.Layout
-import android.text.TextPaint
 import android.text.style.LeadingMarginSpan
-import android.text.style.MetricAffectingSpan
 import com.swmansion.enriched.common.EnrichedStyle
+import com.swmansion.enriched.common.spans.base.EnrichedSpanBase
 import com.swmansion.enriched.common.spans.interfaces.EnrichedParagraphSpan
 
 open class EnrichedOrderedListSpan(
   var index: Int,
-  private val enrichedStyle: EnrichedStyle,
-) : MetricAffectingSpan(),
+  override val enrichedStyle: EnrichedStyle,
+) : EnrichedSpanBase(enrichedStyle),
   LeadingMarginSpan,
   EnrichedParagraphSpan {
-  override fun updateMeasureState(p0: TextPaint) {
-    // Do nothing, but inform layout that this span affects text metrics
-  }
-
-  override fun updateDrawState(p0: TextPaint?) {
-    // Do nothing, but inform layout that this span affects text metrics
-  }
+  override fun getBaseStyle() = enrichedStyle.baseStyles["ol"]
 
   override fun getLeadingMargin(first: Boolean): Int = enrichedStyle.olMarginLeft + enrichedStyle.olGapWidth
 

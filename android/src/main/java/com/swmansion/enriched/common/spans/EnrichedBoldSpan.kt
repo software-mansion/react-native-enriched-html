@@ -1,12 +1,18 @@
 package com.swmansion.enriched.common.spans
 
-import android.graphics.Typeface
-import android.text.style.StyleSpan
+import android.text.TextPaint
 import com.swmansion.enriched.common.EnrichedStyle
+import com.swmansion.enriched.common.spans.base.EnrichedSpanBase
 import com.swmansion.enriched.common.spans.interfaces.EnrichedInlineSpan
 
-@Suppress("UNUSED_PARAMETER")
 open class EnrichedBoldSpan(
   enrichedStyle: EnrichedStyle,
-) : StyleSpan(Typeface.BOLD),
-  EnrichedInlineSpan
+) : EnrichedSpanBase(enrichedStyle),
+  EnrichedInlineSpan {
+  override fun getBaseStyle() = enrichedStyle.baseStyles["bold"]
+
+  override fun updateMeasureState(paint: TextPaint) {
+    super.updateMeasureState(paint)
+    applyBoldTypeface(paint)
+  }
+}

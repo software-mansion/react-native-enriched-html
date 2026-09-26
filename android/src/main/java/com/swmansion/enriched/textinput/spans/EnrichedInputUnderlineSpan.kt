@@ -8,7 +8,7 @@ class EnrichedInputUnderlineSpan(
   htmlStyle: HtmlStyle,
 ) : EnrichedUnderlineSpan(htmlStyle),
   EnrichedInputSpan {
-  override val dependsOnHtmlStyle: Boolean = false
+  override val dependsOnHtmlStyle: Boolean = true
 
   override fun rebuildWithStyle(htmlStyle: HtmlStyle): EnrichedInputUnderlineSpan = EnrichedInputUnderlineSpan(htmlStyle)
 }

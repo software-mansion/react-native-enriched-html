@@ -7,6 +7,7 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.views.text.ReactTypefaceUtils.parseFontWeight
 import com.swmansion.enriched.common.EnrichedConstants
 import com.swmansion.enriched.common.EnrichedStyle
+import com.swmansion.enriched.common.BaseStyle
 import com.swmansion.enriched.common.MentionStyle
 import com.swmansion.enriched.common.pixelFromSpOrDp
 import com.swmansion.enriched.textinput.EnrichedTextInputView
@@ -71,6 +72,8 @@ class HtmlStyle : EnrichedStyle {
   override var inlineCodeBackgroundColor: Int = Color.BLACK
 
   override var mentionsStyle: MutableMap<String, MentionStyle> = mutableMapOf()
+
+  override var baseStyles: Map<String, BaseStyle> = emptyMap()
 
   constructor(view: EnrichedTextInputView?, style: ReadableMap?) {
     this.view = view
@@ -147,6 +150,17 @@ class HtmlStyle : EnrichedStyle {
 
     val mentionStyle = style.getMap("mention")
     mentionsStyle = parseMentionsStyle(mentionStyle)
+
+    baseStyles = BaseStyle.TYPE_KEYS.associateWith { key -> parseBaseStyle(style.getMap(key)) }
+  }
+
+  private fun parseBaseStyle(map: ReadableMap?): BaseStyle {
+    return BaseStyle(
+      bold = map?.getBoolean("bold") == true,
+      italic = map?.getBoolean("italic") == true,
+      underline = map?.getBoolean("underline") == true,
+      strikethrough = map?.getBoolean("strikethrough") == true,
+    )
   }
 
   private fun parseFloat(
@@ -317,7 +331,9 @@ class HtmlStyle : EnrichedStyle {
       inlineCodeColor == other.inlineCodeColor &&
       inlineCodeBackgroundColor == other.inlineCodeBackgroundColor &&
 
-      mentionsStyle == other.mentionsStyle
+      mentionsStyle == other.mentionsStyle &&
+
+      baseStyles == other.baseStyles
   }
 
   override fun hashCode(): Int {
@@ -365,6 +381,7 @@ class HtmlStyle : EnrichedStyle {
     result = 31 * result + inlineCodeBackgroundColor.hashCode()
 
     result = 31 * result + mentionsStyle.hashCode()
+    result = 31 * result + baseStyles.hashCode()
 
     return result
   }

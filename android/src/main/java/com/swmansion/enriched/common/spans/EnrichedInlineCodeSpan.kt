@@ -2,22 +2,26 @@ package com.swmansion.enriched.common.spans
 
 import android.graphics.Typeface
 import android.text.TextPaint
-import android.text.style.MetricAffectingSpan
 import com.swmansion.enriched.common.EnrichedStyle
+import com.swmansion.enriched.common.spans.base.EnrichedSpanBase
 import com.swmansion.enriched.common.spans.interfaces.EnrichedInlineSpan
 
 open class EnrichedInlineCodeSpan(
-  private val enrichedStyle: EnrichedStyle,
-) : MetricAffectingSpan(),
+  override val enrichedStyle: EnrichedStyle,
+) : EnrichedSpanBase(enrichedStyle),
   EnrichedInlineSpan {
-  override fun updateDrawState(textPaint: TextPaint) {
-    applyMonospace(textPaint)
-    textPaint.color = enrichedStyle.inlineCodeColor
-    textPaint.bgColor = enrichedStyle.inlineCodeBackgroundColor
+  override fun getBaseStyle() = enrichedStyle.baseStyles["code"]
+
+  override fun updateMeasureState(paint: TextPaint) {
+    applyMonospace(paint)
+    super.updateMeasureState(paint)
   }
 
-  override fun updateMeasureState(textPaint: TextPaint) {
-    applyMonospace(textPaint)
+  override fun updateDrawState(paint: TextPaint) {
+    applyMonospace(paint)
+    super.updateDrawState(paint)
+    paint.color = enrichedStyle.inlineCodeColor
+    paint.bgColor = enrichedStyle.inlineCodeBackgroundColor
   }
 
   // When switching to a monospace font, we need to remember

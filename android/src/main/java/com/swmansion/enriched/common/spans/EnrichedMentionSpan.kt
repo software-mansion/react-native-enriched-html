@@ -1,23 +1,17 @@
 package com.swmansion.enriched.common.spans
 
 import android.text.TextPaint
-import android.text.style.ClickableSpan
-import android.view.View
 import com.swmansion.enriched.common.EnrichedStyle
+import com.swmansion.enriched.common.spans.base.EnrichedSpanBase
 import com.swmansion.enriched.common.spans.interfaces.EnrichedInlineSpan
 
 open class EnrichedMentionSpan(
   private val text: String,
   private val indicator: String,
   private val attributes: Map<String, String>,
-  private val enrichedStyle: EnrichedStyle,
-) : ClickableSpan(),
+  override val enrichedStyle: EnrichedStyle,
+) : EnrichedSpanBase(enrichedStyle),
   EnrichedInlineSpan {
-  override fun onClick(view: View) {
-    // Do nothing. Mentions inside the input are not clickable.
-    // We are using `ClickableSpan` to allow the text to be styled as a clickable element.
-  }
-
   override fun updateDrawState(textPaint: TextPaint) {
     super.updateDrawState(textPaint)
 

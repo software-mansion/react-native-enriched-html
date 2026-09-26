@@ -4,35 +4,27 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.text.Layout
 import android.text.Spanned
-import android.text.TextPaint
 import android.text.style.LeadingMarginSpan
 import android.text.style.LineHeightSpan
-import android.text.style.MetricAffectingSpan
 import androidx.core.graphics.withTranslation
 import com.swmansion.enriched.common.CheckboxDrawable
 import com.swmansion.enriched.common.EnrichedStyle
+import com.swmansion.enriched.common.spans.base.EnrichedSpanBase
 import com.swmansion.enriched.common.spans.interfaces.EnrichedParagraphSpan
-import com.swmansion.enriched.textinput.styles.HtmlStyle
 
 open class EnrichedCheckboxListSpan(
   open var isChecked: Boolean,
-  private val enrichedStyle: EnrichedStyle,
-) : MetricAffectingSpan(),
+  override val enrichedStyle: EnrichedStyle,
+) : EnrichedSpanBase(enrichedStyle),
   LineHeightSpan,
   LeadingMarginSpan,
   EnrichedParagraphSpan {
+  override fun getBaseStyle() = enrichedStyle.baseStyles["ulCheckbox"]
+
   private val checkboxDrawable =
     CheckboxDrawable(enrichedStyle.ulCheckboxBoxSize, enrichedStyle.ulCheckboxBoxColor, isChecked).apply {
       setBounds(0, 0, enrichedStyle.ulCheckboxBoxSize, enrichedStyle.ulCheckboxBoxSize)
     }
-
-  override fun updateMeasureState(tp: TextPaint) {
-    // Do nothing, but inform layout that this span affects text metrics
-  }
-
-  override fun updateDrawState(tp: TextPaint) {
-    // Do nothing, but inform layout that this span affects text metrics
-  }
 
   // Include checkbox size in text measurements to avoid clipping
   override fun chooseHeight(

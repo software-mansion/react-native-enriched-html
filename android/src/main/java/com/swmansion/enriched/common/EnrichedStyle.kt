@@ -54,4 +54,7 @@ interface EnrichedStyle {
 
   // Mentions
   val mentionsStyle: Map<String, MentionStyle>
+
+  // Base styles
+  val baseStyles: Map<String, BaseStyle>
 }

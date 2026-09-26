@@ -1,20 +1,23 @@
 package com.swmansion.enriched.common.spans
 
-import android.graphics.Typeface
 import android.text.TextPaint
-import android.text.style.AbsoluteSizeSpan
 import com.swmansion.enriched.common.EnrichedStyle
+import com.swmansion.enriched.common.spans.base.EnrichedSpanBase
 import com.swmansion.enriched.common.spans.interfaces.EnrichedHeadingSpan
 
 open class EnrichedH2Span(
-  private val enrichedStyle: EnrichedStyle,
-) : AbsoluteSizeSpan(enrichedStyle.h2FontSize),
+  override val enrichedStyle: EnrichedStyle,
+) : EnrichedSpanBase(enrichedStyle),
   EnrichedHeadingSpan {
-  override fun updateDrawState(tp: TextPaint) {
-    super.updateDrawState(tp)
-    val bold = enrichedStyle.h2Bold
-    if (bold) {
-      tp.typeface = Typeface.create(tp.typeface, Typeface.BOLD)
-    }
+  override fun getBaseStyle() = enrichedStyle.baseStyles["h2"]
+
+  override fun updateMeasureState(paint: TextPaint) {
+    super.updateMeasureState(paint)
+    paint.textSize = enrichedStyle.h2FontSize.toFloat()
+  }
+
+  override fun updateDrawState(paint: TextPaint) {
+    super.updateDrawState(paint)
+    paint.textSize = enrichedStyle.h2FontSize.toFloat()
   }
 }

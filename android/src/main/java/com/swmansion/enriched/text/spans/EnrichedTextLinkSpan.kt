@@ -12,7 +12,7 @@ import com.swmansion.enriched.text.spans.interfaces.EnrichedTextSpan
 
 class EnrichedTextLinkSpan(
   private val url: String,
-  private val enrichedStyle: EnrichedTextStyle,
+  override val enrichedStyle: EnrichedTextStyle,
 ) : EnrichedLinkSpan(url, enrichedStyle, true),
   EnrichedTextSpan,
   EnrichedTextClickableSpan {
