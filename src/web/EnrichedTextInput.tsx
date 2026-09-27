@@ -92,6 +92,7 @@ import {
 import { assertBrowserEnvironment } from './utils/assertBrowserEnvironment';
 import { runSafelyInEditor } from './utils/runSafelyInEditor';
 import { useLinkPress } from './htmlExtensions/useLinkPress';
+import { normalizeDeprecatedFields } from '../utils/normalizeDeprecatedFields';
 
 function runFocused(
   editor: Editor,
@@ -147,9 +148,14 @@ export const EnrichedTextInput = ({
         )
       : defaultValue;
 
-  const resolvedHtmlStyle = useMemo(
-    () => mergeWithDefaultHtmlStyle(htmlStyle),
+  const normalizedHtmlStyle = useMemo(
+    () => htmlStyle && normalizeDeprecatedFields(htmlStyle),
     [htmlStyle]
+  );
+
+  const resolvedHtmlStyle = useMemo(
+    () => mergeWithDefaultHtmlStyle(normalizedHtmlStyle),
+    [normalizedHtmlStyle]
   );
   const mentionCallbacks = useMemo(
     () => ({

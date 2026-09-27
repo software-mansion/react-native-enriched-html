@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 import type { ColorValue } from 'react-native';
 import type {
+  BaseStyle,
   EnrichedTextHtmlStyle,
   EnrichedTextMentionStyleProperties,
   HtmlStyle,
@@ -94,7 +95,6 @@ const ET_CSS_VARS = {
   codeblockColor: '--et-codeblock-color',
   codeblockBorderRadius: '--et-codeblock-border-radius',
   linkColor: '--et-link-color',
-  linkTextDecorationLine: '--et-link-text-decoration-line',
   linkPressColor: '--et-link-press-color',
   ulBulletColor: '--et-ul-bullet-color',
   ulBulletSize: '--et-ul-bullet-size',
@@ -136,12 +136,54 @@ function setPxVar(
   if (n != null) vars[name] = `${n}px`;
 }
 
+function setFontWeightVar(
+  vars: Record<string, string>,
+  prefix: string,
+  bold?: boolean
+): void {
+  if (bold === true) vars[`--et-${prefix}-font-weight`] = 'bold';
+}
+
+function setFontStyleVar(
+  vars: Record<string, string>,
+  prefix: string,
+  italic?: boolean
+): void {
+  if (italic === true) vars[`--et-${prefix}-font-style`] = 'italic';
+}
+
+function setTextDecorationVar(
+  vars: Record<string, string>,
+  prefix: string,
+  base?: Pick<BaseStyle, 'underline' | 'strikethrough'>
+): void {
+  if (base?.underline !== true && base?.strikethrough !== true) return;
+  const lines: string[] = [];
+  if (base?.underline || prefix === 'underline') lines.push('underline');
+  if (base?.strikethrough || prefix === 'strikethrough')
+    lines.push('line-through');
+
+  if (lines.length > 0)
+    vars[`--et-${prefix}-text-decoration-line`] = lines.join(' ');
+}
+
+function applyBaseStyleVars(
+  vars: Record<string, string>,
+  prefix: string,
+  base?: BaseStyle
+): void {
+  setFontWeightVar(vars, prefix, base?.bold);
+  setFontStyleVar(vars, prefix, base?.italic);
+  setTextDecorationVar(vars, prefix, base);
+}
+
 function applyCodeVars(
   vars: Record<string, string>,
   code?: HtmlStyle['code']
 ): void {
   setColorVar(vars, ET_CSS_VARS.codeColor, code?.color);
   setColorVar(vars, ET_CSS_VARS.codeBgColor, code?.backgroundColor);
+  applyBaseStyleVars(vars, 'code', code);
 }
 
 function applyHeadingVars(
@@ -152,8 +194,7 @@ function applyHeadingVars(
     const h = htmlStyle?.[level];
     if (h?.fontSize != null)
       vars[`--et-${level}-font-size`] = `${h.fontSize}px`;
-    if (h?.bold != null)
-      vars[`--et-${level}-font-weight`] = h.bold ? 'bold' : 'normal';
+    applyBaseStyleVars(vars, level, h);
   }
 }
 
@@ -165,6 +206,7 @@ function applyBlockquoteVars(
   setPxVar(vars, ET_CSS_VARS.blockquoteBorderWidth, bq?.borderWidth);
   setPxVar(vars, ET_CSS_VARS.blockquoteGapWidth, bq?.gapWidth);
   setColorVar(vars, ET_CSS_VARS.blockquoteColor, bq?.color);
+  applyBaseStyleVars(vars, 'blockquote', bq);
 }
 
 function applyCodeblockVars(
@@ -174,16 +216,15 @@ function applyCodeblockVars(
   setColorVar(vars, ET_CSS_VARS.codeblockBgColor, cb?.backgroundColor);
   setColorVar(vars, ET_CSS_VARS.codeblockColor, cb?.color);
   setPxVar(vars, ET_CSS_VARS.codeblockBorderRadius, cb?.borderRadius);
+  applyBaseStyleVars(vars, 'codeblock', cb);
 }
 
 function applyLinkVars(
   vars: Record<string, string>,
   anchor?: HtmlStyle['a']
 ): void {
+  applyBaseStyleVars(vars, 'link', anchor);
   setColorVar(vars, ET_CSS_VARS.linkColor, anchor?.color);
-  if (anchor?.textDecorationLine != null) {
-    vars[ET_CSS_VARS.linkTextDecorationLine] = anchor.textDecorationLine;
-  }
   setColorVar(vars, ET_CSS_VARS.linkPressColor, anchor?.pressColor);
 }
 
@@ -195,6 +236,7 @@ function applyUnorderedListVars(
   setPxVar(vars, ET_CSS_VARS.ulBulletSize, ul?.bulletSize);
   setPxVar(vars, ET_CSS_VARS.ulMarginLeft, ul?.marginLeft);
   setPxVar(vars, ET_CSS_VARS.ulGapWidth, ul?.gapWidth);
+  applyBaseStyleVars(vars, 'ul', ul);
 }
 
 function applyOrderedListVars(
@@ -207,6 +249,7 @@ function applyOrderedListVars(
   if (ol?.markerFontWeight != null) {
     vars[ET_CSS_VARS.olMarkerFontWeight] = String(ol.markerFontWeight);
   }
+  applyBaseStyleVars(vars, 'ol', ol);
 }
 
 function applyCheckboxListVars(
@@ -217,6 +260,35 @@ function applyCheckboxListVars(
   setPxVar(vars, ET_CSS_VARS.checkboxGapWidth, ulCheckbox?.gapWidth);
   setPxVar(vars, ET_CSS_VARS.checkboxMarginLeft, ulCheckbox?.marginLeft);
   setColorVar(vars, ET_CSS_VARS.checkboxBoxColor, ulCheckbox?.boxColor);
+  applyBaseStyleVars(vars, 'checkbox', ulCheckbox);
+}
+
+function applyBoldVars(
+  vars: Record<string, string>,
+  bold?: HtmlStyle['bold']
+): void {
+  applyBaseStyleVars(vars, 'bold', bold);
+}
+
+function applyItalicVars(
+  vars: Record<string, string>,
+  italic?: HtmlStyle['italic']
+): void {
+  applyBaseStyleVars(vars, 'italic', italic);
+}
+
+function applyUnderlineVars(
+  vars: Record<string, string>,
+  underline?: HtmlStyle['underline']
+): void {
+  applyBaseStyleVars(vars, 'underline', underline);
+}
+
+function applyStrikethroughVars(
+  vars: Record<string, string>,
+  strikethrough?: HtmlStyle['strikethrough']
+): void {
+  applyBaseStyleVars(vars, 'strikethrough', strikethrough);
 }
 
 function applyMentionVars(
@@ -232,9 +304,9 @@ function applyMentionVars(
       ET_MENTION_CSS_VARS.backgroundColor(indicator),
       mentionStyle.backgroundColor
     );
-    if (mentionStyle.textDecorationLine != null) {
+    if (mentionStyle.underline != null) {
       vars[ET_MENTION_CSS_VARS.textDecorationLine(indicator)] =
-        mentionStyle.textDecorationLine;
+        mentionStyle.underline ? 'underline' : 'none';
     }
   }
 }
@@ -259,6 +331,10 @@ function expandMentionStylesForIndicatorsIncludeDefault(
 
 export function htmlStyleToCSSVariables(htmlStyle: HtmlStyle): CSSProperties {
   const vars: Record<string, string> = {};
+  applyBoldVars(vars, htmlStyle.bold);
+  applyItalicVars(vars, htmlStyle.italic);
+  applyUnderlineVars(vars, htmlStyle.underline);
+  applyStrikethroughVars(vars, htmlStyle.strikethrough);
   applyCodeVars(vars, htmlStyle.code);
   applyHeadingVars(vars, htmlStyle);
   applyBlockquoteVars(vars, htmlStyle.blockquote);

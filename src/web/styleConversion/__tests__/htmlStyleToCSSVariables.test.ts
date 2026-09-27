@@ -155,7 +155,6 @@ describe('htmlStyleToCSSVariables', () => {
         { h2: { fontSize: 20, bold: false } },
         {
           '--et-h2-font-size': '20px',
-          '--et-h2-font-weight': 'normal',
         },
       ],
       [{ h3: { fontSize: 18 } }, { '--et-h3-font-size': '18px' }],
@@ -205,8 +204,8 @@ describe('htmlStyleToCSSVariables', () => {
     expect(
       htmlStyleToCSSVariables({
         a: {
+          underline: true,
           color: 'blue',
-          textDecorationLine: 'underline',
           pressColor: 'red',
         },
       })
@@ -268,6 +267,116 @@ describe('htmlStyleToCSSVariables', () => {
       '--et-checkbox-gap-width': '8px',
       '--et-checkbox-margin-left': '12px',
       '--et-checkbox-box-color': '#336699',
+    });
+  });
+
+  describe('base style (bold/italic/underline/strikethrough)', () => {
+    it('vars are not emitted if not needed', () => {
+      expect(
+        htmlStyleToCSSVariables({
+          bold: {},
+          italic: {},
+          underline: {},
+          strikethrough: {},
+          code: {},
+          codeblock: {},
+          ol: {},
+        })
+      ).toMatchObject({});
+
+      expect(
+        htmlStyleToCSSVariables({
+          bold: { italic: false, strikethrough: false, underline: false },
+          italic: { bold: false, strikethrough: false, underline: false },
+          underline: { bold: false, italic: false, strikethrough: false },
+          strikethrough: {
+            bold: false,
+            italic: false,
+            underline: false,
+          },
+          code: {
+            bold: false,
+            italic: false,
+            strikethrough: false,
+            underline: false,
+          },
+          codeblock: {
+            bold: false,
+            italic: false,
+            strikethrough: false,
+            underline: false,
+          },
+          ol: {
+            bold: false,
+            italic: false,
+            strikethrough: false,
+            underline: false,
+          },
+        })
+      ).toMatchObject({});
+    });
+
+    it('own marks only expose the other base style fields', () => {
+      expect(
+        htmlStyleToCSSVariables({
+          bold: { italic: true, underline: true },
+          italic: { bold: true, strikethrough: true },
+          underline: { strikethrough: true },
+          strikethrough: { underline: true },
+        })
+      ).toMatchObject({
+        '--et-bold-font-style': 'italic',
+        '--et-bold-text-decoration-line': 'underline',
+        '--et-italic-font-weight': 'bold',
+        '--et-italic-text-decoration-line': 'line-through',
+        '--et-underline-text-decoration-line': 'underline line-through',
+        '--et-strikethrough-text-decoration-line': 'underline line-through',
+      });
+    });
+
+    it('extends heading/blockquote/codeblock/code/list/checkbox styles', () => {
+      expect(
+        htmlStyleToCSSVariables({
+          h1: {
+            bold: true,
+            italic: true,
+            underline: true,
+            strikethrough: true,
+          },
+          blockquote: { bold: true },
+          codeblock: { italic: true },
+          code: { underline: true },
+          ol: { bold: true },
+          ul: { italic: true },
+          ulCheckbox: { strikethrough: true },
+        })
+      ).toMatchObject({
+        '--et-h1-font-weight': 'bold',
+        '--et-h1-font-style': 'italic',
+        '--et-h1-text-decoration-line': 'underline line-through',
+        '--et-blockquote-font-weight': 'bold',
+        '--et-codeblock-font-style': 'italic',
+        '--et-code-text-decoration-line': 'underline',
+        '--et-ol-font-weight': 'bold',
+        '--et-ul-font-style': 'italic',
+        '--et-checkbox-text-decoration-line': 'line-through',
+      });
+    });
+
+    it('textDecorationLine vars are not emitted if not needed ', () => {
+      expect(
+        htmlStyleToCSSVariables({
+          underline: {},
+          strikethrough: {},
+        })
+      ).toMatchObject({});
+
+      expect(
+        htmlStyleToCSSVariables({
+          underline: { strikethrough: false },
+          strikethrough: { underline: false },
+        })
+      ).toMatchObject({});
     });
   });
 });

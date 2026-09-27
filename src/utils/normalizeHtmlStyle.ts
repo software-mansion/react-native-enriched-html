@@ -11,6 +11,7 @@ import {
   DEFAULT_ENRICHED_TEXT_STYLE,
 } from './defaultHtmlStyle';
 import { expandMentionStylesForIndicators } from './expandMentionStylesForIndicators';
+import { normalizeDeprecatedFields } from './normalizeDeprecatedFields';
 
 const MENTION_DEFAULT_KEY = '_default';
 
@@ -151,7 +152,11 @@ export const normalizeHtmlStyle = (
   style: HtmlStyle,
   mentionIndicators: string[]
 ): HtmlStyleInternal => {
-  const converted = convertToHtmlStyleInternal(style, mentionIndicators);
+  const removedDeprecatedStyle = normalizeDeprecatedFields(style);
+  const converted = convertToHtmlStyleInternal(
+    removedDeprecatedStyle,
+    mentionIndicators
+  );
   const withDefaults = assignDefaultValues(converted, DEFAULT_HTML_STYLE);
   return parseColors(withDefaults);
 };
@@ -159,7 +164,10 @@ export const normalizeHtmlStyle = (
 export const normalizeEnrichedTextHtmlStyle = (
   style: EnrichedTextHtmlStyle
 ): EnrichedTextHtmlStyleInternal => {
-  const converted = convertToEnrichedTextHtmlStyleInternal(style);
+  const removedDeprecatedStyle = normalizeDeprecatedFields(style);
+  const converted = convertToEnrichedTextHtmlStyleInternal(
+    removedDeprecatedStyle
+  );
   const withDefaults = assignDefaultValues(
     converted,
     DEFAULT_ENRICHED_TEXT_STYLE

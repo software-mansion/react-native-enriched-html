@@ -27,6 +27,7 @@ import { adaptWebToNativeEvent } from './nativeMappers/adaptWebToNativeEvent';
 import { useStableRef } from './utils/useStableRef';
 import { assertBrowserEnvironment } from './utils/assertBrowserEnvironment';
 import { useOrderedListMarkerWidth } from './htmlExtensions/useOrderedListMarkerWidth';
+import { normalizeDeprecatedFields } from '../utils/normalizeDeprecatedFields';
 
 export const EnrichedText = memo(
   ({
@@ -77,9 +78,14 @@ export const EnrichedText = memo(
       numberOfLines <= 0 ? finalHtml : null
     );
 
-    const resolvedHtmlStyle = useMemo(
-      () => mergeWithDefaultEnrichedTextHtmlStyle(htmlStyle),
+    const normalizedHtmlStyle = useMemo(
+      () => htmlStyle && normalizeDeprecatedFields(htmlStyle),
       [htmlStyle]
+    );
+
+    const resolvedHtmlStyle = useMemo(
+      () => mergeWithDefaultEnrichedTextHtmlStyle(normalizedHtmlStyle),
+      [normalizedHtmlStyle]
     );
 
     const textStyle: CSSProperties = useMemo(
@@ -122,7 +128,7 @@ export const EnrichedText = memo(
       numberOfLines,
       setClampedHtml,
       style,
-      htmlStyle,
+      htmlStyle: normalizedHtmlStyle,
     });
 
     const onLinkPressRef = useStableRef(onLinkPress);
