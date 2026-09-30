@@ -11,7 +11,10 @@ import './EnrichedText.css';
 import { enrichedTextStyleToCSSProperties } from './styleConversion/enrichedTextStyleToCSSProperties';
 import { mergeWithDefaultEnrichedTextHtmlStyle } from './styleConversion/htmlStyleToCSSVariables';
 import { enrichedTextHtmlStyleToCSSVariables } from './styleConversion/htmlStyleToCSSVariables';
-import { ENRICHED_TEXT_CLASSNAME } from './constants/classNames';
+import {
+  ENRICHED_TEXT_CLASSNAME,
+  LINK_PRESSABLE_CLASSNAME,
+} from './constants/classNames';
 import { enrichedTextThemingToCSSProperties } from './styleConversion/enrichedThemingToCSSProperties';
 import { buildMentionRulesCSS } from './styleConversion/buildMentionRulesCSS';
 import { sanitizeHtml } from './sanitization/htmlSanitizer';
@@ -41,6 +44,7 @@ export const EnrichedText = memo(
     onBlur,
     onLinkPress,
     onMentionPress,
+    onImagePress,
   }: EnrichedTextProps) => {
     assertBrowserEnvironment('EnrichedText');
 
@@ -123,11 +127,17 @@ export const EnrichedText = memo(
 
     const onLinkPressRef = useStableRef(onLinkPress);
     const onMentionPressRef = useStableRef(onMentionPress);
+    const onImagePressRef = useStableRef(onImagePress);
 
     useOrderedListMarkerWidth(containerRef, finalHtml);
 
     useImageErrorFallback(containerRef);
-    usePressInteractions(containerRef, onLinkPressRef, onMentionPressRef);
+    usePressInteractions(
+      containerRef,
+      onLinkPressRef,
+      onMentionPressRef,
+      onImagePressRef
+    );
 
     return (
       <>
@@ -136,7 +146,11 @@ export const EnrichedText = memo(
           ref={containerRef}
           tabIndex={-1}
           style={finalStyle}
-          className={ENRICHED_TEXT_CLASSNAME}
+          className={
+            onLinkPress
+              ? `${ENRICHED_TEXT_CLASSNAME} ${LINK_PRESSABLE_CLASSNAME}`
+              : ENRICHED_TEXT_CLASSNAME
+          }
           onFocus={(event) =>
             onFocus?.(adaptWebToNativeEvent(event, { target: -1 }))
           }

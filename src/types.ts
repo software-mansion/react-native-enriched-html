@@ -2,7 +2,10 @@ import type { RefObject } from 'react';
 import type {
   ColorValue,
   DimensionValue,
-  NativeMethods,
+  HostInstance,
+  MeasureInWindowOnSuccessCallback,
+  MeasureLayoutOnSuccessCallback,
+  MeasureOnSuccessCallback,
   NativeSyntheticEvent,
   ReturnKeyTypeOptions,
   TargetedEvent,
@@ -34,7 +37,7 @@ export interface EnrichedInputStyle {
   display?: TextStyle['display'];
   end?: DimensionValue;
   flex?: number;
-  flexBasis?: DimensionValue;
+  flexBasis?: string | number;
   flexGrow?: number;
   flexShrink?: number;
   height?: DimensionValue;
@@ -219,6 +222,8 @@ export interface HtmlStyle {
   a?: {
     color?: ColorValue;
     textDecorationLine?: 'underline' | 'none';
+    /** @platform web */
+    pressColor?: ColorValue;
   };
   mention?: Record<string, MentionStyleProperties> | MentionStyleProperties;
   ol?: {
@@ -257,7 +262,11 @@ export type TextShortcutStyle =
   | 'codeblock'
   | 'unordered_list'
   | 'ordered_list'
-  | 'checkbox_list';
+  | 'checkbox_list'
+  | 'left'
+  | 'center'
+  | 'right'
+  | 'justify';
 
 /**
  * Defines a single text shortcut: a character sequence that, when typed is replaced by the corresponding paragraph or inline style.
@@ -430,7 +439,16 @@ export type BlurEvent = NativeSyntheticEvent<TargetedEvent>;
  * to the component's `ref` prop. All methods are safe to call after the
  * component has mounted.
  */
-export interface EnrichedTextInputInstance extends NativeMethods {
+export interface EnrichedTextInputInstance {
+  measureInWindow: (callback: MeasureInWindowOnSuccessCallback) => void;
+  measure: (callback: MeasureOnSuccessCallback) => void;
+  measureLayout: (
+    relativeToNativeComponentRef: HostInstance | number,
+    onSuccess: MeasureLayoutOnSuccessCallback,
+    onFail?: () => void
+  ) => void;
+  setNativeProps: (nativeProps: object) => void;
+
   /** Focuses the editor, opening the software keyboard on mobile. */
   focus: () => void;
 
@@ -651,6 +669,15 @@ export interface EnrichedTextInputProps extends Omit<ViewProps, 'children'> {
   /** Controls automatic capitalization of typed text. Defaults to `"sentences"`. */
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
 
+  /** If false, disables auto-correct. Defaults `true`. */
+  autoCorrect?: boolean;
+
+  /** If false, disables spell-check style (i.e. red underlines). The default value is inherited from the `autoCorrect` prop.
+   *
+   * @platform ios
+   */
+  spellCheck?: boolean;
+
   /** Style overrides applied to the rendered HTML content inside the editor. */
   htmlStyle?: HtmlStyle;
 
@@ -710,6 +737,15 @@ export interface EnrichedTextInputProps extends Omit<ViewProps, 'children'> {
 
   /** Called when the editor auto-detects a URL matching `linkRegex`. */
   onLinkDetected?: (e: OnLinkDetected) => void;
+
+  /**
+   * Web only. Called when the user clicks a link inside the editor. If not
+   * provided, clicking a link has no effect (the default, cross-platform
+   * behavior).
+   *
+   * @platform web
+   */
+  onLinkPress?: (event: OnLinkPressEvent) => void;
 
   /** Called when the editor resolves a mention node. */
   onMentionDetected?: (e: OnMentionDetected) => void;
@@ -798,11 +834,22 @@ export interface EnrichedTextInputProps extends Omit<ViewProps, 'children'> {
 /**
  * Imperative handle exposed via `ref` on `<EnrichedText />`.
  *
- * Inherits the full React Native `NativeMethods` surface (`measure`,
- * `measureInWindow`, `measureLayout`, `setNativeProps`, `focus`, `blur`).
+ * Exposes native measurement helpers (`measure`, `measureInWindow`,
+ * `measureLayout`, `setNativeProps`, `focus`, `blur`).
  * Obtain a reference with `useRef<EnrichedTextInstance>(null)`.
  */
-export interface EnrichedTextInstance extends NativeMethods {}
+export interface EnrichedTextInstance {
+  measureInWindow: (callback: MeasureInWindowOnSuccessCallback) => void;
+  measure: (callback: MeasureOnSuccessCallback) => void;
+  measureLayout: (
+    relativeToNativeComponentRef: HostInstance | number,
+    onSuccess: MeasureLayoutOnSuccessCallback,
+    onFail?: () => void
+  ) => void;
+  setNativeProps: (nativeProps: object) => void;
+  focus: () => void;
+  blur: () => void;
+}
 
 /**
  * Props for the `<EnrichedText />` read-only rich-text rendering component.
@@ -810,7 +857,7 @@ export interface EnrichedTextInstance extends NativeMethods {}
 export interface EnrichedTextProps extends ViewProps {
   /**
    * Ref to the imperative handle that exposes native measurement and focus
-   * methods inherited from `NativeMethods`.
+   * methods.
    * Create with `useRef<EnrichedTextInstance>(null)`.
    */
   ref?: RefObject<EnrichedTextInstance | null>;
@@ -869,6 +916,9 @@ export interface EnrichedTextProps extends ViewProps {
 
   /** Called when the user taps a mention node inside the rendered content. */
   onMentionPress?: (event: OnMentionPressEvent) => void;
+
+  /** Called when the user taps an inline image inside the rendered content. */
+  onImagePress?: (event: OnImagePressEvent) => void;
 }
 
 export interface EnrichedTextMentionStyleProperties extends MentionStyleProperties {
@@ -880,7 +930,10 @@ export interface EnrichedTextHtmlStyle extends Omit<
   HtmlStyle,
   'a' | 'mention'
 > {
-  a?: HtmlStyle['a'] & {
+  a?: Omit<NonNullable<HtmlStyle['a']>, 'pressColor'> & {
+    // the documentation comment below is to suppress the base HtmlStyle's
+    // web-only note about pressColor, as in EnrichedText it is cross-platform
+    /***/
     pressColor?: ColorValue;
   };
   mention?:
@@ -896,4 +949,12 @@ export interface OnMentionPressEvent {
   text: string;
   indicator: string;
   attributes: Record<string, string>;
+}
+
+export interface OnImagePressEvent {
+  image: {
+    uri: string;
+    width: number;
+    height: number;
+  };
 }

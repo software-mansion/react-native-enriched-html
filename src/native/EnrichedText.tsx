@@ -6,6 +6,7 @@ import {
   type ComponentRef,
 } from 'react';
 import type {
+  CodegenTypes,
   HostComponent,
   HostInstance,
   MeasureInWindowOnSuccessCallback,
@@ -16,11 +17,11 @@ import EnrichedTextNativeComponent, {
   type NativeProps,
   type OnLinkPressEvent,
   type OnMentionPressEventInternal,
+  type OnImagePressEvent,
 } from '../spec/EnrichedTextNativeComponent';
 import { nullthrows } from '../utils/nullthrows';
 import { normalizeEnrichedTextHtmlStyle } from '../utils/normalizeHtmlStyle';
 import type { EnrichedTextProps } from '../types';
-import type { DirectEventHandler } from 'react-native/Libraries/Types/CodegenTypes';
 
 type ComponentType = ComponentRef<HostComponent<NativeProps>>;
 
@@ -37,6 +38,7 @@ export const EnrichedText = ({
   allowFontScaling = true,
   onLinkPress: _onLinkPress,
   onMentionPress: _onMentionPress,
+  onImagePress: _onImagePress,
   ...rest
 }: EnrichedTextProps) => {
   const nativeRef = useRef<ComponentType | null>(null);
@@ -46,14 +48,15 @@ export const EnrichedText = ({
     [_htmlStyle]
   );
 
-  const onLinkPress: DirectEventHandler<OnLinkPressEvent> = useCallback(
-    (e) => {
-      _onLinkPress?.(e.nativeEvent);
-    },
-    [_onLinkPress]
-  );
+  const onLinkPress: CodegenTypes.DirectEventHandler<OnLinkPressEvent> =
+    useCallback(
+      (e) => {
+        _onLinkPress?.(e.nativeEvent);
+      },
+      [_onLinkPress]
+    );
 
-  const onMentionPress: DirectEventHandler<OnMentionPressEventInternal> =
+  const onMentionPress: CodegenTypes.DirectEventHandler<OnMentionPressEventInternal> =
     useCallback(
       (e) => {
         const { text, indicator, attributes } = e.nativeEvent;
@@ -64,6 +67,14 @@ export const EnrichedText = ({
         });
       },
       [_onMentionPress]
+    );
+
+  const onImagePress: CodegenTypes.DirectEventHandler<OnImagePressEvent> =
+    useCallback(
+      (e) => {
+        _onImagePress?.(e.nativeEvent);
+      },
+      [_onImagePress]
     );
 
   useImperativeHandle(ref, () => ({
@@ -109,6 +120,7 @@ export const EnrichedText = ({
       allowFontScaling={allowFontScaling}
       onLinkPress={onLinkPress}
       onMentionPress={onMentionPress}
+      onImagePress={onImagePress}
       {...rest}
     />
   );

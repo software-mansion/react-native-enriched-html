@@ -29,7 +29,12 @@ const sel = {
   selectionStart: '[data-testid="test-links-selection-start"]',
   selectionEnd: '[data-testid="test-links-selection-end"]',
   applySelection: '[data-testid="test-links-apply-selection-button"]',
+  applySetLinkFromSelection:
+    '[data-testid="test-links-apply-setlink-from-selection-button"]',
+  selectionPayload: '[data-testid="test-links-selection-payload"]',
   onLinkDetectedPayload: '[data-testid="on-link-detected-payload"]',
+  onLinkPressEnabled: '[data-testid="test-links-onlinkpress-enabled"]',
+  onLinkPressPayload: '[data-testid="on-link-press-payload"]',
   editorInner: '[data-testid="test-links-editor"] .eti-editor',
   editorScreenshot: '[data-testid="test-links-editor"]',
   linkRegexMode: '[data-testid="test-links-link-regex-mode"]',
@@ -58,6 +63,10 @@ async function setTestLinksEditorHtml(page: Page, html: string): Promise<void> {
 
 async function getOnLinkDetectedPayload(page: Page): Promise<string> {
   return (await page.locator(sel.onLinkDetectedPayload).textContent()) ?? '';
+}
+
+async function getOnLinkPressPayload(page: Page): Promise<string> {
+  return (await page.locator(sel.onLinkPressPayload).textContent()) ?? '';
 }
 
 test('links display visual regression', async ({ page }) => {
@@ -251,6 +260,61 @@ test.describe('test-links setLink table', () => {
   }
 });
 
+test.describe('test-links setLink round-trips onChangeSelection text', () => {
+  test('linking a selection across a block boundary keeps both paragraphs', async ({
+    page,
+  }) => {
+    await gotoTestLinks(page);
+    await setTestLinksEditorHtml(page, '<html><p>hello</p><p>world</p></html>');
+
+    await page.fill(sel.selectionStart, '3');
+    await page.fill(sel.selectionEnd, '8');
+    await page.fill(sel.setLinkUrl, 'https://swmansion.com');
+    await page.click(sel.applySelection);
+
+    await expect
+      .poll(async () => page.locator(sel.selectionPayload).textContent())
+      .toBe(JSON.stringify({ start: 3, end: 8, text: 'lo\nwo' }));
+
+    await page.click(sel.applySetLinkFromSelection);
+
+    await expect
+      .poll(async () => getTestLinksSerializedHtml(page))
+      .toContain(
+        '<p>hel<a href="https://swmansion.com">lo</a></p>' +
+          '<p><a href="https://swmansion.com">wo</a>rld</p>'
+      );
+  });
+
+  test('linking a selection across a block boundary preserves inline marks', async ({
+    page,
+  }) => {
+    await gotoTestLinks(page);
+    await setTestLinksEditorHtml(
+      page,
+      '<html><p>hel<b>lo</b></p><p>world</p></html>'
+    );
+
+    await page.fill(sel.selectionStart, '3');
+    await page.fill(sel.selectionEnd, '8');
+    await page.fill(sel.setLinkUrl, 'https://swmansion.com');
+    await page.click(sel.applySelection);
+
+    await expect
+      .poll(async () => page.locator(sel.selectionPayload).textContent())
+      .toBe(JSON.stringify({ start: 3, end: 8, text: 'lo\nwo' }));
+
+    await page.click(sel.applySetLinkFromSelection);
+
+    await expect
+      .poll(async () => getTestLinksSerializedHtml(page))
+      .toContain(
+        '<p>hel<a href="https://swmansion.com"><b>lo</b></a></p>' +
+          '<p><a href="https://swmansion.com">wo</a>rld</p>'
+      );
+  });
+});
+
 test.describe('test-links removeLink table', () => {
   const cases: {
     name: string;
@@ -357,6 +421,39 @@ test.describe('test-links onLinkDetected', () => {
         start: 0,
         end: 0,
       });
+  });
+});
+
+test.describe('test-links onLinkPress', () => {
+  test('clicking a link does nothing when onLinkPress is not provided', async ({
+    page,
+  }) => {
+    await gotoTestLinks(page);
+    await setTestLinksEditorHtml(
+      page,
+      '<html><p><a href="https://example.com">Example</a></p></html>'
+    );
+
+    await page.locator(sel.editorInner).locator('a').click();
+
+    await expect(page.locator(sel.onLinkPressPayload)).toHaveText('null');
+  });
+
+  test('clicking a link fires onLinkPress with the url when provided', async ({
+    page,
+  }) => {
+    await gotoTestLinks(page);
+    await page.check(sel.onLinkPressEnabled);
+    await setTestLinksEditorHtml(
+      page,
+      '<html><p><a href="https://example.com">Example</a></p></html>'
+    );
+
+    await page.locator(sel.editorInner).locator('a').click();
+
+    await expect
+      .poll(async () => getOnLinkPressPayload(page))
+      .toBe(JSON.stringify({ url: 'https://example.com' }));
   });
 });
 

@@ -1,12 +1,13 @@
 #import "TextHtmlParser.h"
-#import "AlignmentEntry.h"
 #import "EnrichedTextView.h"
-#import "HtmlParser.h"
-#import "LinkData.h"
-#import "MentionParams.h"
-#import "StyleHeaders.h"
-#import "StyleUtils.h"
-#import "ZeroWidthSpaceUtils.h"
+#import "extensions/ArrayExtension.h"
+#import "htmlParser/HtmlParser.h"
+#import "interfaces/AlignmentEntry.h"
+#import "interfaces/LinkData.h"
+#import "interfaces/MentionParams.h"
+#import "interfaces/StyleHeaders.h"
+#import "utils/StyleUtils.h"
+#import "utils/ZeroWidthSpaceUtils.h"
 #import <React/RCTLog.h>
 
 @implementation TextHtmlParser
@@ -153,8 +154,14 @@
     }
   }
 
+  // Respect the styling priority
+  NSArray *sortedInlineApply =
+      [pendingInlineApply sortedArrayBySortKey:^NSInteger(NSArray *entry) {
+        return [((StyleBase *)entry[0]) stylePriority];
+      }];
+
   // Apply visual styling for inline styles
-  for (NSArray *entry in pendingInlineApply) {
+  for (NSArray *entry in sortedInlineApply) {
     StyleBase *style = entry[0];
     NSRange adjustedStyleRange = [((NSValue *)entry[1]) rangeValue];
     [style applyStyling:adjustedStyleRange];

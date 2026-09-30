@@ -1,8 +1,7 @@
 #import "ZeroWidthSpaceUtils.h"
 #import "EnrichedTextInputView.h"
-#import "StyleHeaders.h"
 #import "TextInsertionUtils.h"
-#import "UIView+React.h"
+#import "interfaces/StyleHeaders.h"
 
 @implementation ZeroWidthSpaceUtils
 + (void)handleZeroWidthSpacesInHost:(id<EnrichedViewHost>)host {
