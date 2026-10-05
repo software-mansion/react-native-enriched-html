@@ -73,10 +73,6 @@ export function DevScreen({ onSwitch }: DevScreenProps) {
               ANDROID_EXPERIMENTAL_SYNCHRONOUS_EVENTS
             }
             onPasteImages={(e) => editor.handlePasteImagesEvent(e.nativeEvent)}
-            textShortcuts={[
-              { trigger: '++', style: 'center' },
-              { trigger: '##', style: 'h6' },
-            ]}
             testID="editor-input"
           />
           <Toolbar
