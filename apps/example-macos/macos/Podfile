@@ -1,0 +1,32 @@
+# This library is Fabric-only, so the new architecture is always enabled.
+ENV['RCT_NEW_ARCH_ENABLED'] = '1'
+
+require 'pathname'
+
+ws_dir = Pathname.new(__dir__)
+ws_dir = ws_dir.parent until
+  File.exist?("#{ws_dir}/node_modules/react-native-macos/scripts/react_native_pods.rb") ||
+  ws_dir.expand_path.to_s == '/'
+require "#{ws_dir}/node_modules/react-native-macos/scripts/react_native_pods.rb"
+
+prepare_react_native_project!
+
+target 'EnrichedMacOSExample-macOS' do
+  platform :macos, '14.0'
+  use_native_modules!
+
+  use_react_native!(
+    :path => '../node_modules/react-native-macos',
+    :fabric_enabled => ENV['RCT_NEW_ARCH_ENABLED'] == '1',
+    # An absolute path to your application root.
+    :app_path => "#{Pod::Config.instance.installation_root}/.."
+  )
+
+  pre_install do |installer|
+    system("cd ../../../ && npx bob build --target codegen")
+  end
+
+  post_install do |installer|
+    react_native_post_install(installer)
+  end
+end

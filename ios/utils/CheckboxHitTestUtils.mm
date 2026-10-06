@@ -11,15 +11,15 @@ static const CGFloat kCheckboxHitSlopVertical = 6.0;
 // MARK: - Coordinate helpers
 
 + (CGPoint)containerPointFromViewPoint:(CGPoint)point
-                              textView:(UITextView *)textView {
-  return CGPointMake(point.x - textView.textContainerInset.left,
-                     point.y - textView.textContainerInset.top);
+                              textView:(EnrichedBaseTextView *)textView {
+  return CGPointMake(point.x - textView.enrichedTextContainerInset.left,
+                     point.y - textView.enrichedTextContainerInset.top);
 }
 
 // MARK: - Glyph lookup
 
 + (NSUInteger)glyphIndexAtContainerPoint:(CGPoint)point
-                                textView:(UITextView *)textView {
+                                textView:(EnrichedBaseTextView *)textView {
   return [textView.layoutManager glyphIndexForPoint:point
                                     inTextContainer:textView.textContainer
                      fractionOfDistanceThroughGlyph:nil];
@@ -29,7 +29,7 @@ static const CGFloat kCheckboxHitSlopVertical = 6.0;
 
 + (BOOL)isCheckboxGlyph:(NSUInteger)glyphIndex
                 inInput:(EnrichedTextInputView *)input {
-  UITextView *textView = input->textView;
+  EnrichedBaseTextView *textView = input->textView;
   NSLayoutManager *layoutManager = textView.layoutManager;
   NSTextStorage *storage = textView.textStorage;
 
@@ -54,7 +54,7 @@ static const CGFloat kCheckboxHitSlopVertical = 6.0;
 
 + (CGRect)checkboxRectForGlyphIndex:(NSUInteger)glyphIndex
                             inInput:(EnrichedTextInputView *)input {
-  UITextView *textView = input->textView;
+  EnrichedBaseTextView *textView = input->textView;
   NSLayoutManager *layoutManager = textView.layoutManager;
   EnrichedConfig *config = input->config;
 
@@ -87,7 +87,7 @@ static const CGFloat kCheckboxHitSlopVertical = 6.0;
 
 + (NSInteger)hitTestCheckboxAtPoint:(CGPoint)point
                             inInput:(EnrichedTextInputView *)input {
-  UITextView *textView = input->textView;
+  EnrichedBaseTextView *textView = input->textView;
 
   CGPoint containerPoint = [self containerPointFromViewPoint:point
                                                     textView:textView];

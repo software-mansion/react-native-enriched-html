@@ -91,7 +91,12 @@ static NSCache<NSString *, UIImage *> *ImageAttachmentCache(void) {
 
     dispatch_async(dispatch_get_main_queue(), ^{
       if (bytes != nil && img != nil && self.uri.length > 0) {
+#if !TARGET_OS_OSX
         CGFloat scale = img.scale;
+#else
+        // NSImage sizes are expressed in points already.
+        CGFloat scale = 1.0;
+#endif
         // Calculate true byte cost based on pixels
         // Width (in pixels) * Height (in pixels) * 4 bytes (for RGBA channels)
         NSUInteger cost = (NSUInteger)(img.size.width * scale *

@@ -47,12 +47,14 @@
     "example-web": "yarn workspace react-native-enriched-web-example",
     "docs-install": "cd docs && yarn install",
     "docs-start": "cd docs && yarn start",
+    "example-macos": "yarn workspace react-native-enriched-macos-example",
     "test": "jest --passWithNoTests",
-    "typecheck": "yarn typecheck:lib && yarn typecheck:example && yarn typecheck:example-web",
+    "typecheck": "yarn typecheck:lib && yarn typecheck:example && yarn typecheck:example-web && yarn typecheck:example-macos",
     "typecheck:lib": "tsc -p tsconfig.build.json",
     "typecheck:example": "tsc -p apps/example/tsconfig.json",
     "typecheck:example-web": "tsc -p apps/example-web/tsconfig.app.json",
     "typecheck:docs": "cd docs && yarn typecheck",
+    "typecheck:example-macos": "tsc -p apps/example-macos/tsconfig.json",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "lint:android": "cd apps/example/android && ./gradlew lintVerify",
     "lint:android:fix": "cd apps/example/android && ./gradlew lintFormat",
@@ -67,6 +69,7 @@
     "release": "release-it",
     "android-studio": "open -a 'Android Studio' apps/example/android",
     "xcode": "open -a 'Xcode' apps/example/ios/EnrichedTextInputExample.xcworkspace",
+    "xcode:macos": "open -a 'Xcode' apps/example-macos/macos/EnrichedMacOSExample.xcworkspace",
     "test:e2e:mobile": ".maestro/scripts/run-tests-all.sh",
     "test:e2e:android": ".maestro/scripts/run-tests.sh --platform android",
     "test:e2e:ios": ".maestro/scripts/run-tests.sh --platform ios",
@@ -76,7 +79,8 @@
   "keywords": [
     "react-native",
     "ios",
-    "android"
+    "android",
+    "macos"
   ],
   "repository": {
     "type": "git",
@@ -151,6 +155,7 @@
   },
   "workspaces": [
     "apps/example",
+    "apps/example-macos",
     "apps/example-web"
   ],
   "resolutions": {
@@ -164,6 +169,7 @@
         "preset": "@react-native/jest-preset",
         "modulePathIgnorePatterns": [
           "<rootDir>/apps/example/node_modules",
+          "<rootDir>/apps/example-macos/node_modules",
           "<rootDir>/lib/"
         ],
         "testPathIgnorePatterns": [
@@ -181,6 +187,7 @@
         ],
         "modulePathIgnorePatterns": [
           "<rootDir>/apps/example/node_modules",
+          "<rootDir>/apps/example-macos/node_modules",
           "<rootDir>/lib/"
         ],
         "transform": {

@@ -1,5 +1,5 @@
 #pragma once
-#import <UIKit/UIKit.h>
+#import "platform/EnrichedPlatform.h"
 
 @interface InputHtmlParser : NSObject
 - (instancetype _Nonnull)initWithInput:(id _Nonnull)input;

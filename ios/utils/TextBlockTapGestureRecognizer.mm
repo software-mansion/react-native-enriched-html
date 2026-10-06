@@ -2,6 +2,8 @@
 #import "CheckboxHitTestUtils.h"
 #import "EnrichedTextInputView.h"
 
+#if !TARGET_OS_OSX
+
 @implementation TextBlockTapGestureRecognizer {
   TextBlockTapKind _tapKind;
   NSInteger _characterIndex;
@@ -54,3 +56,5 @@
 }
 
 @end
+
+#endif // !TARGET_OS_OSX

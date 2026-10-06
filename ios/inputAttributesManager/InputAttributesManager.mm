@@ -3,6 +3,7 @@
 #import "extensions/ArrayExtension.h"
 #import "interfaces/AttributeEntry.h"
 #import "interfaces/StyleHeaders.h"
+#import "platform/EnrichedPlatform.h"
 #import "utils/AlignmentUtils.h"
 #import "utils/ParagraphAttributesUtils.h"
 #import "utils/RangeUtils.h"
@@ -196,6 +197,20 @@
 
   for (NSString *key in _input->textView.typingAttributes.allKeys) {
     if ([_customAttributesKeys containsObject:key]) {
+#if TARGET_OS_OSX
+      // AppKit internally applies styles present in the previous character,
+      // we want the inline images and links to not be extendable
+      StyleBase *linkStyle = _input->stylesDict[@([LinkStyle getType])];
+      if (linkStyle != nil && [[linkStyle getKey] isEqualToString:key]) {
+        continue;
+      }
+
+      StyleBase *imageStyle = _input->stylesDict[@([ImageStyle getType])];
+      if (imageStyle != nil && [[imageStyle getKey] isEqualToString:key]) {
+        continue;
+      }
+#endif
+
       if ([key isEqualToString:NSParagraphStyleAttributeName]) {
         // NSParagraphStyle for paragraph styles -> only keep the textLists
         // property
@@ -230,9 +245,32 @@
   // the cursor correctly reflects the current formatting state (e.g. heading
   // size).
   for (StyleBase *style in _input->stylesDict.allValues) {
-    if ([style appliesStylingToTyping] && [style detect:selectedRange]) {
+    BOOL isActive = [style detect:selectedRange];
+
+    if ([style appliesStylingToTyping] && isActive) {
       [style applyStylingToTypingAttrs:newAttrs];
     }
+
+#if TARGET_OS_OSX
+    // AppKit often clears textLists from typingAttributes, so we can't trust
+    // the existing typingAttributes, grabbing the intact NSParagraphStyle
+    // directly from the current paragraph's text storage.
+    if ([style isParagraph] && isActive) {
+      NSRange paraRange =
+          [textView.textStorage.string paragraphRangeForRange:selectedRange];
+
+      if (paraRange.location < textView.textStorage.length) {
+        NSParagraphStyle *pStyle =
+            [textView.textStorage attribute:NSParagraphStyleAttributeName
+                                    atIndex:paraRange.location
+                             effectiveRange:nil];
+
+        if (pStyle != nil && pStyle.textLists.count > 0) {
+          newAttrs[NSParagraphStyleAttributeName] = [pStyle mutableCopy];
+        }
+      }
+    }
+#endif
   }
 
   textView.typingAttributes = newAttrs;

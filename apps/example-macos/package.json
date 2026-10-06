@@ -1,0 +1,32 @@
+{
+  "name": "react-native-enriched-macos-example",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "macos": "react-native run-macos --scheme EnrichedMacOSExample-macOS",
+    "start": "react-native start",
+    "build:macos": "react-native build-macos --scheme EnrichedMacOSExample-macOS --mode Debug"
+  },
+  "dependencies": {
+    "react": "19.1.4",
+    "react-native": "0.81.6",
+    "react-native-macos": "^0.81.8"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@babel/preset-env": "^7.25.3",
+    "@babel/runtime": "^7.25.0",
+    "@react-native-community/cli": "20.0.0",
+    "@react-native-community/cli-platform-android": "20.0.0",
+    "@react-native-community/cli-platform-ios": "20.0.0",
+    "@react-native/babel-preset": "0.81.6",
+    "@react-native/metro-config": "0.81.6",
+    "@react-native/typescript-config": "0.81.6",
+    "@types/react": "^19.1.4",
+    "react-native-builder-bob": "^0.40.18",
+    "react-native-monorepo-config": "0.3.3"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

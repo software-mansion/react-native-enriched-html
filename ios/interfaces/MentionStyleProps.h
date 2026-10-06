@@ -1,7 +1,7 @@
 #pragma once
 #import "TextDecorationLineEnum.h"
+#import "platform/EnrichedPlatform.h"
 #import "string"
-#import <UIKit/UIKit.h>
 #import <folly/dynamic.h>
 
 @interface MentionStyleProps : NSObject

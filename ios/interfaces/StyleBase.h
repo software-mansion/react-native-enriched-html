@@ -3,7 +3,7 @@
 #import "EnrichedViewHost.h"
 #import "StylePair.h"
 #import "StyleTypeEnum.h"
-#import <UIKit/UIKit.h>
+#import "platform/EnrichedPlatform.h"
 
 @interface StyleBase : NSObject
 @property(nonatomic, weak) id<EnrichedViewHost> host;

@@ -2,11 +2,11 @@
 #import "StyleTypeEnum.h"
 #import "config/EnrichedConfig.h"
 #import "inputAttributesManager/InputAttributesManager.h"
-#import <UIKit/UIKit.h>
+#import "platform/EnrichedPlatform.h"
 
 @protocol EnrichedViewHost <NSObject>
 @required
-@property(nonatomic, readonly) UITextView *_Nonnull textView;
+@property(nonatomic, readonly) EnrichedBaseTextView *_Nonnull textView;
 @property(nonatomic, readonly) EnrichedConfig *_Nonnull config;
 @property(nonatomic, readonly)
     NSDictionary<NSNumber *, id> *_Nonnull stylesDict;

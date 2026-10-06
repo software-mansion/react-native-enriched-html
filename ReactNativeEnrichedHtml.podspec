@@ -10,7 +10,7 @@ Pod::Spec.new do |s|
   s.license      = package["license"]
   s.authors      = package["author"]
 
-  s.platforms    = { :ios => min_ios_version_supported }
+  s.platforms    = { :ios => min_ios_version_supported, :osx => "14.0" }
   s.source       = { :git => "https://github.com/software-mansion/react-native-enriched-html.git", :tag => "#{s.version}" }
 
   s.source_files = ["ios/**/*.{h,m,mm,cpp}", "cpp/**/*.{h,hpp,c,cpp}"]
