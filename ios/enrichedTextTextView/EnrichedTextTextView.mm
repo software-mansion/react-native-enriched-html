@@ -6,6 +6,17 @@
 
 @implementation EnrichedTextTextView
 
+- (void)layoutSubviews {
+  [super layoutSubviews];
+
+  // once the textView actually knows its width and height,
+  // we can position the inline images
+  EnrichedTextView *host = self.host;
+  if (!CGRectIsEmpty(host.textView.frame)) {
+    [host layoutAttachments];
+  }
+}
+
 - (void)copy:(id)sender {
   EnrichedTextView *host = self.host;
   if (host == nullptr) {
