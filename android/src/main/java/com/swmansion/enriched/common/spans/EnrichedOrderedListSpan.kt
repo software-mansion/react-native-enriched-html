@@ -9,6 +9,7 @@ import android.text.TextPaint
 import android.text.style.LeadingMarginSpan
 import android.text.style.MetricAffectingSpan
 import com.swmansion.enriched.common.EnrichedStyle
+import com.swmansion.enriched.common.ListIndentUtils
 import com.swmansion.enriched.common.spans.interfaces.EnrichedListSpan
 import com.swmansion.enriched.textinput.spans.EnrichedSpans
 
@@ -29,9 +30,9 @@ open class EnrichedOrderedListSpan(
     // Do nothing, but inform layout that this span affects text metrics
   }
 
-  private fun singleLevelIndent(): Int = enrichedStyle.olMarginLeft + enrichedStyle.olGapWidth
+  private fun ancestorsIndent(): Int = ListIndentUtils.ancestorsIndent(ancestorListStyles, enrichedStyle)
 
-  override fun getLeadingMargin(first: Boolean): Int = singleLevelIndent() * (depth + 1) // siema zle sie liczy
+  override fun getLeadingMargin(first: Boolean): Int = ancestorsIndent() + levelIndent(enrichedStyle)
 
   override fun drawLeadingMargin(
     canvas: Canvas,
@@ -52,7 +53,7 @@ open class EnrichedOrderedListSpan(
       val width = paint.measureText(text)
 
       val yPosition = baseline.toFloat()
-      val xPosition = (depth * singleLevelIndent() + enrichedStyle.olMarginLeft + x - width / 2) * dir
+      val xPosition = (ancestorsIndent() + enrichedStyle.olMarginLeft + x - width / 2) * dir
 
       val originalColor = paint.color
       val originalTypeface = paint.typeface
@@ -82,4 +83,8 @@ open class EnrichedOrderedListSpan(
         Typeface.create(originalTypeface, Typeface.NORMAL)
       }
     }
+
+  companion object {
+    fun levelIndent(enrichedStyle: EnrichedStyle): Int = enrichedStyle.olMarginLeft + enrichedStyle.olGapWidth
+  }
 }
