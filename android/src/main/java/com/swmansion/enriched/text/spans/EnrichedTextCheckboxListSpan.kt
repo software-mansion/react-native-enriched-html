@@ -7,9 +7,11 @@ import com.swmansion.enriched.text.spans.interfaces.EnrichedTextSpan
 class EnrichedTextCheckboxListSpan(
   override var isChecked: Boolean,
   enrichedStyle: EnrichedTextStyle,
-) : EnrichedCheckboxListSpan(isChecked, enrichedStyle),
+  ancestorListStyles: List<String> = emptyList(),
+) : EnrichedCheckboxListSpan(isChecked, enrichedStyle, ancestorListStyles),
   EnrichedTextSpan {
   override val dependsOnHtmlStyle: Boolean = true
 
-  override fun rebuildWithStyle(style: EnrichedTextStyle): EnrichedTextCheckboxListSpan = EnrichedTextCheckboxListSpan(isChecked, style)
+  override fun rebuildWithStyle(style: EnrichedTextStyle): EnrichedTextCheckboxListSpan =
+    EnrichedTextCheckboxListSpan(isChecked, style, ancestorListStyles)
 }

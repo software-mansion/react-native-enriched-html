@@ -69,14 +69,19 @@ class EnrichedTextSpanFactory : EnrichedSpanFactory<EnrichedTextStyle> {
   override fun createOrderedListSpan(
     index: Int,
     style: EnrichedTextStyle,
-  ) = EnrichedTextOrderedListSpan(index, style)
+    ancestorListStyles: List<String>,
+  ) = EnrichedTextOrderedListSpan(index, style, ancestorListStyles)
 
-  override fun createUnorderedListSpan(style: EnrichedTextStyle) = EnrichedTextUnorderedListSpan(style)
+  override fun createUnorderedListSpan(
+    style: EnrichedTextStyle,
+    ancestorListStyles: List<String>,
+  ) = EnrichedTextUnorderedListSpan(style, ancestorListStyles)
 
   override fun createCheckboxListSpan(
     isChecked: Boolean,
     style: EnrichedTextStyle,
-  ) = EnrichedTextCheckboxListSpan(isChecked, style)
+    ancestorListStyles: List<String>,
+  ) = EnrichedTextCheckboxListSpan(isChecked, style, ancestorListStyles)
 
   override fun createBlockQuoteSpan(style: EnrichedTextStyle) = EnrichedTextBlockQuoteSpan(style)
 

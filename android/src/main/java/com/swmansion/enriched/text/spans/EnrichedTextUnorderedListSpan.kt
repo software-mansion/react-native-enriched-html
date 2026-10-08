@@ -7,9 +7,10 @@ import com.swmansion.enriched.text.spans.interfaces.EnrichedTextSpan
 
 class EnrichedTextUnorderedListSpan(
   enrichedStyle: EnrichedStyle,
-) : EnrichedUnorderedListSpan(enrichedStyle),
+  ancestorListStyles: List<String> = emptyList(),
+) : EnrichedUnorderedListSpan(enrichedStyle, ancestorListStyles),
   EnrichedTextSpan {
   override val dependsOnHtmlStyle = true
 
-  override fun rebuildWithStyle(style: EnrichedTextStyle) = EnrichedTextUnorderedListSpan(style)
+  override fun rebuildWithStyle(style: EnrichedTextStyle) = EnrichedTextUnorderedListSpan(style, ancestorListStyles)
 }

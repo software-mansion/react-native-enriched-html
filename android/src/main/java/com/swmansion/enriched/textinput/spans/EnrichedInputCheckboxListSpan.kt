@@ -7,9 +7,11 @@ import com.swmansion.enriched.textinput.styles.HtmlStyle
 class EnrichedInputCheckboxListSpan(
   override var isChecked: Boolean,
   htmlStyle: HtmlStyle,
-) : EnrichedCheckboxListSpan(isChecked, htmlStyle),
+  ancestorListStyles: List<String> = emptyList(),
+) : EnrichedCheckboxListSpan(isChecked, htmlStyle, ancestorListStyles),
   EnrichedInputSpan {
   override val dependsOnHtmlStyle: Boolean = true
 
-  override fun rebuildWithStyle(htmlStyle: HtmlStyle): EnrichedInputCheckboxListSpan = EnrichedInputCheckboxListSpan(isChecked, htmlStyle)
+  override fun rebuildWithStyle(htmlStyle: HtmlStyle): EnrichedInputCheckboxListSpan =
+    EnrichedInputCheckboxListSpan(isChecked, htmlStyle, ancestorListStyles)
 }

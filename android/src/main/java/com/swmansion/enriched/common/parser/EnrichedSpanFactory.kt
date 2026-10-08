@@ -68,13 +68,18 @@ interface EnrichedSpanFactory<T> {
   fun createOrderedListSpan(
     index: Int,
     style: T,
+    ancestorListStyles: List<String> = emptyList(),
   ): EnrichedOrderedListSpan
 
-  fun createUnorderedListSpan(style: T): EnrichedUnorderedListSpan
+  fun createUnorderedListSpan(
+    style: T,
+    ancestorListStyles: List<String> = emptyList(),
+  ): EnrichedUnorderedListSpan
 
   fun createCheckboxListSpan(
     isChecked: Boolean,
     style: T,
+    ancestorListStyles: List<String> = emptyList(),
   ): EnrichedCheckboxListSpan
 
   fun createBlockQuoteSpan(style: T): EnrichedBlockQuoteSpan
