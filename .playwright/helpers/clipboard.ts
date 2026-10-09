@@ -39,7 +39,6 @@ export async function pastePlainTextIntoEditor(
   text: string
 ): Promise<void> {
   const pm = editorInnerLocator.locator('.ProseMirror');
-  await pm.click();
   await pm.evaluate((el, t) => {
     const dt = new DataTransfer();
     dt.setData('text/plain', t);
