@@ -39,7 +39,7 @@
   [self getRed:nil green:nil blue:nil alpha:&alpha];
   // alpha == 1.0 means the color was never given a custom transparency, so
   // apply newAlpha. Any other value means the caller explicitly chose it —
-  // leave it untouched.
+  // leave it unprocessed.
   if (alpha >= 1.0) {
     return [self colorWithAlphaComponent:newAlpha];
   }

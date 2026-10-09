@@ -140,7 +140,15 @@
     NSRange adjustedStyleRange = NSMakeRange(
         styleRange.location, styleRange.length + (NSUInteger)MAX(0LL, delta));
 
-    if ([style isParagraph]) {
+    if ([styleType isEqualToNumber:@([OrderedListStyle getType])]) {
+      // before applying the style, we need to compute the correct margins
+      OrderedListStyle *orderedListStyle = (OrderedListStyle *)style;
+      NSArray<NSValue *> *listRanges = [orderedListStyle
+          recalculateListsAroundEditedRange:adjustedStyleRange];
+      for (NSValue *listRangeValue in listRanges) {
+        [orderedListStyle applyStyling:[listRangeValue rangeValue]];
+      }
+    } else if ([style isParagraph]) {
       [style applyStyling:adjustedStyleRange];
     } else {
       [pendingInlineApply

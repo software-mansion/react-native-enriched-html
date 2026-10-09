@@ -66,15 +66,27 @@
 }
 
 - (void)handleDirtyRangesStyling {
-  // Filter out 0 length ranges for styling.
-  NSPredicate *predicate = [NSPredicate
-      predicateWithBlock:^BOOL(NSValue *evaluatedObject, NSDictionary *_) {
-        return [evaluatedObject rangeValue].length > 0;
-      }];
-  [_dirtyRanges filterUsingPredicate:predicate];
+  OrderedListStyle *orderedListStyle =
+      (OrderedListStyle *)_input->stylesDict[@([OrderedListStyle getType])];
+
+  // different dirty ranges may want to process the same ordered list,
+  // so we want to dedupe these operations
+  NSMutableArray<NSValue *> *processedOrderedListRanges =
+      [NSMutableArray array];
 
   for (NSValue *rangeObj in _dirtyRanges) {
     NSRange dirtyRange = [rangeObj rangeValue];
+
+    // deletion (0-length dirtyRange) means we need to refresh the ordered
+    // list margins. If the ordered list style is not present itself,
+    // it might mean that we have just deleted a list element and need
+    // to recalculate the potentially split list (current adjacent lists)
+    if (dirtyRange.length == 0) {
+      [self recalculateAndApplyOrderedListStyle:orderedListStyle
+                                    aroundRange:dirtyRange
+                               alreadyProcessed:processedOrderedListRanges];
+      continue;
+    }
 
     // dirty range can sometimes be wrong because of apple doing some changes
     // behind the scenes
@@ -88,6 +100,15 @@
       // the dict has keys of StyleType NSNumber and values of an array of all
       // occurences
       presentStyles[@([[style class] getType])] = [style all:dirtyRange];
+    }
+
+    // it's possible that ordered list style has just got removed,
+    // so we have to refresh adjacent ordered lists
+    if (orderedListStyle != nil &&
+        [presentStyles[@([OrderedListStyle getType])] count] == 0) {
+      [self recalculateAndApplyOrderedListStyle:orderedListStyle
+                                    aroundRange:dirtyRange
+                               alreadyProcessed:processedOrderedListRanges];
     }
 
     // now reset the attributes to default ones
@@ -118,14 +139,52 @@
       for (StylePair *stylePair in presentStyles[styleType]) {
         NSRange occurenceRange = [stylePair.rangeValue rangeValue];
         [style reapplyFromStylePair:stylePair];
+
+        // with ordered lists, we diverge from the usual flow, as we
+        // need to first update the margin data before applying the style
+        if ([styleType isEqualToNumber:@([OrderedListStyle getType])]) {
+          [self recalculateAndApplyOrderedListStyle:orderedListStyle
+                                        aroundRange:occurenceRange
+                                   alreadyProcessed:processedOrderedListRanges];
+          continue;
+        }
+
         [style applyStyling:occurenceRange];
       }
     }
   }
+
   // do the typing attributes management, with no selection
   [self manageTypingAttributesWithOnlySelection:NO];
 
   [_dirtyRanges removeAllObjects];
+}
+
+// recomputes the ordered list margin for the lists containing the given range
+// and applies it, unless a list has been already processed by an earlier call
+- (void)recalculateAndApplyOrderedListStyle:(OrderedListStyle *)orderedListStyle
+                                aroundRange:(NSRange)range
+                           alreadyProcessed:
+                               (NSMutableArray<NSValue *> *)processedRanges {
+  if (orderedListStyle == nil) {
+    return;
+  }
+
+  for (NSValue *processedRangeValue in processedRanges) {
+    NSRange processedRange = [processedRangeValue rangeValue];
+    if (NSLocationInRange(range.location, processedRange) ||
+        NSIntersectionRange(range, processedRange).length > 0) {
+      return;
+    }
+  }
+
+  NSArray<NSValue *> *newlyProcessedRanges =
+      [orderedListStyle recalculateListsAroundEditedRange:range];
+  [processedRanges addObjectsFromArray:newlyProcessedRanges];
+
+  for (NSValue *listRangeValue in newlyProcessedRanges) {
+    [orderedListStyle applyStyling:[listRangeValue rangeValue]];
+  }
 }
 
 - (void)restoreInlineStylesPresentInRange:(NSRange)range
