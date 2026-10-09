@@ -1,0 +1,35 @@
+appId: swmansion.enriched.example
+---
+# Validates display of nested unordered, ordered and checkbox lists
+- launchApp
+
+- tapOn:
+    id: 'toggle-screen-button'
+
+- tapOn:
+    id: 'toggle-enriched-text-screen-button'
+
+- runFlow:
+    file: '../subflows/set_enriched_text_value.yaml'
+    env:
+      VALUE: >
+        <html>
+            <ul>
+                <li>1</li>
+                <li>2<ol>
+                    <li>3</li>
+                    <li>4<ul data-type="checkbox">
+                        <li checked>5</li>
+                        <li>6</li>
+                    </ul>
+                    </li>
+                    <li>7</li>
+                </ol>
+                </li>
+            </ul>
+        </html>
+
+- runFlow:
+    file: '../subflows/capture_or_assert_screenshot.yaml'
+    env:
+      SCREENSHOT_NAME: 'nested_lists_display'
