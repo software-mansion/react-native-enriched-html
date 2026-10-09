@@ -279,6 +279,9 @@ export const EnrichedTextInput = ({
     ) => {
       Commands.setTextAlignment(nullthrows(nativeRef.current), alignment);
     },
+    deleteAtSelection: () => {
+      Commands.deleteAtSelection(nullthrows(nativeRef.current));
+    },
   }));
 
   const handleMentionEvent = (e: NativeSyntheticEvent<OnMentionEvent>) => {
