@@ -178,7 +178,7 @@ const styles = {
   htmlStyleOverrideInput: {
     width: '100%',
     marginBottom: '10px',
-    fontFamily: 'ui-monospace, monospace',
+    fontFamily: 'JetBrains Mono, ui-monospace, monospace',
     fontSize: 12,
   },
   htmlInput: {
@@ -203,5 +203,5 @@ const enrichedInputStyle: EnrichedInputStyle = {
   backgroundColor: 'gainsboro',
   fontSize: 16,
   lineHeight: 22,
-  fontFamily: 'Helvetica Neue',
+  fontFamily: 'Inter, Helvetica Neue',
 };
