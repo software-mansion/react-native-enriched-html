@@ -154,7 +154,7 @@
     "apps/example-web"
   ],
   "resolutions": {
-    "shell-quote": "1.8.4"
+    "shell-quote": "1.11.0"
   },
   "packageManager": "yarn@4.13.0",
   "jest": {
