@@ -362,11 +362,13 @@ export interface OnChangeStateEvent {
     isActive: boolean;
     isConflicting: boolean;
     isBlocking: boolean;
+    depth: number;
   };
   unorderedList: {
     isActive: boolean;
     isConflicting: boolean;
     isBlocking: boolean;
+    depth: number;
   };
   link: {
     isActive: boolean;
@@ -387,6 +389,7 @@ export interface OnChangeStateEvent {
     isActive: boolean;
     isConflicting: boolean;
     isBlocking: boolean;
+    depth: number;
   };
   alignment: string;
 }
@@ -523,6 +526,22 @@ export interface EnrichedTextInputInstance {
    * paragraph. Pass `checked` as `true` to pre-check the inserted items.
    */
   toggleCheckboxList: (checked: boolean) => void;
+
+  /**
+   * Increases the nesting depth of the list item(s) at the current selection
+   * by one.
+   *
+   * @platform ios
+   */
+  indentList: () => void;
+
+  /**
+   * Decreases the nesting depth of the list item(s) at the current selection
+   * by one, down to a minimum of the top level (depth `0`).
+   *
+   * @platform ios
+   */
+  outdentList: () => void;
 
   /**
    * Inserts or updates a hyperlink over the character range `[start, end)`.

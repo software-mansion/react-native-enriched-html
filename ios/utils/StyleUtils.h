@@ -3,6 +3,9 @@
 
 @interface StyleUtils : NSObject
 + (NSDictionary<NSNumber *, NSArray<NSNumber *> *> *)conflictMap;
++ (BOOL)conflictPresent:(StyleType)type
+                  range:(NSRange)range
+                forHost:(id<EnrichedViewHost>)host;
 + (NSDictionary<NSNumber *, NSArray<NSNumber *> *> *)blockingMap;
 + (NSDictionary<NSNumber *, StyleBase *> *)stylesDictForHost:
                                                (id<EnrichedViewHost>)host

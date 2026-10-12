@@ -309,6 +309,11 @@ class EnrichedSpanState(
     val isConflicting = conflictingList?.any { activeStyles.contains(it) } ?: false
     state.putBoolean("isConflicting", isConflicting)
 
+    // TODO: nested lists to be implemented on Android, depth is a placeholder (always 0)
+    if (type == EnrichedSpans.ORDERED_LIST || type == EnrichedSpans.UNORDERED_LIST || type == EnrichedSpans.CHECKBOX_LIST) {
+      state.putInt("depth", 0)
+    }
+
     return state
   }
 

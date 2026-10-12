@@ -13,11 +13,13 @@
 #import "utils/AttachmentLayoutUtils.h"
 #import "utils/DotReplacementUtils.h"
 #import "utils/KeyboardUtils.h"
+#import "utils/ListIntegrityUtils.h"
 #import "utils/ParagraphAttributesUtils.h"
 #import "utils/ShortcutsUtils.h"
 #import "utils/StyleUtils.h"
 #import "utils/TextBlockTapGestureRecognizer.h"
 #import "utils/TextInsertionUtils.h"
+#import "utils/TextListsUtils.h"
 #import "utils/WordsUtils.h"
 #import "utils/ZeroWidthSpaceUtils.h"
 #import <React/RCTConversions.h>
@@ -31,6 +33,14 @@
     .isActive = [self isStyleActive:TYPE_ENUM],                                \
     .isBlocking = [self isStyle:TYPE_ENUM activeInMap:blockingStyles],         \
     .isConflicting = [self isStyle:TYPE_ENUM activeInMap:conflictingStyles]    \
+  }
+
+#define GET_LIST_STYLE_STATE(TYPE_ENUM)                                        \
+  {                                                                            \
+    .isActive = [self isStyleActive:TYPE_ENUM],                                \
+    .isBlocking = [self isStyle:TYPE_ENUM activeInMap:blockingStyles],         \
+    .isConflicting = [self isStyle:TYPE_ENUM activeInMap:conflictingStyles],   \
+    .depth = static_cast<int>([self listDepthAtSelectionForType:TYPE_ENUM])    \
   }
 
 using namespace facebook::react;
@@ -62,6 +72,7 @@ using namespace facebook::react;
   NSString *_submitBehavior;
   NSDictionary<NSAttributedStringKey, id> *_capturedAttributesBeforeChange;
   NSString *_recentlyEmittedAlignment;
+  NSMutableDictionary<NSNumber *, NSNumber *> *_recentlyEmittedListDepths;
 }
 
 @synthesize blockEmitting = blockEmitting;
@@ -133,6 +144,7 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   _recentlyActiveLinkRange = NSMakeRange(0, 0);
   _recentlyActiveMentionRange = NSMakeRange(0, 0);
   _recentlyEmittedAlignment = @"left";
+  _recentlyEmittedListDepths = [[NSMutableDictionary alloc] init];
   _recentInputString = @"";
   _recentlyEmittedHtml = @"<html>\n<p></p>\n</html>";
   _emitHtml = NO;
@@ -1021,6 +1033,9 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   // separately
   NSMutableSet *newBlockedStyles = [_blockedStyles mutableCopy];
 
+  NSMutableDictionary<NSNumber *, NSNumber *> *newListDepths =
+      [_recentlyEmittedListDepths mutableCopy];
+
   // data for onLinkDetected event
   LinkData *detectedLinkData;
   NSRange detectedLinkRange = NSMakeRange(0, 0);
@@ -1057,6 +1072,16 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
         [newBlockedStyles addObject:type];
       } else {
         [newBlockedStyles removeObject:type];
+      }
+    }
+
+    if ([style isList]) {
+      NSInteger currentDepth =
+          [self listDepthAtSelectionForType:(StyleType)[type integerValue]];
+      NSNumber *previousDepth = newListDepths[type];
+      if (previousDepth == nil || previousDepth.integerValue != currentDepth) {
+        updateNeeded = YES;
+        newListDepths[type] = @(currentDepth);
       }
     }
 
@@ -1142,6 +1167,7 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
       _activeStyles = newActiveStyles;
       _blockedStyles = newBlockedStyles;
       _recentlyEmittedAlignment = currentAlignment;
+      _recentlyEmittedListDepths = newListDepths;
 
       emitter->onChangeState(
           {.bold = GET_STYLE_STATE([BoldStyle getType]),
@@ -1157,12 +1183,12 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
            .h4 = GET_STYLE_STATE([H4Style getType]),
            .h5 = GET_STYLE_STATE([H5Style getType]),
            .h6 = GET_STYLE_STATE([H6Style getType]),
-           .unorderedList = GET_STYLE_STATE([UnorderedListStyle getType]),
-           .orderedList = GET_STYLE_STATE([OrderedListStyle getType]),
+           .unorderedList = GET_LIST_STYLE_STATE([UnorderedListStyle getType]),
+           .orderedList = GET_LIST_STYLE_STATE([OrderedListStyle getType]),
            .blockQuote = GET_STYLE_STATE([BlockQuoteStyle getType]),
            .codeBlock = GET_STYLE_STATE([CodeBlockStyle getType]),
            .image = GET_STYLE_STATE([ImageStyle getType]),
-           .checkboxList = GET_STYLE_STATE([CheckboxListStyle getType]),
+           .checkboxList = GET_LIST_STYLE_STATE([CheckboxListStyle getType]),
            .alignment = [currentAlignment UTF8String]});
     }
   }
@@ -1212,6 +1238,28 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   }
 
   return false;
+}
+
+// returns the list nesting depth at the current selection,
+// where 0 means no present nesting
+- (NSInteger)listDepthAtSelectionForType:(StyleType)type {
+  if (![self.stylesDict[@(type)] isList] ||
+      ![self.stylesDict[@(type)] detect:textView.selectedRange]) {
+    return 0;
+  }
+
+  NSRange selection = textView.selectedRange;
+  NSParagraphStyle *pStyle;
+  if (selection.length == 0 && textView.isEditable) {
+    pStyle = textView.typingAttributes[NSParagraphStyleAttributeName];
+  } else if (textView.textStorage.length > 0) {
+    NSUInteger index = MIN(selection.location, textView.textStorage.length - 1);
+    pStyle = [textView.textStorage attribute:NSParagraphStyleAttributeName
+                                     atIndex:index
+                              effectiveRange:NULL];
+  }
+
+  return MAX(0, [TextListsUtils listDepthInArray:pStyle.textLists] - 1);
 }
 
 - (bool)textInputShouldReturn {
@@ -1280,6 +1328,10 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   } else if ([commandName isEqualToString:@"toggleCheckboxList"]) {
     BOOL checked = [args[0] boolValue];
     [self toggleCheckboxList:checked];
+  } else if ([commandName isEqualToString:@"indentList"]) {
+    [self indentList];
+  } else if ([commandName isEqualToString:@"outdentList"]) {
+    [self outdentList];
   } else if ([commandName isEqualToString:@"toggleBlockQuote"]) {
     [self toggleRegularStyle:[BlockQuoteStyle getType]];
   } else if ([commandName isEqualToString:@"toggleCodeBlock"]) {
@@ -1510,10 +1562,13 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   if ([style isParagraph]) {
     range = [textView.textStorage.string paragraphRangeForRange:range];
   }
+  BOOL conflictPresent = [StyleUtils conflictPresent:type
+                                               range:range
+                                             forHost:self];
   if ([StyleUtils handleStyleBlocksAndConflicts:type
                                           range:range
                                         forHost:self]) {
-    [style toggle:range];
+    [style toggle:range withConflictReplaced:conflictPresent];
     [self anyTextMayHaveBeenModified];
   }
 }
@@ -1526,12 +1581,60 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   }
   NSRange range = [textView.textStorage.string
       paragraphRangeForRange:textView.selectedRange];
+  BOOL conflictPresent = [StyleUtils conflictPresent:[CheckboxListStyle getType]
+                                               range:range
+                                             forHost:self];
   if ([StyleUtils handleStyleBlocksAndConflicts:[CheckboxListStyle getType]
                                           range:range
                                         forHost:self]) {
-    [style toggleWithChecked:checked range:range];
+    [style toggleWithChecked:checked
+                       range:range
+        withConflictReplaced:conflictPresent];
     [self anyTextMayHaveBeenModified];
   }
+}
+
+- (StyleBase *)activeListStyleForRange:(NSRange)range {
+  UnorderedListStyle *ulStyle = stylesDict[@([UnorderedListStyle getType])];
+  OrderedListStyle *olStyle = stylesDict[@([OrderedListStyle getType])];
+  CheckboxListStyle *cbStyle = stylesDict[@([CheckboxListStyle getType])];
+
+  if ([ulStyle detect:range]) {
+    return ulStyle;
+  }
+  if ([olStyle detect:range]) {
+    return olStyle;
+  }
+  if ([cbStyle detect:range]) {
+    return cbStyle;
+  }
+  return nullptr;
+}
+
+- (void)indentList {
+  NSRange range = [textView.textStorage.string
+      paragraphRangeForRange:textView.selectedRange];
+  StyleBase *activeListStyle = [self activeListStyleForRange:range];
+  if (activeListStyle == nullptr) {
+    return;
+  }
+
+  [(ListStyleBase *)activeListStyle modifyListNestingInRange:range
+                                                  increasing:YES];
+  [self anyTextMayHaveBeenModified];
+}
+
+- (void)outdentList {
+  NSRange range = [textView.textStorage.string
+      paragraphRangeForRange:textView.selectedRange];
+  StyleBase *activeListStyle = [self activeListStyleForRange:range];
+  if (activeListStyle == nullptr) {
+    return;
+  }
+
+  [(ListStyleBase *)activeListStyle modifyListNestingInRange:range
+                                                  increasing:NO];
+  [self anyTextMayHaveBeenModified];
 }
 
 - (void)addLinkAt:(NSInteger)start
@@ -1755,6 +1858,9 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
       }
     }
   }
+  // nested lists validation around the dirty ranges; fixes add their own dirty
+  // ranges
+  [ListIntegrityUtils validateListsInDirtyRanges:self];
   // all the visible (not meta) attributes handling in the ranges that could
   // have changed
   [attributesManager handleDirtyRangesStyling];
@@ -1906,12 +2012,13 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
              .h6 = GET_STYLE_STATE([H6Style getType]),
              .codeBlock = GET_STYLE_STATE([CodeBlockStyle getType]),
              .blockQuote = GET_STYLE_STATE([BlockQuoteStyle getType]),
-             .orderedList = GET_STYLE_STATE([OrderedListStyle getType]),
-             .unorderedList = GET_STYLE_STATE([UnorderedListStyle getType]),
+             .orderedList = GET_LIST_STYLE_STATE([OrderedListStyle getType]),
+             .unorderedList =
+                 GET_LIST_STYLE_STATE([UnorderedListStyle getType]),
              .link = GET_STYLE_STATE([LinkStyle getType]),
              .image = GET_STYLE_STATE([ImageStyle getType]),
              .mention = GET_STYLE_STATE([MentionStyle getType]),
-             .checkboxList = GET_STYLE_STATE([CheckboxListStyle getType]),
+             .checkboxList = GET_LIST_STYLE_STATE([CheckboxListStyle getType]),
              .alignment = [currentAlignment UTF8String]}});
   }
 }

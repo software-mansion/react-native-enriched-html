@@ -95,11 +95,13 @@ export interface OnChangeStateEvent {
     isActive: boolean;
     isConflicting: boolean;
     isBlocking: boolean;
+    depth: CodegenTypes.Int32;
   };
   unorderedList: {
     isActive: boolean;
     isConflicting: boolean;
     isBlocking: boolean;
+    depth: CodegenTypes.Int32;
   };
   link: {
     isActive: boolean;
@@ -120,6 +122,7 @@ export interface OnChangeStateEvent {
     isActive: boolean;
     isConflicting: boolean;
     isBlocking: boolean;
+    depth: CodegenTypes.Int32;
   };
   alignment: string;
 }
@@ -251,11 +254,13 @@ export interface OnContextMenuItemPressEvent {
       isActive: boolean;
       isConflicting: boolean;
       isBlocking: boolean;
+      depth: CodegenTypes.Int32;
     };
     unorderedList: {
       isActive: boolean;
       isConflicting: boolean;
       isBlocking: boolean;
+      depth: CodegenTypes.Int32;
     };
     link: {
       isActive: boolean;
@@ -276,6 +281,7 @@ export interface OnContextMenuItemPressEvent {
       isActive: boolean;
       isConflicting: boolean;
       isBlocking: boolean;
+      depth: CodegenTypes.Int32;
     };
     alignment: string;
   };
@@ -446,6 +452,8 @@ interface NativeCommands {
     viewRef: React.ElementRef<ComponentType>,
     checked: boolean
   ) => void;
+  indentList: (viewRef: React.ElementRef<ComponentType>) => void;
+  outdentList: (viewRef: React.ElementRef<ComponentType>) => void;
   addLink: (
     viewRef: React.ElementRef<ComponentType>,
     start: CodegenTypes.Int32,
@@ -509,6 +517,8 @@ export const Commands: NativeCommands = codegenNativeCommands<NativeCommands>({
     'toggleOrderedList',
     'toggleUnorderedList',
     'toggleCheckboxList',
+    'indentList',
+    'outdentList',
     'addLink',
     'removeLink',
     'addImage',

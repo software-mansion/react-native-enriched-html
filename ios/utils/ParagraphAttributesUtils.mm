@@ -86,6 +86,19 @@
                   withTyping:YES
               withDirtyRange:YES];
         }
+
+        // restore the full nested list chain in the typing attributes
+        NSArray<NSTextList *> *savedTextLists = currentParaStyle.textLists;
+        if (savedTextLists.count > 0) {
+          NSMutableDictionary *typingAttrs =
+              [typedInput->textView.typingAttributes mutableCopy];
+          NSMutableParagraphStyle *typingPStyle =
+              [typingAttrs[NSParagraphStyleAttributeName] mutableCopy]
+                  ?: [[NSMutableParagraphStyle alloc] init];
+          typingPStyle.textLists = savedTextLists;
+          typingAttrs[NSParagraphStyleAttributeName] = typingPStyle;
+          typedInput->textView.typingAttributes = typingAttrs;
+        }
         return YES;
       }
     }

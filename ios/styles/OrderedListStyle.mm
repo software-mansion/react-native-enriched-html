@@ -3,6 +3,7 @@
 #import "utils/RangeUtils.h"
 #import "utils/StyleUtils.h"
 #import "utils/TextInsertionUtils.h"
+#import "utils/TextListsUtils.h"
 
 @implementation OrderedListStyle
 
@@ -22,16 +23,8 @@
   return YES;
 }
 
-- (CGFloat)headIndent {
-  return [self.host.config orderedListMarginLeft] +
-         [self.host.config orderedListGapWidth];
-}
-
 - (void)applyStyling:(NSRange)range {
   // lists are drawn manually
-  // margin before marker + gap between marker and paragraph
-  CGFloat listHeadIndent = [self headIndent];
-
   [self.host.textView.textStorage
       enumerateAttribute:NSParagraphStyleAttributeName
                  inRange:range
@@ -40,6 +33,10 @@
                            BOOL *_Nonnull stop) {
                 NSMutableParagraphStyle *pStyle =
                     [(NSParagraphStyle *)value mutableCopy];
+                NSArray<NSTextList *> *chain =
+                    [TextListsUtils listChainInArray:pStyle.textLists];
+                CGFloat listHeadIndent =
+                    [self cumulativeHeadIndentForChain:chain];
                 pStyle.headIndent = listHeadIndent;
                 pStyle.firstLineHeadIndent = listHeadIndent;
                 [self.host.textView.textStorage
@@ -58,7 +55,9 @@
       [attributes[NSParagraphStyleAttributeName] mutableCopy];
   if (pStyle == nil)
     return;
-  CGFloat indent = [self headIndent];
+  NSArray<NSTextList *> *chain =
+      [TextListsUtils listChainInArray:pStyle.textLists];
+  CGFloat indent = [self cumulativeHeadIndentForChain:chain];
   pStyle.headIndent = indent;
   pStyle.firstLineHeadIndent = indent;
   attributes[NSParagraphStyleAttributeName] = pStyle;

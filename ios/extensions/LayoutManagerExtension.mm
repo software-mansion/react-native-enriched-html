@@ -3,6 +3,7 @@
 #import "interfaces/EnrichedViewHost.h"
 #import "interfaces/StyleHeaders.h"
 #import "utils/RangeUtils.h"
+#import "utils/TextListsUtils.h"
 #import "utils/WeakBox.h"
 #import <objc/runtime.h>
 
@@ -288,55 +289,47 @@ static void const *kInputKey = &kInputKey;
                                          getTextAlignedUsedRect:usedRect
                                                            font:referenceFont];
 
-                                     for (NSTextList *list in pStyle
-                                              .textLists) {
-                                       NSString *markerFormat =
-                                           list.markerFormat;
+                                     NSString *markerFormat = [TextListsUtils
+                                         deepestListMarkerFormatInArray:
+                                             pStyle.textLists];
 
-                                       if ([markerFormat
-                                               hasPrefix:
-                                                   @"EnrichedAlignment"]) {
-                                         continue;
-                                       }
+                                     if ([markerFormat
+                                             isEqualToString:
+                                                 @"EnrichedOrderedList"]) {
+                                       CGPoint glyphLocation =
+                                           [self locationForGlyphAtIndex:
+                                                     lineGlyphRange.location];
+                                       CGFloat absoluteBaselineY =
+                                           origin.y + rect.origin.y +
+                                           glyphLocation.y;
+                                       NSString *marker = [self
+                                           getDecimalMarkerForList:host
+                                                         charIndex:charIdx];
 
-                                       if ([markerFormat
-                                               isEqualToString:
-                                                   @"EnrichedOrderedList"]) {
-                                         CGPoint glyphLocation =
-                                             [self locationForGlyphAtIndex:
-                                                       lineGlyphRange.location];
-                                         CGFloat absoluteBaselineY =
-                                             origin.y + rect.origin.y +
-                                             glyphLocation.y;
-                                         NSString *marker = [self
-                                             getDecimalMarkerForList:host
-                                                           charIndex:charIdx];
+                                       [self drawDecimal:host
+                                                     marker:marker
+                                           markerAttributes:markerAttributes
+                                                     origin:origin
+                                                  baselineY:absoluteBaselineY
+                                                     indent:indent];
+                                     } else if ([markerFormat
+                                                    isEqualToString:
+                                                        @"EnrichedUnordered"
+                                                        @"Lis"
+                                                        @"t"]) {
+                                       [self drawBullet:host
+                                                 origin:origin
+                                               usedRect:textUsedRect
+                                                 indent:indent];
 
-                                         [self drawDecimal:host
-                                                       marker:marker
-                                             markerAttributes:markerAttributes
-                                                       origin:origin
-                                                    baselineY:absoluteBaselineY
-                                                       indent:indent];
-                                       } else if ([markerFormat
-                                                      isEqualToString:
-                                                          @"EnrichedUnordered"
-                                                          @"Lis"
-                                                          @"t"]) {
-                                         [self drawBullet:host
+                                     } else if ([markerFormat
+                                                    hasPrefix:@"EnrichedChe"
+                                                              @"ckbox"]) {
+                                       [self drawCheckbox:host
+                                             markerFormat:markerFormat
                                                    origin:origin
                                                  usedRect:textUsedRect
                                                    indent:indent];
-
-                                       } else if ([markerFormat
-                                                      hasPrefix:@"EnrichedChe"
-                                                                @"ckbox"]) {
-                                         [self drawCheckbox:host
-                                               markerFormat:markerFormat
-                                                     origin:origin
-                                                   usedRect:textUsedRect
-                                                     indent:indent];
-                                       }
                                      }
                                      // only first line of a list gets its
                                      // marker drawn
@@ -346,6 +339,18 @@ static void const *kInputKey = &kInputKey;
   }
 }
 
+// Returns the markerFormat strings of chain, excluding the last (own) entry -
+// i.e. the lineage of ancestor list types this paragraph is nested under.
+- (NSArray<NSString *> *)ancestorFormatsForChain:
+    (NSArray<NSTextList *> *)chain {
+  NSMutableArray<NSString *> *formats =
+      [NSMutableArray arrayWithCapacity:MAX(0, (NSInteger)chain.count - 1)];
+  for (NSUInteger i = 0; i + 1 < chain.count; i++) {
+    [formats addObject:chain[i].markerFormat];
+  }
+  return formats;
+}
+
 - (NSString *)getDecimalMarkerForList:(id<EnrichedViewHost>)host
                             charIndex:(NSUInteger)index {
   NSString *fullText = host.textView.textStorage.string;
@@ -353,6 +358,17 @@ static void const *kInputKey = &kInputKey;
 
   NSRange currentParagraph =
       [fullText paragraphRangeForRange:NSMakeRange(index, 0)];
+
+  NSParagraphStyle *currentPStyle =
+      [host.textView.textStorage attribute:NSParagraphStyleAttributeName
+                                   atIndex:currentParagraph.location
+                            effectiveRange:NULL];
+  NSArray<NSTextList *> *currentChain =
+      [TextListsUtils listChainInArray:currentPStyle.textLists];
+  NSInteger currentDepth = currentChain.count;
+  NSArray<NSString *> *currentAncestorFormats =
+      [self ancestorFormatsForChain:currentChain];
+
   if (currentParagraph.location > 0) {
     OrderedListStyle *olStyle = host.stylesDict[@([OrderedListStyle getType])];
 
@@ -362,20 +378,43 @@ static void const *kInputKey = &kInputKey;
                                              currentParagraph.location - 1, 0)]
             .location;
 
-    // seek for previous lists
+    // seek for previous items nested under the same ancestor lineage; a
+    // shallower paragraph (or same-depth one from a different lineage) ends
+    // this run
     while (true) {
-      if ([olStyle detect:NSMakeRange(recentParagraphLocation, 0)]) {
-        prevParagraphsCount += 1;
+      NSParagraphStyle *pStyle =
+          [host.textView.textStorage attribute:NSParagraphStyleAttributeName
+                                       atIndex:recentParagraphLocation
+                                effectiveRange:NULL];
+      NSArray<NSTextList *> *chain =
+          [TextListsUtils listChainInArray:pStyle.textLists];
+      NSInteger depth = chain.count;
 
-        if (recentParagraphLocation > 0) {
-          recentParagraphLocation =
-              [fullText
-                  paragraphRangeForRange:NSMakeRange(
-                                             recentParagraphLocation - 1, 0)]
-                  .location;
+      if (depth < currentDepth) {
+        break;
+      }
+
+      if (depth == currentDepth) {
+        NSArray<NSString *> *ancestorFormats =
+            [self ancestorFormatsForChain:chain];
+        BOOL sameLineage =
+            [ancestorFormats isEqualToArray:currentAncestorFormats];
+        if (sameLineage &&
+            [olStyle detect:NSMakeRange(recentParagraphLocation, 0)]) {
+          prevParagraphsCount += 1;
         } else {
           break;
         }
+      }
+      // depth > currentDepth: a nested descendant of an earlier sibling,
+      // we continue the search
+
+      if (recentParagraphLocation > 0) {
+        recentParagraphLocation =
+            [fullText
+                paragraphRangeForRange:NSMakeRange(recentParagraphLocation - 1,
+                                                   0)]
+                .location;
       } else {
         break;
       }

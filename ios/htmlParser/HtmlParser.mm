@@ -8,6 +8,7 @@
 #import "interfaces/StyleHeaders.h"
 #import "interfaces/StylePair.h"
 #import "utils/AlignmentUtils.h"
+#import "utils/TextListsUtils.h"
 
 #include "GumboParser.hpp"
 
@@ -207,9 +208,86 @@
   return statesInRange;
 }
 
+// Moves lists nested inside list items (<li>a<ul>...</ul></li>) right after
+// them (<li>a</li><ul>...</ul>). This makes the structure more flat and more
+// accessible for the parser logic, as the whole parser was not designed to
+// process text-content mixed with list tags inside a single <li>.
++ (NSString *)liftNestedListsOutOfListItems:(NSString *)html {
+  NSMutableString *output = [NSMutableString stringWithCapacity:html.length];
+  // per open list: whether its current <li> is still open
+  NSMutableArray<NSNumber *> *itemOpenStack = [NSMutableArray array];
+  NSCharacterSet *tagNameSet = [NSCharacterSet alphanumericCharacterSet];
+  NSCharacterSet *whitespaceAndNewlineSet =
+      [NSCharacterSet whitespaceAndNewlineCharacterSet];
+
+  NSUInteger i = 0;
+  while (i < html.length) {
+    NSRange tagEnd = NSMakeRange(NSNotFound, 0);
+    if ([html characterAtIndex:i] == '<') {
+      tagEnd = [html rangeOfString:@">"
+                           options:0
+                             range:NSMakeRange(i, html.length - i)];
+    }
+    if (tagEnd.location == NSNotFound) {
+      NSRange nextTag =
+          [html rangeOfString:@"<"
+                      options:0
+                        range:NSMakeRange(i + 1, html.length - i - 1)];
+      NSUInteger runEnd =
+          nextTag.location == NSNotFound ? html.length : nextTag.location;
+      [output
+          appendString:[html substringWithRange:NSMakeRange(i, runEnd - i)]];
+      i = runEnd;
+      continue;
+    }
+
+    NSString *tag =
+        [html substringWithRange:NSMakeRange(i, tagEnd.location - i + 1)];
+    i = tagEnd.location + 1;
+
+    BOOL closing = tag.length > 1 && [tag characterAtIndex:1] == '/';
+    NSUInteger nameStart = closing ? 2 : 1;
+    NSUInteger nameEnd = nameStart;
+    while (nameEnd < tag.length &&
+           [tagNameSet characterIsMember:[tag characterAtIndex:nameEnd]]) {
+      nameEnd++;
+    }
+    NSString *name =
+        [[tag substringWithRange:NSMakeRange(nameStart, nameEnd - nameStart)]
+            lowercaseString];
+    BOOL isList = [name isEqualToString:@"ul"] || [name isEqualToString:@"ol"];
+
+    if (isList && !closing) {
+      // a list nested inside an item; close the item before it
+      if (itemOpenStack.lastObject.boolValue) {
+        [output appendString:@"</li>"];
+        itemOpenStack[itemOpenStack.count - 1] = @NO;
+      }
+      [itemOpenStack addObject:@NO];
+    } else if (isList && closing) {
+      if (itemOpenStack.count > 0) {
+        [itemOpenStack removeLastObject];
+      }
+    } else if ([name isEqualToString:@"li"] && itemOpenStack.count > 0) {
+      if (closing && !itemOpenStack.lastObject.boolValue) {
+        // the item has already been closed before its nested list,
+        // skip appending the </li> tag
+        continue;
+      }
+      itemOpenStack[itemOpenStack.count - 1] = @(!closing);
+    }
+
+    [output appendString:tag];
+  }
+
+  return output;
+}
+
 + (NSString *_Nullable)initiallyProcessHtml:(NSString *_Nonnull)html
                           useHtmlNormalizer:(BOOL)useHtmlNormalizer {
-  NSString *htmlWithoutSpaces = [self stripExtraWhiteSpacesAndNewlines:html];
+  NSString *htmlWithoutSpaces = [self
+      stripExtraWhiteSpacesAndNewlines:[self
+                                           liftNestedListsOutOfListItems:html]];
   NSString *fixedHtml = nullptr;
 
   if (htmlWithoutSpaces.length >= 13) {
@@ -424,7 +502,10 @@
   NSMutableDictionary *checkboxStates = [[NSMutableDictionary alloc] init];
   NSMutableArray<AlignmentEntry *> *foundAlignments =
       [[NSMutableArray alloc] init];
-  BOOL insideCheckboxList = NO;
+  // stacks to remember parent lists' ongoingTags
+  NSMutableArray *ulStash = [NSMutableArray array];
+  NSMutableArray *olStash = [NSMutableArray array];
+
   NSInteger precedingImageCount = 0;
   BOOL insideTag = NO;
   BOOL gettingTagName = NO;
@@ -472,6 +553,9 @@
         if (!closingTag) {
           // Opening tag <li>
           // Track checkbox state if we're inside a checkbox list
+          NSArray *currentUlFrame = ongoingTags[@"ul"];
+          BOOL insideCheckboxList = currentUlFrame.count > 2 &&
+                                    [self isUlCheckboxList:currentUlFrame[2]];
           if (insideCheckboxList) {
             BOOL isChecked = [currentTagParams containsString:@"checked"];
             checkboxStates[@(plainText.length)] = @(isChecked);
@@ -513,13 +597,19 @@
           if (currentTagParams.length > 0) {
             [tagArr addObject:[currentTagParams copy]];
           }
-          ongoingTags[currentTagName] = tagArr;
 
-          // Check if this is a checkbox list
-          if ([currentTagName isEqualToString:@"ul"] &&
-              [self isUlCheckboxList:currentTagParams]) {
-            insideCheckboxList = YES;
+          // we open another list, we must stash the parent one
+          if ([currentTagName isEqualToString:@"ul"]) {
+            if (ongoingTags[@"ul"] != nil) {
+              [ulStash addObject:ongoingTags[@"ul"]];
+            }
+          } else if ([currentTagName isEqualToString:@"ol"]) {
+            if (ongoingTags[@"ol"] != nil) {
+              [olStash addObject:ongoingTags[@"ol"]];
+            }
           }
+
+          ongoingTags[currentTagName] = tagArr;
 
           // skip one newline if it was added after opening tags that are in
           // separate lines
@@ -546,13 +636,6 @@
       } else {
         // we finish closing tags - pack tag name, tag range and optionally tag
         // params into an entry that goes inside initiallyProcessedTags
-
-        // Check if we're closing a checkbox list by looking at the params
-        if ([currentTagName isEqualToString:@"ul"] &&
-            [self isUlCheckboxList:currentTagParams]) {
-          insideCheckboxList = NO;
-        }
-
         BOOL isBlockTag = [self isBlockTag:currentTagName];
 
         // ZWS logic for blockquote and codeblock
@@ -599,6 +682,16 @@
             initiallyProcessedTags:initiallyProcessedTags
                          plainText:plainText
                precedingImageCount:&precedingImageCount];
+
+        // we restore the parent list into ongoingTags if applicable
+        if ([currentTagName isEqualToString:@"ul"] && ulStash.count > 0) {
+          ongoingTags[@"ul"] = ulStash.lastObject;
+          [ulStash removeLastObject];
+        } else if ([currentTagName isEqualToString:@"ol"] &&
+                   olStash.count > 0) {
+          ongoingTags[@"ol"] = olStash.lastObject;
+          [olStash removeLastObject];
+        }
       }
       // post-tag cleanup
       closingTag = NO;
@@ -845,7 +938,51 @@
     [processedStyles addObject:styleArr];
   }
 
-  return @[ plainText, processedStyles, foundAlignments ];
+  // we need to sort the processed list styles, so the leafs of the
+  // nested lists will get applied last
+  NSMutableArray *otherStyles = [[NSMutableArray alloc] init];
+  NSMutableArray *listStyles = [[NSMutableArray alloc] init];
+
+  NSNumber *ulType = @([UnorderedListStyle getType]);
+  NSNumber *olType = @([OrderedListStyle getType]);
+  NSNumber *cbType = @([CheckboxListStyle getType]);
+
+  for (NSArray *styleArr in processedStyles) {
+    NSNumber *type = styleArr.firstObject;
+    if ([type isEqualToNumber:ulType] || [type isEqualToNumber:olType] ||
+        [type isEqualToNumber:cbType]) {
+      [listStyles addObject:styleArr];
+    } else {
+      [otherStyles addObject:styleArr];
+    }
+  }
+
+  [listStyles
+      sortUsingComparator:^NSComparisonResult(NSArray *arr1, NSArray *arr2) {
+        StylePair *pair1 = arr1.lastObject;
+        StylePair *pair2 = arr2.lastObject;
+        NSRange r1 = pair1.rangeValue.rangeValue;
+        NSRange r2 = pair2.rangeValue.rangeValue;
+
+        if (r1.location < r2.location) {
+          return NSOrderedAscending;
+        } else if (r1.location > r2.location) {
+          return NSOrderedDescending;
+        } else {
+          if (r1.length > r2.length) {
+            return NSOrderedAscending;
+          } else if (r1.length < r2.length) {
+            return NSOrderedDescending;
+          }
+          return NSOrderedSame;
+        }
+      }];
+
+  NSMutableArray *finalProcessedStyles =
+      [NSMutableArray arrayWithArray:otherStyles];
+  [finalProcessedStyles addObjectsFromArray:listStyles];
+
+  return @[ plainText, finalProcessedStyles, foundAlignments ];
 }
 
 + (NSString *)parseToHtmlFromRange:(NSRange)range
@@ -864,7 +1001,7 @@
   BOOL inOrderedList = NO;
   BOOL inBlockQuote = NO;
   BOOL inCodeBlock = NO;
-  BOOL inCheckboxList = NO;
+  NSMutableArray<NSNumber *> *openListStack = [[NSMutableArray alloc] init];
   unichar lastCharacter = 0;
 
   for (int i = 0; i < text.length; i++) {
@@ -903,69 +1040,80 @@
         // we can either have an empty list item OR need to close the list and
         // put a BR in such a situation the existence of the list must be
         // checked on 0 length range, not on the newline character
-        if (inOrderedList) {
-          OrderedListStyle *oStyle = host.stylesDict[@(OrderedList)];
-          BOOL detected = [oStyle detect:NSMakeRange(currentRange.location, 0)];
-          if (detected) {
-            [result appendString:@"\n<li></li>"];
-          } else {
-            [result appendString:@"\n</ol>\n<br>"];
-            inOrderedList = NO;
-          }
-        } else if (inUnorderedList) {
-          UnorderedListStyle *uStyle = host.stylesDict[@(UnorderedList)];
-          BOOL detected = [uStyle detect:NSMakeRange(currentRange.location, 0)];
-          if (detected) {
-            [result appendString:@"\n<li></li>"];
-          } else {
-            [result appendString:@"\n</ul>\n<br>"];
-            inUnorderedList = NO;
-          }
-        } else if (inBlockQuote) {
-          BlockQuoteStyle *bqStyle = host.stylesDict[@(BlockQuote)];
-          BOOL detected =
-              [bqStyle detect:NSMakeRange(currentRange.location, 0)];
-          if (detected) {
-            [result appendString:@"\n<br>"];
-          } else {
-            [result appendString:@"\n</blockquote>\n<br>"];
-            inBlockQuote = NO;
-          }
-        } else if (inCodeBlock) {
-          CodeBlockStyle *cbStyle = host.stylesDict[@(CodeBlock)];
-          BOOL detected =
-              [cbStyle detect:NSMakeRange(currentRange.location, 0)];
-          if (detected) {
-            [result appendString:@"\n<br>"];
-          } else {
-            [result appendString:@"\n</codeblock>\n<br>"];
-            inCodeBlock = NO;
-          }
-        } else if (inCheckboxList) {
-          CheckboxListStyle *cbLStyle = host.stylesDict[@(CheckboxList)];
-          BOOL detected =
-              [cbLStyle detect:NSMakeRange(currentRange.location, 0)];
-          if (detected) {
-            BOOL checked = [cbLStyle getCheckboxStateAt:currentRange.location];
-            if (checked) {
-              [result appendString:@"\n<li checked></li>"];
+
+        NSArray<NSNumber *> *targetChain =
+            [self listChainStyleTypesAtLocation:currentRange.location
+                                           host:host];
+        if (targetChain.count > 0) {
+          // we have some lists, we might have traversed nested list structure
+          // in some way, we need to sync the stack, by closing and opening
+          // relevant tags
+          [self syncListStackTo:targetChain
+                         result:result
+                          stack:openListStack
+                           host:host
+                       location:currentRange.location];
+
+          if (openListStack.count > 0) {
+            NSNumber *leafType = openListStack.lastObject;
+            if ([leafType isEqualToNumber:@([CheckboxListStyle getType])]) {
+              CheckboxListStyle *cbLStyle =
+                  host.stylesDict[@([CheckboxListStyle getType])];
+              BOOL checked =
+                  [cbLStyle getCheckboxStateAt:currentRange.location];
+              // the item is closed by syncListStackTo, as nested lists may
+              // still follow
+              if (checked) {
+                [result appendString:@"\n<li checked>"];
+              } else {
+                [result appendString:@"\n<li>"];
+              }
             } else {
-              [result appendString:@"\n<li></li>"];
+              [result appendString:@"\n<li>"];
             }
-          } else {
-            [result appendString:@"\n</ul>\n<br>"];
-            inCheckboxList = NO;
           }
         } else {
-          NSString *cssStyleString =
-              [self prepareCssStyleString:currentRange.location
-                             isOpeningTag:YES
-                                     host:host];
-          if (cssStyleString.length > 0) {
-            [result appendString:[NSString stringWithFormat:@"\n<p%@></p>",
-                                                            cssStyleString]];
+          if (openListStack.count > 0) {
+            // there are no lists present in the current location, we flush
+            // the stack and produce closing tags
+            [self syncListStackTo:@[]
+                           result:result
+                            stack:openListStack
+                             host:host
+                         location:currentRange.location];
+          }
+
+          if (inBlockQuote) {
+            BlockQuoteStyle *bqStyle = host.stylesDict[@(BlockQuote)];
+            BOOL detected =
+                [bqStyle detect:NSMakeRange(currentRange.location, 0)];
+            if (detected) {
+              [result appendString:@"\n<br>"];
+            } else {
+              [result appendString:@"\n</blockquote>\n<br>"];
+              inBlockQuote = NO;
+            }
+          } else if (inCodeBlock) {
+            CodeBlockStyle *cbStyle = host.stylesDict[@(CodeBlock)];
+            BOOL detected =
+                [cbStyle detect:NSMakeRange(currentRange.location, 0)];
+            if (detected) {
+              [result appendString:@"\n<br>"];
+            } else {
+              [result appendString:@"\n</codeblock>\n<br>"];
+              inCodeBlock = NO;
+            }
           } else {
-            [result appendString:@"\n<br>"];
+            NSString *cssStyleString =
+                [self prepareCssStyleString:currentRange.location
+                               isOpeningTag:YES
+                                       host:host];
+            if (cssStyleString.length > 0) {
+              [result appendString:[NSString stringWithFormat:@"\n<p%@></p>",
+                                                              cssStyleString]];
+            } else {
+              [result appendString:@"\n<br>"];
+            }
           }
         }
       } else {
@@ -976,9 +1124,11 @@
                                             sortDescriptorWithKey:@"intValue"
                                                         ascending:NO] ]];
 
-        // append closing tags
+        // append closing tags; list items are closed by syncListStackTo, as
+        // nested lists may still follow
         for (NSNumber *style in sortedEndedStyles) {
-          if ([style isEqualToNumber:@([ImageStyle getType])]) {
+          if ([style isEqualToNumber:@([ImageStyle getType])] ||
+              [self isListStyleType:style]) {
             continue;
           }
           NSString *tagContent = [self tagContentForStyle:style
@@ -1022,20 +1172,16 @@
       if (newLine) {
         newLine = NO;
 
-        // handle ending unordered list
-        if (inUnorderedList &&
-            ![currentActiveStyles
-                containsObject:@([UnorderedListStyle getType])]) {
-          inUnorderedList = NO;
-          [result appendString:@"\n</ul>"];
-        }
-        // handle ending ordered list
-        if (inOrderedList &&
-            ![currentActiveStyles
-                containsObject:@([OrderedListStyle getType])]) {
-          inOrderedList = NO;
-          [result appendString:@"\n</ol>"];
-        }
+        // handle ending and starting lists
+        NSArray<NSNumber *> *targetChain =
+            [self listChainStyleTypesAtLocation:currentRange.location
+                                           host:host];
+        [self syncListStackTo:targetChain
+                       result:result
+                        stack:openListStack
+                         host:host
+                     location:currentRange.location];
+
         // handle ending blockquotes
         if (inBlockQuote && ![currentActiveStyles
                                 containsObject:@([BlockQuoteStyle getType])]) {
@@ -1048,35 +1194,7 @@
           inCodeBlock = NO;
           [result appendString:@"\n</codeblock>"];
         }
-        // handle ending checkbox list
-        if (inCheckboxList &&
-            ![currentActiveStyles
-                containsObject:@([CheckboxListStyle getType])]) {
-          inCheckboxList = NO;
-          [result appendString:@"\n</ul>"];
-        }
 
-        NSString *cssStyleString =
-            [self prepareCssStyleString:currentRange.location
-                           isOpeningTag:YES
-                                   host:host];
-
-        // handle starting unordered list
-        if (!inUnorderedList &&
-            [currentActiveStyles
-                containsObject:@([UnorderedListStyle getType])]) {
-          inUnorderedList = YES;
-          [result appendString:[NSString stringWithFormat:@"\n<ul%@>",
-                                                          cssStyleString]];
-        }
-        // handle starting ordered list
-        if (!inOrderedList &&
-            [currentActiveStyles
-                containsObject:@([OrderedListStyle getType])]) {
-          inOrderedList = YES;
-          [result appendString:[NSString stringWithFormat:@"\n<ol%@>",
-                                                          cssStyleString]];
-        }
         // handle starting blockquotes
         if (!inBlockQuote &&
             [currentActiveStyles containsObject:@([BlockQuoteStyle getType])]) {
@@ -1088,15 +1206,6 @@
             [currentActiveStyles containsObject:@([CodeBlockStyle getType])]) {
           inCodeBlock = YES;
           [result appendString:@"\n<codeblock>"];
-        }
-        // handle starting checkbox list
-        if (!inCheckboxList &&
-            [currentActiveStyles
-                containsObject:@([CheckboxListStyle getType])]) {
-          inCheckboxList = YES;
-          [result appendString:[NSString stringWithFormat:
-                                             @"\n<ul data-type=\"checkbox\"%@>",
-                                             cssStyleString]];
         }
 
         // don't add the <p> tag if some paragraph styles are present
@@ -1116,6 +1225,10 @@
                 containsObject:@([CheckboxListStyle getType])]) {
           [result appendString:@"\n"];
         } else {
+          NSString *cssStyleString =
+              [self prepareCssStyleString:currentRange.location
+                             isOpeningTag:YES
+                                     host:host];
           [result appendString:[NSString stringWithFormat:@"\n<p%@>",
                                                           cssStyleString]];
         }
@@ -1236,9 +1349,10 @@
                                         sortDescriptorWithKey:@"intValue"
                                                     ascending:NO] ]];
 
-    // append closing tags
+    // append closing tags; list items are closed by syncListStackTo
     for (NSNumber *style in sortedEndedStyles) {
-      if ([style isEqualToNumber:@([ImageStyle getType])]) {
+      if ([style isEqualToNumber:@([ImageStyle getType])] ||
+          [self isListStyleType:style]) {
         continue;
       }
       NSString *tagContent =
@@ -1249,22 +1363,19 @@
       [result appendString:[NSString stringWithFormat:@"</%@>", tagContent]];
     }
 
-    // finish the paragraph
-    // handle ending of some paragraph styles
-    if ([previousActiveStyles containsObject:@([UnorderedListStyle getType])]) {
-      [result appendString:@"\n</ul>"];
-    } else if ([previousActiveStyles
-                   containsObject:@([OrderedListStyle getType])]) {
-      [result appendString:@"\n</ol>"];
+    if (openListStack.count > 0) {
+      // flush the nested list stack
+      [self syncListStackTo:@[]
+                     result:result
+                      stack:openListStack
+                       host:host
+                   location:host.textView.textStorage.string.length - 1];
     } else if ([previousActiveStyles
                    containsObject:@([BlockQuoteStyle getType])]) {
       [result appendString:@"\n</blockquote>"];
     } else if ([previousActiveStyles
                    containsObject:@([CodeBlockStyle getType])]) {
       [result appendString:@"\n</codeblock>"];
-    } else if ([previousActiveStyles
-                   containsObject:@([CheckboxListStyle getType])]) {
-      [result appendString:@"\n</ul>"];
     } else if ([previousActiveStyles containsObject:@([H1Style getType])] ||
                [previousActiveStyles containsObject:@([H2Style getType])] ||
                [previousActiveStyles containsObject:@([H3Style getType])] ||
@@ -1277,13 +1388,13 @@
     }
   } else {
     // newline character was last - some paragraph styles need to be closed
-    if (inUnorderedList) {
-      inUnorderedList = NO;
-      [result appendString:@"\n</ul>"];
-    }
-    if (inOrderedList) {
-      inOrderedList = NO;
-      [result appendString:@"\n</ol>"];
+    if (openListStack.count > 0) {
+      // flush the nested list stack
+      [self syncListStackTo:@[]
+                     result:result
+                      stack:openListStack
+                       host:host
+                   location:host.textView.textStorage.string.length - 1];
     }
     if (inBlockQuote) {
       inBlockQuote = NO;
@@ -1292,10 +1403,6 @@
     if (inCodeBlock) {
       inCodeBlock = NO;
       [result appendString:@"\n</codeblock>"];
-    }
-    if (inCheckboxList) {
-      inCheckboxList = NO;
-      [result appendString:@"\n</ul>"];
     }
   }
 
@@ -1494,6 +1601,128 @@
       entry.alignment = align;
       entry.range = NSMakeRange(actualStart, length);
       [foundAlignments addObject:entry];
+    }
+  }
+}
+
++ (NSArray<NSNumber *> *)listChainStyleTypesAtLocation:(NSInteger)location
+                                                  host:(id<EnrichedViewHost>)
+                                                           host {
+  if (location < 0 || location >= host.textView.textStorage.string.length) {
+    return @[];
+  }
+
+  NSParagraphStyle *pStyle =
+      [host.textView.textStorage attribute:NSParagraphStyleAttributeName
+                                   atIndex:location
+                            effectiveRange:NULL];
+  if (pStyle == nil) {
+    return @[];
+  }
+
+  NSArray<NSTextList *> *chain =
+      [TextListsUtils listChainInArray:pStyle.textLists];
+  NSMutableArray<NSNumber *> *result =
+      [NSMutableArray arrayWithCapacity:chain.count];
+
+  for (NSTextList *entry in chain) {
+    NSString *format = entry.markerFormat;
+    if ([format isEqualToString:@"EnrichedUnorderedList"]) {
+      [result addObject:@([UnorderedListStyle getType])];
+    } else if ([format isEqualToString:@"EnrichedOrderedList"]) {
+      [result addObject:@([OrderedListStyle getType])];
+    } else if ([format hasPrefix:@"EnrichedCheckbox"]) {
+      [result addObject:@([CheckboxListStyle getType])];
+    }
+  }
+
+  return result;
+}
+
++ (BOOL)isListStyleType:(NSNumber *)type {
+  return [type isEqualToNumber:@([UnorderedListStyle getType])] ||
+         [type isEqualToNumber:@([OrderedListStyle getType])] ||
+         [type isEqualToNumber:@([CheckboxListStyle getType])];
+}
+
+// syncing the current nested list data stack to the new one. If the
+// new stack removes a list, the relevant closing tag is appended. If the
+// new stack adds a new list, the relevant opening tag is appended instead.
+// Every list level on the stack has its <li> left open, so that a nested list
+// can be placed inside the item it belongs to (<li>a<ul><li>b</li></ul></li>).
+// The items are closed only once a paragraph at the same or a shallower depth
+// (or a non-list one) follows.
++ (void)syncListStackTo:(NSArray<NSNumber *> *)targetChain
+                 result:(NSMutableString *)result
+                  stack:(NSMutableArray<NSNumber *> *)openListStack
+                   host:(id<EnrichedViewHost>)host
+               location:(NSInteger)location {
+  NSUInteger commonPrefix = 0;
+  while (
+      commonPrefix < openListStack.count && commonPrefix < targetChain.count &&
+      [openListStack[commonPrefix] isEqualToNumber:targetChain[commonPrefix]]) {
+    commonPrefix++;
+  }
+
+  NSString *closeItemTag = @"</li>";
+  BOOL closedAnyList = openListStack.count > commonPrefix;
+
+  while (openListStack.count > commonPrefix) {
+    NSNumber *type = openListStack.lastObject;
+    NSString *closeTag = @"";
+
+    if ([type isEqualToNumber:@([UnorderedListStyle getType])]) {
+      closeTag = @"\n</ul>";
+    } else if ([type isEqualToNumber:@([OrderedListStyle getType])]) {
+      closeTag = @"\n</ol>";
+    } else if ([type isEqualToNumber:@([CheckboxListStyle getType])]) {
+      closeTag = @"\n</ul>";
+    }
+
+    [result appendString:closeItemTag];
+    [result appendString:closeTag];
+    [openListStack removeLastObject];
+    closeItemTag = @"\n</li>";
+  }
+
+  // next item is a sibling at this depth; close the previous one
+  if (commonPrefix > 0 && commonPrefix == targetChain.count) {
+    [result appendString:closeItemTag];
+  }
+
+  for (NSUInteger k = commonPrefix; k < targetChain.count; k++) {
+    NSNumber *type = targetChain[k];
+    NSString *cssStyleString = [self prepareCssStyleString:location
+                                              isOpeningTag:YES
+                                                      host:host];
+    // the innermost open item directly follows its text content, so we can't
+    // append the '\n' for now, unless we are not in any nested context (k=0)
+    // or a list has been just closed and we still have another one to open
+    // (more than one list inside a <li> tag)
+    BOOL followsItemContent = k > 0 && (k > commonPrefix || !closedAnyList);
+    NSString *newline = followsItemContent ? @"" : @"\n";
+    NSString *openTag = @"";
+
+    if ([type isEqualToNumber:@([UnorderedListStyle getType])]) {
+      openTag =
+          [NSString stringWithFormat:@"%@<ul%@>", newline, cssStyleString];
+    } else if ([type isEqualToNumber:@([OrderedListStyle getType])]) {
+      openTag =
+          [NSString stringWithFormat:@"%@<ol%@>", newline, cssStyleString];
+    } else if ([type isEqualToNumber:@([CheckboxListStyle getType])]) {
+      openTag = [NSString stringWithFormat:@"%@<ul data-type=\"checkbox\"%@>",
+                                           newline, cssStyleString];
+    }
+
+    [result appendString:openTag];
+    [openListStack addObject:type];
+
+    // Moving more than one level deeper means we have no text content in those
+    // list elements and a proper opening <li> tag will not get appended (this
+    // shouldn't happen as we keep the nested list structure valid in the input
+    // logic), so append it here, to keep the HTML structure intact
+    if (k < targetChain.count - 1) {
+      [result appendString:@"\n<li>"];
     }
   }
 }

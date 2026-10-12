@@ -12,6 +12,11 @@ export const DEFAULT_STYLE_STATE = {
   isBlocking: false,
 };
 
+export const DEFAULT_LIST_STYLE_STATE = {
+  ...DEFAULT_STYLE_STATE,
+  depth: 0,
+};
+
 export const DEFAULT_STYLES: StylesState = {
   bold: DEFAULT_STYLE_STATE,
   italic: DEFAULT_STYLE_STATE,
@@ -26,12 +31,12 @@ export const DEFAULT_STYLES: StylesState = {
   h6: DEFAULT_STYLE_STATE,
   blockQuote: DEFAULT_STYLE_STATE,
   codeBlock: DEFAULT_STYLE_STATE,
-  orderedList: DEFAULT_STYLE_STATE,
-  unorderedList: DEFAULT_STYLE_STATE,
+  orderedList: DEFAULT_LIST_STYLE_STATE,
+  unorderedList: DEFAULT_LIST_STYLE_STATE,
   link: DEFAULT_STYLE_STATE,
   image: DEFAULT_STYLE_STATE,
   mention: DEFAULT_STYLE_STATE,
-  checkboxList: DEFAULT_STYLE_STATE,
+  checkboxList: DEFAULT_LIST_STYLE_STATE,
   alignment: 'auto',
 };
 

@@ -12,12 +12,14 @@
 - (NSString *)getValue;
 - (NSString *)getMarkerPrefix;
 - (BOOL)isParagraph;
+- (BOOL)isList;
 - (BOOL)needsZWS;
 - (BOOL)appliesStylingToTyping;
 - (NSInteger)stylePriority;
 - (instancetype)initWithHost:(id<EnrichedViewHost>)host;
 - (NSRange)actualUsedRange:(NSRange)range;
 - (void)toggle:(NSRange)range;
+- (void)toggle:(NSRange)range withConflictReplaced:(BOOL)conflictReplaced;
 - (void)add:(NSRange)range
         withTyping:(BOOL)withTyping
     withDirtyRange:(BOOL)withDirtyRange;
@@ -28,6 +30,7 @@
 - (void)remove:(NSRange)range withDirtyRange:(BOOL)withDirtyRange;
 - (void)addTypingWithValue:(NSString *)value;
 - (void)removeTyping;
+- (void)restoreListChainFromStylePair:(StylePair *)pair range:(NSRange)range;
 - (BOOL)styleCondition:(id)value range:(NSRange)range;
 - (BOOL)detect:(NSRange)range;
 - (BOOL)any:(NSRange)range;

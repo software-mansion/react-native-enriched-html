@@ -86,6 +86,14 @@ const STYLE_ITEMS = [
     icon: 'check-square-o',
   },
   {
+    name: 'indent',
+    icon: 'indent',
+  },
+  {
+    name: 'outdent',
+    icon: 'outdent',
+  },
+  {
     name: 'align-left',
     icon: 'align-left',
   },
@@ -170,6 +178,12 @@ export const Toolbar: FC<ToolbarProps> = ({
       case 'checkbox-list':
         // Make checkbox checked by default
         editorRef.current?.toggleCheckboxList(true);
+        break;
+      case 'indent':
+        editorRef.current?.indentList();
+        break;
+      case 'outdent':
+        editorRef.current?.outdentList();
         break;
       case 'link':
         onOpenLinkModal();

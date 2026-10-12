@@ -6,6 +6,7 @@
 #import "interfaces/StyleHeaders.h"
 #import "utils/StyleUtils.h"
 #import "utils/TextInsertionUtils.h"
+#import "utils/TextListsUtils.h"
 #import <React/RCTLog.h>
 
 @implementation InputHtmlParser {
@@ -136,6 +137,16 @@
         NSMakeRange(offset + zeroWidthSpaceOffset + parsedRange.location,
                     parsedRange.length);
 
+    // we save the textLists data to restore it, as removing a conflicting
+    // style annihilates it. We need to persist it to correctly build the
+    // nested list data
+    NSArray *listChainSnapshot =
+        [baseStyle isList]
+            ? [TextListsUtils
+                  snapshotTextListsInRange:styleRange
+                               textStorage:_input->textView.textStorage]
+            : nil;
+
     // of course any changes here need to take blocks and conflicts into
     // consideration
     if ([StyleUtils handleStyleBlocksAndConflicts:[[baseStyle class] getType]
@@ -164,12 +175,19 @@
         NSDictionary *checkboxStates = (NSDictionary *)stylePair.styleValue;
         CheckboxListStyle *cbLStyle = (CheckboxListStyle *)baseStyle;
 
+        if (listChainSnapshot != nil) {
+          [TextListsUtils
+              restoreTextListsSnapshot:listChainSnapshot
+                           textStorage:_input->textView.textStorage];
+        }
+
         // First apply the checkbox list style to the entire range with
         // unchecked value
-        [cbLStyle addWithChecked:NO
-                           range:styleRange
-                      withTyping:shouldAddTypingAttr
-                  withDirtyRange:YES];
+        [cbLStyle add:styleRange
+                 withValue:[cbLStyle getValue]
+               withNesting:YES
+                withTyping:shouldAddTypingAttr
+            withDirtyRange:YES];
 
         if (checkboxStates && checkboxStates.count > 0) {
           // Then toggle checked checkboxes
@@ -182,6 +200,18 @@
             }
           }
         }
+      } else if ([baseStyle isList]) {
+        if (listChainSnapshot != nil) {
+          [TextListsUtils
+              restoreTextListsSnapshot:listChainSnapshot
+                           textStorage:_input->textView.textStorage];
+        }
+
+        [(ListStyleBase *)baseStyle add:styleRange
+                              withValue:[baseStyle getValue]
+                            withNesting:YES
+                             withTyping:NO
+                         withDirtyRange:NO];
       } else {
         [baseStyle add:styleRange
                 withTyping:shouldAddTypingAttr

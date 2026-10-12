@@ -80,9 +80,21 @@ function buildState(
       editor.isActive('codeBlock'),
       editor.isActive('link')
     ),
-    orderedList: paragraphFormat(editor.isActive('orderedList')),
-    unorderedList: paragraphFormat(editor.isActive('unorderedList')),
-    checkboxList: paragraphFormat(editor.isActive('checkboxList')),
+    orderedList: {
+      ...paragraphFormat(editor.isActive('orderedList')),
+      // TODO: nested lists to be implemented on web, placeholder for now
+      depth: 0,
+    },
+    unorderedList: {
+      ...paragraphFormat(editor.isActive('unorderedList')),
+      // TODO: nested lists to be implemented on web, placeholder for now
+      depth: 0,
+    },
+    checkboxList: {
+      ...paragraphFormat(editor.isActive('checkboxList')),
+      // TODO: nested lists to be implemented on web, placeholder for now
+      depth: 0,
+    },
     link: inlineFormat(
       'link',
       editor.isActive('code') ||

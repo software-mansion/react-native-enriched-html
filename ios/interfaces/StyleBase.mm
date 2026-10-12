@@ -37,6 +37,10 @@
   return false;
 }
 
+- (BOOL)isList {
+  return false;
+}
+
 - (BOOL)needsZWS {
   return NO;
 }
@@ -61,6 +65,10 @@
   if (![self isParagraph])
     return range;
   return [self.host.textView.textStorage.string paragraphRangeForRange:range];
+}
+
+- (void)toggle:(NSRange)range withConflictReplaced:(BOOL)conflictReplaced {
+  [self toggle:range];
 }
 
 - (void)toggle:(NSRange)range {
@@ -266,6 +274,30 @@
 - (void)reapplyFromStylePair:(StylePair *)pair {
   NSRange range = [pair.rangeValue rangeValue];
   [self add:range withTyping:NO withDirtyRange:NO];
+}
+
+// restoring the list-scoped textLists entries from the given
+// style pair. Used in the InputAttributesManager, where we reset
+// all typing attributes, so we need to restore that nested list meta data
+- (void)restoreListChainFromStylePair:(StylePair *)pair range:(NSRange)range {
+  NSParagraphStyle *savedPStyle = (NSParagraphStyle *)pair.styleValue;
+
+  [self.host.textView.textStorage
+      enumerateAttribute:NSParagraphStyleAttributeName
+                 inRange:range
+                 options:0
+              usingBlock:^(id _Nullable existingValue, NSRange subRange,
+                           BOOL *_Nonnull stop) {
+                NSMutableParagraphStyle *pStyle =
+                    [(NSParagraphStyle *)existingValue mutableCopy];
+                if (pStyle == nullptr)
+                  return;
+                pStyle.textLists = savedPStyle.textLists;
+                [self.host.textView.textStorage
+                    addAttribute:NSParagraphStyleAttributeName
+                           value:pStyle
+                           range:subRange];
+              }];
 }
 
 // Gets a custom attribtue entry for the typingAttributes.

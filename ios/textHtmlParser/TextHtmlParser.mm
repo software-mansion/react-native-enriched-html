@@ -7,6 +7,7 @@
 #import "interfaces/MentionParams.h"
 #import "interfaces/StyleHeaders.h"
 #import "utils/StyleUtils.h"
+#import "utils/TextListsUtils.h"
 #import "utils/ZeroWidthSpaceUtils.h"
 #import <React/RCTLog.h>
 
@@ -86,10 +87,25 @@
     NSRange styleRange = NSMakeRange(
         zeroWidthSpaceOffset + parsedRange.location, parsedRange.length);
 
+    // we save the textLists data to restore it, as removing a conflicting
+    // style annihilates it. We need to persist it to correctly build the
+    // nested list data
+    NSArray *listChainSnapshot =
+        [style isList]
+            ? [TextListsUtils
+                  snapshotTextListsInRange:styleRange
+                               textStorage:_view->textView.textStorage]
+            : nil;
+
     if (![StyleUtils handleStyleBlocksAndConflicts:[[style class] getType]
                                              range:styleRange
                                            forHost:_view]) {
       continue;
+    }
+
+    if (listChainSnapshot != nil) {
+      [TextListsUtils restoreTextListsSnapshot:listChainSnapshot
+                                   textStorage:_view->textView.textStorage];
     }
 
     if ([styleType isEqualToNumber:@([LinkStyle getType])]) {
@@ -108,10 +124,11 @@
       NSDictionary *checkboxStates = (NSDictionary *)stylePair.styleValue;
       CheckboxListStyle *cbStyle = (CheckboxListStyle *)style;
 
-      [cbStyle addWithChecked:NO
-                        range:styleRange
-                   withTyping:NO
-               withDirtyRange:NO];
+      [cbStyle add:styleRange
+               withValue:[cbStyle getValue]
+             withNesting:YES
+              withTyping:NO
+          withDirtyRange:NO];
 
       if (checkboxStates && checkboxStates.count > 0) {
         for (NSNumber *key in checkboxStates) {
@@ -124,6 +141,12 @@
           }
         }
       }
+    } else if ([style isList]) {
+      [(ListStyleBase *)style add:styleRange
+                        withValue:[style getValue]
+                      withNesting:YES
+                       withTyping:NO
+                   withDirtyRange:NO];
     } else {
       [style add:styleRange withTyping:NO withDirtyRange:NO];
     }

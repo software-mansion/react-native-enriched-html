@@ -37,4 +37,54 @@
     firstTextListWithPrefix:(NSString *_Nullable)prefix
                     inArray:(NSArray<NSTextList *> *_Nullable)textLists;
 
+// nested-lists-scoped utils
+
+// Returns the sub-sequence of textLists (preserving relative order) that
+// represents the real list nesting chain. The last entry is this paragraph's
+// own list type.
++ (NSArray<NSTextList *> *_Nonnull)listChainInArray:
+    (NSArray<NSTextList *> *_Nullable)textLists;
+
+// Replaces the whole list chain with the given one.
++ (NSArray<NSTextList *> *_Nonnull)
+    textListsByReplacingChainWith:(NSArray<NSTextList *> *_Nonnull)chain
+                          inArray:(NSArray<NSTextList *> *_Nullable)existing;
+
+// Returns the chain length (nesting depth) of markers representing list styles.
++ (NSInteger)listDepthInArray:(NSArray<NSTextList *> *_Nullable)textLists;
+
+// Returns the markerFormat of the paragraph's own deepest list entry.
++ (NSString *_Nullable)deepestListMarkerFormatInArray:
+    (NSArray<NSTextList *> *_Nullable)textLists;
+
+// Append a new entry to the existing chain, becoming the new deepest nested
+// list level.
++ (NSArray<NSTextList *> *_Nonnull)
+    textListsByAppendingToChain:(NSString *_Nonnull)value
+                        toArray:(NSArray<NSTextList *> *_Nullable)existing;
+
+// Removes a deepest entry from the existing chain.
++ (NSArray<NSTextList *> *_Nonnull)textListsByRemovingDeepestChainEntry:
+    (NSArray<NSTextList *> *_Nullable)existing;
+
+// Removes the closest parent (second to last element) in the list chain.
++ (NSArray<NSTextList *> *_Nonnull)textListsByRemovingParentChainEntry:
+    (NSArray<NSTextList *> *_Nullable)existing;
+
+// Replaces the deepest existing chain entry.
++ (NSArray<NSTextList *> *_Nonnull)
+    textListsByReplacingDeepestChainEntry:(NSString *_Nonnull)value
+                                  toArray:(NSArray<NSTextList *> *_Nullable)
+                                              existing;
+
+// Captures textLists of every paragraph overlapping range, so they can be put
+// back with restoreTextListsSnapshot:inTextStorage:.
++ (NSArray *_Nonnull)snapshotTextListsInRange:(NSRange)range
+                                  textStorage:
+                                      (NSTextStorage *_Nonnull)textStorage;
+
+// Restores textLists captured by snapshotTextListsInRange:textStorage:.
++ (void)restoreTextListsSnapshot:(NSArray *_Nonnull)snapshot
+                     textStorage:(NSTextStorage *_Nonnull)textStorage;
+
 @end

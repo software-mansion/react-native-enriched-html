@@ -437,6 +437,12 @@ class EnrichedTextInputViewManager :
     view?.toggleCheckboxListItem(isChecked)
   }
 
+  // TODO: nested lists to be implemented on Android, no-op placeholder for now
+  override fun indentList(view: EnrichedTextInputView?) = Unit
+
+  // TODO: nested lists to be implemented on Android, no-op placeholder for now
+  override fun outdentList(view: EnrichedTextInputView?) = Unit
+
   override fun addLink(
     view: EnrichedTextInputView?,
     start: Int,

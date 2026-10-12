@@ -2,6 +2,7 @@
 #import "EnrichedTextInputView.h"
 #import "config/EnrichedConfig.h"
 #import "interfaces/StyleHeaders.h"
+#import "utils/TextListsUtils.h"
 
 static const CGFloat kCheckboxHitSlopLeft = 8.0;
 static const CGFloat kCheckboxHitSlopVertical = 6.0;
@@ -52,6 +53,35 @@ static const CGFloat kCheckboxHitSlopVertical = 6.0;
 
 // MARK: - Checkbox rect
 
+// the checkbox list might be nested, so we need to add the
+// ancestor lists' cumulative margins to properly draw the checkbox
++ (CGFloat)ancestorHeadIndentForCharIndex:(NSUInteger)charIndex
+                                  inInput:(EnrichedTextInputView *)input {
+  NSTextStorage *storage = input->textView.textStorage;
+  if (charIndex >= storage.length) {
+    return 0;
+  }
+
+  NSParagraphStyle *pStyle = [storage attribute:NSParagraphStyleAttributeName
+                                        atIndex:charIndex
+                                 effectiveRange:NULL];
+  NSArray<NSTextList *> *chain =
+      [TextListsUtils listChainInArray:pStyle.textLists];
+  if (chain.count <= 1) {
+    return 0;
+  }
+
+  NSArray<NSTextList *> *ancestorChain =
+      [chain subarrayWithRange:NSMakeRange(0, chain.count - 1)];
+
+  ListStyleBase *checkboxListStyle =
+      (ListStyleBase *)input->stylesDict[@([CheckboxListStyle getType])];
+
+  return checkboxListStyle
+             ? [checkboxListStyle cumulativeHeadIndentForChain:ancestorChain]
+             : 0;
+}
+
 + (CGRect)checkboxRectForGlyphIndex:(NSUInteger)glyphIndex
                             inInput:(EnrichedTextInputView *)input {
   UITextView *textView = input->textView;
@@ -62,10 +92,16 @@ static const CGFloat kCheckboxHitSlopVertical = 6.0;
     return CGRectNull;
   }
 
+  NSUInteger charIndex =
+      [layoutManager characterIndexForGlyphAtIndex:glyphIndex];
+  CGFloat ancestorIndent = [self ancestorHeadIndentForCharIndex:charIndex
+                                                        inInput:input];
+
   CGRect lineRect = [layoutManager lineFragmentRectForGlyphAtIndex:glyphIndex
                                                     effectiveRange:nil];
 
-  CGFloat originX = lineRect.origin.x + config.checkboxListMarginLeft;
+  CGFloat originX =
+      lineRect.origin.x + ancestorIndent + config.checkboxListMarginLeft;
 
   CGFloat originY = lineRect.origin.y +
                     (lineRect.size.height - config.checkboxListBoxSize) / 2.0;
