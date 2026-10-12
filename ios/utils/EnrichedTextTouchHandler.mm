@@ -1,11 +1,11 @@
 #import "EnrichedTextTouchHandler.h"
-#import "ColorExtension.h"
 #import "EnrichedTextView.h"
-#import "ImageAttachment.h"
-#import "LinkData.h"
-#import "MentionParams.h"
-#import "MentionStyleProps.h"
-#import "StyleBase.h"
+#import "extensions/ColorExtension.h"
+#import "interfaces/ImageAttachment.h"
+#import "interfaces/LinkData.h"
+#import "interfaces/MentionParams.h"
+#import "interfaces/MentionStyleProps.h"
+#import "interfaces/StyleBase.h"
 
 @implementation EnrichedTextTouchHandler {
   NSRange _activeRange;

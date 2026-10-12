@@ -351,8 +351,25 @@ class EnrichedTextInputView :
         handleCustomCopy()
         return true
       }
+
+      android.R.id.pasteAsPlainText -> {
+        handlePasteAsPlainText()
+        return true
+      }
     }
     return super.onTextContextMenuItem(id)
+  }
+
+  private fun handlePasteAsPlainText() {
+    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+    val clip = clipboard.primaryClip ?: return
+    if (clip.itemCount == 0) return
+
+    val item = clip.getItemAt(0)
+    val plainText = item.coerceToText(context).toString()
+    val plainTextItem = ClipData.Item(plainText)
+
+    handleTextPaste(plainTextItem)
   }
 
   private fun handleCustomCopy() {
@@ -612,6 +629,18 @@ class EnrichedTextInputView :
       this.fontStyle = fontStyle
       typefaceDirty = true
     }
+  }
+
+  fun setAutoCorrect(autoCorrect: Boolean) {
+    val flagsToUnset = InputType.TYPE_TEXT_FLAG_AUTO_CORRECT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+
+    val flagsToSet =
+      when (autoCorrect) {
+        true -> InputType.TYPE_TEXT_FLAG_AUTO_CORRECT
+        false -> InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+      }
+
+    this.inputType = (this.inputType and flagsToUnset.inv()) or flagsToSet
   }
 
   fun setAutoCapitalize(flagName: String?) {
