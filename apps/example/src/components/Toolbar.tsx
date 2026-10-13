@@ -597,6 +597,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
     lineHeight: 17,
+    textAlign: 'center',
   },
   colorIndicator: {
     width: 20,
