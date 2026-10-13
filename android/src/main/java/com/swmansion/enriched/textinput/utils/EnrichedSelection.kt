@@ -4,6 +4,7 @@ import android.text.Editable
 import android.text.Spannable
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.uimanager.UIManagerHelper
+import com.swmansion.enriched.common.CustomStyle
 import com.swmansion.enriched.common.EnrichedConstants
 import com.swmansion.enriched.textinput.EnrichedTextInputView
 import com.swmansion.enriched.textinput.events.OnChangeSelectionEvent
@@ -145,29 +146,50 @@ class EnrichedSelection(
     val state = view.spanState ?: return
     val (start, end) = getInlineSelection()
     val spannable = view.text as Spannable
-    val spans = spannable.getSpans(start, end, EnrichedInputCustomStyleSpan::class.java)
+    val style = getCustomStyleInRange(spannable, start, end)
+    state.setCustomStyle(style.foregroundColor, style.backgroundColor, style.fontSize, style.fontFamily)
+  }
 
-    var foundFg: Int? = null
-    var foundBg: Int? = null
-    var foundFontSize: Float? = null
-    var foundFontFamily: String? = null
-
-    for (span in spans) {
-      val spanStart = spannable.getSpanStart(span)
-      val spanEnd = spannable.getSpanEnd(span)
-
-      if (start == end && start == spanStart) {
-        continue
-      } else if (start >= spanStart && end <= spanEnd) {
-        foundFg = span.getForegroundColor()
-        foundBg = span.getBackgroundColor()
-        foundFontSize = span.getFontSize()
-        foundFontFamily = span.getFontFamily()
-        break
-      }
+  private fun getCustomStyleInRange(
+    spannable: Spannable,
+    start: Int,
+    end: Int,
+  ): CustomStyle {
+    // not-ranged selection
+    if (start == end) {
+      return spannable
+        .getSpans(start, end, EnrichedInputCustomStyleSpan::class.java)
+        .firstOrNull { spannable.getSpanStart(it) < start && spannable.getSpanEnd(it) >= end }
+        ?.toCustomStyle() ?: CustomStyle()
     }
 
-    state.setCustomStyle(foundFg, foundBg, foundFontSize, foundFontFamily)
+    val foregroundColors = mutableSetOf<Int?>()
+    val backgroundColors = mutableSetOf<Int?>()
+    val fontSizes = mutableSetOf<Float?>()
+    val fontFamilies = mutableSetOf<String?>()
+
+    var position = start
+    while (position < end) {
+      val next = spannable.nextSpanTransition(position, end, EnrichedInputCustomStyleSpan::class.java)
+      val span =
+        spannable.getSpans(position, next, EnrichedInputCustomStyleSpan::class.java).firstOrNull {
+          spannable.getSpanStart(it) <= position && spannable.getSpanEnd(it) >= next
+        }
+
+      foregroundColors.add(span?.getForegroundColor())
+      backgroundColors.add(span?.getBackgroundColor())
+      fontSizes.add(span?.getFontSize())
+      fontFamilies.add(span?.getFontFamily())
+
+      position = next
+    }
+
+    return CustomStyle(
+      foregroundColor = foregroundColors.singleOrNull(),
+      backgroundColor = backgroundColors.singleOrNull(),
+      fontSize = fontSizes.singleOrNull(),
+      fontFamily = fontFamilies.singleOrNull(),
+    )
   }
 
   fun getParagraphSelection(): Pair<Int, Int> {
