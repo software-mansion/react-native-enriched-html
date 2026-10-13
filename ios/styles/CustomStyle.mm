@@ -226,6 +226,8 @@ static NSString *const CustomStyleAttributeName = @"EnrichedCustomStyle";
 
   NSMutableSet *foregroundColors = [NSMutableSet set];
   NSMutableSet *backgroundColors = [NSMutableSet set];
+  NSMutableSet *fontSizes = [NSMutableSet set];
+  NSMutableSet *fontFamilies = [NSMutableSet set];
 
   [self.host.textView.textStorage
       enumerateAttribute:CustomStyleAttributeName
@@ -240,16 +242,18 @@ static NSString *const CustomStyleAttributeName = @"EnrichedCustomStyle";
                     addObject:data.foregroundColor ?: (id)[NSNull null]];
                 [backgroundColors
                     addObject:data.backgroundColor ?: (id)[NSNull null]];
+                [fontSizes addObject:data.fontSize ?: (id)[NSNull null]];
+                [fontFamilies addObject:data.fontFamily ?: (id)[NSNull null]];
               }];
 
-  UIColor *foregroundColor = [self getSingleColorFromSet:foregroundColors];
-  UIColor *backgroundColor = [self getSingleColorFromSet:backgroundColors];
-  if (foregroundColor == nil && backgroundColor == nil)
+  CustomStyleData *data = [[CustomStyleData alloc] init];
+  data.foregroundColor = [self getSingleValueFromSet:foregroundColors];
+  data.backgroundColor = [self getSingleValueFromSet:backgroundColors];
+  data.fontSize = [self getSingleValueFromSet:fontSizes];
+  data.fontFamily = [self getSingleValueFromSet:fontFamilies];
+  if (data.isEmpty)
     return nil;
 
-  CustomStyleData *data = [[CustomStyleData alloc] init];
-  data.foregroundColor = foregroundColor;
-  data.backgroundColor = backgroundColor;
   return data;
 }
 
@@ -315,11 +319,11 @@ static NSString *const CustomStyleAttributeName = @"EnrichedCustomStyle";
   }
 }
 
-- (UIColor *_Nullable)getSingleColorFromSet:(NSSet *)colors {
-  if (colors.count != 1)
+- (id _Nullable)getSingleValueFromSet:(NSSet *)values {
+  if (values.count != 1)
     return nil;
-  id value = colors.anyObject;
-  return value == [NSNull null] ? nil : (UIColor *)value;
+  id value = values.anyObject;
+  return value == [NSNull null] ? nil : value;
 }
 
 @end
