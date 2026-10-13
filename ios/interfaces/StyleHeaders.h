@@ -13,7 +13,7 @@
                      range:(NSRange)range
                 withTyping:(BOOL)withTyping
             withDirtyRange:(BOOL)withDirtyRange;
-- (CustomStyleData *_Nullable)getCustomStyleDataAt:(NSUInteger)location;
+- (CustomStyleData *_Nullable)getCustomStyleDataInRange:(NSRange)range;
 - (CustomStyleData *_Nullable)getStoredCustomStyleDataAt:(NSUInteger)location;
 @end
 
