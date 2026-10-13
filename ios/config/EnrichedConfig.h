@@ -89,6 +89,7 @@
 - (CGFloat)codeBlockBorderRadius;
 - (void)setCodeBlockBorderRadius:(CGFloat)newValue;
 - (void)invalidateFonts;
+- (CGFloat)scaledFontSizeForValue:(CGFloat)fontSize;
 - (NSNumber *)scaledPrimaryFontSize;
 - (BOOL)allowFontScaling;
 - (void)setAllowFontScaling:(BOOL)newValue;

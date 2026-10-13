@@ -26,23 +26,37 @@ static NSString *const CustomStyleAttributeName = @"EnrichedCustomStyle";
   return 1;
 }
 
+- (BOOL)isFontFamilyAvailable:(NSString *)family {
+  return [UIFont fontNamesForFamilyName:family].count > 0 ||
+         [UIFont fontWithName:family size:UIFont.systemFontSize] != nil;
+}
+
 - (UIFont *)resolveFont:(UIFont *)font forData:(CustomStyleData *)data {
   UIFont *resolvedFont = font ?: [self.host.config primaryFont];
   UIFont *originalFont = resolvedFont;
 
   if (data.fontFamily.length > 0) {
-    resolvedFont = [RCTFont updateFont:resolvedFont
-                            withFamily:data.fontFamily
-                                  size:0
-                                weight:nullptr
-                                 style:nullptr
-                               variant:nullptr
-                       scaleMultiplier:1];
-    resolvedFont = [resolvedFont withFontTraits:originalFont];
+    // if the font family isn't available, we stick to the current font
+    if ([self isFontFamilyAvailable:data.fontFamily]) {
+      resolvedFont = [RCTFont updateFont:resolvedFont
+                              withFamily:data.fontFamily
+                                    size:0
+                                  weight:nullptr
+                                   style:nullptr
+                                 variant:nullptr
+                         scaleMultiplier:1];
+      resolvedFont = [resolvedFont withFontTraits:originalFont];
+    } else {
+      NSLog(@"[EnrichedTextInput] Font family '%@' not found, keeping the "
+            @"current font.",
+            data.fontFamily);
+    }
   }
 
   if (data.fontSize != nil) {
-    resolvedFont = [resolvedFont setSize:[data.fontSize doubleValue]];
+    CGFloat pointSize =
+        [self.host.config scaledFontSizeForValue:[data.fontSize doubleValue]];
+    resolvedFont = [resolvedFont setSize:pointSize];
   }
 
   return resolvedFont;
@@ -151,7 +165,7 @@ static NSString *const CustomStyleAttributeName = @"EnrichedCustomStyle";
 }
 
 - (AttributeEntry *)getEntryIfPresent:(NSRange)range {
-  CustomStyleData *data = [self getCustomStyleDataAt:range.location];
+  CustomStyleData *data = [self getCustomStyleDataInRange:range];
   if (data == nil || data.isEmpty)
     return nullptr;
 
@@ -204,6 +218,43 @@ static NSString *const CustomStyleAttributeName = @"EnrichedCustomStyle";
   }
 
   return [self getStoredCustomStyleDataAt:location];
+}
+
+- (CustomStyleData *_Nullable)getCustomStyleDataInRange:(NSRange)range {
+  if (range.length == 0)
+    return [self getCustomStyleDataAt:range.location];
+
+  NSMutableSet *foregroundColors = [NSMutableSet set];
+  NSMutableSet *backgroundColors = [NSMutableSet set];
+  NSMutableSet *fontSizes = [NSMutableSet set];
+  NSMutableSet *fontFamilies = [NSMutableSet set];
+
+  [self.host.textView.textStorage
+      enumerateAttribute:CustomStyleAttributeName
+                 inRange:range
+                 options:0
+              usingBlock:^(id value, NSRange subRange, BOOL *stop) {
+                CustomStyleData *data =
+                    [value isKindOfClass:[CustomStyleData class]]
+                        ? (CustomStyleData *)value
+                        : nil;
+                [foregroundColors
+                    addObject:data.foregroundColor ?: (id)[NSNull null]];
+                [backgroundColors
+                    addObject:data.backgroundColor ?: (id)[NSNull null]];
+                [fontSizes addObject:data.fontSize ?: (id)[NSNull null]];
+                [fontFamilies addObject:data.fontFamily ?: (id)[NSNull null]];
+              }];
+
+  CustomStyleData *data = [[CustomStyleData alloc] init];
+  data.foregroundColor = [self getSingleValueFromSet:foregroundColors];
+  data.backgroundColor = [self getSingleValueFromSet:backgroundColors];
+  data.fontSize = [self getSingleValueFromSet:fontSizes];
+  data.fontFamily = [self getSingleValueFromSet:fontFamilies];
+  if (data.isEmpty)
+    return nil;
+
+  return data;
 }
 
 // Reads CustomStyleData directly from textStorage, bypassing typingAttributes.
@@ -266,6 +317,13 @@ static NSString *const CustomStyleAttributeName = @"EnrichedCustomStyle";
     [self.host.attributesManager
         didRemoveTypingAttribute:CustomStyleAttributeName];
   }
+}
+
+- (id _Nullable)getSingleValueFromSet:(NSSet *)values {
+  if (values.count != 1)
+    return nil;
+  id value = values.anyObject;
+  return value == [NSNull null] ? nil : value;
 }
 
 @end
