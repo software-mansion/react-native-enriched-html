@@ -26,19 +26,31 @@ static NSString *const CustomStyleAttributeName = @"EnrichedCustomStyle";
   return 1;
 }
 
+- (BOOL)isFontFamilyAvailable:(NSString *)family {
+  return [UIFont fontNamesForFamilyName:family].count > 0 ||
+         [UIFont fontWithName:family size:UIFont.systemFontSize] != nil;
+}
+
 - (UIFont *)resolveFont:(UIFont *)font forData:(CustomStyleData *)data {
   UIFont *resolvedFont = font ?: [self.host.config primaryFont];
   UIFont *originalFont = resolvedFont;
 
   if (data.fontFamily.length > 0) {
-    resolvedFont = [RCTFont updateFont:resolvedFont
-                            withFamily:data.fontFamily
-                                  size:0
-                                weight:nullptr
-                                 style:nullptr
-                               variant:nullptr
-                       scaleMultiplier:1];
-    resolvedFont = [resolvedFont withFontTraits:originalFont];
+    // if the font family isn't available, we stick to the current font
+    if ([self isFontFamilyAvailable:data.fontFamily]) {
+      resolvedFont = [RCTFont updateFont:resolvedFont
+                              withFamily:data.fontFamily
+                                    size:0
+                                  weight:nullptr
+                                   style:nullptr
+                                 variant:nullptr
+                         scaleMultiplier:1];
+      resolvedFont = [resolvedFont withFontTraits:originalFont];
+    } else {
+      NSLog(@"[EnrichedTextInput] Font family '%@' not found, keeping the "
+            @"current font.",
+            data.fontFamily);
+    }
   }
 
   if (data.fontSize != nil) {
