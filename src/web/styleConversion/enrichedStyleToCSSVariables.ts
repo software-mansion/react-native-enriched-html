@@ -12,3 +12,7 @@ export function enrichedStyleToCSSVariables(
   if (style.fontFamily) vars[ET_STYLE_CSS_VARS.fontFamily] = style.fontFamily;
   return vars as CSSProperties;
 }
+
+export function withBaseFontFamilyFallback(fontFamily: string): string {
+  return `${fontFamily}, var(${ET_STYLE_CSS_VARS.fontFamily}, ${fontFamily})`;
+}

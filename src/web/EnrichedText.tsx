@@ -1,5 +1,6 @@
 import {
   memo,
+  useCallback,
   useImperativeHandle,
   useMemo,
   useRef,
@@ -17,6 +18,8 @@ import { buildMentionRulesCSS } from './styleConversion/buildMentionRulesCSS';
 import { sanitizeHtml } from './sanitization/htmlSanitizer';
 import { prepareHtmlForWeb } from './normalization/prepareHtmlForWeb';
 import { INLINE_IMAGE_CSS_VARIABLES } from './styleConversion/inlineImageCSSVariables';
+import { enrichedStyleToCSSVariables } from './styleConversion/enrichedStyleToCSSVariables';
+import { useBaseFontFamily } from './useBaseFontFamily';
 import { useImageErrorFallback } from './useImageErrorFallback';
 import { usePressInteractions } from './usePressInteractions';
 import { useEllipsizeMode } from './ellipsizeMode/useEllipsizeMode';
@@ -83,12 +86,19 @@ export const EnrichedText = memo(
       [style]
     );
 
+    const getContainerElement = useCallback(() => containerRef.current, []);
+    const baseFontFamily = useBaseFontFamily(
+      getContainerElement,
+      textStyle.fontFamily
+    );
+
     const cssVars = useMemo(
       () => ({
         ...enrichedTextHtmlStyleToCSSVariables(resolvedHtmlStyle),
         ...INLINE_IMAGE_CSS_VARIABLES,
+        ...enrichedStyleToCSSVariables({ fontFamily: baseFontFamily }),
       }),
-      [resolvedHtmlStyle]
+      [resolvedHtmlStyle, baseFontFamily]
     );
 
     const themingStyle = useMemo(

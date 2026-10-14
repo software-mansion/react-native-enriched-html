@@ -1,6 +1,6 @@
 import { Mark } from '@tiptap/core';
 import type { Attrs } from '@tiptap/pm/model';
-import { ET_STYLE_CSS_VARS } from '../styleConversion/enrichedStyleToCSSVariables';
+import { withBaseFontFamilyFallback } from '../styleConversion/enrichedStyleToCSSVariables';
 
 type CustomStyleAttrs = {
   foregroundColor?: string | null;
@@ -59,9 +59,7 @@ function buildStyle(attrs: Attrs, withFontFamilyFallback = false): string {
     const family = /\s/.test(fontFamily) ? `'${fontFamily}'` : fontFamily;
     // add a fall-back to the input's inherited font, if needed
     parts.push(
-      withFontFamilyFallback
-        ? `font-family: ${family}, var(${ET_STYLE_CSS_VARS.fontFamily}, ${family})`
-        : `font-family: ${family}`
+      `font-family: ${withFontFamilyFallback ? withBaseFontFamilyFallback(family) : family}`
     );
   }
   return parts.join('; ');

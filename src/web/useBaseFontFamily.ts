@@ -1,9 +1,8 @@
 import { useLayoutEffect, useState } from 'react';
-import { type Editor } from '@tiptap/react';
 
-// Without a fontFamily in style, the editor inherits its font from the DOM
+// without a fontFamily in style, the element inherits its font from the DOM
 export const useBaseFontFamily = (
-  editor: Editor,
+  getElement: () => HTMLElement | null,
   fontFamily?: string
 ): string | undefined => {
   const [inheritedFontFamily, setInheritedFontFamily] = useState<string>();
@@ -11,11 +10,14 @@ export const useBaseFontFamily = (
   useLayoutEffect(() => {
     if (fontFamily) return;
     try {
-      setInheritedFontFamily(getComputedStyle(editor.view.dom).fontFamily);
+      const element = getElement();
+      if (element) {
+        setInheritedFontFamily(getComputedStyle(element).fontFamily);
+      }
     } catch {
-      // editor view isn't mounted yet
+      // element isn't mounted yet
     }
-  }, [editor, fontFamily]);
+  }, [getElement, fontFamily]);
 
   return fontFamily ?? inheritedFontFamily;
 };

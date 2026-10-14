@@ -445,7 +445,11 @@ export const EnrichedTextInput = ({
     [scrollEnabled, style]
   );
 
-  const baseFontFamily = useBaseFontFamily(editor, editorStyle.fontFamily);
+  const getEditorElement = useCallback(() => editor.view.dom, [editor]);
+  const baseFontFamily = useBaseFontFamily(
+    getEditorElement,
+    editorStyle.fontFamily
+  );
 
   const cssVars = useMemo(
     () => ({
