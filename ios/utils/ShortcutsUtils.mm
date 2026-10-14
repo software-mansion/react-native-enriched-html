@@ -252,8 +252,9 @@ typedef struct {
   }
 
   [style add:ranges->finalContentRange withTyping:NO withDirtyRange:YES];
-  input->textView.selectedRange =
-      NSMakeRange(NSMaxRange(ranges->finalContentRange), 0);
+  [input->textView
+      enrichedSetSelectedRange:NSMakeRange(
+                                   NSMaxRange(ranges->finalContentRange), 0)];
   [style removeTyping];
 }
 

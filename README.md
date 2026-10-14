@@ -11,7 +11,7 @@
 - ⚡ Fully native input and display components (Supports New Architecture only)
 - 💻 HTML-based parsing with live, synchronous text styling
 - 🎨 Fully customizable styles for seamless UI integration
-- 🌐 Solid mobile and Web support
+- 🌐 Solid mobile and Web support with experimental macOS implementations
 
 `EnrichedTextInput`, the rich text input component is an uncontrolled input. This means that it doesn't use any state or props to store its value, but instead directly interacts with the underlying platform-specific components. Thanks to this, the component is really performant and simple to use while offering complex and advanced features no other solution has.
 

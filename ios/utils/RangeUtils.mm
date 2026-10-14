@@ -2,7 +2,7 @@
 
 @implementation RangeUtils
 
-+ (NSArray *)getSeparateParagraphsRangesIn:(UITextView *)textView
++ (NSArray *)getSeparateParagraphsRangesIn:(EnrichedBaseTextView *)textView
                                      range:(NSRange)range {
   // just in case, get full paragraphs range
   NSRange fullRange =
@@ -38,7 +38,8 @@
   return results;
 }
 
-+ (NSArray *)getNonNewlineRangesIn:(UITextView *)textView range:(NSRange)range {
++ (NSArray *)getNonNewlineRangesIn:(EnrichedBaseTextView *)textView
+                             range:(NSRange)range {
   NSMutableArray *nonNewlineRanges = [[NSMutableArray alloc] init];
   int lastRangeLocation = int(range.location);
 

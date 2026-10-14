@@ -2,7 +2,7 @@
 #import "interfaces/LinkRegexConfig.h"
 #import "interfaces/MentionStyleProps.h"
 #import "interfaces/TextDecorationLineEnum.h"
-#import <UIKit/UIKit.h>
+#import "platform/EnrichedPlatform.h"
 
 @interface EnrichedConfig : NSObject <NSCopying>
 - (instancetype)init;

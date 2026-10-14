@@ -186,8 +186,10 @@ static NSString *const AutomaticLinkAttributeName = @"EnrichedAutomaticLink";
     // don't need the selection fix
     if (linkData.isManual && withSelection) {
       [self.host.textView reactFocus];
-      self.host.textView.selectedRange =
-          NSMakeRange(range.location + linkData.text.length, 0);
+      [self.host.textView
+          enrichedSetSelectedRange:NSMakeRange(range.location +
+                                                   linkData.text.length,
+                                               0)];
     }
   } else {
     // replace text with link

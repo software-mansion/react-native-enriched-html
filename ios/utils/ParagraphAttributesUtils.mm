@@ -23,7 +23,7 @@
   // Do not manually intervene if the user is in the middle of IME
   // composition. Let the iOS system handle the backspace natively to prevent
   // state desync.
-  if (typedInput->textView.markedTextRange != nullptr) {
+  if (typedInput->textView.enrichedHasMarkedText) {
     return NO;
   }
 

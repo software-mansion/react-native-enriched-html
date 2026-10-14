@@ -1,5 +1,5 @@
 #import "interfaces/EnrichedViewHost.h"
-#import <UIKit/UIKit.h>
+#import "platform/EnrichedPlatform.h"
 #pragma once
 
 @interface ZeroWidthSpaceUtils : NSObject

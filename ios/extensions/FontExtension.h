@@ -1,4 +1,4 @@
-#import <UIKit/UIKit.h>
+#import "platform/EnrichedPlatform.h"
 #pragma once
 
 @interface UIFont (FontExtension)
