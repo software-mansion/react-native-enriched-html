@@ -63,6 +63,8 @@ function buildState(
     };
   }
 
+  const customStyle = getCurrentCustomStyleAttributes(editor);
+
   return {
     bold: inlineFormat('bold', false),
     italic: inlineFormat('italic', false),
@@ -100,14 +102,42 @@ function buildState(
     },
     alignment: getCurrentAlignment(editor) ?? 'auto',
     customStyle: {
-      foregroundColor:
-        editor.getAttributes('customStyle').foregroundColor ?? '',
-      backgroundColor:
-        editor.getAttributes('customStyle').backgroundColor ?? '',
-      fontSize: editor.getAttributes('customStyle').fontSize ?? 0,
-      fontFamily: editor.getAttributes('customStyle').fontFamily ?? '',
+      foregroundColor: customStyle.foregroundColor ?? '',
+      backgroundColor: customStyle.backgroundColor ?? '',
+      fontSize: customStyle.fontSize ?? 0,
+      fontFamily: customStyle.fontFamily ?? '',
     },
   };
+}
+
+function getCurrentCustomStyleAttributes(editor: Editor): Record<string, any> {
+  const { selection, doc, schema } = editor.state;
+  if (selection.empty) return editor.getAttributes('customStyle');
+
+  const foregroundColors = new Set<string | null>();
+  const backgroundColors = new Set<string | null>();
+  const fontSizes = new Set<number | null>();
+  const fontFamilies = new Set<string | null>();
+
+  doc.nodesBetween(selection.from, selection.to, (node) => {
+    if (!node.isText) return;
+    const attrs = schema.marks.customStyle?.isInSet(node.marks)?.attrs;
+    foregroundColors.add(attrs?.foregroundColor ?? null);
+    backgroundColors.add(attrs?.backgroundColor ?? null);
+    fontSizes.add(attrs?.fontSize ?? null);
+    fontFamilies.add(attrs?.fontFamily ?? null);
+  });
+
+  return {
+    foregroundColor: getSingleValue(foregroundColors),
+    backgroundColor: getSingleValue(backgroundColors),
+    fontSize: getSingleValue(fontSizes),
+    fontFamily: getSingleValue(fontFamilies),
+  };
+}
+
+function getSingleValue<T>(values: Set<T | null>): T | null {
+  return values.size === 1 ? ([...values][0] ?? null) : null;
 }
 
 function hashState(state: OnChangeStateEvent): string {
