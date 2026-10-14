@@ -1,5 +1,6 @@
 import { Mark } from '@tiptap/core';
 import type { Attrs } from '@tiptap/pm/model';
+import { ET_STYLE_CSS_VARS } from '../styleConversion/enrichedStyleToCSSVariables';
 
 type CustomStyleAttrs = {
   foregroundColor?: string | null;
@@ -39,6 +40,31 @@ function parseFontSize(value: string | null | undefined): number | null {
   if (!match) return null;
   const n = parseFloat(match[1]!);
   return !Number.isNaN(n) && n > 0 ? n : null;
+}
+
+function buildStyle(attrs: Attrs, withFontFamilyFallback = false): string {
+  const parts: string[] = [];
+  if (attrs.foregroundColor) {
+    parts.push(`color: ${attrs.foregroundColor}`);
+  }
+  if (attrs.backgroundColor) {
+    parts.push(`background-color: ${attrs.backgroundColor}`);
+  }
+  if (attrs.fontSize) {
+    parts.push(`font-size: ${attrs.fontSize}px`);
+  }
+  if (attrs.fontFamily) {
+    const fontFamily = attrs.fontFamily as string;
+    // if the font family contains a space, wrap it in quotes
+    const family = /\s/.test(fontFamily) ? `'${fontFamily}'` : fontFamily;
+    // add a fall-back to the input's inherited font, if needed
+    parts.push(
+      withFontFamilyFallback
+        ? `font-family: ${family}, var(${ET_STYLE_CSS_VARS.fontFamily}, ${family})`
+        : `font-family: ${family}`
+    );
+  }
+  return parts.join('; ');
 }
 
 declare module '@tiptap/core' {
@@ -99,26 +125,17 @@ export const EnrichedCustomStyle = Mark.create({
   },
 
   renderHTML({ mark }) {
-    const parts: string[] = [];
-    if (mark.attrs.foregroundColor) {
-      parts.push(`color: ${mark.attrs.foregroundColor}`);
-    }
-    if (mark.attrs.backgroundColor) {
-      parts.push(`background-color: ${mark.attrs.backgroundColor}`);
-    }
-    if (mark.attrs.fontSize) {
-      parts.push(`font-size: ${mark.attrs.fontSize}px`);
-    }
-    if (mark.attrs.fontFamily) {
-      const fontFamily = mark.attrs.fontFamily as string;
-      // if the font family contains a space, wrap it in quotes
-      parts.push(
-        /\s/.test(fontFamily)
-          ? `font-family: '${fontFamily}'`
-          : `font-family: ${fontFamily}`
-      );
-    }
-    return ['span', { style: parts.join('; ') }, 0];
+    return ['span', { style: buildStyle(mark.attrs) }, 0];
+  },
+
+  // The editor DOM gets a style tag's font-family definition with a fallback,
+  // whereas renderHTML stays fallback-free since it's what getHTML() serializes.
+  addMarkView() {
+    return ({ mark }) => {
+      const dom = document.createElement('span');
+      dom.setAttribute('style', buildStyle(mark.attrs, true));
+      return { dom, contentDOM: dom };
+    };
   },
 
   addKeyboardShortcuts() {
