@@ -59,6 +59,7 @@ interface EnrichedTextInputProps extends Omit<ViewProps, 'children'> {
   onChangeHtml?: (e: NativeSyntheticEvent<OnChangeHtmlEvent>) => void;
   onChangeState?: (e: NativeSyntheticEvent<OnChangeStateEvent>) => void;
   onLinkDetected?: (e: OnLinkDetected) => void;
+  onLinkPress?: (event: OnLinkPressEvent) => void;
   onMentionDetected?: (e: OnMentionDetected) => void;
   onStartMention?: (indicator: string) => void;
   onChangeMention?: (e: OnChangeMentionEvent) => void;
@@ -426,6 +427,23 @@ interface OnLinkDetected {
 | Type                              | Platforms         |
 | --------------------------------- | ----------------- |
 | `(event: OnLinkDetected) => void` | Android, iOS, Web |
+
+### `onLinkPress` {#onlinkpress}
+
+Called when the user clicks a link inside the editor. Receives an
+`OnLinkPressEvent` containing the link's URL. If not provided, clicking a link
+has no effect. See [Links](/rich-text-formatting/links) for more on how links
+are created and detected.
+
+```ts
+interface OnLinkPressEvent {
+  url: string;
+}
+```
+
+| Type                                | Platforms |
+| ----------------------------------- | --------- |
+| `(event: OnLinkPressEvent) => void` | Web       |
 
 ### `onMentionDetected` {#onmentiondetected}
 
