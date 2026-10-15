@@ -2097,7 +2097,9 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
       parseToHtmlFromRange:NSMakeRange(0, textView.textStorage.string.length)
                       host:self];
   NSString *initiallyProcessedHtml = [parser initiallyProcessHtml:currentHtml];
-  [parser replaceWholeFromHtml:initiallyProcessedHtml];
+  if (initiallyProcessedHtml != nullptr) {
+    [parser replaceWholeFromHtml:initiallyProcessedHtml];
+  }
 
   textView.selectedRange = prevSelectedRange;
   [self anyTextMayHaveBeenModified];

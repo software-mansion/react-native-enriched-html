@@ -212,52 +212,52 @@
   NSString *htmlWithoutSpaces = [self stripExtraWhiteSpacesAndNewlines:html];
   NSString *fixedHtml = nullptr;
 
-  if (htmlWithoutSpaces.length >= 13) {
-    NSString *firstSix =
-        [htmlWithoutSpaces substringWithRange:NSMakeRange(0, 6)];
-    NSString *lastSeven = [htmlWithoutSpaces
-        substringWithRange:NSMakeRange(htmlWithoutSpaces.length - 7, 7)];
-
-    if ([firstSix isEqualToString:@"<html>"] &&
-        [lastSeven isEqualToString:@"</html>"]) {
-      // remove html tags, might be with newlines or without them
-      fixedHtml = [htmlWithoutSpaces copy];
-      // firstly remove newlined html tags if any:
-      fixedHtml = [fixedHtml stringByReplacingOccurrencesOfString:@"<html>\n"
-                                                       withString:@""];
-      fixedHtml = [fixedHtml stringByReplacingOccurrencesOfString:@"\n</html>"
-                                                       withString:@""];
-      // fallback; remove html tags without their newlines
-      fixedHtml = [fixedHtml stringByReplacingOccurrencesOfString:@"<html>"
-                                                       withString:@""];
-      fixedHtml = [fixedHtml stringByReplacingOccurrencesOfString:@"</html>"
-                                                       withString:@""];
-    } else if (useHtmlNormalizer) {
-      // External HTML (from Google Docs, Word, web pages, etc.)
-      // Run through the Gumbo-based normalizer to convert arbitrary HTML
-      // into our canonical tag subset.
-      NSString *normalized = [self normalizeExternalHtml:html];
-      if (normalized != nil) {
-        fixedHtml = normalized;
-      }
+  if ([htmlWithoutSpaces hasPrefix:@"<html>"] &&
+      [htmlWithoutSpaces hasSuffix:@"</html>"]) {
+    // remove html tags, might be with newlines or without them
+    fixedHtml = [htmlWithoutSpaces copy];
+    // firstly remove newlined html tags if any:
+    fixedHtml = [fixedHtml stringByReplacingOccurrencesOfString:@"<html>\n"
+                                                     withString:@""];
+    fixedHtml = [fixedHtml stringByReplacingOccurrencesOfString:@"\n</html>"
+                                                     withString:@""];
+    // fallback; remove html tags without their newlines
+    fixedHtml = [fixedHtml stringByReplacingOccurrencesOfString:@"<html>"
+                                                     withString:@""];
+    fixedHtml = [fixedHtml stringByReplacingOccurrencesOfString:@"</html>"
+                                                     withString:@""];
+  } else if (useHtmlNormalizer) {
+    // External HTML (from Google Docs, Word, web pages, etc.)
+    // Run through the Gumbo-based normalizer to convert arbitrary HTML
+    // into our canonical tag subset.
+    NSString *normalized = [self normalizeExternalHtml:html];
+    if (normalized != nil) {
+      fixedHtml = normalized;
     }
+  }
 
-    // Additionally, try getting the content from between body tags if there are
-    // some:
+  // Additionally, try getting the content from between body tags if there are
+  // some:
 
-    // Firstly make sure there are no newlines between them.
-    fixedHtml = [fixedHtml stringByReplacingOccurrencesOfString:@"<body>\n"
-                                                     withString:@"<body>"];
-    fixedHtml = [fixedHtml stringByReplacingOccurrencesOfString:@"\n</body>"
-                                                     withString:@"</body>"];
-    // Then, if there actually are body tags, use the content between them.
-    NSRange openingBodyRange = [htmlWithoutSpaces rangeOfString:@"<body>"];
-    NSRange closingBodyRange = [htmlWithoutSpaces rangeOfString:@"</body>"];
-    if (openingBodyRange.length != 0 && closingBodyRange.length != 0) {
-      NSInteger newStart = openingBodyRange.location + 6;
-      NSInteger newEnd = closingBodyRange.location - 1;
+  // Firstly make sure there are no newlines between them.
+  fixedHtml = [fixedHtml stringByReplacingOccurrencesOfString:@"<body>\n"
+                                                   withString:@"<body>"];
+  fixedHtml = [fixedHtml stringByReplacingOccurrencesOfString:@"\n</body>"
+                                                   withString:@"</body>"];
+  // Then, if there actually are body tags, use the content between them.
+  NSRange openingBodyRange = [htmlWithoutSpaces rangeOfString:@"<body>"];
+  if (openingBodyRange.length != 0) {
+    NSUInteger newStart = NSMaxRange(openingBodyRange);
+    // only look for the closing tag after the opening one
+    NSRange closingBodyRange = [htmlWithoutSpaces
+        rangeOfString:@"</body>"
+              options:0
+                range:NSMakeRange(newStart,
+                                  htmlWithoutSpaces.length - newStart)];
+    if (closingBodyRange.length != 0) {
       fixedHtml = [htmlWithoutSpaces
-          substringWithRange:NSMakeRange(newStart, newEnd - newStart + 1)];
+          substringWithRange:NSMakeRange(newStart,
+                                         closingBodyRange.location - newStart)];
     }
   }
 
