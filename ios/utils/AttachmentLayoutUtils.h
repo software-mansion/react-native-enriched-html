@@ -21,4 +21,6 @@
                     textView:(UITextView *)textView
                       config:(EnrichedConfig *)config;
 
++ (CGSize)clampedSize:(CGSize)size toMaxWidth:(CGFloat)maxWidth;
+
 @end

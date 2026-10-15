@@ -121,7 +121,8 @@
   CGRect lineRect =
       [layoutManager lineFragmentRectForGlyphAtIndex:glyphRange.location
                                       effectiveRange:NULL];
-  CGSize attachmentSize = attachment.bounds.size;
+  CGSize attachmentSize = [self clampedSize:attachment.bounds.size
+                                 toMaxWidth:textContainer.size.width];
 
   UIFont *font = [storage attribute:NSFontAttributeName
                             atIndex:range.location
@@ -139,6 +140,14 @@
                  attachmentSize.width, attachmentSize.height);
 
   return CGRectIntegral(rect);
+}
+
++ (CGSize)clampedSize:(CGSize)size toMaxWidth:(CGFloat)maxWidth {
+  if (size.width > maxWidth && maxWidth > 0) {
+    CGFloat scale = maxWidth / size.width;
+    return CGSizeMake(maxWidth, size.height * scale);
+  }
+  return size;
 }
 
 @end
