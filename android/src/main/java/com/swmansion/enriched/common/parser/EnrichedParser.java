@@ -6,6 +6,7 @@ import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.ParagraphStyle;
+import com.swmansion.enriched.common.CustomStyle;
 import com.swmansion.enriched.common.EnrichedConstants;
 import com.swmansion.enriched.common.EnrichedSpanFlags;
 import com.swmansion.enriched.common.spans.EnrichedAlignmentSpan;
@@ -351,10 +352,7 @@ public class EnrichedParser {
           Integer bgColor = cs.getBackgroundColor();
           Float fontSize = cs.getFontSize();
           String fontFamily = cs.getFontFamily();
-          if (fgColor != null
-              || bgColor != null
-              || fontSize != null
-              || (fontFamily != null && !fontFamily.isEmpty())) {
+          if (!cs.toCustomStyle().isEmpty()) {
             StringBuilder cssProps = new StringBuilder();
             if (fgColor != null) {
               cssProps
@@ -1019,10 +1017,7 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
       }
     }
 
-    if (fg != null
-        || bg != null
-        || fontSize != null
-        || (fontFamily != null && !fontFamily.isEmpty())) {
+    if (!new CustomStyle(fg, bg, fontSize, fontFamily).isEmpty()) {
       start(text, new CustomStyleMark(fg, bg, fontSize, fontFamily));
     }
   }
