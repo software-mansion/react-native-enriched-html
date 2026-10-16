@@ -45,7 +45,9 @@
   return NO;
 }
 
-// determines the order in which the styles are applied
+// Determines the order in which the styles are applied.
+// 0 = paragraph, 1 = custom, 2 = inline (default), 3 = italic.
+// Styles are applied in ascending priority order so inline styles win.
 - (NSInteger)stylePriority {
   return [self isParagraph] ? 0 : 2;
 }

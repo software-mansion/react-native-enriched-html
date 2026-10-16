@@ -1,5 +1,6 @@
 import {
   memo,
+  useCallback,
   useImperativeHandle,
   useMemo,
   useRef,
@@ -27,6 +28,8 @@ import { adaptWebToNativeEvent } from './nativeMappers/adaptWebToNativeEvent';
 import { useStableRef } from './utils/useStableRef';
 import { assertBrowserEnvironment } from './utils/assertBrowserEnvironment';
 import { useOrderedListMarkerWidth } from './htmlExtensions/useOrderedListMarkerWidth';
+import { enrichedStyleToCSSVariables } from './styleConversion/enrichedStyleToCSSVariables';
+import { useBaseFontFamily } from './utils/useBaseFontFamily';
 
 export const EnrichedText = memo(
   ({
@@ -87,12 +90,19 @@ export const EnrichedText = memo(
       [style]
     );
 
+    const getContainerElement = useCallback(() => containerRef.current, []);
+    const baseFontFamily = useBaseFontFamily(
+      getContainerElement,
+      textStyle.fontFamily
+    );
+
     const cssVars = useMemo(
       () => ({
         ...enrichedTextHtmlStyleToCSSVariables(resolvedHtmlStyle),
         ...INLINE_IMAGE_CSS_VARIABLES,
+        ...enrichedStyleToCSSVariables({ fontFamily: baseFontFamily }),
       }),
-      [resolvedHtmlStyle]
+      [resolvedHtmlStyle, baseFontFamily]
     );
 
     const themingStyle = useMemo(

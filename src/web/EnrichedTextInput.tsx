@@ -42,6 +42,7 @@ import { ENRICHED_TEXT_INPUT_DEFAULT_PROPS } from '../utils/EnrichedTextInputDef
 import { enrichedInputStyleToCSSProperties } from './styleConversion/enrichedInputStyleToCSSProperties';
 import { enrichedInputThemingToCSSProperties } from './styleConversion/enrichedThemingToCSSProperties';
 import { buildMentionRulesCSS } from './styleConversion/buildMentionRulesCSS';
+import { enrichedStyleToCSSVariables } from './styleConversion/enrichedStyleToCSSVariables';
 import {
   htmlStyleToCSSVariables,
   mergeWithDefaultHtmlStyle,
@@ -63,6 +64,7 @@ import { EnrichedOrderedList } from './formats/EnrichedOrderedList';
 import { EnrichedCheckboxItem } from './formats/EnrichedCheckboxItem';
 import { EnrichedCheckboxList } from './formats/EnrichedCheckboxList';
 import { EnrichedTextAlign } from './formats/EnrichedTextAlign';
+import { EnrichedCustomStyle } from './formats/EnrichedCustomStyle';
 import { StripBoldInStyledHeadingsPlugin } from './pmPlugins/StripBoldInStyledHeadingsPlugin';
 import { StrictMarksPlugin } from './pmPlugins/StrictMarksPlugin';
 import { MergeAdjacentSameKindBlocksPlugin } from './pmPlugins/MergeAdjacentSameKindBlocksPlugin';
@@ -92,6 +94,8 @@ import {
 import { assertBrowserEnvironment } from './utils/assertBrowserEnvironment';
 import { runSafelyInEditor } from './utils/runSafelyInEditor';
 import { useLinkPress } from './htmlExtensions/useLinkPress';
+import { useBaseFontFamily } from './utils/useBaseFontFamily';
+import { normalizeColorValue } from './normalization/colorNormalizer';
 
 function runFocused(
   editor: Editor,
@@ -234,6 +238,7 @@ export const EnrichedTextInput = ({
       EnrichedOrderedList,
       EnrichedCheckboxList,
       EnrichedTextAlign,
+      EnrichedCustomStyle,
       StripMarksInCodeBlockPlugin,
       StripMarksOnImagePlugin,
       StripBoldInStyledHeadingsPlugin.configure({
@@ -433,6 +438,24 @@ export const EnrichedTextInput = ({
           runFocused(editor, (c) => c.setTextAlign(alignment));
         }
       },
+      setStyle: (customStyle) => {
+        runFocused(editor, (c) =>
+          c.setCustomStyle({
+            ...('foregroundColor' in customStyle && {
+              foregroundColor: normalizeColorValue(customStyle.foregroundColor),
+            }),
+            ...('backgroundColor' in customStyle && {
+              backgroundColor: normalizeColorValue(customStyle.backgroundColor),
+            }),
+            ...('fontSize' in customStyle && {
+              fontSize: customStyle.fontSize,
+            }),
+            ...('fontFamily' in customStyle && {
+              fontFamily: customStyle.fontFamily,
+            }),
+          })
+        );
+      },
     }),
     [editor, mentionIndicatorsRef, useHtmlNormalizerRef, sanitizationConfigRef]
   );
@@ -442,9 +465,18 @@ export const EnrichedTextInput = ({
     [scrollEnabled, style]
   );
 
+  const getEditorElement = useCallback(() => editor.view.dom, [editor]);
+  const baseFontFamily = useBaseFontFamily(
+    getEditorElement,
+    editorStyle.fontFamily
+  );
+
   const cssVars = useMemo(
-    () => htmlStyleToCSSVariables(resolvedHtmlStyle),
-    [resolvedHtmlStyle]
+    () => ({
+      ...htmlStyleToCSSVariables(resolvedHtmlStyle),
+      ...enrichedStyleToCSSVariables({ fontFamily: baseFontFamily }),
+    }),
+    [resolvedHtmlStyle, baseFontFamily]
   );
 
   const themingStyle = useMemo(
