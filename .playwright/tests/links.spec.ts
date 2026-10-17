@@ -589,6 +589,76 @@ test.describe('test-links copy-paste', () => {
   });
 });
 
+test.describe('test-links applyLinkOnPaste', () => {
+  async function selectRange(
+    page: Page,
+    start: number,
+    end: number
+  ): Promise<void> {
+    await page.fill(sel.selectionStart, String(start));
+    await page.fill(sel.selectionEnd, String(end));
+    await page.click(sel.applySelection);
+  }
+
+  test('linkifies the selection when pasting a full URL over it', async ({
+    page,
+  }) => {
+    await gotoTestLinks(page);
+    await setTestLinksEditorHtml(page, '<html><p>Hello world</p></html>');
+    await selectRange(page, 6, 11);
+
+    await pastePlainTextIntoEditor(
+      page.locator(sel.editorInner),
+      'https://example.com'
+    );
+
+    await expect
+      .poll(async () => getTestLinksSerializedHtml(page))
+      .toContain('<p>Hello <a href="https://example.com">world</a></p>');
+  });
+
+  test('does not linkify the selection when the pasted text is not a bare URL', async ({
+    page,
+  }) => {
+    await gotoTestLinks(page);
+    await setTestLinksEditorHtml(page, '<html><p>Hello world</p></html>');
+    await selectRange(page, 6, 11);
+
+    await pastePlainTextIntoEditor(
+      page.locator(sel.editorInner),
+      'see https://example.com'
+    );
+
+    // The selection is replaced by the pasted text (normal paste), not turned
+    // into a link — so the selected word "world" must not become a link.
+    await expect
+      .poll(async () => getTestLinksSerializedHtml(page))
+      .toContain('Hello see ');
+    await expect
+      .poll(async () => getTestLinksSerializedHtml(page))
+      .not.toContain('>world</a>');
+  });
+
+  test('does not linkify existing text when there is no selection', async ({
+    page,
+  }) => {
+    await gotoTestLinks(page);
+    await setTestLinksEditorHtml(page, '<html><p>Hello</p></html>');
+    await selectRange(page, 5, 5);
+
+    await pastePlainTextIntoEditor(
+      page.locator(sel.editorInner),
+      'https://example.com'
+    );
+
+    // With no selection applyLinkOnPaste is a no-op: the existing "Hello" must not
+    // be wrapped in a link pointing at the pasted URL.
+    await expect
+      .poll(async () => getTestLinksSerializedHtml(page))
+      .not.toContain('>Hello</a>');
+  });
+});
+
 test.describe('test-links manual link editing', () => {
   test('typing inside a manual link keeps the link covering the typed text', async ({
     page,
