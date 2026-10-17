@@ -245,6 +245,12 @@ For details, see [sanitization](/core-functionalities/web-support).
 
 Called whenever the input loses focus.
 
+On mobile, the input participates in React Native's text input focus tracking,
+so it also blurs through the standard keyboard-dismiss paths, just like
+`TextInput`: taps outside of it inside a `ScrollView` (following its
+[`keyboardShouldPersistTaps`](https://reactnative.dev/docs/scrollview#keyboardshouldpersisttaps)
+setting) and [`Keyboard.dismiss()`](https://reactnative.dev/docs/keyboard#dismiss).
+
 | Type                     | Platforms         |
 | ------------------------ | ----------------- |
 | `(e: BlurEvent) => void` | Android, iOS, Web |
