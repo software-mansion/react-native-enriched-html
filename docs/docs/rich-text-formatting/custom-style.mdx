@@ -41,9 +41,8 @@ freely with both inline styles and paragraph styles.
 
 :::note
 
-If a current inline style conflicts with what **custom style** sets, the inline style wins.
-E.g. if you try to apply `backgroundColor` or `fontFamily` to text with an inline `code` style,
-which has that formatting defined on its own, you will not see any difference.
+If a current style modifies the same thing that **custom style** sets, we have the following priority: 
+**paragraph style** < **custom style** < **inline style**. E.g. if you try to apply `foregroundColor` custom style to a text with a link (which is an inline style), the link's foreground color stays.
 
 :::
 

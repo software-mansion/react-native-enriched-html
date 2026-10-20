@@ -995,7 +995,7 @@ setStyle: (customStyle: {
 ```
 
 Sets the [custom style](/rich-text-formatting/custom-style) at the current
-selection. Passing `null` for a field removes it.
+selection. Omitting a field leaves the given formatting untouched, whereas passing `null` for a field removes it.
 
 - `foregroundColor` - text color; use a hex (e.g. `#FFE066`) or named (e.g.
   `'red'`) color
