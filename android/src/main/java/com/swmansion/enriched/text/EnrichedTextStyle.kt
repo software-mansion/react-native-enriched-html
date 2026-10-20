@@ -59,6 +59,7 @@ data class EnrichedTextStyle(
   override val inlineCodeBackgroundColor: Int,
   // Mentions
   override val mentionsStyle: Map<String, MentionStyle>,
+  val allowFontScaling: Boolean,
 ) : EnrichedStyle {
   companion object {
     fun fromReadableMap(
@@ -120,6 +121,7 @@ data class EnrichedTextStyle(
         inlineCodeColor = parseColor(context, inlineCode, "color"),
         inlineCodeBackgroundColor = parseColorWithOpacity(context, inlineCode, "backgroundColor"),
         mentionsStyle = parseMentionsStyle(context, mentions),
+        allowFontScaling = allowFontScaling,
       )
     }
 

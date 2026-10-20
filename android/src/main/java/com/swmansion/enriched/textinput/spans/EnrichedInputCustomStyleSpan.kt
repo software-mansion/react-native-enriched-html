@@ -21,7 +21,9 @@ class EnrichedInputCustomStyleSpan(
     allowFontScaling,
   ),
   EnrichedInputSpan {
-  override val dependsOnHtmlStyle: Boolean = false
+  // font size depends on the htmlStyle's allowFontScaling
+  override val dependsOnHtmlStyle: Boolean
+    get() = getFontSize() != null
 
   override fun rebuildWithStyle(htmlStyle: HtmlStyle): EnrichedInputCustomStyleSpan =
     EnrichedInputCustomStyleSpan(
@@ -30,6 +32,6 @@ class EnrichedInputCustomStyleSpan(
       getFontSize(),
       getFontFamily(),
       getAssets(),
-      getAllowFontScaling(),
+      htmlStyle.allowFontScaling,
     )
 }

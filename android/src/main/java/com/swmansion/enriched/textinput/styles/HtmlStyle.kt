@@ -74,6 +74,9 @@ class HtmlStyle : EnrichedStyle {
 
   override var mentionsStyle: MutableMap<String, MentionStyle> = mutableMapOf()
 
+  val allowFontScaling: Boolean
+    get() = view?.allowFontScaling ?: EnrichedConstants.ALLOW_FONT_SCALING_DEFAULT
+
   constructor(view: EnrichedTextInputView?, style: ReadableMap?) {
     this.view = view
     this.style = style
@@ -157,7 +160,7 @@ class HtmlStyle : EnrichedStyle {
   ): Float {
     val safeMap = ensureValueIsSet(map, key)
     val value = safeMap.getDouble(key)
-    return ceil(pixelFromSpOrDp(value, view?.allowFontScaling ?: EnrichedConstants.ALLOW_FONT_SCALING_DEFAULT))
+    return ceil(pixelFromSpOrDp(value, allowFontScaling))
   }
 
   private fun parseColorWithOpacity(

@@ -255,6 +255,11 @@ static NSDictionary<NSString *, NSString *> *getNamedHexColors(void) {
       r = ((value >> 8) & 0xF) / 15.0;
       g = ((value >> 4) & 0xF) / 15.0;
       b = (value & 0xF) / 15.0;
+    } else if (len == 4) {
+      r = ((value >> 12) & 0xF) / 15.0;
+      g = ((value >> 8) & 0xF) / 15.0;
+      b = ((value >> 4) & 0xF) / 15.0;
+      a = (value & 0xF) / 15.0;
     } else if (len == 6) {
       r = ((value >> 16) & 0xFF) / 255.0;
       g = ((value >> 8) & 0xFF) / 255.0;

@@ -50,8 +50,6 @@ open class EnrichedCustomStyleSpan(
 
   protected fun getAssets(): AssetManager = assets
 
-  protected fun getAllowFontScaling(): Boolean = allowFontScaling
-
   override fun updateMeasureState(textPaint: TextPaint) {
     applyFontState(textPaint)
   }

@@ -1051,6 +1051,7 @@ class EnrichedTextInputView :
     runAsATransaction {
       customStyles?.setStyle(styleJSON)
     }
+    layoutManager.invalidateLayout()
   }
 
   fun requestHTML(requestId: Int) {

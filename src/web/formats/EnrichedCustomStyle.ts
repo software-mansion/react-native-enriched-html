@@ -1,6 +1,7 @@
 import { Mark } from '@tiptap/core';
 import type { Attrs } from '@tiptap/pm/model';
 import { withBaseFontFamilyFallback } from '../styleConversion/enrichedStyleToCSSVariables';
+import { deleteCharacterBackward } from '../utils/deleteCharacterBackward';
 
 type CustomStyleAttrs = {
   foregroundColor?: string | null;
@@ -9,14 +10,27 @@ type CustomStyleAttrs = {
   fontFamily?: string | null;
 };
 
-function normalizeFontFamily(value: string | null | undefined): string | null {
+function firstInFontFamilyString(value: string): string {
+  let quote = '';
+  for (let i = 0; i < value.length; i++) {
+    const c = value[i];
+    if (quote) {
+      if (c === quote) quote = '';
+    } else if (c === "'" || c === '"') {
+      quote = c;
+    } else if (c === ',') {
+      return value.slice(0, i);
+    }
+  }
+  return value;
+}
+
+export function normalizeFontFamily(
+  value: string | null | undefined
+): string | null {
   if (!value) return null;
 
-  let fontFamily = value.trim();
-  const commaIndex = fontFamily.indexOf(',');
-  if (commaIndex !== -1) {
-    fontFamily = fontFamily.slice(0, commaIndex).trim();
-  }
+  let fontFamily = firstInFontFamilyString(value.trim()).trim();
 
   if (
     (fontFamily.startsWith("'") && fontFamily.endsWith("'")) ||
@@ -55,8 +69,8 @@ function buildStyle(attrs: Attrs, withFontFamilyFallback = false): string {
   }
   if (attrs.fontFamily) {
     const fontFamily = attrs.fontFamily as string;
-    // if the font family contains a space, wrap it in quotes
-    const family = /\s/.test(fontFamily) ? `'${fontFamily}'` : fontFamily;
+    // if the font family contains a space or a comma, wrap it in quotes
+    const family = /[\s,]/.test(fontFamily) ? `'${fontFamily}'` : fontFamily;
     // add a fall-back to the input's inherited font, if needed
     parts.push(
       `font-family: ${withFontFamilyFallback ? withBaseFontFamilyFallback(family) : family}`
@@ -156,7 +170,8 @@ export const EnrichedCustomStyle = Mark.create({
         // Cursor sits right at the plain-styled boundary.
         // Handle deletion ourselves so Chrome's contenteditable
         // normalization never touches the styled <span>.
-        const tr = state.tr.delete($from.pos - 1, $from.pos);
+        const tr = deleteCharacterBackward(state);
+        if (!tr) return false;
         editor.view.dispatch(tr);
         return true;
       },
@@ -185,7 +200,7 @@ export const EnrichedCustomStyle = Mark.create({
             patch.fontSize = resolveFontSize(attrs.fontSize);
           }
           if ('fontFamily' in attrs) {
-            patch.fontFamily = normalizeFontFamily(attrs.fontFamily);
+            patch.fontFamily = attrs.fontFamily?.trim() || null;
           }
 
           const mergeAttrs = (
@@ -194,7 +209,7 @@ export const EnrichedCustomStyle = Mark.create({
             foregroundColor: existing?.foregroundColor || null,
             backgroundColor: existing?.backgroundColor || null,
             fontSize: resolveFontSize(existing?.fontSize),
-            fontFamily: normalizeFontFamily(existing?.fontFamily),
+            fontFamily: existing?.fontFamily ?? null,
             ...patch,
           });
 

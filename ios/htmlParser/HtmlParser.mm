@@ -1514,15 +1514,29 @@
           if (data.fontFamily.length > 0) {
             if (cssProps.length > 0)
               [cssProps appendString:@" "];
-            if ([data.fontFamily rangeOfString:@" "].location != NSNotFound) {
-              // font family contains spaces, wrap in single quotes
+            if ([data.fontFamily rangeOfString:@" "].location != NSNotFound ||
+                [data.fontFamily rangeOfString:@","].location != NSNotFound) {
+              // font family contains spaces or commas, wrap in single quotes
               [cssProps appendFormat:@"font-family: '%@';", data.fontFamily];
             } else {
               [cssProps appendFormat:@"font-family: %@;", data.fontFamily];
             }
           }
           if (cssProps.length > 0) {
-            return [NSString stringWithFormat:@"span style=\"%@\"", cssProps];
+            NSString *escapedStyle =
+                [cssProps stringByReplacingOccurrencesOfString:@"&"
+                                                    withString:@"&amp;"];
+            escapedStyle =
+                [escapedStyle stringByReplacingOccurrencesOfString:@"<"
+                                                        withString:@"&lt;"];
+            escapedStyle =
+                [escapedStyle stringByReplacingOccurrencesOfString:@">"
+                                                        withString:@"&gt;"];
+            escapedStyle =
+                [escapedStyle stringByReplacingOccurrencesOfString:@"\""
+                                                        withString:@"&quot;"];
+            return
+                [NSString stringWithFormat:@"span style=\"%@\"", escapedStyle];
           }
         }
       }
@@ -1554,6 +1568,22 @@
   return @"";
 }
 
++ (NSString *)firstInFontFamilyString:(NSString *)value {
+  unichar quote = 0;
+  for (NSUInteger i = 0; i < value.length; i++) {
+    unichar c = [value characterAtIndex:i];
+    if (quote != 0) {
+      if (c == quote)
+        quote = 0;
+    } else if (c == '\'' || c == '"') {
+      quote = c;
+    } else if (c == ',') {
+      return [value substringToIndex:i];
+    }
+  }
+  return value;
+}
+
 + (CustomStyleData *_Nullable)parseCustomStyleDataFromSpanParams:
     (NSString *)params {
   static NSRegularExpression *styleAttrRegex;
@@ -1564,7 +1594,8 @@
   static dispatch_once_t onceToken;
   dispatch_once(&onceToken, ^{
     styleAttrRegex = [NSRegularExpression
-        regularExpressionWithPattern:@"style\\s*=\\s*[\"']([^\"']*)[\"']"
+        regularExpressionWithPattern:
+            @"style\\s*=\\s*[\"']((?<=\")[^\"]*(?=\")|(?<=')[^']*(?='))[\"']"
                              options:NSRegularExpressionCaseInsensitive
                                error:nil];
     // Captures everything after "color:" until a semicolon or end of string
@@ -1600,6 +1631,14 @@
     return nil;
 
   NSString *css = [params substringWithRange:[attrMatch rangeAtIndex:1]];
+  // decode entities escaped by the serializers
+  for (NSArray<NSString *> *entity in @[
+         @[ @"&quot;", @"\"" ], @[ @"&#39;", @"'" ], @[ @"&lt;", @"<" ],
+         @[ @"&gt;", @">" ], @[ @"&amp;", @"&" ]
+       ]) {
+    css = [css stringByReplacingOccurrencesOfString:entity[0]
+                                         withString:entity[1]];
+  }
   CustomStyleData *data = [[CustomStyleData alloc] init];
 
   NSTextCheckingResult *fgMatch =
@@ -1645,17 +1684,14 @@
 
     // If font family contains a comma, use the first part e.g. "Nunito,
     // sans-serif" -> "Nunito"
-    NSRange commaRange = [fontFamilyString rangeOfString:@","];
-    if (commaRange.location != NSNotFound) {
-      fontFamilyString =
-          [[fontFamilyString substringToIndex:commaRange.location]
-              stringByTrimmingCharactersInSet:
-                  [NSCharacterSet whitespaceAndNewlineCharacterSet]];
-    }
-    if (([fontFamilyString hasPrefix:@"'"] &&
-         [fontFamilyString hasSuffix:@"'"]) ||
-        ([fontFamilyString hasPrefix:@"\""] &&
-         [fontFamilyString hasSuffix:@"\""])) {
+    fontFamilyString = [[self firstInFontFamilyString:fontFamilyString]
+        stringByTrimmingCharactersInSet:[NSCharacterSet
+                                            whitespaceAndNewlineCharacterSet]];
+    if (fontFamilyString.length >= 2 &&
+        (([fontFamilyString hasPrefix:@"'"] &&
+          [fontFamilyString hasSuffix:@"'"]) ||
+         ([fontFamilyString hasPrefix:@"\""] &&
+          [fontFamilyString hasSuffix:@"\""]))) {
       fontFamilyString = [fontFamilyString
           substringWithRange:NSMakeRange(1, fontFamilyString.length - 2)];
     }
