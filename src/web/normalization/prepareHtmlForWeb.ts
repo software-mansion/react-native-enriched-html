@@ -1,9 +1,15 @@
+import type { SanitizationConfig } from '../../types';
+import { sanitizeHtml } from '../sanitization/htmlSanitizer';
 import { normalizeHtml } from './htmlNormalizer';
+import { extractHtmlContent } from './htmlWrapperExtractor';
 
 export function prepareHtmlForWeb(
   html: string,
-  useHtmlNormalizer: boolean | undefined
+  useHtmlNormalizer: boolean | undefined,
+  sanitizationConfig?: SanitizationConfig
 ): string {
+  html = extractHtmlContent(html);
+  html = sanitizeHtml(html, sanitizationConfig);
   if (useHtmlNormalizer) {
     html = normalizeHtml(html);
   }

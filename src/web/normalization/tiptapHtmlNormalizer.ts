@@ -5,12 +5,14 @@ import {
   checkboxHtmlFromTiptap,
 } from './checkboxHtmlNormalizer';
 import { normalizeHtml } from './htmlNormalizer';
+import { extractHtmlContent } from './htmlWrapperExtractor';
 
 export function prepareHtmlForTiptap(
   html: string,
   useHtmlNormalizer: boolean | undefined,
   sanitizationConfig?: SanitizationConfig
 ): string {
+  html = extractHtmlContent(html);
   html = sanitizeHtml(html, sanitizationConfig);
   if (useHtmlNormalizer) {
     html = normalizeHtml(html);

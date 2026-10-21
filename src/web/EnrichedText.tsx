@@ -17,7 +17,6 @@ import {
 } from './constants/classNames';
 import { enrichedTextThemingToCSSProperties } from './styleConversion/enrichedThemingToCSSProperties';
 import { buildMentionRulesCSS } from './styleConversion/buildMentionRulesCSS';
-import { sanitizeHtml } from './sanitization/htmlSanitizer';
 import { prepareHtmlForWeb } from './normalization/prepareHtmlForWeb';
 import { INLINE_IMAGE_CSS_VARIABLES } from './styleConversion/inlineImageCSSVariables';
 import { useImageErrorFallback } from './htmlExtensions/useImageErrorFallback';
@@ -63,14 +62,9 @@ export const EnrichedText = memo(
       },
     }));
 
-    const sanitizedHtml = useMemo(
-      () => sanitizeHtml(children, sanitizationConfig),
-      [children, sanitizationConfig]
-    );
-
     const finalHtml = useMemo(
-      () => prepareHtmlForWeb(sanitizedHtml, useHtmlNormalizer),
-      [sanitizedHtml, useHtmlNormalizer]
+      () => prepareHtmlForWeb(children, useHtmlNormalizer, sanitizationConfig),
+      [children, useHtmlNormalizer, sanitizationConfig]
     );
 
     const [clampedHtml, setClampedHtml] = useState<string | null>(
