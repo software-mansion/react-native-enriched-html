@@ -844,6 +844,39 @@ Returns a Promise that resolves with the current HTML content of the input.
 Useful when you need the HTML on demand (for example when saving) without the
 performance overhead of continuous parsing via `onChangeHtml`.
 
+### `.measureRanges()`
+
+```ts
+measureRanges: (ranges: ReadonlyArray<{ start: number; end: number }>) =>
+  Promise<TextRect[][]>;
+
+interface TextRect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+```
+
+Returns a Promise that resolves with the rectangles the given ranges of text
+are currently drawn in. Useful for drawing overlays over the text being edited,
+for example other users' cursors and selections in a collaborative editor, or
+highlights of commented passages.
+
+- `ranges` - ranges to measure, using the same indexes as
+  [`setSelection`](#setselection)
+
+The result holds one array per requested range, in the same order:
+
+- a rectangle for each line the range is drawn on, or an empty array when
+  nothing of the range is drawn
+- a single rectangle of zero width at the caret position, when `start` equals
+  `end`
+
+Rectangles are relative to the input's top-left corner, in points (dp on
+Android), and include the input's padding and current scroll offset. Measure
+again after the text, the input's layout or its scroll position changes.
+
 ### `.setImage()`
 
 ```ts

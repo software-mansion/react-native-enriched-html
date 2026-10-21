@@ -1,5 +1,11 @@
-import { View, StyleSheet, Text, ScrollView } from 'react-native';
-import { EnrichedTextInput } from 'react-native-enriched-html';
+import {
+  View,
+  StyleSheet,
+  Text,
+  ScrollView,
+  type LayoutRectangle,
+} from 'react-native';
+import { EnrichedTextInput, type TextRect } from 'react-native-enriched-html';
 import { Button } from '../components/Button';
 import { Toolbar } from '../components/Toolbar';
 import { LinkModal } from '../components/LinkModal';
@@ -13,7 +19,7 @@ import {
   htmlStyle,
   ANDROID_EXPERIMENTAL_SYNCHRONOUS_EVENTS,
 } from '../constants/editorConfig';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { TextRenderer } from '../components/TextRenderer';
 
 interface DevScreenProps {
@@ -23,6 +29,18 @@ interface DevScreenProps {
 export function DevScreen({ onSwitch }: DevScreenProps) {
   const editor = useEditorState();
   const [textNodes, setTextNodes] = useState<Array<string>>([]);
+  const [inputLayout, setInputLayout] = useState<LayoutRectangle>();
+  const [selectionRects, setSelectionRects] = useState<TextRect[]>([]);
+
+  // Draws an overlay over the current selection, the way another user's
+  // cursor or selection could be drawn
+  useEffect(() => {
+    if (!editor.selection) return;
+    editor.ref.current
+      ?.measureRanges([editor.selection])
+      .then(([rects]) => setSelectionRects(rects ?? []))
+      .catch(() => {});
+  }, [editor.ref, editor.selection, inputLayout]);
 
   const handlePushTextNode = async () => {
     const currentText = await editor.ref.current?.getHTML();
@@ -73,8 +91,25 @@ export function DevScreen({ onSwitch }: DevScreenProps) {
               ANDROID_EXPERIMENTAL_SYNCHRONOUS_EVENTS
             }
             onPasteImages={(e) => editor.handlePasteImagesEvent(e.nativeEvent)}
+            onLayout={(e) => setInputLayout(e.nativeEvent.layout)}
             testID="editor-input"
           />
+          {inputLayout &&
+            selectionRects.map((rect, index) => (
+              <View
+                key={index}
+                pointerEvents="none"
+                style={[
+                  styles.selectionRect,
+                  {
+                    left: inputLayout.x + rect.x,
+                    top: inputLayout.y + rect.y,
+                    width: Math.max(rect.width, 2),
+                    height: rect.height,
+                  },
+                ]}
+              />
+            ))}
           <Toolbar
             stylesState={editor.stylesState}
             editorRef={editor.ref}
@@ -172,6 +207,10 @@ const styles = StyleSheet.create({
   },
   valueButton: {
     width: '100%',
+  },
+  selectionRect: {
+    position: 'absolute',
+    backgroundColor: 'rgba(255, 140, 0, 0.35)',
   },
   editorInput: {
     marginTop: 24,

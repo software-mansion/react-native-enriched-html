@@ -2,6 +2,7 @@ import App from './App';
 import { TestMentions } from './testScreens/TestMentions';
 import { TestLinks } from './testScreens/TestLinks';
 import { TestSetSelection } from './testScreens/TestSetSelection';
+import { TestMeasureRanges } from './testScreens/TestMeasureRanges';
 import { VisualRegression } from './testScreens/VisualRegression';
 import { TestSubmitProps } from './testScreens/TestSubmitProps';
 import { TestEnrichedText } from './testScreens/TestEnrichedText';
@@ -25,6 +26,10 @@ export default function RouteSelector() {
 
   if (path === '/test-set-selection') {
     return <TestSetSelection />;
+  }
+
+  if (path === '/test-measure-ranges') {
+    return <TestMeasureRanges />;
   }
 
   if (path === '/test-links') {

@@ -427,6 +427,20 @@ export interface OnSubmitEditing {
   text: string;
 }
 
+/** A range of the input's text, in the same indexes as `setSelection`. */
+export interface TextRange {
+  start: number;
+  end: number;
+}
+
+/** A rectangle relative to the input's top-left corner, in points (dp on Android). */
+export interface TextRect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 // Component types
 
 export type FocusEvent = NativeSyntheticEvent<TargetedEvent>;
@@ -466,6 +480,18 @@ export interface EnrichedTextInputInstance {
    * The promise resolves once the native layer has completed HTML parsing.
    */
   getHTML: () => Promise<string>;
+
+  /**
+   * Measures where the given ranges of text are currently drawn, e.g. to draw
+   * overlays over the input (another user's cursor or selection, a comment
+   * highlight).
+   *
+   * Resolves with one array per requested range, in the same order: a rect per
+   * line the range is drawn on, or a single zero-width rect at the caret
+   * position when `start` equals `end`. Rects are relative to the input's
+   * top-left corner and account for its padding and scroll offset.
+   */
+  measureRanges: (ranges: ReadonlyArray<TextRange>) => Promise<TextRect[][]>;
 
   /** Toggles bold on the current selection (or toggles it for future typing if nothing is selected). */
   toggleBold: () => void;

@@ -159,6 +159,18 @@ export interface OnRequestHtmlResultEvent {
   html: CodegenTypes.UnsafeMixed;
 }
 
+export interface OnRequestRangeRectsResultEvent {
+  requestId: CodegenTypes.Int32;
+  // Flat list of rects; `range` is the index of the requested range a rect belongs to
+  rects: {
+    range: CodegenTypes.Int32;
+    x: CodegenTypes.Double;
+    y: CodegenTypes.Double;
+    width: CodegenTypes.Double;
+    height: CodegenTypes.Double;
+  }[];
+}
+
 export interface OnSubmitEditing {
   text: string;
 }
@@ -389,6 +401,7 @@ export interface NativeProps extends ViewProps {
   onMention?: CodegenTypes.DirectEventHandler<OnMentionEvent>;
   onChangeSelection?: CodegenTypes.DirectEventHandler<OnChangeSelectionEvent>;
   onRequestHtmlResult?: CodegenTypes.DirectEventHandler<OnRequestHtmlResultEvent>;
+  onRequestRangeRectsResult?: CodegenTypes.DirectEventHandler<OnRequestRangeRectsResultEvent>;
   onInputKeyPress?: CodegenTypes.DirectEventHandler<OnKeyPressEvent>;
   onPasteImages?: CodegenTypes.DirectEventHandler<OnPasteImagesEvent>;
   onContextMenuItemPress?: CodegenTypes.DirectEventHandler<OnContextMenuItemPressEvent>;
@@ -478,6 +491,12 @@ interface NativeCommands {
     viewRef: React.ElementRef<ComponentType>,
     requestId: CodegenTypes.Int32
   ) => void;
+  // `ranges` is flattened as [start0, end0, start1, end1, ...]
+  requestRangeRects: (
+    viewRef: React.ElementRef<ComponentType>,
+    requestId: CodegenTypes.Int32,
+    ranges: CodegenTypes.Int32[]
+  ) => void;
   setTextAlignment: (
     viewRef: React.ElementRef<ComponentType>,
     alignment: string
@@ -515,6 +534,7 @@ export const Commands: NativeCommands = codegenNativeCommands<NativeCommands>({
     'startMention',
     'addMention',
     'requestHTML',
+    'requestRangeRects',
     'setTextAlignment',
   ],
 });

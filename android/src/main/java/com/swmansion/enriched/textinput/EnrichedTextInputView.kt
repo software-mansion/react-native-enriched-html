@@ -7,10 +7,12 @@ import android.graphics.BlendMode
 import android.graphics.BlendModeColorFilter
 import android.graphics.Color
 import android.graphics.Rect
+import android.graphics.RectF
 import android.graphics.text.LineBreaker
 import android.os.Build
 import android.text.Editable
 import android.text.InputType
+import android.text.Layout
 import android.text.Spannable
 import android.text.SpannableString
 import android.util.AttributeSet
@@ -33,6 +35,7 @@ import com.facebook.react.bridge.ReactContext
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.common.ReactConstants
+import com.facebook.react.uimanager.PixelUtil
 import com.facebook.react.uimanager.StateWrapper
 import com.facebook.react.uimanager.UIManagerHelper
 import com.facebook.react.views.text.ReactTypefaceUtils.applyStyles
@@ -48,6 +51,7 @@ import com.swmansion.enriched.textinput.events.OnContextMenuItemPressEvent
 import com.swmansion.enriched.textinput.events.OnInputBlurEvent
 import com.swmansion.enriched.textinput.events.OnInputFocusEvent
 import com.swmansion.enriched.textinput.events.OnRequestHtmlResultEvent
+import com.swmansion.enriched.textinput.events.OnRequestRangeRectsResultEvent
 import com.swmansion.enriched.textinput.events.OnSubmitEditingEvent
 import com.swmansion.enriched.textinput.spans.EnrichedInputH1Span
 import com.swmansion.enriched.textinput.spans.EnrichedInputH2Span
@@ -1046,6 +1050,98 @@ class EnrichedTextInputView :
     val surfaceId = UIManagerHelper.getSurfaceId(reactContext)
     val dispatcher = UIManagerHelper.getEventDispatcherForReactTag(reactContext, id)
     dispatcher?.dispatchEvent(OnRequestHtmlResultEvent(surfaceId, id, requestId, html, experimentalSynchronousEvents))
+  }
+
+  // `ranges` holds visible (ZWS-free) indexes, as setCustomSelection does: [start0, end0, start1, end1, ...]
+  fun requestRangeRects(
+    requestId: Int,
+    ranges: ReadableArray?,
+  ) {
+    val rects = mutableListOf<OnRequestRangeRectsResultEvent.Companion.RangeRect>()
+    val currentLayout = layout
+
+    if (ranges != null && currentLayout != null) {
+      // Layout coordinates -> this view's coordinates
+      val offsetX = (totalPaddingLeft - scrollX).toFloat()
+      val offsetY = (totalPaddingTop - scrollY).toFloat()
+
+      for (i in 0 until ranges.size() / 2) {
+        val visibleStart = ranges.getInt(i * 2)
+        val visibleEnd = ranges.getInt(i * 2 + 1)
+        val start = getActualIndex(maxOf(0, minOf(visibleStart, visibleEnd)))
+        val end = getActualIndex(maxOf(0, maxOf(visibleStart, visibleEnd)))
+
+        for (rect in rectsForRange(currentLayout, start, end)) {
+          rects.add(
+            OnRequestRangeRectsResultEvent.Companion.RangeRect(
+              range = i,
+              x = PixelUtil.toDIPFromPixel(rect.left + offsetX).toDouble(),
+              y = PixelUtil.toDIPFromPixel(rect.top + offsetY).toDouble(),
+              width = PixelUtil.toDIPFromPixel(rect.width()).toDouble(),
+              height = PixelUtil.toDIPFromPixel(rect.height()).toDouble(),
+            ),
+          )
+        }
+      }
+    }
+
+    val reactContext = context as ReactContext
+    val surfaceId = UIManagerHelper.getSurfaceId(reactContext)
+    val dispatcher = UIManagerHelper.getEventDispatcherForReactTag(reactContext, id)
+    dispatcher?.dispatchEvent(OnRequestRangeRectsResultEvent(surfaceId, id, requestId, rects, experimentalSynchronousEvents))
+  }
+
+  // Rects (in layout coordinates) where the characters of [start, end) are drawn:
+  // one per line, or a zero-width caret rect for an empty range.
+  private fun rectsForRange(
+    layout: Layout,
+    start: Int,
+    end: Int,
+  ): List<RectF> {
+    val currentText = text ?: return emptyList()
+
+    if (start == end) {
+      val line = layout.getLineForOffset(start)
+      val x = layout.getPrimaryHorizontal(start)
+      return listOf(RectF(x, layout.getLineTop(line).toFloat(), x, layout.getLineBottom(line).toFloat()))
+    }
+
+    val rects = mutableListOf<RectF>()
+    for (line in layout.getLineForOffset(start)..layout.getLineForOffset(end)) {
+      val lineEnd = layout.getLineEnd(line)
+      val from = maxOf(start, layout.getLineStart(line))
+      var to = minOf(end, lineEnd)
+      // A line break ending the line isn't drawn
+      while (to > from && currentText[to - 1] == '\n') {
+        to--
+      }
+      if (from >= to) continue
+
+      val fromX = layout.getPrimaryHorizontal(from)
+      val toX =
+        if (to == lineEnd && line < layout.lineCount - 1) {
+          // At a soft wrap, `to` is also the start of the next line
+          if (layout.getParagraphDirection(line) == Layout.DIR_RIGHT_TO_LEFT) {
+            layout.getLineLeft(line)
+          } else {
+            layout.getLineRight(line)
+          }
+        } else {
+          layout.getPrimaryHorizontal(to)
+        }
+
+      val rect =
+        RectF(
+          minOf(fromX, toX),
+          layout.getLineTop(line).toFloat(),
+          maxOf(fromX, toX),
+          layout.getLineBottom(line).toFloat(),
+        )
+      if (rect.width() > 0 && rect.height() > 0) {
+        rects.add(rect)
+      }
+    }
+    return rects
   }
 
   // Sometimes setting up style triggers many changes in sequence

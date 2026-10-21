@@ -1297,6 +1297,10 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   } else if ([commandName isEqualToString:@"requestHTML"]) {
     NSInteger requestId = [((NSNumber *)args[0]) integerValue];
     [self requestHTML:requestId];
+  } else if ([commandName isEqualToString:@"requestRangeRects"]) {
+    NSInteger requestId = [((NSNumber *)args[0]) integerValue];
+    NSArray *ranges = (NSArray *)args[1];
+    [self requestRangeRects:requestId ranges:ranges];
   } else if ([commandName isEqualToString:@"setTextAlignment"]) {
     NSString *alignmentString = (NSString *)args[0];
 
@@ -1493,6 +1497,116 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
                                     .html = folly::dynamic(nullptr)});
     }
   }
+}
+
+// `ranges` holds visible (ZWSP-free) indexes, as setSelection does:
+// [start0, end0, start1, end1, ...]
+- (void)requestRangeRects:(NSInteger)requestId ranges:(const NSArray *)ranges {
+  auto emitter = [self getEventEmitter];
+  if (emitter == nullptr) {
+    return;
+  }
+
+  NSString *text = textView.textStorage.string;
+  [textView.layoutManager ensureLayoutForTextContainer:textView.textContainer];
+
+  std::vector<EnrichedTextInputViewEventEmitter::OnRequestRangeRectsResultRects>
+      rectsVector;
+  for (NSUInteger i = 0; i + 1 < ranges.count; i += 2) {
+    NSInteger visibleStart = [((NSNumber *)ranges[i]) integerValue];
+    NSInteger visibleEnd = [((NSNumber *)ranges[i + 1]) integerValue];
+    NSUInteger start =
+        [self getActualIndex:MAX(0, MIN(visibleStart, visibleEnd)) text:text];
+    NSUInteger end = [self getActualIndex:MAX(0, MAX(visibleStart, visibleEnd))
+                                     text:text];
+
+    for (NSValue *value in
+         [self rectsForCharacterRange:NSMakeRange(start, end - start)]) {
+      CGRect rect = value.CGRectValue;
+      rectsVector.push_back({.range = static_cast<int>(i / 2),
+                             .x = rect.origin.x,
+                             .y = rect.origin.y,
+                             .width = rect.size.width,
+                             .height = rect.size.height});
+    }
+  }
+
+  emitter->onRequestRangeRectsResult(
+      {.requestId = static_cast<int>(requestId), .rects = rectsVector});
+}
+
+// Rects (in this view's coordinates) where the characters of `range` are
+// drawn: one per line fragment, or a zero-width caret rect for an empty range.
+- (NSArray<NSValue *> *)rectsForCharacterRange:(NSRange)range {
+  NSMutableArray<NSValue *> *result = [[NSMutableArray alloc] init];
+
+  if (range.length == 0) {
+    UITextPosition *position =
+        [textView positionFromPosition:textView.beginningOfDocument
+                                offset:range.location];
+    if (position == nil) {
+      return result;
+    }
+    CGRect caretRect = [textView caretRectForPosition:position];
+    if (CGRectIsNull(caretRect) || CGRectIsInfinite(caretRect)) {
+      return result;
+    }
+    caretRect.size.width = 0;
+    [result addObject:[NSValue valueWithCGRect:[textView convertRect:caretRect
+                                                              toView:self]]];
+    return result;
+  }
+
+  NSString *text = textView.textStorage.string;
+  NSLayoutManager *layoutManager = textView.layoutManager;
+  NSTextContainer *textContainer = textView.textContainer;
+  UIEdgeInsets inset = textView.textContainerInset;
+  NSRange glyphRange = [layoutManager glyphRangeForCharacterRange:range
+                                             actualCharacterRange:nullptr];
+
+  NSUInteger glyphIndex = glyphRange.location;
+  while (glyphIndex < NSMaxRange(glyphRange)) {
+    NSRange lineGlyphRange;
+    CGRect usedRect =
+        [layoutManager lineFragmentUsedRectForGlyphAtIndex:glyphIndex
+                                            effectiveRange:&lineGlyphRange];
+    if (NSMaxRange(lineGlyphRange) <= glyphIndex) {
+      break;
+    }
+    NSRange charRange = [layoutManager
+        characterRangeForGlyphRange:NSIntersectionRange(glyphRange,
+                                                        lineGlyphRange)
+                   actualGlyphRange:nullptr];
+    glyphIndex = NSMaxRange(lineGlyphRange);
+
+    // a line break ending the line isn't drawn
+    while (charRange.length > 0 &&
+           [[NSCharacterSet newlineCharacterSet]
+               characterIsMember:[text characterAtIndex:NSMaxRange(charRange) -
+                                                        1]]) {
+      charRange.length--;
+    }
+    if (charRange.length == 0) {
+      continue;
+    }
+
+    CGRect bounds = [layoutManager
+        boundingRectForGlyphRange:[layoutManager
+                                      glyphRangeForCharacterRange:charRange
+                                             actualCharacterRange:nullptr]
+                  inTextContainer:textContainer];
+    // horizontal extent of the glyphs, vertical extent of the line
+    CGRect rect =
+        CGRectMake(bounds.origin.x + inset.left, usedRect.origin.y + inset.top,
+                   bounds.size.width, usedRect.size.height);
+    if (rect.size.width <= 0 || rect.size.height <= 0) {
+      continue;
+    }
+    [result addObject:[NSValue valueWithCGRect:[textView convertRect:rect
+                                                              toView:self]]];
+  }
+
+  return result;
 }
 
 - (void)emitOnKeyPressEvent:(NSString *)key {
