@@ -985,7 +985,7 @@ static void walk_node(GumboNode *node, buffer_t *out) {
 
     /* <codeblock>: wrap inline content in <p> */
     if (strcmp(out_name, "codeblock") == 0) {
-      bool wrap = is_purely_inline(node);
+      bool wrap = is_purely_inline(node) && el->children.length > 0;
       buffer_append_str(out, "<codeblock>");
       if (wrap)
         buffer_append_str(out, "<p>");
