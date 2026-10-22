@@ -57,6 +57,7 @@ export const htmlStyle = {
       color: 'green',
       backgroundColor: 'lightgreen',
       textDecorationLine: 'none',
+      borderRadius: 14,
     },
   },
   ol: {

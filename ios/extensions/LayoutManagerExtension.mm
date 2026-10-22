@@ -1,6 +1,7 @@
 #import "LayoutManagerExtension.h"
 #import "ColorExtension.h"
 #import "interfaces/EnrichedViewHost.h"
+#import "interfaces/MentionStyleProps.h"
 #import "interfaces/StyleHeaders.h"
 #import "utils/RangeUtils.h"
 #import "utils/WeakBox.h"
@@ -60,6 +61,66 @@ static void const *kInputKey = &kInputKey;
   [self drawBlockQuotes:host origin:origin visibleCharRange:visibleCharRange];
   [self drawLists:host origin:origin visibleCharRange:visibleCharRange];
   [self drawCodeBlocks:host origin:origin visibleCharRange:visibleCharRange];
+  [self drawMentionBackgrounds:host
+                        origin:origin
+              visibleCharRange:visibleCharRange];
+}
+
+- (void)drawMentionBackgrounds:(id<EnrichedViewHost>)host
+                        origin:(CGPoint)origin
+              visibleCharRange:(NSRange)visibleCharRange {
+  NSTextStorage *textStorage = host.textView.textStorage;
+  NSMutableArray<NSValue *> *ranges = [[NSMutableArray alloc] init];
+  [textStorage enumerateAttribute:MentionRoundedBackgroundAttributeName
+                          inRange:visibleCharRange
+                          options:0
+                       usingBlock:^(id _Nullable value, NSRange range,
+                                    BOOL *_Nonnull stop) {
+                         if (value != nullptr && range.length > 0) {
+                           [ranges addObject:[NSValue valueWithRange:range]];
+                         }
+                       }];
+
+  for (NSValue *rangeValue in ranges) {
+    NSRange range = [rangeValue rangeValue];
+    MentionParams *params = [textStorage attribute:@"EnrichedMention"
+                                           atIndex:range.location
+                                    effectiveRange:nullptr];
+    if (params == nullptr) {
+      continue;
+    }
+    MentionStyleProps *props =
+        [host.config mentionStylePropsForIndicator:params.indicator];
+    UIColor *bgColor =
+        [textStorage attribute:MentionRoundedBackgroundAttributeName
+                       atIndex:range.location
+                effectiveRange:nullptr];
+    UIFont *font = [textStorage attribute:NSFontAttributeName
+                                  atIndex:range.location
+                           effectiveRange:nullptr];
+    [bgColor setFill];
+
+    NSRange glyphRange = [self glyphRangeForCharacterRange:range
+                                      actualCharacterRange:nullptr];
+    // one rect per line in case the mention wraps
+    [self
+        enumerateEnclosingRectsForGlyphRange:glyphRange
+                    withinSelectedGlyphRange:NSMakeRange(NSNotFound, 0)
+                             inTextContainer:host.textView.textContainer
+                                  usingBlock:^(CGRect rect, BOOL *stop) {
+                                    CGRect bgRect =
+                                        [self getTextAlignedUsedRect:rect
+                                                                font:font];
+                                    bgRect.origin.x += origin.x;
+                                    bgRect.origin.y += origin.y;
+                                    CGFloat radius =
+                                        MIN(props.borderRadius,
+                                            bgRect.size.height / 2);
+                                    [[UIBezierPath
+                                        bezierPathWithRoundedRect:bgRect
+                                                     cornerRadius:radius] fill];
+                                  }];
+  }
 }
 
 - (void)drawCodeBlocks:(id<EnrichedViewHost>)host
