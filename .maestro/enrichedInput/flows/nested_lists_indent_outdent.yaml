@@ -1,0 +1,71 @@
+appId: swmansion.enriched.example
+---
+# Validates indenting, list type switching, checkbox toggling and outdenting of nested lists
+- launchApp
+
+- tapOn:
+    id: "toggle-screen-button"
+
+- tapOn:
+    id: "editor-input"
+
+- tapOn:
+    id: "toolbar-unordered-list"
+- inputText: "One"
+- pressKey: Enter
+- inputText: "Two"
+- pressKey: Enter
+- inputText: "Three"
+
+# Select all
+- longPressOn:
+    id: "editor-input"
+    point: "30%, 50%"
+- tapOn:
+    text: "Select All"
+
+- tapOn:
+    id: "toolbar-indent"
+- tapOn:
+    id: "toolbar-indent"
+- tapOn:
+    id: "toolbar-indent"
+
+- runFlow:
+    file: "../subflows/capture_or_assert_screenshot.yaml"
+    env:
+      SCREENSHOT_NAME: "nested_lists_indent_outdent_indented"
+
+- doubleTapOn:
+    id: "editor-input"
+    point: "50%, 50%"
+
+# Move cursor to the second list element and switch it to an ordered list
+- tapOn:
+    id: "editor-input"
+    point: "50%, 50%"
+- tapOn:
+    id: "toolbar-ordered-list"
+
+
+# Move cursor to the last list element and turn it into a checkbox item
+- tapOn:
+    id: "editor-input"
+    point: "80%, 80%"
+- tapOn:
+    id: "toolbar-checkbox-list"
+
+- runFlow:
+    file: "../subflows/capture_or_assert_screenshot.yaml"
+    env:
+      SCREENSHOT_NAME: "nested_lists_indent_outdent_toggled"
+
+- tapOn:
+    id: "toolbar-outdent"
+- tapOn:
+    id: "toolbar-outdent"
+
+- runFlow:
+    file: "../subflows/capture_or_assert_screenshot.yaml"
+    env:
+      SCREENSHOT_NAME: "nested_lists_indent_outdent_outdented"
