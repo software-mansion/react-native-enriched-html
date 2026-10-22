@@ -42,6 +42,7 @@ import com.swmansion.enriched.common.EnrichedConstants
 import com.swmansion.enriched.common.EnrichedSpanFlags
 import com.swmansion.enriched.common.GumboNormalizer
 import com.swmansion.enriched.common.parser.EnrichedParser
+import com.swmansion.enriched.common.parser.HtmlWrapperExtractor
 import com.swmansion.enriched.common.pixelFromSpOrDp
 import com.swmansion.enriched.textinput.events.MentionHandler
 import com.swmansion.enriched.textinput.events.OnContextMenuItemPressEvent
@@ -428,33 +429,19 @@ class EnrichedTextInputView :
     setSelection(selection?.start ?: text?.length ?: 0)
   }
 
-  private fun normalizeHtmlIfNeeded(text: CharSequence): CharSequence {
-    if (!useHtmlNormalizer) return text
-    val normalized = GumboNormalizer.normalizeHtml(text.toString()) ?: return text
-
-    return try {
-      val parsed = EnrichedParser.fromHtml(normalized, htmlStyle, spannableFactory, linkRegex)
-      parsed.trimEnd('\n')
-    } catch (e: Exception) {
-      Log.e(TAG, "Error parsing normalized HTML: ${e.message}")
-      text
-    }
-  }
+  private fun normalizeHtml(text: String): String = GumboNormalizer.normalizeHtml(text) ?: text
 
   private fun parseText(text: CharSequence): CharSequence {
-    val isInternalHtml = text.startsWith("<html>") && text.endsWith("</html>")
+    var html = HtmlWrapperExtractor.extract(text.toString())
+    if (useHtmlNormalizer) html = normalizeHtml(html)
 
-    if (isInternalHtml) {
-      try {
-        val parsed = EnrichedParser.fromHtml(text.toString(), htmlStyle, spannableFactory, linkRegex)
-        return parsed.trimEnd('\n')
-      } catch (e: Exception) {
-        Log.e(TAG, "Error parsing HTML: ${e.message}")
-        return normalizeHtmlIfNeeded(text)
-      }
+    try {
+      val parsed = EnrichedParser.fromHtml(html, htmlStyle, spannableFactory, linkRegex)
+      return parsed.trimEnd('\n')
+    } catch (e: Exception) {
+      Log.e(TAG, "Error parsing HTML: ${e.message}")
+      return text
     }
-
-    return normalizeHtmlIfNeeded(text)
   }
 
   fun setValue(

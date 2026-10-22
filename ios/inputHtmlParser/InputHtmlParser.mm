@@ -221,8 +221,15 @@
 }
 
 - (NSString *_Nullable)initiallyProcessHtml:(NSString *_Nonnull)html {
-  return [HtmlParser initiallyProcessHtml:html
-                        useHtmlNormalizer:_input->useHtmlNormalizer];
+  @try {
+    return [HtmlParser initiallyProcessHtml:html
+                          useHtmlNormalizer:_input->useHtmlNormalizer];
+  } @catch (NSException *exception) {
+    RCTLogWarn(@"[EnrichedTextInput]: Failed to process HTML: (%@), falling "
+               @"back to raw input.",
+               exception.reason);
+    return nil;
+  }
 }
 
 @end

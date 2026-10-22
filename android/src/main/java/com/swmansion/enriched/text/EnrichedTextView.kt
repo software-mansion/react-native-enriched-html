@@ -26,6 +26,7 @@ import com.swmansion.enriched.common.EnrichedConstants
 import com.swmansion.enriched.common.EnrichedSpanFlags
 import com.swmansion.enriched.common.GumboNormalizer
 import com.swmansion.enriched.common.parser.EnrichedParser
+import com.swmansion.enriched.common.parser.HtmlWrapperExtractor
 import com.swmansion.enriched.common.pixelFromSpOrDp
 import com.swmansion.enriched.text.spans.EnrichedTextImageSpan
 import com.swmansion.enriched.text.spans.interfaces.EnrichedTextClickableSpan
@@ -195,43 +196,19 @@ class EnrichedTextView : AppCompatTextView {
     text: String,
     style: EnrichedTextStyle,
   ): CharSequence? {
-    val isInternalHtml = text.startsWith("<html>") && text.endsWith("</html>")
+    var html = HtmlWrapperExtractor.extract(text)
+    if (useHtmlNormalizer) html = normalizeHtml(html)
 
-    if (isInternalHtml) {
-      try {
-        val parsed = EnrichedParser.fromHtml(text, style, spannableFactory)
-        return parsed.trimEnd('\n')
-      } catch (e: Exception) {
-        Log.e(TAG, "Error parsing HTML: ${e.message}")
-        return normalizeHtmlIfNeeded(text, style)
-      }
-    }
-
-    return normalizeHtmlIfNeeded(text, style)
-  }
-
-  private fun normalizeHtmlIfNeeded(
-    text: String,
-    style: EnrichedTextStyle,
-  ): CharSequence? {
-    if (!useHtmlNormalizer) return null
-    return parseNormalizedHtml(text, style)
-  }
-
-  private fun parseNormalizedHtml(
-    text: String,
-    style: EnrichedTextStyle,
-  ): CharSequence? {
-    val normalized = GumboNormalizer.normalizeHtml(text) ?: return null
-
-    return try {
-      val parsed: Spanned = EnrichedParser.fromHtml(normalized, style, spannableFactory)
-      parsed.trimEnd('\n')
+    try {
+      val parsed = EnrichedParser.fromHtml(html, style, spannableFactory)
+      return parsed.trimEnd('\n')
     } catch (e: Exception) {
-      Log.e(TAG, "Error parsing normalized HTML: ${e.message}")
-      null
+      Log.e(TAG, "Error parsing HTML: ${e.message}")
+      return null
     }
   }
+
+  private fun normalizeHtml(text: String): String = GumboNormalizer.normalizeHtml(text) ?: text
 
   private fun observeAsyncImages() {
     val spanned = parsedText as? Spanned ?: return
