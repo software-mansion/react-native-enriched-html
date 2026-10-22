@@ -24,21 +24,33 @@ class HtmlStyle : EnrichedStyle {
   // JS passes them as a prop - so they are initialized after the constructor is called.
   override var h1FontSize: Int = 72
   override var h1Bold: Boolean = false
+  override var h1MarginTop: Int = 0
+  override var h1MarginBottom: Int = 0
 
   override var h2FontSize: Int = 64
   override var h2Bold: Boolean = false
+  override var h2MarginTop: Int = 0
+  override var h2MarginBottom: Int = 0
 
   override var h3FontSize: Int = 56
   override var h3Bold: Boolean = false
+  override var h3MarginTop: Int = 0
+  override var h3MarginBottom: Int = 0
 
   override var h4FontSize: Int = 48
   override var h4Bold: Boolean = false
+  override var h4MarginTop: Int = 0
+  override var h4MarginBottom: Int = 0
 
   override var h5FontSize: Int = 40
   override var h5Bold: Boolean = false
+  override var h5MarginTop: Int = 0
+  override var h5MarginBottom: Int = 0
 
   override var h6FontSize: Int = 32
   override var h6Bold: Boolean = false
+  override var h6MarginTop: Int = 0
+  override var h6MarginBottom: Int = 0
 
   override var blockquoteColor: Int? = null
   override var blockquoteBorderColor: Int = Color.BLACK
@@ -47,17 +59,23 @@ class HtmlStyle : EnrichedStyle {
 
   override var olGapWidth: Int = 16
   override var olMarginLeft: Int = 24
+  override var olMarginTop: Int = 0
+  override var olMarginBottom: Int = 0
   override var olMarkerFontWeight: Int? = null
   override var olMarkerColor: Int? = null
 
   override var ulGapWidth: Int = 16
   override var ulMarginLeft: Int = 24
+  override var ulMarginTop: Int = 0
+  override var ulMarginBottom: Int = 0
   override var ulBulletSize: Int = 8
   override var ulBulletColor: Int = Color.BLACK
 
   override var ulCheckboxBoxSize: Int = 50
   override var ulCheckboxGapWidth: Int = 16
   override var ulCheckboxMarginLeft: Int = 24
+  override var ulCheckboxMarginTop: Int = 0
+  override var ulCheckboxMarginBottom: Int = 0
   override var ulCheckboxBoxColor: Int = Color.BLACK
 
   override var aColor: Int = Color.BLACK
@@ -85,26 +103,38 @@ class HtmlStyle : EnrichedStyle {
     val h1Style = style.getMap("h1")
     h1FontSize = parseFloat(h1Style, "fontSize").toInt()
     h1Bold = h1Style?.getBoolean("bold") == true
+    h1MarginTop = parseFloat(h1Style, "marginTop").toInt()
+    h1MarginBottom = parseFloat(h1Style, "marginBottom").toInt()
 
     val h2Style = style.getMap("h2")
     h2FontSize = parseFloat(h2Style, "fontSize").toInt()
     h2Bold = h2Style?.getBoolean("bold") == true
+    h2MarginTop = parseFloat(h2Style, "marginTop").toInt()
+    h2MarginBottom = parseFloat(h2Style, "marginBottom").toInt()
 
     val h3Style = style.getMap("h3")
     h3FontSize = parseFloat(h3Style, "fontSize").toInt()
     h3Bold = h3Style?.getBoolean("bold") == true
+    h3MarginTop = parseFloat(h3Style, "marginTop").toInt()
+    h3MarginBottom = parseFloat(h3Style, "marginBottom").toInt()
 
     val h4Style = style.getMap("h4")
     h4FontSize = parseFloat(h4Style, "fontSize").toInt()
     h4Bold = h4Style?.getBoolean("bold") == true
+    h4MarginTop = parseFloat(h4Style, "marginTop").toInt()
+    h4MarginBottom = parseFloat(h4Style, "marginBottom").toInt()
 
     val h5Style = style.getMap("h5")
     h5FontSize = parseFloat(h5Style, "fontSize").toInt()
     h5Bold = h5Style?.getBoolean("bold") == true
+    h5MarginTop = parseFloat(h5Style, "marginTop").toInt()
+    h5MarginBottom = parseFloat(h5Style, "marginBottom").toInt()
 
     val h6Style = style.getMap("h6")
     h6FontSize = parseFloat(h6Style, "fontSize").toInt()
     h6Bold = h6Style?.getBoolean("bold") == true
+    h6MarginTop = parseFloat(h6Style, "marginTop").toInt()
+    h6MarginBottom = parseFloat(h6Style, "marginBottom").toInt()
 
     val blockquoteStyle = style.getMap("blockquote")
     blockquoteColor = parseOptionalColor(blockquoteStyle, "color")
@@ -117,6 +147,8 @@ class HtmlStyle : EnrichedStyle {
     val calculatedMarginLeft = calculateOlMarginLeft(view, userDefinedMarginLeft)
     olMarginLeft = calculatedMarginLeft
     olGapWidth = parseFloat(olStyle, "gapWidth").toInt()
+    olMarginTop = parseFloat(olStyle, "marginTop").toInt()
+    olMarginBottom = parseFloat(olStyle, "marginBottom").toInt()
     olMarkerColor = parseOptionalColor(olStyle, "markerColor")
     olMarkerFontWeight = parseOptionalFontWeight(olStyle, "markerFontWeight")
 
@@ -124,12 +156,16 @@ class HtmlStyle : EnrichedStyle {
     ulBulletColor = parseColor(ulStyle, "bulletColor")
     ulGapWidth = parseFloat(ulStyle, "gapWidth").toInt()
     ulMarginLeft = parseFloat(ulStyle, "marginLeft").toInt()
+    ulMarginTop = parseFloat(ulStyle, "marginTop").toInt()
+    ulMarginBottom = parseFloat(ulStyle, "marginBottom").toInt()
     ulBulletSize = parseFloat(ulStyle, "bulletSize").toInt()
 
     val ulCheckboxStyle = style.getMap("ulCheckbox")
     ulCheckboxBoxSize = parseFloat(ulCheckboxStyle, "boxSize").toInt()
     ulCheckboxGapWidth = parseFloat(ulCheckboxStyle, "gapWidth").toInt()
     ulCheckboxMarginLeft = parseFloat(ulCheckboxStyle, "marginLeft").toInt()
+    ulCheckboxMarginTop = parseFloat(ulCheckboxStyle, "marginTop").toInt()
+    ulCheckboxMarginBottom = parseFloat(ulCheckboxStyle, "marginBottom").toInt()
     ulCheckboxBoxColor = parseColor(ulCheckboxStyle, "boxColor")
 
     val aStyle = style.getMap("a")

@@ -5,7 +5,7 @@ import {
   type OnMentionPressEvent,
   type OnImagePressEvent,
 } from 'react-native-enriched-html';
-import { enrichedTextHtmlStyle } from '../constants/editorConfig';
+import { devEnrichedTextHtmlStyle } from '../constants/editorConfig';
 
 interface TextRendererProps {
   nodes: Array<string>;
@@ -40,7 +40,7 @@ export const TextRenderer = ({ nodes }: TextRendererProps) => {
         <EnrichedText
           key={index}
           style={styles.text}
-          htmlStyle={enrichedTextHtmlStyle}
+          htmlStyle={devEnrichedTextHtmlStyle}
           onLinkPress={handleLinkPress}
           onMentionPress={handleMentionPress}
           onImagePress={handleImagePress}

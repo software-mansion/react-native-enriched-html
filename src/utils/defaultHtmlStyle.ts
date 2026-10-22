@@ -4,26 +4,38 @@ export const DEFAULT_HTML_STYLE: Required<HtmlStyle> = {
   h1: {
     fontSize: 32,
     bold: false,
+    marginTop: 0,
+    marginBottom: 0,
   },
   h2: {
     fontSize: 24,
     bold: false,
+    marginTop: 0,
+    marginBottom: 0,
   },
   h3: {
     fontSize: 20,
     bold: false,
+    marginTop: 0,
+    marginBottom: 0,
   },
   h4: {
     fontSize: 16,
     bold: false,
+    marginTop: 0,
+    marginBottom: 0,
   },
   h5: {
     fontSize: 14,
     bold: false,
+    marginTop: 0,
+    marginBottom: 0,
   },
   h6: {
     fontSize: 12,
     bold: false,
+    marginTop: 0,
+    marginBottom: 0,
   },
   blockquote: {
     borderColor: 'darkgray',
@@ -53,6 +65,8 @@ export const DEFAULT_HTML_STYLE: Required<HtmlStyle> = {
   ol: {
     gapWidth: 16,
     marginLeft: 16,
+    marginTop: 0,
+    marginBottom: 0,
     markerFontWeight: undefined,
     markerColor: undefined,
   },
@@ -60,12 +74,16 @@ export const DEFAULT_HTML_STYLE: Required<HtmlStyle> = {
     bulletColor: 'black',
     bulletSize: 8,
     marginLeft: 16,
+    marginTop: 0,
+    marginBottom: 0,
     gapWidth: 16,
   },
   ulCheckbox: {
     boxSize: 24,
     gapWidth: 16,
     marginLeft: 16,
+    marginTop: 0,
+    marginBottom: 0,
     boxColor: 'blue',
   },
 };

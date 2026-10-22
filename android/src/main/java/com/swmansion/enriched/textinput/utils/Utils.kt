@@ -8,6 +8,7 @@ import android.util.Log
 import android.view.MotionEvent
 import android.widget.TextView
 import com.swmansion.enriched.common.EnrichedSpanFlags
+import com.swmansion.enriched.common.spans.EnrichedBlockSpacingSpan
 import com.swmansion.enriched.textinput.spans.EnrichedInputCheckboxListSpan
 import org.json.JSONObject
 
@@ -57,8 +58,15 @@ fun TextView.setCheckboxClickListener() {
     val isFirstLine = spannable.getSpanStart(span) == lineStart
     val marginWidth = span.getLeadingMargin(true)
 
+    // Block margins are part of the line's height, but taps on them shouldn't toggle the checkbox
+    val blockSpacing = spannable.getSpans(lineStart, lineStart, EnrichedBlockSpacingSpan::class.java).firstOrNull()
+    val spacingAbove = if (blockSpacing != null && spannable.getSpanStart(blockSpacing) == lineStart) blockSpacing.spacingBefore else 0
+    val spacingBelow =
+      if (blockSpacing != null && spannable.getSpanEnd(blockSpacing) <= layout.getLineEnd(line)) blockSpacing.spacingAfter else 0
+    val isOnLineText = y in (layout.getLineTop(line) + spacingAbove)..(layout.getLineBottom(line) - spacingBelow)
+
     // Check if touch is on checkbox icon area (which is in the leading margin on the first line)
-    val isInHotZone = isFirstLine && x in 0..marginWidth
+    val isInHotZone = isFirstLine && isOnLineText && x in 0..marginWidth
 
     when (event.action) {
       MotionEvent.ACTION_DOWN -> {

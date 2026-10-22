@@ -76,3 +76,22 @@ export const WEB_DEFAULT_HTML_STYLE: HtmlStyle = {
     },
   },
 };
+
+// Vertical spacing around headings and lists, shown on the main screen only,
+// so the test screens stay the same.
+export const WEB_DEV_HTML_STYLE: HtmlStyle = {
+  ...WEB_DEFAULT_HTML_STYLE,
+  h1: { ...WEB_DEFAULT_HTML_STYLE.h1, marginTop: 24, marginBottom: 12 },
+  h2: { ...WEB_DEFAULT_HTML_STYLE.h2, marginTop: 20, marginBottom: 10 },
+  h3: { ...WEB_DEFAULT_HTML_STYLE.h3, marginTop: 16, marginBottom: 8 },
+  h4: { ...WEB_DEFAULT_HTML_STYLE.h4, marginTop: 12, marginBottom: 6 },
+  h5: { ...WEB_DEFAULT_HTML_STYLE.h5, marginTop: 12, marginBottom: 6 },
+  h6: { ...WEB_DEFAULT_HTML_STYLE.h6, marginTop: 12, marginBottom: 6 },
+  ol: { ...WEB_DEFAULT_HTML_STYLE.ol, marginTop: 8, marginBottom: 8 },
+  ul: { ...WEB_DEFAULT_HTML_STYLE.ul, marginTop: 8, marginBottom: 8 },
+  ulCheckbox: {
+    ...WEB_DEFAULT_HTML_STYLE.ulCheckbox,
+    marginTop: 8,
+    marginBottom: 8,
+  },
+};

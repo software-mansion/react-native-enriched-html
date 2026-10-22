@@ -18,7 +18,9 @@ import com.facebook.react.views.text.ReactTypefaceUtils.parseFontStyle
 import com.facebook.react.views.text.ReactTypefaceUtils.parseFontWeight
 import com.facebook.yoga.YogaMeasureMode
 import com.facebook.yoga.YogaMeasureOutput
+import com.swmansion.enriched.common.EnrichedBlockSpacing
 import com.swmansion.enriched.common.EnrichedConstants
+import com.swmansion.enriched.common.EnrichedSpanFlags
 import com.swmansion.enriched.common.GumboNormalizer
 import com.swmansion.enriched.common.allowFontScalingFromProps
 import com.swmansion.enriched.common.parser.EnrichedParser
@@ -122,8 +124,9 @@ object MeasurementStore {
       val enrichedStyle = EnrichedTextStyle.fromReadableMap(context as ReactContext, fontSize, style, allowFontScaling)
 
       val factory = EnrichedTextSpanFactory()
-      val parsed = EnrichedParser.fromHtml(textToParse, enrichedStyle, factory)
-      return parsed.trimEnd('\n')
+      val parsed = EnrichedParser.fromHtml(textToParse, enrichedStyle, factory).trimEnd('\n')
+      (parsed as? Spannable)?.let { EnrichedBlockSpacing.apply(it, enrichedStyle) }
+      return parsed
     } catch (e: Exception) {
       Log.w("MeasurementStore", "Error parsing initial HTML text: ${e.message}")
       return text
@@ -168,11 +171,12 @@ object MeasurementStore {
     val measuredText: CharSequence =
       if (lineHeight > 0f) {
         val spannable = SpannableString(rawText)
+        val lineHeightSpan = EnrichedLineHeightSpan(lineHeight, allowFontScaling)
         spannable.setSpan(
-          EnrichedLineHeightSpan(lineHeight, allowFontScaling),
+          lineHeightSpan,
           0,
           spannable.length,
-          Spannable.SPAN_INCLUSIVE_INCLUSIVE,
+          EnrichedSpanFlags.forSpan(lineHeightSpan, Spannable.SPAN_INCLUSIVE_INCLUSIVE),
         )
         spannable
       } else {

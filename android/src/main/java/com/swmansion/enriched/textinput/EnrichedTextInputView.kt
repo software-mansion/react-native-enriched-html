@@ -38,6 +38,7 @@ import com.facebook.react.uimanager.UIManagerHelper
 import com.facebook.react.views.text.ReactTypefaceUtils.applyStyles
 import com.facebook.react.views.text.ReactTypefaceUtils.parseFontStyle
 import com.facebook.react.views.text.ReactTypefaceUtils.parseFontWeight
+import com.swmansion.enriched.common.EnrichedBlockSpacing
 import com.swmansion.enriched.common.EnrichedConstants
 import com.swmansion.enriched.common.EnrichedSpanFlags
 import com.swmansion.enriched.common.GumboNormalizer
@@ -598,12 +599,19 @@ class EnrichedTextInputView :
       .forEach { spannable.removeSpan(it) }
 
     val lh = lineHeight ?: return
+    val lineHeightSpan = EnrichedLineHeightSpan(lh, allowFontScaling)
     spannable.setSpan(
-      EnrichedLineHeightSpan(lh, allowFontScaling),
+      lineHeightSpan,
       0,
       spannable.length,
-      Spannable.SPAN_INCLUSIVE_INCLUSIVE,
+      EnrichedSpanFlags.forSpan(lineHeightSpan, Spannable.SPAN_INCLUSIVE_INCLUSIVE),
     )
+  }
+
+  // Block spacing depends on the neighbouring paragraphs, so it is recomputed for the whole text
+  fun refreshBlockSpacing() {
+    val spannable = text as? Spannable ?: return
+    EnrichedBlockSpacing.apply(spannable, htmlStyle)
   }
 
   fun setFontFamily(family: String?) {
