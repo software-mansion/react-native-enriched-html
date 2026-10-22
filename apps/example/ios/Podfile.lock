@@ -1626,7 +1626,7 @@ PODS:
     - React-utils (= 0.87.0)
     - ReactNativeDependencies
   - ReactNativeDependencies (0.87.0)
-  - ReactNativeEnrichedHtml (1.1.1):
+  - ReactNativeEnrichedHtml (1.1.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -1938,7 +1938,7 @@ SPEC CHECKSUMS:
   React-bridging: dd8fc4c80bdd98b136d910c2be3ba1dffd92c64d
   React-callinvoker: 2703817f9ad45a19f839421aa77a3504b2a76f0d
   React-Core: 7a5e9cd7d14b4149c817b6e522206477b7fa63a2
-  React-Core-prebuilt: 508793fe2a734c137e80b894998702a6fe7caa94
+  React-Core-prebuilt: d7a5fd7d35b1b39a271286ef44a294bc4228093f
   React-CoreModules: 846a3cc0bfe0e5c930da571dd7c2cb1cb0033012
   React-cxxreact: ca6ef2aa2d29f0905be8a0109f649c42fd12768a
   React-cxxstableapi: 06f491a41595d7e71e9a1783781913e0b2291d57
@@ -2005,10 +2005,10 @@ SPEC CHECKSUMS:
   ReactCodegen: b54c2a8d91c25df024024b078e9fd3cdf93ce8cf
   ReactCommon: 31d05b76329c8b3c9ef37fff8212f830925a2535
   ReactNativeDependencies: ec5530432d8191b38e278117d498aaff05ea9d6f
-  ReactNativeEnrichedHtml: 494c703157e37b8158fe254b6a62cb2e480453a1
+  ReactNativeEnrichedHtml: 862adfa2876f765869e6d27630d21f6e6e04bf25
   SocketRocket: d57b1af80c029e12a75cd9b218287c67381e4593
   Yoga: 58b502c52b14ad3c4468805d461fc37d275c2a42
 
-PODFILE CHECKSUM: 18db632a8c8a50c9b0bd2872a3acfa761b6ee5de
+PODFILE CHECKSUM: 88c10840d02e9884b2dc3f457d5120f83ac3803b
 
 COCOAPODS: 1.15.2
