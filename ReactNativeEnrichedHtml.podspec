@@ -17,6 +17,7 @@ Pod::Spec.new do |s|
   s.exclude_files = ["cpp/tests/**"]
   s.private_header_files = "ios/**/*.h"
   s.header_mappings_dir = "."
+  s.frameworks = "UniformTypeIdentifiers"
   s.pod_target_xcconfig = {
     'HEADER_SEARCH_PATHS' => '"${PODS_TARGET_SRCROOT}/ios" "${PODS_TARGET_SRCROOT}/cpp/parser" "${PODS_TARGET_SRCROOT}/cpp/GumboParser"',
     'USE_HEADERMAP' => 'NO'
