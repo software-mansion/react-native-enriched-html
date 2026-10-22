@@ -6,15 +6,20 @@ import android.text.SpannableStringBuilder
 import android.text.Spanned
 import com.swmansion.enriched.common.EnrichedConstants
 import com.swmansion.enriched.common.EnrichedSpanFlags
+import com.swmansion.enriched.common.spans.interfaces.EnrichedListSpan
 import com.swmansion.enriched.textinput.EnrichedTextInputView
 import com.swmansion.enriched.textinput.spans.EnrichedInputCheckboxListSpan
 import com.swmansion.enriched.textinput.spans.EnrichedInputOrderedListSpan
 import com.swmansion.enriched.textinput.spans.EnrichedInputUnorderedListSpan
 import com.swmansion.enriched.textinput.spans.EnrichedSpans
+import com.swmansion.enriched.textinput.utils.getListCompoundRanges
 import com.swmansion.enriched.textinput.utils.getParagraphBounds
+import com.swmansion.enriched.textinput.utils.getParagraphListSpan
 import com.swmansion.enriched.textinput.utils.getSafeSpanBoundaries
+import com.swmansion.enriched.textinput.utils.repairListChains
 import com.swmansion.enriched.textinput.utils.safelyInsertZWS
 import com.swmansion.enriched.textinput.utils.safelyRemoveZWS
+import com.swmansion.enriched.textinput.utils.setAncestorListStyles
 
 class ListStyles(
   private val view: EnrichedTextInputView,
@@ -36,23 +41,34 @@ class ListStyles(
     return null
   }
 
-  private fun <T> isPreviousParagraphList(
+  private fun getParagraphAncestorListStyles(
     spannable: Spannable,
-    s: Int,
-    type: Class<T>,
-  ): Boolean {
-    val previousSpan = getPreviousParagraphSpan(spannable, s, type)
-
-    return previousSpan != null
-  }
+    start: Int,
+    end: Int,
+  ): List<String>? = spannable.getParagraphListSpan(start, end)?.ancestorListStyles
 
   private fun getOrderedListIndex(
     spannable: Spannable,
     s: Int,
+    depth: Int,
   ): Int {
-    val span = getPreviousParagraphSpan(spannable, s, EnrichedInputOrderedListSpan::class.java)
-    val index = span?.getListIndex() ?: 0
-    return index + 1
+    var paragraphStart = s
+
+    while (paragraphStart > 0) {
+      val (prevStart, prevEnd) = spannable.getParagraphBounds(paragraphStart - 1)
+      val prevDepth = getParagraphAncestorListStyles(spannable, prevStart, prevEnd)?.size ?: 0
+
+      if (prevDepth < depth) break
+
+      if (prevDepth == depth) {
+        val previousOrderedSpan = spannable.getSpans(prevStart, prevEnd, EnrichedInputOrderedListSpan::class.java).lastOrNull()
+        return (previousOrderedSpan?.getListIndex() ?: 0) + 1
+      }
+
+      paragraphStart = prevStart
+    }
+
+    return 1
   }
 
   private fun setSpan(
@@ -61,23 +77,24 @@ class ListStyles(
     start: Int,
     end: Int,
     isChecked: Boolean? = false,
+    ancestorListStyles: List<String> = emptyList(),
   ) {
     val (safeStart, safeEnd) = spannable.getSafeSpanBoundaries(start, end)
 
     when (name) {
       EnrichedSpans.UNORDERED_LIST -> {
-        val span = EnrichedInputUnorderedListSpan(view.htmlStyle)
+        val span = EnrichedInputUnorderedListSpan(view.htmlStyle, ancestorListStyles)
         spannable.setSpan(span, safeStart, safeEnd, EnrichedSpanFlags.forSpan(span))
       }
 
       EnrichedSpans.ORDERED_LIST -> {
-        val index = getOrderedListIndex(spannable, safeStart)
-        val span = EnrichedInputOrderedListSpan(index, view.htmlStyle)
+        val index = getOrderedListIndex(spannable, safeStart, ancestorListStyles.size)
+        val span = EnrichedInputOrderedListSpan(index, view.htmlStyle, ancestorListStyles)
         spannable.setSpan(span, safeStart, safeEnd, EnrichedSpanFlags.forSpan(span))
       }
 
       EnrichedSpans.CHECKBOX_LIST -> {
-        val span = EnrichedInputCheckboxListSpan(isChecked ?: false, view.htmlStyle)
+        val span = EnrichedInputCheckboxListSpan(isChecked ?: false, view.htmlStyle, ancestorListStyles)
         spannable.setSpan(span, safeStart, safeEnd, EnrichedSpanFlags.forSpan(span))
 
         // Invalidate layout to update checkbox drawing in case checkbox is bigger than line height
@@ -112,14 +129,49 @@ class ListStyles(
     val sortedSpans = spans.sortedBy { text.getSpanStart(it) }
     for (span in sortedSpans) {
       val spanStart = text.getSpanStart(span)
-      val index = getOrderedListIndex(text, spanStart)
+      val index = getOrderedListIndex(text, spanStart, span.depth)
       span.setListIndex(index)
+    }
+  }
+
+  fun validateListIntegrity(
+    spannable: Spannable,
+    start: Int,
+    end: Int,
+  ) {
+    var repairedFrom: Int? = null
+
+    for ((compoundStart, compoundEnd) in spannable.getListCompoundRanges(start, end)) {
+      if (spannable.repairListChains(compoundStart, compoundEnd)) {
+        repairedFrom = repairedFrom ?: compoundStart
+      }
+    }
+
+    if (repairedFrom == null) return
+
+    updateOrderedListIndexes(spannable, (repairedFrom - 1).coerceAtLeast(0))
+    view.selection?.validateStyles()
+    view.layoutManager.invalidateLayout()
+  }
+
+  fun getCurrentAncestorListStyles(
+    start: Int,
+    end: Int,
+  ): List<List<String>> {
+    val spannable = view.text as? Spannable ?: return emptyList()
+    var paragraphStart = start
+    return spannable.substring(start, end).split("\n").map { paragraph ->
+      val paragraphEnd = paragraphStart + paragraph.length
+      val ancestorListStyles = getParagraphAncestorListStyles(spannable, paragraphStart, paragraphEnd) ?: emptyList()
+      paragraphStart = paragraphEnd + 1
+      ancestorListStyles
     }
   }
 
   private fun toggleStyle(
     name: String,
     checkboxState: Boolean?,
+    ancestorListStyles: List<List<String>>? = null,
   ) {
     if (view.selection == null) return
     val config = EnrichedSpans.listSpans[name] ?: return
@@ -130,6 +182,7 @@ class ListStyles(
     if (styleStart != null) {
       view.spanState.setStart(name, null)
       removeSpansForRange(spannable, start, end, config.clazz)
+      validateListIntegrity(spannable, start, end)
       view.selection.validateStyles()
 
       return
@@ -141,7 +194,8 @@ class ListStyles(
 
       view.spanState?.setStart(name, start + shift)
       removeSpansForRange(spannable, start, end, config.clazz)
-      setSpan(spannable, name, start, end + shift, checkboxState)
+      setSpan(spannable, name, start, end + shift, checkboxState, ancestorListStyles?.getOrNull(0) ?: emptyList())
+      validateListIntegrity(spannable, start, end + shift)
 
       return
     }
@@ -150,25 +204,76 @@ class ListStyles(
     val paragraphs = spannable.substring(start, end).split("\n")
     removeSpansForRange(spannable, start, end, config.clazz)
 
-    for (paragraph in paragraphs) {
+    for ((index, paragraph) in paragraphs.withIndex()) {
       val wasInserted = spannable.safelyInsertZWS(currentStart)
       val shift = if (wasInserted) 1 else 0
       val currentEnd = currentStart + paragraph.length + shift
-      setSpan(spannable, name, currentStart, currentEnd, checkboxState)
+      setSpan(spannable, name, currentStart, currentEnd, checkboxState, ancestorListStyles?.getOrNull(index) ?: emptyList())
 
       // Safely jump exactly 1 character over the '\n' to the next line
       currentStart = currentEnd + 1
     }
 
     view.spanState?.setStart(name, currentStart)
+    validateListIntegrity(spannable, start, (currentStart - 1).coerceAtLeast(start))
   }
 
-  fun toggleStyle(name: String) {
-    toggleStyle(name, false)
+  fun toggleStyle(
+    name: String,
+    ancestorListStyles: List<List<String>>? = null,
+  ) {
+    toggleStyle(name, false, ancestorListStyles)
   }
 
-  fun toggleCheckboxListStyle(checked: Boolean) {
-    toggleStyle(EnrichedSpans.CHECKBOX_LIST, checked)
+  fun toggleCheckboxListStyle(
+    checked: Boolean,
+    ancestorListStyles: List<List<String>>? = null,
+  ) {
+    toggleStyle(EnrichedSpans.CHECKBOX_LIST, checked, ancestorListStyles)
+  }
+
+  private fun modifyListNesting(increasing: Boolean) {
+    val spannable = view.text as? SpannableStringBuilder ?: return
+    val (start, end) = view.selection?.getParagraphSelection() ?: return
+
+    var nextParagraphStart = start
+    for (paragraph in spannable.substring(start, end).split("\n")) {
+      val paragraphStart = nextParagraphStart
+      val paragraphEnd = paragraphStart + paragraph.length
+      nextParagraphStart = paragraphEnd + 1
+
+      val span = spannable.getParagraphListSpan(paragraphStart, paragraphEnd) ?: continue
+      val newAncestorListStyles =
+        if (increasing) {
+          if (paragraphStart == 0) continue
+
+          // We look at the line before, to inherit the parent list's chain
+          val (prevStart, prevEnd) = spannable.getParagraphBounds(paragraphStart - 1)
+          val prevChain = spannable.getParagraphListSpan(prevStart, prevEnd)?.listChain ?: continue
+          val chainSize = span.depth + 1
+          if (prevChain.size < chainSize) continue
+
+          prevChain.take(chainSize)
+        } else {
+          if (span.ancestorListStyles.isEmpty()) continue
+          span.ancestorListStyles.dropLast(1)
+        }
+
+      spannable.setAncestorListStyles(span, newAncestorListStyles)
+    }
+
+    updateOrderedListIndexes(spannable, (start - 1).coerceAtLeast(0))
+    validateListIntegrity(spannable, start, end)
+    view.selection?.validateStyles()
+    view.layoutManager.invalidateLayout()
+  }
+
+  fun indentList() {
+    modifyListNesting(increasing = true)
+  }
+
+  fun outdentList() {
+    modifyListNesting(increasing = false)
   }
 
   private fun handleAfterTextChanged(
@@ -191,7 +296,8 @@ class ListStyles(
       return
     }
 
-    if (!isBackspace && isNewLine && isPreviousParagraphList(s, start, config.clazz)) {
+    val previousParagraphSpan = getPreviousParagraphSpan(s, start, config.clazz)
+    if (!isBackspace && isNewLine && previousParagraphSpan != null) {
       // Check if the span from the previous line "leaked" into this one
       if (spans.isNotEmpty()) {
         val existingSpan = spans[0]
@@ -207,7 +313,8 @@ class ListStyles(
 
       val wasInserted = (s as SpannableStringBuilder).safelyInsertZWS(cursorPosition)
       val shift = if (wasInserted) 1 else 0
-      setSpan(s, name, start, end + shift)
+      val ancestorListStyles = (previousParagraphSpan as? EnrichedListSpan)?.ancestorListStyles ?: emptyList()
+      setSpan(s, name, start, end + shift, ancestorListStyles = ancestorListStyles)
       // Inform that new span has been added
       view.selection?.validateStyles()
       return
@@ -217,34 +324,41 @@ class ListStyles(
       if (spans.isNotEmpty()) {
         val previousSpan = spans[0] as EnrichedInputCheckboxListSpan
         val isChecked = previousSpan.isChecked
+        val ancestorListStyles = previousSpan.ancestorListStyles
 
         for (span in spans) {
           s.removeSpan(span)
         }
 
-        setSpan(s, EnrichedSpans.CHECKBOX_LIST, start, end, isChecked)
+        setSpan(s, EnrichedSpans.CHECKBOX_LIST, start, end, isChecked, ancestorListStyles)
       }
 
       return
     }
 
     if (spans.isNotEmpty()) {
+      val ancestorListStyles = (spans[0] as? EnrichedListSpan)?.ancestorListStyles ?: emptyList()
       for (span in spans) {
         s.removeSpan(span)
       }
 
-      setSpan(s, name, start, end)
+      setSpan(s, name, start, end, ancestorListStyles = ancestorListStyles)
     }
   }
 
   fun afterTextChanged(
     s: Editable,
+    startCursorPosition: Int,
     endCursorPosition: Int,
     previousTextLength: Int,
   ) {
-    handleAfterTextChanged(s, EnrichedSpans.ORDERED_LIST, endCursorPosition, previousTextLength)
-    handleAfterTextChanged(s, EnrichedSpans.UNORDERED_LIST, endCursorPosition, previousTextLength)
-    handleAfterTextChanged(s, EnrichedSpans.CHECKBOX_LIST, endCursorPosition, previousTextLength)
+    view.runAsATransaction {
+      handleAfterTextChanged(s, EnrichedSpans.ORDERED_LIST, endCursorPosition, previousTextLength)
+      handleAfterTextChanged(s, EnrichedSpans.UNORDERED_LIST, endCursorPosition, previousTextLength)
+      handleAfterTextChanged(s, EnrichedSpans.CHECKBOX_LIST, endCursorPosition, previousTextLength)
+    }
+
+    validateListIntegrity(s, startCursorPosition, endCursorPosition)
   }
 
   fun getStyleRange(): Pair<Int, Int> = view.selection?.getParagraphSelection() ?: Pair(0, 0)

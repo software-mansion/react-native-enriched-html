@@ -466,6 +466,7 @@ class EnrichedTextInputView :
     runAsATransaction {
       val newText = if (shouldParseHtml) parseText(value) else value
       setText(newText)
+      (text as? Spannable)?.let { listStyles?.validateListIntegrity(it, 0, it.length) }
       applyLineSpacing()
 
       observeAsyncImages()
@@ -831,7 +832,10 @@ class EnrichedTextInputView :
     layoutManager.invalidateLayout()
   }
 
-  internal fun toggleStyle(name: String) {
+  internal fun toggleStyle(
+    name: String,
+    ancestorListStyles: List<List<String>>? = null,
+  ) {
     when (name) {
       EnrichedSpans.BOLD -> inlineStyles?.toggleStyle(EnrichedSpans.BOLD)
       EnrichedSpans.ITALIC -> inlineStyles?.toggleStyle(EnrichedSpans.ITALIC)
@@ -846,9 +850,9 @@ class EnrichedTextInputView :
       EnrichedSpans.H6 -> paragraphStyles?.toggleStyle(EnrichedSpans.H6)
       EnrichedSpans.CODE_BLOCK -> paragraphStyles?.toggleStyle(EnrichedSpans.CODE_BLOCK)
       EnrichedSpans.BLOCK_QUOTE -> paragraphStyles?.toggleStyle(EnrichedSpans.BLOCK_QUOTE)
-      EnrichedSpans.ORDERED_LIST -> listStyles?.toggleStyle(EnrichedSpans.ORDERED_LIST)
-      EnrichedSpans.UNORDERED_LIST -> listStyles?.toggleStyle(EnrichedSpans.UNORDERED_LIST)
-      EnrichedSpans.CHECKBOX_LIST -> listStyles?.toggleStyle(EnrichedSpans.CHECKBOX_LIST)
+      EnrichedSpans.ORDERED_LIST -> listStyles?.toggleStyle(EnrichedSpans.ORDERED_LIST, ancestorListStyles)
+      EnrichedSpans.UNORDERED_LIST -> listStyles?.toggleStyle(EnrichedSpans.UNORDERED_LIST, ancestorListStyles)
+      EnrichedSpans.CHECKBOX_LIST -> listStyles?.toggleStyle(EnrichedSpans.CHECKBOX_LIST, ancestorListStyles)
       else -> Log.w(TAG, "Unknown style: $name")
     }
 
@@ -940,6 +944,14 @@ class EnrichedTextInputView :
         if (removed) {
           spanState?.setStart(style, null)
         }
+
+        // We might have removed a conflicting list span when toggling e.g. a heading style,
+        // so we need to validate the nested list structure. If the style we are toggling
+        // is a list style itself, the list integrity check will be run after the toggle,
+        // as we don't want to intercept that flow
+        if (removed && EnrichedSpans.listSpans.containsKey(style) && !EnrichedSpans.listSpans.containsKey(name)) {
+          (text as? Spannable)?.let { listStyles?.validateListIntegrity(it, targetRange.first, targetRange.second) }
+        }
       }
 
       val lengthAfter = text?.length ?: 0
@@ -959,23 +971,56 @@ class EnrichedTextInputView :
   }
 
   fun verifyAndToggleStyle(name: String) {
+    // capture the current list ancestors, as that data might be removed if
+    // it's a conflicting style
+    val currentAncestorListStyles = getCurrentAncestorListStylesIfApplicable(name)
+
     val isValid = verifyStyle(name)
     if (!isValid) return
 
     val (rangeStart, rangeEnd) = getTargetRange(name)
 
     runAsATransaction {
-      toggleStyle(name)
+      toggleStyle(name, currentAncestorListStyles)
     }
 
     parametrizedStyles?.onStyleToggled(name, rangeStart, rangeEnd)
   }
 
   fun toggleCheckboxListItem(checked: Boolean) {
+    // capture the current list ancestors, as that data might be removed if
+    // it's a conflicting style
+    val currentAncestorListStyles = getCurrentAncestorListStylesIfApplicable(EnrichedSpans.CHECKBOX_LIST)
+
     val isValid = verifyStyle(EnrichedSpans.CHECKBOX_LIST)
     if (!isValid) return
 
-    listStyles?.toggleCheckboxListStyle(checked)
+    runAsATransaction {
+      listStyles?.toggleCheckboxListStyle(checked, currentAncestorListStyles)
+    }
+  }
+
+  private fun getCurrentAncestorListStylesIfApplicable(name: String): List<List<String>>? {
+    if (!EnrichedSpans.listSpans.containsKey(name)) return null
+
+    val (start, end) = listStyles?.getStyleRange() ?: return null
+    return listStyles?.getCurrentAncestorListStyles(start, end)
+  }
+
+  fun indentList() {
+    runAsATransaction {
+      listStyles?.indentList()
+    }
+
+    layoutManager.invalidateLayout()
+  }
+
+  fun outdentList() {
+    runAsATransaction {
+      listStyles?.outdentList()
+    }
+
+    layoutManager.invalidateLayout()
   }
 
   fun addLink(

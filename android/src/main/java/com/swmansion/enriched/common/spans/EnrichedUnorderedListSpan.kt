@@ -8,14 +8,19 @@ import android.text.TextPaint
 import android.text.style.LeadingMarginSpan
 import android.text.style.MetricAffectingSpan
 import com.swmansion.enriched.common.EnrichedStyle
-import com.swmansion.enriched.common.spans.interfaces.EnrichedParagraphSpan
+import com.swmansion.enriched.common.ListIndentUtils
+import com.swmansion.enriched.common.spans.interfaces.EnrichedListSpan
+import com.swmansion.enriched.textinput.spans.EnrichedSpans
 
 // https://android.googlesource.com/platform/frameworks/base/+/refs/heads/main/core/java/android/text/style/BulletSpan.java
 open class EnrichedUnorderedListSpan(
   private val enrichedStyle: EnrichedStyle,
+  override var ancestorListStyles: List<String> = emptyList(),
 ) : MetricAffectingSpan(),
   LeadingMarginSpan,
-  EnrichedParagraphSpan {
+  EnrichedListSpan {
+  override val listStyle: String = EnrichedSpans.UNORDERED_LIST
+
   override fun updateMeasureState(p0: TextPaint) {
     // Do nothing, but inform layout that this span affects text metrics
   }
@@ -24,7 +29,9 @@ open class EnrichedUnorderedListSpan(
     // Do nothing, but inform layout that this span affects text metrics
   }
 
-  override fun getLeadingMargin(p0: Boolean): Int = enrichedStyle.ulBulletSize + enrichedStyle.ulGapWidth + enrichedStyle.ulMarginLeft
+  private fun ancestorsIndent(): Int = ListIndentUtils.ancestorsIndent(ancestorListStyles, enrichedStyle)
+
+  override fun getLeadingMargin(p0: Boolean): Int = ancestorsIndent() + levelIndent(enrichedStyle)
 
   override fun drawLeadingMargin(
     canvas: Canvas,
@@ -51,12 +58,16 @@ open class EnrichedUnorderedListSpan(
       val bulletRadius = enrichedStyle.ulBulletSize / 2f
       val fm = paint.fontMetricsInt
       val yPosition = baseline + (fm.ascent + fm.descent) / 2f
-      val xPosition = x + dir * bulletRadius + enrichedStyle.ulMarginLeft
+      val xPosition = x + dir * bulletRadius + enrichedStyle.ulMarginLeft + ancestorsIndent()
 
       canvas.drawCircle(xPosition, yPosition, bulletRadius, paint)
 
       paint.color = oldColor
       paint.style = style
     }
+  }
+
+  companion object {
+    fun levelIndent(enrichedStyle: EnrichedStyle): Int = enrichedStyle.ulBulletSize + enrichedStyle.ulGapWidth + enrichedStyle.ulMarginLeft
   }
 }

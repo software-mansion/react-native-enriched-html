@@ -5,6 +5,7 @@ import android.text.Spannable
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.uimanager.UIManagerHelper
 import com.swmansion.enriched.common.EnrichedConstants
+import com.swmansion.enriched.common.spans.interfaces.EnrichedListSpan
 import com.swmansion.enriched.textinput.EnrichedTextInputView
 import com.swmansion.enriched.textinput.events.OnChangeSelectionEvent
 import com.swmansion.enriched.textinput.events.OnLinkDetectedEvent
@@ -100,7 +101,9 @@ class EnrichedSelection(
     }
 
     for ((style, config) in EnrichedSpans.listSpans) {
-      state.setStart(style, getListStyleStart(config.clazz))
+      val (listStart, depth) = getListStyleStartAndDepth(config.clazz)
+      state.setDepth(style, depth)
+      state.setStart(style, listStart)
     }
 
     for ((style, config) in EnrichedSpans.parametrizedStyles) {
@@ -164,10 +167,11 @@ class EnrichedSelection(
     return styleStart
   }
 
-  private fun <T> getListStyleStart(type: Class<T>): Int? {
+  private fun <T> getListStyleStartAndDepth(type: Class<T>): Pair<Int?, Int> {
     val (start, end) = getParagraphSelection()
     val spannable = view.text as Spannable
     var styleStart: Int? = null
+    var depth = 0
 
     var paragraphStart = start
     val paragraphs = spannable.substring(start, end).split("\n")
@@ -181,16 +185,18 @@ class EnrichedSelection(
 
         if (spanStart == paragraphStart && spanEnd == paragraphEnd) {
           styleStart = spanStart
+          depth = (span as? EnrichedListSpan)?.depth ?: 0
           paragraphStart = paragraphEnd + 1
           continue@pi
         }
       }
 
       styleStart = null
+      depth = 0
       break
     }
 
-    return styleStart
+    return Pair(styleStart, depth)
   }
 
   private fun <T> getParametrizedStyleStart(type: Class<T>): Int? {

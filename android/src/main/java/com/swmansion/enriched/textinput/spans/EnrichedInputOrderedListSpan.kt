@@ -7,11 +7,13 @@ import com.swmansion.enriched.textinput.styles.HtmlStyle
 class EnrichedInputOrderedListSpan(
   index: Int,
   htmlStyle: HtmlStyle,
-) : EnrichedOrderedListSpan(index, htmlStyle),
+  ancestorListStyles: List<String> = emptyList(),
+) : EnrichedOrderedListSpan(index, htmlStyle, ancestorListStyles),
   EnrichedInputSpan {
   override val dependsOnHtmlStyle: Boolean = true
 
-  override fun rebuildWithStyle(htmlStyle: HtmlStyle): EnrichedInputOrderedListSpan = EnrichedInputOrderedListSpan(index, htmlStyle)
+  override fun rebuildWithStyle(htmlStyle: HtmlStyle): EnrichedInputOrderedListSpan =
+    EnrichedInputOrderedListSpan(index, htmlStyle, ancestorListStyles)
 
   fun getListIndex(): Int = index
 

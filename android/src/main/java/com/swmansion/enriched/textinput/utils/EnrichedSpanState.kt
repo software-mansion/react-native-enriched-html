@@ -46,6 +46,12 @@ class EnrichedSpanState(
     private set
   var checkboxListStart: Int? = null
     private set
+  var orderedListDepth: Int = 0
+    private set
+  var unorderedListDepth: Int = 0
+    private set
+  var checkboxListDepth: Int = 0
+    private set
   var linkStart: Int? = null
     private set
   var imageStart: Int? = null
@@ -133,6 +139,17 @@ class EnrichedSpanState(
   fun setCheckboxListStart(start: Int?) {
     this.checkboxListStart = start
     emitStateChangeEvent()
+  }
+
+  fun setDepth(
+    name: String,
+    depth: Int,
+  ) {
+    when (name) {
+      EnrichedSpans.ORDERED_LIST -> orderedListDepth = depth
+      EnrichedSpans.UNORDERED_LIST -> unorderedListDepth = depth
+      EnrichedSpans.CHECKBOX_LIST -> checkboxListDepth = depth
+    }
   }
 
   fun setAlignment(value: String) {
@@ -309,9 +326,10 @@ class EnrichedSpanState(
     val isConflicting = conflictingList?.any { activeStyles.contains(it) } ?: false
     state.putBoolean("isConflicting", isConflicting)
 
-    // TODO: nested lists to be implemented on Android, depth is a placeholder (always 0)
-    if (type == EnrichedSpans.ORDERED_LIST || type == EnrichedSpans.UNORDERED_LIST || type == EnrichedSpans.CHECKBOX_LIST) {
-      state.putInt("depth", 0)
+    when (type) {
+      EnrichedSpans.ORDERED_LIST -> state.putInt("depth", orderedListDepth)
+      EnrichedSpans.UNORDERED_LIST -> state.putInt("depth", unorderedListDepth)
+      EnrichedSpans.CHECKBOX_LIST -> state.putInt("depth", checkboxListDepth)
     }
 
     return state

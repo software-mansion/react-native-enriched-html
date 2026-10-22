@@ -71,14 +71,19 @@ class EnrichedTextInputSpannableFactory : EnrichedSpanFactory<HtmlStyle> {
   override fun createOrderedListSpan(
     index: Int,
     style: HtmlStyle,
-  ) = EnrichedInputOrderedListSpan(index, style)
+    ancestorListStyles: List<String>,
+  ) = EnrichedInputOrderedListSpan(index, style, ancestorListStyles)
 
-  override fun createUnorderedListSpan(style: HtmlStyle) = EnrichedInputUnorderedListSpan(style)
+  override fun createUnorderedListSpan(
+    style: HtmlStyle,
+    ancestorListStyles: List<String>,
+  ) = EnrichedInputUnorderedListSpan(style, ancestorListStyles)
 
   override fun createCheckboxListSpan(
     isChecked: Boolean,
     style: HtmlStyle,
-  ) = EnrichedInputCheckboxListSpan(isChecked, style)
+    ancestorListStyles: List<String>,
+  ) = EnrichedInputCheckboxListSpan(isChecked, style, ancestorListStyles)
 
   override fun createBlockQuoteSpan(style: HtmlStyle) = EnrichedInputBlockQuoteSpan(style)
 

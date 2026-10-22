@@ -6,9 +6,11 @@ import com.swmansion.enriched.textinput.styles.HtmlStyle
 
 class EnrichedInputUnorderedListSpan(
   htmlStyle: HtmlStyle,
-) : EnrichedUnorderedListSpan(htmlStyle),
+  ancestorListStyles: List<String> = emptyList(),
+) : EnrichedUnorderedListSpan(htmlStyle, ancestorListStyles),
   EnrichedInputSpan {
   override val dependsOnHtmlStyle: Boolean = true
 
-  override fun rebuildWithStyle(htmlStyle: HtmlStyle): EnrichedInputUnorderedListSpan = EnrichedInputUnorderedListSpan(htmlStyle)
+  override fun rebuildWithStyle(htmlStyle: HtmlStyle): EnrichedInputUnorderedListSpan =
+    EnrichedInputUnorderedListSpan(htmlStyle, ancestorListStyles)
 }

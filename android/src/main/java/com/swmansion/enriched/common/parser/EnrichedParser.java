@@ -29,12 +29,17 @@ import com.swmansion.enriched.common.spans.EnrichedUnderlineSpan;
 import com.swmansion.enriched.common.spans.EnrichedUnorderedListSpan;
 import com.swmansion.enriched.common.spans.interfaces.EnrichedBlockSpan;
 import com.swmansion.enriched.common.spans.interfaces.EnrichedInlineSpan;
+import com.swmansion.enriched.common.spans.interfaces.EnrichedListSpan;
 import com.swmansion.enriched.common.spans.interfaces.EnrichedParagraphSpan;
 import com.swmansion.enriched.common.spans.interfaces.EnrichedSpan;
 import com.swmansion.enriched.common.spans.interfaces.EnrichedZeroWidthSpaceSpan;
+import com.swmansion.enriched.textinput.spans.EnrichedSpans;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -179,10 +184,82 @@ public class EnrichedParser {
     return "p";
   }
 
+  private static List<String> getAncestorListTags(EnrichedParagraphSpan[] spans) {
+    for (EnrichedParagraphSpan span : spans) {
+      if (span instanceof EnrichedListSpan) {
+        List<String> tags = new ArrayList<>();
+        for (String listStyle : ((EnrichedListSpan) span).getAncestorListStyles()) {
+          String listTag;
+          if (EnrichedSpans.ORDERED_LIST.equals(listStyle)) {
+            listTag = "ol";
+          } else if (EnrichedSpans.CHECKBOX_LIST.equals(listStyle)) {
+            listTag = "ul data-type=\"checkbox\"";
+          } else {
+            listTag = "ul";
+          }
+          tags.add(listTag);
+        }
+        return tags;
+      }
+    }
+    return Collections.emptyList();
+  }
+
+  private static List<String> targetListChain(List<String> ancestorTags, String ownTag) {
+    List<String> chain = new ArrayList<>(ancestorTags);
+    chain.add(ownTag);
+    return chain;
+  }
+
+  // Synchronizes the open list tag stack, closing and opening relevant tags. Every list level on
+  // the
+  // open stack has its <li> left open, so that a nested list can be placed inside the item it
+  // belongs
+  // to (<li>a<ul><li>b</li></ul></li>).
+  private static void syncListStack(
+      StringBuilder out,
+      List<String> openListStack,
+      List<String> targetChain,
+      Spanned text,
+      int start,
+      int end) {
+    int commonPrefix = 0;
+    while (commonPrefix < openListStack.size()
+        && commonPrefix < targetChain.size()
+        && openListStack.get(commonPrefix).equals(targetChain.get(commonPrefix))) {
+      commonPrefix++;
+    }
+
+    // Moved levels higher in the nesting depth; close the previously opened items and lists
+    while (openListStack.size() > commonPrefix) {
+      String popped = openListStack.remove(openListStack.size() - 1);
+      String closeTag = popped.startsWith("ul") ? "ul" : "ol";
+      out.append("</li>\n</").append(closeTag).append(">\n");
+    }
+
+    // Next item is a sibling at this depth; close the previous one
+    if (commonPrefix > 0 && commonPrefix == targetChain.size()) {
+      out.append("</li>\n");
+    }
+
+    // Entered lists at a new nesting depth; open its tag
+    String alignAttr = getAlignmentStyleAttr(text, start, end);
+    for (int k = commonPrefix; k < targetChain.size(); k++) {
+      String tag = targetChain.get(k);
+      out.append("<").append(tag).append(alignAttr).append(">\n");
+      openListStack.add(tag);
+      // Moving more than one level deeper means we have no text content in those list
+      // elements and a proper opening <li> tag will not get appended (this shouldn't
+      // happen as we keep the nested list structure valid in the input logic), so
+      // append it here, to keep the HTML structure intact
+      if (k < targetChain.size() - 1) {
+        out.append("<li>");
+      }
+    }
+  }
+
   private static void withinBlock(StringBuilder out, Spanned text, int start, int end) {
-    boolean isInUlList = false;
-    boolean isInOlList = false;
-    boolean isInCheckboxList = false;
+    List<String> openListStack = new ArrayList<>();
 
     int next;
     for (int i = start; i <= end; i = next) {
@@ -191,19 +268,8 @@ public class EnrichedParser {
         next = end;
       }
       if (next == i) {
-        if (isInUlList) {
-          // Current paragraph is no longer a list item; close the previously opened list
-          isInUlList = false;
-          out.append("</ul>\n");
-        } else if (isInOlList) {
-          // Current paragraph is no longer a list item; close the previously opened list
-          isInOlList = false;
-          out.append("</ol>\n");
-        } else if (isInCheckboxList) {
-          // Current paragraph is no longer a list item; close the previously opened list
-          isInCheckboxList = false;
-          out.append("</ul>\n");
-        }
+        // Current paragraph is no longer a list item; close the previously opened lists
+        syncListStack(out, openListStack, Collections.emptyList(), text, i, next);
         out.append("<br>\n");
       } else {
         EnrichedParagraphSpan[] paragraphStyles =
@@ -212,38 +278,16 @@ public class EnrichedParser {
         boolean isUlListItem = tag.equals("ul");
         boolean isOlListItem = tag.equals("ol");
         boolean isCheckboxListItem = tag.equals("ul data-type=\"checkbox\"");
-
-        if (isInUlList && !isUlListItem) {
-          // Current paragraph is no longer a list item; close the previously opened list
-          isInUlList = false;
-          out.append("</ul>\n");
-        } else if (isInOlList && !isOlListItem) {
-          // Current paragraph is no longer a list item; close the previously opened list
-          isInOlList = false;
-          out.append("</ol>\n");
-        } else if (isInCheckboxList && !isCheckboxListItem) {
-          // Current paragraph is no longer a list item; close the previously opened list
-          isInCheckboxList = false;
-          out.append("</ul>\n");
-        }
-
-        if (isUlListItem && !isInUlList) {
-          // Current paragraph is the first item in a list
-          isInUlList = true;
-          out.append("<ul").append(getAlignmentStyleAttr(text, i, next)).append(">\n");
-        } else if (isOlListItem && !isInOlList) {
-          // Current paragraph is the first item in a list
-          isInOlList = true;
-          out.append("<ol").append(getAlignmentStyleAttr(text, i, next)).append(">\n");
-        } else if (isCheckboxListItem && !isInCheckboxList) {
-          // Current paragraph is the first item in a list
-          isInCheckboxList = true;
-          out.append("<ul data-type=\"checkbox\"")
-              .append(getAlignmentStyleAttr(text, i, next))
-              .append(">\n");
-        }
-
         boolean isList = isUlListItem || isOlListItem || isCheckboxListItem;
+
+        List<String> ancestorTags =
+            isList ? getAncestorListTags(paragraphStyles) : Collections.emptyList();
+        List<String> targetChain =
+            isList ? targetListChain(ancestorTags, tag) : Collections.emptyList();
+        // Sync the opened list stack with current list span data, closing or opening a list tag if
+        // needed
+        syncListStack(out, openListStack, targetChain, text, i, next);
+
         String tagType = isList ? "li" : tag;
 
         out.append("<");
@@ -265,18 +309,16 @@ public class EnrichedParser {
 
         out.append(">");
         withinParagraph(out, text, i, next);
-        out.append("</");
-        out.append(tagType);
-        out.append(">\n");
-        if (next == end && isInUlList) {
-          isInUlList = false;
-          out.append("</ul>\n");
-        } else if (next == end && isInOlList) {
-          isInOlList = false;
-          out.append("</ol>\n");
-        } else if (next == end && isInCheckboxList) {
-          isInCheckboxList = false;
-          out.append("</ul>\n");
+        // List items are closed by syncListStack, as nested lists sit inside <li> tags
+        if (!isList) {
+          out.append("</");
+          out.append(tagType);
+          out.append(">\n");
+        }
+
+        // Reached the end of the current block range; flush the opened list stack, closing the tags
+        if (next == end) {
+          syncListStack(out, openListStack, Collections.emptyList(), text, i, next);
         }
       }
       next++;
@@ -416,11 +458,8 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
   private final XMLReader mReader;
   private final SpannableStringBuilder mSpannableStringBuilder;
   private final Pattern mLinkRegex;
-  private static Integer currentOrderedListItemIndex = 0;
-  private static Boolean isInOrderedList = false;
-  private static Boolean isInCheckboxList = false;
+  private final List<OpenList> mOpenLists = new ArrayList<>();
   private static Boolean isEmptyTag = false;
-  private static String currentListAlignmentCssValue = null;
 
   private static final Pattern CSS_ALIGNMENT_PATTERN =
       Pattern.compile("text-align\\s*:\\s*(left|center|right)", Pattern.CASE_INSENSITIVE);
@@ -530,16 +569,12 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
       startBlockElement(mSpannableStringBuilder);
       pushAlignmentMark(mSpannableStringBuilder, attributes);
     } else if (tag.equalsIgnoreCase("ul")) {
-      isInOrderedList = false;
       String dataType = attributes.getValue("", "data-type");
-      isInCheckboxList = "checkbox".equals(dataType);
-      currentListAlignmentCssValue = parseCssAlignmentValue(attributes);
-      startBlockElement(mSpannableStringBuilder);
+      String style =
+          "checkbox".equals(dataType) ? EnrichedSpans.CHECKBOX_LIST : EnrichedSpans.UNORDERED_LIST;
+      startList(mSpannableStringBuilder, style, attributes);
     } else if (tag.equalsIgnoreCase("ol")) {
-      isInOrderedList = true;
-      currentOrderedListItemIndex = 0;
-      currentListAlignmentCssValue = parseCssAlignmentValue(attributes);
-      startBlockElement(mSpannableStringBuilder);
+      startList(mSpannableStringBuilder, EnrichedSpans.ORDERED_LIST, attributes);
     } else if (tag.equalsIgnoreCase("li")) {
       isEmptyTag = true;
       startLi(mSpannableStringBuilder, attributes);
@@ -602,14 +637,13 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
       if (empty && pendingAlignment == null) {
         handleBr(mSpannableStringBuilder);
       }
-    } else if (tag.equalsIgnoreCase("ul")) {
-      currentListAlignmentCssValue = null;
+    } else if (tag.equalsIgnoreCase("ul") || tag.equalsIgnoreCase("ol")) {
       endBlockElement(mSpannableStringBuilder, mSpanFactory);
-    } else if (tag.equalsIgnoreCase("ol")) {
-      currentListAlignmentCssValue = null;
-      endBlockElement(mSpannableStringBuilder, mSpanFactory);
+      if (!mOpenLists.isEmpty()) {
+        mOpenLists.remove(mOpenLists.size() - 1);
+      }
     } else if (tag.equalsIgnoreCase("li")) {
-      endLi(mSpannableStringBuilder, mStyle, mSpanFactory);
+      endListItemParagraph();
     } else if (tag.equalsIgnoreCase("b")) {
       end(mSpannableStringBuilder, Bold.class, mSpanFactory.createBoldSpan(mStyle));
     } else if (tag.equalsIgnoreCase("i")) {
@@ -681,35 +715,68 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
     text.append('\n');
   }
 
+  private OpenList currentList() {
+    return mOpenLists.isEmpty() ? null : mOpenLists.get(mOpenLists.size() - 1);
+  }
+
+  private void startList(Editable text, String style, Attributes attributes) {
+    // May be entering a nested list inside a list element (<li>a<ul>...</ul></li>),
+    // so we have to end the parent list element span, even though we haven't reached
+    // the closing </li>
+    endListItemParagraph();
+    mOpenLists.add(new OpenList(style, parseCssAlignmentValue(attributes)));
+    startBlockElement(text);
+  }
+
   private void startLi(Editable text, Attributes attributes) {
     startBlockElement(text);
 
-    if (currentListAlignmentCssValue != null) {
-      start(text, new Alignment(currentListAlignmentCssValue));
+    OpenList list = currentList();
+    if (list == null) return;
+    list.itemParagraphOpen = true;
+
+    if (list.alignmentCssValue != null) {
+      start(text, new Alignment(list.alignmentCssValue));
     }
 
-    if (isInOrderedList) {
-      currentOrderedListItemIndex++;
-      start(text, new List("ordered", currentOrderedListItemIndex, false));
-    } else if (isInCheckboxList) {
-      String isChecked = attributes.getValue("", "checked");
-      start(text, new List("checked", 0, "checked".equals(isChecked)));
-    } else {
-      start(text, new List("unordered", 0, false));
+    List<String> ancestorStyles = new ArrayList<>();
+    for (OpenList ancestor : mOpenLists.subList(0, mOpenLists.size() - 1)) {
+      ancestorStyles.add(ancestor.style);
     }
+
+    if (EnrichedSpans.ORDERED_LIST.equals(list.style)) {
+      list.itemIndex++;
+      start(text, new ListItem("ordered", list.itemIndex, false, ancestorStyles));
+    } else if (EnrichedSpans.CHECKBOX_LIST.equals(list.style)) {
+      String isChecked = attributes.getValue("", "checked");
+      start(text, new ListItem("checked", 0, "checked".equals(isChecked), ancestorStyles));
+    } else {
+      start(text, new ListItem("unordered", 0, false, ancestorStyles));
+    }
+  }
+
+  // Ends the current list item's own paragraph, unless a nested list already did.
+  private void endListItemParagraph() {
+    OpenList list = currentList();
+    if (list == null || !list.itemParagraphOpen) return;
+    list.itemParagraphOpen = false;
+    endLi(mSpannableStringBuilder, mStyle, mSpanFactory);
   }
 
   private static <T> void endLi(Editable text, T style, EnrichedSpanFactory<T> spanFactory) {
     endBlockElement(text, spanFactory);
 
-    List l = getLast(text, List.class);
+    ListItem l = getLast(text, ListItem.class);
     if (l != null) {
       if (l.mType.equals("ordered")) {
-        setParagraphSpanFromMark(text, l, spanFactory.createOrderedListSpan(l.mIndex, style));
+        setParagraphSpanFromMark(
+            text, l, spanFactory.createOrderedListSpan(l.mIndex, style, l.mAncestorStyles));
       } else if (l.mType.equals("checked")) {
-        setParagraphSpanFromMark(text, l, spanFactory.createCheckboxListSpan(l.mChecked, style));
+        setParagraphSpanFromMark(
+            text, l, spanFactory.createCheckboxListSpan(l.mChecked, style, l.mAncestorStyles));
       } else {
-        setParagraphSpanFromMark(text, l, spanFactory.createUnorderedListSpan(style));
+        setParagraphSpanFromMark(
+            text, l, spanFactory.createUnorderedListSpan(style, l.mAncestorStyles));
       }
     }
 
@@ -1015,15 +1082,30 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
 
   private static class Blockquote {}
 
-  private static class List {
+  private static class ListItem {
     public int mIndex;
     public String mType;
     public boolean mChecked;
+    public List<String> mAncestorStyles;
 
-    public List(String type, int index, boolean checked) {
+    public ListItem(String type, int index, boolean checked, List<String> ancestorStyles) {
       mType = type;
       mIndex = index;
       mChecked = checked;
+      mAncestorStyles = ancestorStyles;
+    }
+  }
+
+  private static class OpenList {
+    final String style;
+    final String alignmentCssValue;
+    int itemIndex = 0;
+    // Whether the list's current <li> paragraph is still being parsed
+    boolean itemParagraphOpen = false;
+
+    OpenList(String style, String alignmentCssValue) {
+      this.style = style;
+      this.alignmentCssValue = alignmentCssValue;
     }
   }
 

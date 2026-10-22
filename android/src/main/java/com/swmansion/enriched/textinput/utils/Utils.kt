@@ -52,7 +52,7 @@ fun TextView.setCheckboxClickListener() {
     val spans = spannable.getSpans(lineStart, lineStart, EnrichedInputCheckboxListSpan::class.java)
     if (spans.isEmpty()) return@setOnTouchListener false
 
-    // There should be only one span per line as we don't support nested lists
+    // There should be only one span per line
     val span = spans[0]
     val isFirstLine = spannable.getSpanStart(span) == lineStart
     val marginWidth = span.getLeadingMargin(true)
