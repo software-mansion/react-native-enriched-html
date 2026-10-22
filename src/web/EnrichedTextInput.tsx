@@ -87,7 +87,7 @@ import {
 import { assertBrowserEnvironment } from './utils/assertBrowserEnvironment';
 import { runSafelyInEditor } from './utils/runSafelyInEditor';
 import { useLinkPress } from './htmlExtensions/useLinkPress';
-import { handleCheckBoxPress } from './utils/handleCheckBoxPress';
+import { handleCheckboxPress } from './htmlExtensions/handleCheckboxPress';
 import { runFocused } from './utils/runFocused';
 
 export const EnrichedTextInput = ({
@@ -283,7 +283,9 @@ export const EnrichedTextInput = ({
         handleKeyDown: (view, event) => handleKeyDown(view.state.doc, event),
         handleDOMEvents: {
           click: (view, event) => {
-            handleCheckBoxPress(event, editor, view);
+            if (handleCheckboxPress(event, editor, view)) {
+              return true;
+            }
             return handleLinkPress(event);
           },
           mousedown: (_view, event) => handleLinkMouseDown(event),
