@@ -24,6 +24,7 @@ import com.facebook.react.views.text.ReactTypefaceUtils.parseFontStyle
 import com.facebook.react.views.text.ReactTypefaceUtils.parseFontWeight
 import com.swmansion.enriched.common.EnrichedConstants
 import com.swmansion.enriched.common.EnrichedSpanFlags
+import com.swmansion.enriched.common.ForceRedrawSpan
 import com.swmansion.enriched.common.GumboNormalizer
 import com.swmansion.enriched.common.parser.EnrichedParser
 import com.swmansion.enriched.common.pixelFromSpOrDp
@@ -85,6 +86,31 @@ class EnrichedTextView : AppCompatTextView {
 
     setPadding(0, 0, 0, 0)
     setFontSize(EnrichedConstants.TEXT_DEFAULT_FONT_SIZE)
+  }
+
+  override fun onMeasure(
+    widthMeasureSpec: Int,
+    heightMeasureSpec: Int,
+  ) {
+    val widthMode = MeasureSpec.getMode(widthMeasureSpec)
+    val widthSize = MeasureSpec.getSize(widthMeasureSpec)
+
+    if (widthMode != MeasureSpec.UNSPECIFIED) {
+      val availableWidth = widthSize - totalPaddingLeft - totalPaddingRight
+
+      if (availableWidth > 0) {
+        val spanned = text as? Spanned
+        val spans = spanned?.getSpans(0, spanned.length, EnrichedTextImageSpan::class.java)
+
+        // we need to update the image bounds, potentially clamping
+        // the width to the available one
+        spans?.forEach {
+          it.containerWidth = availableWidth
+        }
+      }
+    }
+
+    super.onMeasure(widthMeasureSpec, heightMeasureSpec)
   }
 
   override fun onTouchEvent(event: MotionEvent): Boolean {
