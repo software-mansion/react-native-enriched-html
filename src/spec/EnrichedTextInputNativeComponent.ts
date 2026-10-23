@@ -304,6 +304,8 @@ export interface OnPasteImagesEvent {
 type Heading = {
   fontSize?: CodegenTypes.Float;
   bold?: boolean;
+  marginTop?: CodegenTypes.Float;
+  marginBottom?: CodegenTypes.Float;
 };
 
 export interface HtmlStyleInternal {
@@ -338,6 +340,8 @@ export interface HtmlStyleInternal {
   ol?: {
     gapWidth?: CodegenTypes.Float;
     marginLeft?: CodegenTypes.Float;
+    marginTop?: CodegenTypes.Float;
+    marginBottom?: CodegenTypes.Float;
     markerFontWeight?: string;
     markerColor?: ColorValue;
   };
@@ -345,12 +349,16 @@ export interface HtmlStyleInternal {
     bulletColor?: ColorValue;
     bulletSize?: CodegenTypes.Float;
     marginLeft?: CodegenTypes.Float;
+    marginTop?: CodegenTypes.Float;
+    marginBottom?: CodegenTypes.Float;
     gapWidth?: CodegenTypes.Float;
   };
   ulCheckbox?: {
     gapWidth?: CodegenTypes.Float;
     boxSize?: CodegenTypes.Float;
     marginLeft?: CodegenTypes.Float;
+    marginTop?: CodegenTypes.Float;
+    marginBottom?: CodegenTypes.Float;
     boxColor?: ColorValue;
   };
 }

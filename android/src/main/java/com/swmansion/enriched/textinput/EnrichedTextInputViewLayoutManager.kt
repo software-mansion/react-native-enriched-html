@@ -8,6 +8,8 @@ class EnrichedTextInputViewLayoutManager(
   private var forceHeightRecalculationCounter: Int = 0
 
   fun invalidateLayout() {
+    view.refreshBlockSpacing()
+
     val stateWrapper = view.stateWrapper ?: return
 
     val text = view.text

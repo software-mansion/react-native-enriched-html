@@ -62,8 +62,11 @@ static const CGFloat kCheckboxHitSlopVertical = 6.0;
     return CGRectNull;
   }
 
-  CGRect lineRect = [layoutManager lineFragmentRectForGlyphAtIndex:glyphIndex
-                                                    effectiveRange:nil];
+  // The used rect leaves out paragraph spacing (block margins), which the
+  // line fragment rect includes.
+  CGRect lineRect =
+      [layoutManager lineFragmentUsedRectForGlyphAtIndex:glyphIndex
+                                          effectiveRange:nil];
 
   CGFloat originX = lineRect.origin.x + config.checkboxListMarginLeft;
 

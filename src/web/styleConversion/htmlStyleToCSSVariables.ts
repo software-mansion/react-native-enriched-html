@@ -99,14 +99,20 @@ const ET_CSS_VARS = {
   ulBulletColor: '--et-ul-bullet-color',
   ulBulletSize: '--et-ul-bullet-size',
   ulMarginLeft: '--et-ul-margin-left',
+  ulMarginTop: '--et-ul-margin-top',
+  ulMarginBottom: '--et-ul-margin-bottom',
   ulGapWidth: '--et-ul-gap-width',
   olMarginLeft: '--et-ol-margin-left',
+  olMarginTop: '--et-ol-margin-top',
+  olMarginBottom: '--et-ol-margin-bottom',
   olGapWidth: '--et-ol-gap-width',
   olMarkerColor: '--et-ol-marker-color',
   olMarkerFontWeight: '--et-ol-marker-font-weight',
   checkboxBoxSize: '--et-checkbox-box-size',
   checkboxGapWidth: '--et-checkbox-gap-width',
   checkboxMarginLeft: '--et-checkbox-margin-left',
+  checkboxMarginTop: '--et-checkbox-margin-top',
+  checkboxMarginBottom: '--et-checkbox-margin-bottom',
   checkboxBoxColor: '--et-checkbox-box-color',
 } as const;
 
@@ -154,6 +160,8 @@ function applyHeadingVars(
       vars[`--et-${level}-font-size`] = `${h.fontSize}px`;
     if (h?.bold != null)
       vars[`--et-${level}-font-weight`] = h.bold ? 'bold' : 'normal';
+    setPxVar(vars, `--et-${level}-margin-top`, h?.marginTop);
+    setPxVar(vars, `--et-${level}-margin-bottom`, h?.marginBottom);
   }
 }
 
@@ -194,6 +202,8 @@ function applyUnorderedListVars(
   setColorVar(vars, ET_CSS_VARS.ulBulletColor, ul?.bulletColor);
   setPxVar(vars, ET_CSS_VARS.ulBulletSize, ul?.bulletSize);
   setPxVar(vars, ET_CSS_VARS.ulMarginLeft, ul?.marginLeft);
+  setPxVar(vars, ET_CSS_VARS.ulMarginTop, ul?.marginTop);
+  setPxVar(vars, ET_CSS_VARS.ulMarginBottom, ul?.marginBottom);
   setPxVar(vars, ET_CSS_VARS.ulGapWidth, ul?.gapWidth);
 }
 
@@ -202,6 +212,8 @@ function applyOrderedListVars(
   ol?: HtmlStyle['ol']
 ): void {
   setPxVar(vars, ET_CSS_VARS.olMarginLeft, ol?.marginLeft);
+  setPxVar(vars, ET_CSS_VARS.olMarginTop, ol?.marginTop);
+  setPxVar(vars, ET_CSS_VARS.olMarginBottom, ol?.marginBottom);
   setPxVar(vars, ET_CSS_VARS.olGapWidth, ol?.gapWidth);
   setColorVar(vars, ET_CSS_VARS.olMarkerColor, ol?.markerColor);
   if (ol?.markerFontWeight != null) {
@@ -216,6 +228,8 @@ function applyCheckboxListVars(
   setPxVar(vars, ET_CSS_VARS.checkboxBoxSize, ulCheckbox?.boxSize);
   setPxVar(vars, ET_CSS_VARS.checkboxGapWidth, ulCheckbox?.gapWidth);
   setPxVar(vars, ET_CSS_VARS.checkboxMarginLeft, ulCheckbox?.marginLeft);
+  setPxVar(vars, ET_CSS_VARS.checkboxMarginTop, ulCheckbox?.marginTop);
+  setPxVar(vars, ET_CSS_VARS.checkboxMarginBottom, ulCheckbox?.marginBottom);
   setColorVar(vars, ET_CSS_VARS.checkboxBoxColor, ulCheckbox?.boxColor);
 }
 

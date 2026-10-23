@@ -54,6 +54,7 @@
   UIColor *_checkboxListBoxColor;
   UIImage *_checkboxCheckedImage;
   UIImage *_checkboxUncheckedImage;
+  NSMutableDictionary<NSNumber *, NSValue *> *_blockMargins;
 
   // input only
   LinkRegexConfig *_linkRegexConfig;
@@ -68,6 +69,7 @@
   _primaryFontNeedsRecreation = YES;
   _monospacedFontNeedsRecreation = YES;
   _olMarkerFontNeedsRecreation = YES;
+  _blockMargins = [[NSMutableDictionary alloc] init];
   return self;
 }
 
@@ -122,6 +124,7 @@
   copy->_checkboxListBoxColor = [_checkboxListBoxColor copy];
   copy->_checkboxCheckedImage = _checkboxCheckedImage;
   copy->_checkboxUncheckedImage = _checkboxUncheckedImage;
+  copy->_blockMargins = [_blockMargins mutableCopy];
 
   // input only
   copy->_linkRegexConfig = [_linkRegexConfig copy];
@@ -674,6 +677,46 @@
   UIGraphicsEndImageContext();
 
   return result;
+}
+
+- (UIEdgeInsets)blockMarginsForStyle:(StyleType)type {
+  UIEdgeInsets margins = [_blockMargins[@(type)] UIEdgeInsetsValue];
+  if (_allowFontScaling) {
+    UIFontMetrics *metrics = [UIFontMetrics defaultMetrics];
+    margins.top = [metrics scaledValueForValue:margins.top];
+    margins.bottom = [metrics scaledValueForValue:margins.bottom];
+  }
+  return margins;
+}
+
+- (CGFloat)blockMarginTopForStyle:(StyleType)type {
+  return [self blockMarginsForStyle:type].top;
+}
+
+- (CGFloat)blockMarginBottomForStyle:(StyleType)type {
+  return [self blockMarginsForStyle:type].bottom;
+}
+
+- (BOOL)setBlockMarginTop:(CGFloat)top
+                   bottom:(CGFloat)bottom
+                 forStyle:(StyleType)type {
+  UIEdgeInsets newMargins = UIEdgeInsetsMake(top, 0, bottom, 0);
+  if (UIEdgeInsetsEqualToEdgeInsets([_blockMargins[@(type)] UIEdgeInsetsValue],
+                                    newMargins)) {
+    return NO;
+  }
+  _blockMargins[@(type)] = [NSValue valueWithUIEdgeInsets:newMargins];
+  return YES;
+}
+
+- (BOOL)hasBlockMargins {
+  for (NSValue *value in _blockMargins.allValues) {
+    UIEdgeInsets margins = [value UIEdgeInsetsValue];
+    if (margins.top > 0 || margins.bottom > 0) {
+      return YES;
+    }
+  }
+  return NO;
 }
 
 // MARK: - Input only props

@@ -62,20 +62,35 @@ to their React Native `TextStyle` counterparts. Some are platform-limited
 `htmlStyle` maps each supported element to a small config object. Anything you
 omit falls back to the built-in default. The available keys are:
 
-| Key          | Styles         | Notable options                                             |
-| ------------ | -------------- | ----------------------------------------------------------- |
-| `h1`–`h6`    | Headings       | `fontSize`, `bold`                                          |
-| `blockquote` | Blockquote     | `borderColor`, `borderWidth`, `gapWidth`, `color`           |
-| `codeblock`  | Code block     | `color`, `backgroundColor`, `borderRadius`                  |
-| `code`       | Inline code    | `color`, `backgroundColor`                                  |
-| `a`          | Links          | `color`, `textDecorationLine`                               |
-| `mention`    | Mentions       | `color`, `backgroundColor`, `textDecorationLine`            |
-| `ol`         | Ordered list   | `markerColor`, `markerFontWeight`, `marginLeft`, `gapWidth` |
-| `ul`         | Unordered list | `bulletColor`, `bulletSize`, `marginLeft`, `gapWidth`       |
-| `ulCheckbox` | Checkbox list  | `boxColor`, `boxSize`, `marginLeft`, `gapWidth`             |
+| Key          | Styles         | Notable options                                                                          |
+| ------------ | -------------- | ---------------------------------------------------------------------------------------- |
+| `h1`–`h6`    | Headings       | `fontSize`, `bold`, `marginTop`, `marginBottom`                                          |
+| `blockquote` | Blockquote     | `borderColor`, `borderWidth`, `gapWidth`, `color`                                        |
+| `codeblock`  | Code block     | `color`, `backgroundColor`, `borderRadius`                                               |
+| `code`       | Inline code    | `color`, `backgroundColor`                                                               |
+| `a`          | Links          | `color`, `textDecorationLine`                                                            |
+| `mention`    | Mentions       | `color`, `backgroundColor`, `textDecorationLine`                                         |
+| `ol`         | Ordered list   | `markerColor`, `markerFontWeight`, `marginLeft`, `gapWidth`, `marginTop`, `marginBottom` |
+| `ul`         | Unordered list | `bulletColor`, `bulletSize`, `marginLeft`, `gapWidth`, `marginTop`, `marginBottom`       |
+| `ulCheckbox` | Checkbox list  | `boxColor`, `boxSize`, `marginLeft`, `gapWidth`, `marginTop`, `marginBottom`             |
 
 The full list of properties, defaults, and platform notes lives in the
 [`EnrichedTextInput`](/api-reference/enriched-text-input#htmlstyle) reference.
+
+### Spacing around headings and lists
+
+`marginTop` and `marginBottom` add vertical space around headings and lists
+without changing the line height. Margins of adjacent blocks collapse into the
+larger one, and the first and last blocks get no outer space:
+
+```tsx
+htmlStyle={{
+  h1: { fontSize: 28, bold: true, marginTop: 24, marginBottom: 8 },
+  h2: { fontSize: 22, bold: true, marginTop: 18, marginBottom: 8 },
+  ul: { marginTop: 6, marginBottom: 6 },
+  ol: { marginTop: 6, marginBottom: 6 },
+}}
+```
 
 ### Styling mentions per indicator
 

@@ -22,6 +22,7 @@ import com.facebook.react.uimanager.ViewDefaults
 import com.facebook.react.views.text.ReactTypefaceUtils.applyStyles
 import com.facebook.react.views.text.ReactTypefaceUtils.parseFontStyle
 import com.facebook.react.views.text.ReactTypefaceUtils.parseFontWeight
+import com.swmansion.enriched.common.EnrichedBlockSpacing
 import com.swmansion.enriched.common.EnrichedConstants
 import com.swmansion.enriched.common.EnrichedSpanFlags
 import com.swmansion.enriched.common.GumboNormalizer
@@ -181,6 +182,7 @@ class EnrichedTextView : AppCompatTextView {
 
     val parsed = parseText(text, style)
     if (parsed != null) {
+      (parsed as? Spannable)?.let { EnrichedBlockSpacing.apply(it, style) }
       parsedText = parsed
       setText(parsed, BufferType.NORMAL)
       observeAsyncImages()
@@ -286,6 +288,10 @@ class EnrichedTextView : AppCompatTextView {
       modified = true
     }
 
+    if (EnrichedBlockSpacing.apply(spannable, enrichedStyle)) {
+      modified = true
+    }
+
     if (modified) {
       this.text = spannable
     }
@@ -323,11 +329,12 @@ class EnrichedTextView : AppCompatTextView {
       .forEach { spannable.removeSpan(it) }
 
     lineHeight?.let {
+      val lineHeightSpan = EnrichedLineHeightSpan(it, allowFontScaling)
       spannable.setSpan(
-        EnrichedLineHeightSpan(it, allowFontScaling),
+        lineHeightSpan,
         0,
         spannable.length,
-        Spannable.SPAN_INCLUSIVE_INCLUSIVE,
+        EnrichedSpanFlags.forSpan(lineHeightSpan, Spannable.SPAN_INCLUSIVE_INCLUSIVE),
       )
     }
 

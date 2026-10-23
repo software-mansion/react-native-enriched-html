@@ -1,6 +1,7 @@
 #pragma once
 #import "interfaces/LinkRegexConfig.h"
 #import "interfaces/MentionStyleProps.h"
+#import "interfaces/StyleTypeEnum.h"
 #import "interfaces/TextDecorationLineEnum.h"
 #import <UIKit/UIKit.h>
 
@@ -102,6 +103,14 @@
 - (void)setCheckboxListBoxColor:(UIColor *)newValue;
 - (UIImage *)checkboxCheckedImage;
 - (UIImage *)checkboxUncheckedImage;
+// Vertical space around heading and list blocks, keyed by their style type.
+// The setter returns YES if the margins changed.
+- (CGFloat)blockMarginTopForStyle:(StyleType)type;
+- (CGFloat)blockMarginBottomForStyle:(StyleType)type;
+- (BOOL)setBlockMarginTop:(CGFloat)top
+                   bottom:(CGFloat)bottom
+                 forStyle:(StyleType)type;
+- (BOOL)hasBlockMargins;
 
 // MARK: - Input only props
 - (LinkRegexConfig *)linkRegexConfig;

@@ -10,7 +10,7 @@ import { ImageModal } from '../components/ImageModal';
 import { useEditorState } from '../hooks/useEditorState';
 import {
   LINK_REGEX,
-  htmlStyle,
+  devHtmlStyle,
   ANDROID_EXPERIMENTAL_SYNCHRONOUS_EVENTS,
 } from '../constants/editorConfig';
 import { useState } from 'react';
@@ -45,7 +45,7 @@ export function DevScreen({ onSwitch }: DevScreenProps) {
             ref={editor.ref}
             mentionIndicators={['@', '#']}
             style={styles.editorInput}
-            htmlStyle={htmlStyle}
+            htmlStyle={devHtmlStyle}
             placeholder="Type something here..."
             placeholderTextColor="rgb(0, 26, 114)"
             selectionColor="deepskyblue"
