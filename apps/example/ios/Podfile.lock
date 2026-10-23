@@ -1246,7 +1246,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-image-picker (8.2.1):
+  - react-native-image-picker (8.3.1):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -1626,7 +1626,7 @@ PODS:
     - React-utils (= 0.87.0)
     - ReactNativeDependencies
   - ReactNativeDependencies (0.87.0)
-  - ReactNativeEnrichedHtml (1.1.0):
+  - ReactNativeEnrichedHtml (1.1.1):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -1968,7 +1968,7 @@ SPEC CHECKSUMS:
   React-Mapbuffer: 4b91498f164010499357104ef12cb3161ddbec9e
   React-microtasksnativemodule: e0095be041c79483d1d3fded0c682c31d351730f
   React-mutationobservernativemodule: edfe5f0e9548231a767c3a1db6fc52926da0002a
-  react-native-image-picker: 15b0d236cdc3b5f1f22574616d6ec97333cb9d37
+  react-native-image-picker: 0b74cb8c8db4a7a9940067523436f17b014bbad5
   React-NativeModulesApple: 9f0679a0f98eecd53150ebb6cba645f73a92434a
   React-networking: cabb0d227644bddc24f5e7dba0f5c4a8ea9b8723
   React-oscompat: 72573ceb65b6c6c6bc34e51e0df8f44c91081a6d
@@ -2005,10 +2005,10 @@ SPEC CHECKSUMS:
   ReactCodegen: b54c2a8d91c25df024024b078e9fd3cdf93ce8cf
   ReactCommon: 31d05b76329c8b3c9ef37fff8212f830925a2535
   ReactNativeDependencies: ec5530432d8191b38e278117d498aaff05ea9d6f
-  ReactNativeEnrichedHtml: 862adfa2876f765869e6d27630d21f6e6e04bf25
+  ReactNativeEnrichedHtml: 494c703157e37b8158fe254b6a62cb2e480453a1
   SocketRocket: d57b1af80c029e12a75cd9b218287c67381e4593
   Yoga: 58b502c52b14ad3c4468805d461fc37d275c2a42
 
-PODFILE CHECKSUM: 88c10840d02e9884b2dc3f457d5120f83ac3803b
+PODFILE CHECKSUM: 17de42bc1248ff5392a5a74f9edf4660b05a1695
 
 COCOAPODS: 1.15.2
