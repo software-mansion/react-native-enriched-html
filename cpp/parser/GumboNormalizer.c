@@ -638,8 +638,12 @@ static void flatten_li_node(GumboNode *node, buffer_t *ib, buffer_t *out,
                             li_ctx_t *ctx);
 
 static void flush_li_buffer(buffer_t *ib, buffer_t *out, li_ctx_t *ctx) {
-  if (ib->len == 0)
+  /* Whitespace around blocks inside an <li> (e.g. `<li>\n<p>a</p>\n</li>`)
+   * is layout noise, not an extra list item. */
+  if (is_whitespace_only(ib->data, ib->len)) {
+    buffer_clear(ib);
     return;
+  }
   buffer_append_str(out, "<li");
   emit_attributes(ctx->el, "li", out);
   buffer_append_str(out, ">");
