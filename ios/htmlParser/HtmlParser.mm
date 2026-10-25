@@ -474,7 +474,12 @@
           // Track checkbox state if we're inside a checkbox list
           if (insideCheckboxList) {
             BOOL isChecked = [currentTagParams containsString:@"checked"];
-            checkboxStates[@(plainText.length)] = @(isChecked);
+            // Key by the position in the final NSTextStorage, which holds one
+            // placeholder per preceding image that 'plainText' doesn't have
+            // yet. This matches the image-shifted list range the states are
+            // later filtered by in prepareCheckboxListStyleValue:.
+            checkboxStates[@(plainText.length + precedingImageCount)] =
+                @(isChecked);
           }
           // Record the start location so we can check if it's empty when
           // closing
