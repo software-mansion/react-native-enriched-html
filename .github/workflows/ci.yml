@@ -90,7 +90,7 @@ jobs:
   test-e2e-web:
     needs: [changes]
     if: needs.changes.outputs.web == 'true'
-    runs-on: macos-26
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -98,16 +98,23 @@ jobs:
       - name: Setup
         uses: ./.github/actions/setup
 
-      - name: Cache Playwright browsers
+      - name: Cache Playwright Docker image
+        id: playwright-image-cache
         uses: actions/cache@v4
         with:
-          path: ~/Library/Caches/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-playwright-
+          path: ${{ runner.temp }}/playwright-image.tar
+          key: ${{ runner.os }}-${{ runner.arch }}-playwright-image-${{ hashFiles('.playwright/docker-image') }}
 
-      - name: Install Playwright browsers
-        run: yarn playwright install chromium
+      - name: Load Playwright Docker image
+        if: steps.playwright-image-cache.outputs.cache-hit == 'true'
+        run: docker load -i "${{ runner.temp }}/playwright-image.tar"
+
+      - name: Pull Playwright Docker image
+        if: steps.playwright-image-cache.outputs.cache-hit != 'true'
+        run: |
+          IMAGE="$(cat .playwright/docker-image)"
+          docker pull "$IMAGE"
+          docker save "$IMAGE" -o "${{ runner.temp }}/playwright-image.tar"
 
       - name: Run web e2e tests
         run: yarn test:e2e:web
@@ -117,7 +124,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
-          path: .playwright/playwright-report/
+          path: |
+            .playwright/playwright-report/
+            .playwright/test-results/
           retention-days: 7
 
   build-library:

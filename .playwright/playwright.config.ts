@@ -2,6 +2,18 @@ import { defineConfig, devices } from '@playwright/test';
 
 const port = process.env.PW_PORT ?? '5173';
 
+// By default, the browser runs in the official Playwright Linux container
+// (started by scripts/run-tests.sh) so screenshots render identically on every
+// machine and in CI. Set PW_LOCAL_BROWSER=1 to use a locally installed browser
+// instead, e.g. for headed debugging - screenshot assertions won't match then.
+const connectOptions = process.env.PW_LOCAL_BROWSER
+  ? undefined
+  : {
+      wsEndpoint: process.env.PW_WS_ENDPOINT ?? 'ws://127.0.0.1:3000/',
+      // Lets the containerised browser reach the Vite server on host localhost.
+      exposeNetwork: '<loopback>',
+    };
+
 export default defineConfig({
   testDir: './tests',
   outputDir: './test-results',
@@ -27,6 +39,7 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
     permissions: ['clipboard-read', 'clipboard-write'],
+    connectOptions,
   },
 
   webServer: {
