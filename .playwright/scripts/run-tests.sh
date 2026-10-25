@@ -53,6 +53,7 @@ if [ -z "${PW_LOCAL_BROWSER:-}" ] && [ -z "${PW_WS_ENDPOINT:-}" ]; then
   echo "Starting Playwright server ($IMAGE) on port $PW_SERVER_PORT..."
   CONTAINER_ID="$(docker run -d --rm --init --ipc=host \
     -p "127.0.0.1:${PW_SERVER_PORT}:3000" \
+    -v "$REPO_ROOT/.playwright/fonts.conf:/etc/fonts/local.conf:ro" \
     "$IMAGE" \
     /bin/sh -c "npx -y playwright@${PW_VERSION} run-server --port 3000 --host 0.0.0.0")"
   trap 'docker stop "$CONTAINER_ID" > /dev/null 2>&1 || true' EXIT
