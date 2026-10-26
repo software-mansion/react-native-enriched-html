@@ -181,11 +181,9 @@ export const EnrichedTextInput = ({
   const sanitizationConfigRef = useStableRef(sanitizationConfig);
   const mentionCallbacksRef = useStableRef(mentionCallbacks);
   const textShortcutsRef = useStableRef(textShortcuts);
-  const scrollState = useStableRef({
-    scrollLastTick: 0,
-  });
 
   const editorInstanceRef = useRef<Editor | null>(null);
+  const scrollLastTickRef = useRef(0);
 
   const handleKeyDown = (doc: Node, event: KeyboardEvent): boolean => {
     onKeyPressRef.current?.(adaptWebToNativeEvent(event, { key: event.key }));
@@ -210,13 +208,13 @@ export const EnrichedTextInput = ({
   const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
     if (
       !shouldEmitScrollEvent(
-        scrollState.current.scrollLastTick,
+        scrollLastTickRef.current,
         ENRICHED_TEXT_INPUT_DEFAULT_PROPS.scrollEventThrottle
       )
     ) {
       return;
     }
-    scrollState.current.scrollLastTick = Date.now();
+    scrollLastTickRef.current = Date.now();
 
     const element = event.currentTarget;
     onScroll?.(
