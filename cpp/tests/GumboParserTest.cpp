@@ -607,6 +607,13 @@ TEST(GumboParserTest, InterBlockWhitespace) {
   EXPECT_EQ(GumboParser::normalizeHtml("<p>Asdasd</p> <p>Asdasd</p>"),
             "<p>Asdasd</p><p>Asdasd</p>");
 
+  // Whitespace around blocks inside a list item must not add empty items.
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<ul><li>\n<p>a</p>\n</li><li>\n<p>b</p>\n</li></ul>"),
+            "<ul><li>a</li><li>b</li></ul>");
+  EXPECT_EQ(GumboParser::normalizeHtml("<ol><li><p>a</p> <p>b</p></li></ol>"),
+            "<ol><li>a</li><li>b</li></ol>");
+
   // Significant inline content between blocks is still wrapped in <p>.
   EXPECT_EQ(GumboParser::normalizeHtml("<p>a</p> hello <p>b</p>"),
             "<p>a</p><p> hello </p><p>b</p>");
