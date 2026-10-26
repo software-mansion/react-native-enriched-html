@@ -100,6 +100,14 @@ function runFocused(
   runSafelyInEditor(editor, (e) => apply(e.chain().focus()).run());
 }
 
+function shouldEmitScrollEvent(
+  lastTick: number,
+  eventThrottle: number
+): boolean {
+  const timeSinceLastTick = Date.now() - lastTick;
+  return eventThrottle > 0 && timeSinceLastTick >= eventThrottle;
+}
+
 export const EnrichedTextInput = ({
   ref,
   defaultValue,
@@ -173,6 +181,9 @@ export const EnrichedTextInput = ({
   const sanitizationConfigRef = useStableRef(sanitizationConfig);
   const mentionCallbacksRef = useStableRef(mentionCallbacks);
   const textShortcutsRef = useStableRef(textShortcuts);
+  const scrollState = useStableRef({
+    scrollLastTick: 0,
+  });
 
   const editorInstanceRef = useRef<Editor | null>(null);
 
@@ -197,6 +208,16 @@ export const EnrichedTextInput = ({
   };
 
   const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
+    if (
+      !shouldEmitScrollEvent(
+        scrollState.current.scrollLastTick,
+        ENRICHED_TEXT_INPUT_DEFAULT_PROPS.scrollEventThrottle
+      )
+    ) {
+      return;
+    }
+    scrollState.current.scrollLastTick = Date.now();
+
     const element = event.currentTarget;
     onScroll?.(
       adaptWebToNativeEvent(event, {
