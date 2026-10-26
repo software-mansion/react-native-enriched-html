@@ -189,6 +189,8 @@ export interface EnrichedInputStyle {
 interface HeadingStyle {
   fontSize?: number;
   bold?: boolean;
+  marginTop?: number;
+  marginBottom?: number;
 }
 
 export interface MentionStyleProperties {
@@ -229,6 +231,8 @@ export interface HtmlStyle {
   ol?: {
     gapWidth?: number;
     marginLeft?: number;
+    marginTop?: number;
+    marginBottom?: number;
     markerFontWeight?: TextStyle['fontWeight'];
     markerColor?: ColorValue;
   };
@@ -236,12 +240,16 @@ export interface HtmlStyle {
     bulletColor?: ColorValue;
     bulletSize?: number;
     marginLeft?: number;
+    marginTop?: number;
+    marginBottom?: number;
     gapWidth?: number;
   };
   ulCheckbox?: {
     boxSize?: number;
     gapWidth?: number;
     marginLeft?: number;
+    marginTop?: number;
+    marginBottom?: number;
     boxColor?: ColorValue;
   };
 }

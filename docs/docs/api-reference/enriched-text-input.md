@@ -1127,26 +1127,38 @@ interface HtmlStyle {
   h1?: {
     fontSize?: number;
     bold?: boolean;
+    marginTop?: number;
+    marginBottom?: number;
   };
   h2?: {
     fontSize?: number;
     bold?: boolean;
+    marginTop?: number;
+    marginBottom?: number;
   };
   h3?: {
     fontSize?: number;
     bold?: boolean;
+    marginTop?: number;
+    marginBottom?: number;
   };
   h4?: {
     fontSize?: number;
     bold?: boolean;
+    marginTop?: number;
+    marginBottom?: number;
   };
   h5?: {
     fontSize?: number;
     bold?: boolean;
+    marginTop?: number;
+    marginBottom?: number;
   };
   h6?: {
     fontSize?: number;
     bold?: boolean;
+    marginTop?: number;
+    marginBottom?: number;
   };
   blockquote?: {
     borderColor?: ColorValue;
@@ -1171,6 +1183,8 @@ interface HtmlStyle {
   ol?: {
     gapWidth?: number;
     marginLeft?: number;
+    marginTop?: number;
+    marginBottom?: number;
     markerFontWeight?: TextStyle['fontWeight'];
     markerColor?: ColorValue;
   };
@@ -1178,12 +1192,16 @@ interface HtmlStyle {
     bulletColor?: ColorValue;
     bulletSize?: number;
     marginLeft?: number;
+    marginTop?: number;
+    marginBottom?: number;
     gapWidth?: number;
   };
   ulCheckbox?: {
     boxColor?: ColorValue;
     boxSize?: number;
     marginLeft?: number;
+    marginTop?: number;
+    marginBottom?: number;
     gapWidth?: number;
   };
 }
@@ -1200,6 +1218,9 @@ interface MentionStyleProperties {
 - `fontSize` - size of the heading's font. Defaults to `32` for `H1`, `24` for
   `H2`, `20` for `H3`, `16` for `H4`, `14` for `H5`, `12` for `H6`
 - `bold` - whether the heading should be bolded; defaults to `false`
+- `marginTop` - space above the heading; defaults to `0`. See
+  [vertical spacing](#vertical-spacing)
+- `marginBottom` - space below the heading; defaults to `0`
 
 ### blockquote
 
@@ -1270,6 +1291,9 @@ This way you can create a style for any mention indicator to fallback if it does
 By marker, we mean the number that denotes consecutive lines of the list.
 
 - `gapWidth` - gap between the marker and the list item's text; defaults to `16`
+- `marginTop` - space above the list; defaults to `0`. See
+  [vertical spacing](#vertical-spacing)
+- `marginBottom` - space below the list; defaults to `0`
 - `marginLeft` - margin to the left of the marker (between the marker and the
   input's left edge); defaults to `16`
 - `markerFontWeight` - font weight of the marker; takes a
@@ -1288,6 +1312,9 @@ By bullet, we mean the dot that begins each line of the list.
 - `bulletSize` - height and width of the bullet; defaults to `8`
 - `marginLeft` - margin to the left of the bullet; defaults to `16`
 - `gapWidth` - gap between the bullet and the list item's text; defaults to `16`
+- `marginTop` - space above the list; defaults to `0`. See
+  [vertical spacing](#vertical-spacing)
+- `marginBottom` - space below the list; defaults to `0`
 
 ### ulCheckbox (checkbox list)
 
@@ -1299,6 +1326,29 @@ Unordered list with checkboxes instead of bullets.
 - `marginLeft` - margin to the left of the checkbox; defaults to `16`
 - `gapWidth` - gap between the checkbox and the list item's text; defaults to
   `16`
+- `marginTop` - space above the list; defaults to `0`. See
+  [vertical spacing](#vertical-spacing)
+- `marginBottom` - space below the list; defaults to `0`
+
+### Vertical spacing
+
+`marginTop` and `marginBottom` add space around headings and lists, separately
+from the line height:
+
+```tsx
+htmlStyle={{
+  h2: { fontSize: 20, bold: true, marginTop: 18, marginBottom: 8 },
+  ul: { marginTop: 6, marginBottom: 6 },
+}}
+```
+
+- A list's margins go around the whole list, not around each item.
+- Margins of adjacent blocks collapse into the larger one, as in CSS: a heading
+  with `marginBottom: 8` followed by a list with `marginTop: 6` is 8 apart.
+- No space is added above the first block or below the last block.
+- Margins must be `0` or greater.
+- The spacing is visual only. It doesn't add characters, so the HTML, the text
+  and selection offsets stay the same.
 
 ## EnrichedInputStyle type
 

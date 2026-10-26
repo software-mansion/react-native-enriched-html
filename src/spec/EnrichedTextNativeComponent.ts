@@ -4,6 +4,8 @@ import type { CodegenTypes, HostComponent, ViewProps } from 'react-native';
 type Heading = {
   fontSize?: CodegenTypes.Float;
   bold?: boolean;
+  marginTop?: CodegenTypes.Float;
+  marginBottom?: CodegenTypes.Float;
 };
 
 export interface EnrichedTextHtmlStyleInternal {
@@ -40,6 +42,8 @@ export interface EnrichedTextHtmlStyleInternal {
   ol?: {
     gapWidth?: CodegenTypes.Float;
     marginLeft?: CodegenTypes.Float;
+    marginTop?: CodegenTypes.Float;
+    marginBottom?: CodegenTypes.Float;
     markerFontWeight?: string;
     markerColor?: ColorValue;
   };
@@ -47,12 +51,16 @@ export interface EnrichedTextHtmlStyleInternal {
     bulletColor?: ColorValue;
     bulletSize?: CodegenTypes.Float;
     marginLeft?: CodegenTypes.Float;
+    marginTop?: CodegenTypes.Float;
+    marginBottom?: CodegenTypes.Float;
     gapWidth?: CodegenTypes.Float;
   };
   ulCheckbox?: {
     gapWidth?: CodegenTypes.Float;
     boxSize?: CodegenTypes.Float;
     marginLeft?: CodegenTypes.Float;
+    marginTop?: CodegenTypes.Float;
+    marginBottom?: CodegenTypes.Float;
     boxColor?: ColorValue;
   };
 }

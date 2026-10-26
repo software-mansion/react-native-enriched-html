@@ -12,6 +12,7 @@
 #import "internals/EnrichedTextComponentDescriptor.h"
 #import "textHtmlParser/TextHtmlParser.h"
 #import "utils/AttachmentLayoutUtils.h"
+#import "utils/BlockSpacingUtils.h"
 #import "utils/EnrichedTextTouchHandler.h"
 #import "utils/StyleUtils.h"
 #import <React/RCTConversions.h>
@@ -516,6 +517,49 @@ Class<RCTComponentViewProtocol> EnrichedTextViewCls(void) {
     }
   }
 
+  // block margins
+  const auto &newHtmlStyle = newViewProps.htmlStyle;
+  BOOL blockMarginsChanged = NO;
+  blockMarginsChanged |=
+      [newConfig setBlockMarginTop:newHtmlStyle.h1.marginTop
+                            bottom:newHtmlStyle.h1.marginBottom
+                          forStyle:H1];
+  blockMarginsChanged |=
+      [newConfig setBlockMarginTop:newHtmlStyle.h2.marginTop
+                            bottom:newHtmlStyle.h2.marginBottom
+                          forStyle:H2];
+  blockMarginsChanged |=
+      [newConfig setBlockMarginTop:newHtmlStyle.h3.marginTop
+                            bottom:newHtmlStyle.h3.marginBottom
+                          forStyle:H3];
+  blockMarginsChanged |=
+      [newConfig setBlockMarginTop:newHtmlStyle.h4.marginTop
+                            bottom:newHtmlStyle.h4.marginBottom
+                          forStyle:H4];
+  blockMarginsChanged |=
+      [newConfig setBlockMarginTop:newHtmlStyle.h5.marginTop
+                            bottom:newHtmlStyle.h5.marginBottom
+                          forStyle:H5];
+  blockMarginsChanged |=
+      [newConfig setBlockMarginTop:newHtmlStyle.h6.marginTop
+                            bottom:newHtmlStyle.h6.marginBottom
+                          forStyle:H6];
+  blockMarginsChanged |=
+      [newConfig setBlockMarginTop:newHtmlStyle.ul.marginTop
+                            bottom:newHtmlStyle.ul.marginBottom
+                          forStyle:UnorderedList];
+  blockMarginsChanged |=
+      [newConfig setBlockMarginTop:newHtmlStyle.ol.marginTop
+                            bottom:newHtmlStyle.ol.marginBottom
+                          forStyle:OrderedList];
+  blockMarginsChanged |=
+      [newConfig setBlockMarginTop:newHtmlStyle.ulCheckbox.marginTop
+                            bottom:newHtmlStyle.ulCheckbox.marginBottom
+                          forStyle:CheckboxList];
+  if (blockMarginsChanged) {
+    stylePropChanged = YES;
+  }
+
   // mention
   folly::dynamic oldMentionStyle = oldViewProps.htmlStyle.mention;
   folly::dynamic newMentionStyle = newViewProps.htmlStyle.mention;
@@ -633,6 +677,7 @@ Class<RCTComponentViewProtocol> EnrichedTextViewCls(void) {
     return;
   }
   [_textParser replaceWholeFromHtml:_content];
+  [BlockSpacingUtils applyBlockSpacingInHost:self];
   [self layoutAttachments];
 }
 

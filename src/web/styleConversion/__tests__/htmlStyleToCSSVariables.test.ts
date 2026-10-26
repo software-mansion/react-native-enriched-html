@@ -158,6 +158,13 @@ describe('htmlStyleToCSSVariables', () => {
           '--et-h2-font-weight': 'normal',
         },
       ],
+      [
+        { h3: { marginTop: 18, marginBottom: 8 } },
+        {
+          '--et-h3-margin-top': '18px',
+          '--et-h3-margin-bottom': '8px',
+        },
+      ],
       [{ h3: { fontSize: 18 } }, { '--et-h3-font-size': '18px' }],
       [{}, {}],
     ] as Array<[HtmlStyle, CSSProperties]>;
@@ -224,6 +231,8 @@ describe('htmlStyleToCSSVariables', () => {
           bulletColor: '#ff0000',
           bulletSize: 12,
           marginLeft: 8,
+          marginTop: 6,
+          marginBottom: 2,
           gapWidth: 4,
         },
       })
@@ -231,6 +240,8 @@ describe('htmlStyleToCSSVariables', () => {
       '--et-ul-bullet-color': '#ff0000',
       '--et-ul-bullet-size': '12px',
       '--et-ul-margin-left': '8px',
+      '--et-ul-margin-top': '6px',
+      '--et-ul-margin-bottom': '2px',
       '--et-ul-gap-width': '4px',
     });
   });
@@ -241,6 +252,8 @@ describe('htmlStyleToCSSVariables', () => {
         ol: {
           gapWidth: 6,
           marginLeft: 10,
+          marginTop: 4,
+          marginBottom: 3,
           markerFontWeight: '700',
           markerColor: '#00ff00',
         },
@@ -248,6 +261,8 @@ describe('htmlStyleToCSSVariables', () => {
     ).toMatchObject({
       '--et-ol-gap-width': '6px',
       '--et-ol-margin-left': '10px',
+      '--et-ol-margin-top': '4px',
+      '--et-ol-margin-bottom': '3px',
       '--et-ol-marker-font-weight': '700',
       '--et-ol-marker-color': '#00ff00',
     });
@@ -260,6 +275,8 @@ describe('htmlStyleToCSSVariables', () => {
           boxSize: 20,
           gapWidth: 8,
           marginLeft: 12,
+          marginTop: 5,
+          marginBottom: 7,
           boxColor: '#336699',
         },
       })
@@ -267,6 +284,8 @@ describe('htmlStyleToCSSVariables', () => {
       '--et-checkbox-box-size': '20px',
       '--et-checkbox-gap-width': '8px',
       '--et-checkbox-margin-left': '12px',
+      '--et-checkbox-margin-top': '5px',
+      '--et-checkbox-margin-bottom': '7px',
       '--et-checkbox-box-color': '#336699',
     });
   });

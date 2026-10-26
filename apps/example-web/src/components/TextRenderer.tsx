@@ -9,7 +9,7 @@ import {
   type OnLinkPressEvent,
   type OnMentionPressEvent,
 } from 'react-native-enriched-html';
-import { WEB_DEFAULT_HTML_STYLE } from '../defaultHtmlStyle';
+import { WEB_DEV_HTML_STYLE } from '../defaultHtmlStyle';
 import { EnrichedTextActions } from './EnrichedTextActions';
 
 const LINK_REGEX =
@@ -56,7 +56,7 @@ export function TextRenderer({ htmlValue }: TextRendererProps) {
       <EnrichedText
         ref={ref}
         style={enrichedTextStyle}
-        htmlStyle={WEB_DEFAULT_HTML_STYLE}
+        htmlStyle={WEB_DEV_HTML_STYLE}
         onFocus={handleTextFocus}
         onBlur={handleTextBlur}
         onLinkPress={handleLinkPress}

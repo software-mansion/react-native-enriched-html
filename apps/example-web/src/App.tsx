@@ -16,7 +16,7 @@ import {
   type OnMentionDetected,
   type OnLinkPressEvent,
 } from 'react-native-enriched-html';
-import { WEB_DEFAULT_HTML_STYLE } from './defaultHtmlStyle';
+import { WEB_DEV_HTML_STYLE } from './defaultHtmlStyle';
 import type { NativeSyntheticEvent } from 'react-native';
 import { EditorActions } from './components/EditorActions';
 import { SetValueModal } from './components/SetValueModal';
@@ -287,7 +287,7 @@ function App() {
           onEndMention={handleEndMention}
           onMentionDetected={handleOnMentionDetected}
           mentionIndicators={['@', '#']}
-          htmlStyle={WEB_DEFAULT_HTML_STYLE}
+          htmlStyle={WEB_DEV_HTML_STYLE}
           linkRegex={LINK_REGEX}
           sanitizationConfig={SANITIZATION_CONFIG}
         />

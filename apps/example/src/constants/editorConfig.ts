@@ -148,3 +148,36 @@ export const enrichedTextHtmlStyle: EnrichedTextHtmlStyle = {
     },
   },
 };
+
+// Vertical spacing around headings and lists. Used on the dev screen only, so
+// the E2E screenshots of the test screens stay the same.
+const blockMargins = {
+  h1: { marginTop: 24, marginBottom: 12 },
+  h2: { marginTop: 20, marginBottom: 10 },
+  h3: { marginTop: 16, marginBottom: 8 },
+  h4: { marginTop: 12, marginBottom: 6 },
+  h5: { marginTop: 12, marginBottom: 6 },
+  h6: { marginTop: 12, marginBottom: 6 },
+  ol: { marginTop: 8, marginBottom: 8 },
+  ul: { marginTop: 8, marginBottom: 8 },
+  ulCheckbox: { marginTop: 8, marginBottom: 8 },
+} satisfies HtmlStyle;
+
+const withBlockMargins = <T extends HtmlStyle | EnrichedTextHtmlStyle>(
+  style: T
+): T => ({
+  ...style,
+  h1: { ...style.h1, ...blockMargins.h1 },
+  h2: { ...style.h2, ...blockMargins.h2 },
+  h3: { ...style.h3, ...blockMargins.h3 },
+  h4: { ...style.h4, ...blockMargins.h4 },
+  h5: { ...style.h5, ...blockMargins.h5 },
+  h6: { ...style.h6, ...blockMargins.h6 },
+  ol: { ...style.ol, ...blockMargins.ol },
+  ul: { ...style.ul, ...blockMargins.ul },
+  ulCheckbox: { ...style.ulCheckbox, ...blockMargins.ulCheckbox },
+});
+
+export const devHtmlStyle = withBlockMargins<HtmlStyle>(htmlStyle);
+
+export const devEnrichedTextHtmlStyle = withBlockMargins(enrichedTextHtmlStyle);
