@@ -427,10 +427,18 @@ export interface OnSubmitEditing {
   text: string;
 }
 
+export interface OnScrollEvent {
+  contentOffset: {
+    x: number;
+    y: number;
+  };
+}
+
 // Component types
 
 export type FocusEvent = NativeSyntheticEvent<TargetedEvent>;
 export type BlurEvent = NativeSyntheticEvent<TargetedEvent>;
+export type ScrollEvent = NativeSyntheticEvent<OnScrollEvent>;
 
 /**
  * Imperative handle exposed via `ref` on `<EnrichedTextInput />`.
@@ -783,6 +791,9 @@ export interface EnrichedTextInputProps extends Omit<ViewProps, 'children'> {
    * to avoid retaining blob memory. Native uses non-blob URIs; revoke does not apply.
    */
   onPasteImages?: (e: NativeSyntheticEvent<OnPasteImagesEvent>) => void;
+
+  /** Called when the user scrolls the editor content. */
+  onScroll?: (e: ScrollEvent) => void;
 
   /**
    * Additional items to inject into the native text-selection context menu
