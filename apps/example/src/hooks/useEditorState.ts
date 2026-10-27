@@ -10,6 +10,7 @@ import {
   type OnKeyPressEvent,
   type OnPasteImagesEvent,
   type OnSubmitEditing,
+  type OnScrollEvent,
 } from 'react-native-enriched-html';
 import { useRef, useState } from 'react';
 import { type MentionItem } from '../components/MentionPopup';
@@ -26,7 +27,6 @@ import {
   prepareImageDimensions,
 } from '../utils/prepareImageDimensions';
 import { launchImageLibrary } from 'react-native-image-picker';
-import type { OnScrollEvent } from '../../../../src/types';
 
 type CurrentLinkState = OnLinkDetected;
 
