@@ -4736,13 +4736,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"async@npm:^3.2.3":
-  version: 3.2.6
-  resolution: "async@npm:3.2.6"
-  checksum: 10c0/36484bb15ceddf07078688d95e27076379cc2f87b10c03b6dd8a83e89475a3c8df5848859dd06a4c95af1e4c16fc973de0171a77f18ea00be899aca2a4f85e70
-  languageName: node
-  linkType: hard
-
 "asynckit@npm:^0.4.0":
   version: 0.4.0
   resolution: "asynckit@npm:0.4.0"
@@ -5250,18 +5243,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"clang-format@npm:^1.8.0":
-  version: 1.8.0
-  resolution: "clang-format@npm:1.8.0"
-  dependencies:
-    async: "npm:^3.2.3"
-    glob: "npm:^7.0.0"
-    resolve: "npm:^1.1.6"
+"clang-format-node@npm:^4.0.3":
+  version: 4.0.3
+  resolution: "clang-format-node@npm:4.0.3"
   bin:
-    check-clang-format: bin/check-clang-format.js
-    clang-format: index.js
-    git-clang-format: bin/git-clang-format
-  checksum: 10c0/2bd1b9bc503695e8bf9571902c94759215b72f3d0fd8379e327181dd35df8775f82e8bbc38655554d294c83fcb55c081fe3736d057606bb0d535a87d8f29860e
+    clang-format: build/cli.js
+    clang-format-node: build/cli.js
+  checksum: 10c0/dbcd734e1d1d5fe22990b27538029defed93dcf90917beefde7fc0db00a51a0328eaa80d4b4cc1a4b540e4acb023d1f24cae5f47c6a24163999f6d4d1f0624b1
   languageName: node
   linkType: hard
 
@@ -11810,7 +11798,7 @@ __metadata:
     "@types/jest": "npm:^29.5.5"
     "@types/react": "npm:^19.2.0"
     "@types/react-dom": "npm:^19.2.0"
-    clang-format: "npm:^1.8.0"
+    clang-format-node: "npm:^4.0.3"
     commitlint: "npm:^19.6.1"
     del-cli: "npm:^5.1.0"
     dompurify: "npm:3.4.16"
