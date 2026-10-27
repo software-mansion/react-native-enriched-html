@@ -86,6 +86,7 @@ import {
 } from './sanitization/htmlSanitizer';
 import { assertBrowserEnvironment } from './utils/assertBrowserEnvironment';
 import { runSafelyInEditor } from './utils/runSafelyInEditor';
+import { measureRanges } from './utils/measureRanges';
 import { useLinkPress } from './htmlExtensions/useLinkPress';
 import { handleCheckboxPress } from './htmlExtensions/handleCheckboxPress';
 import { runFocused } from './utils/runFocused';
@@ -376,6 +377,13 @@ export const EnrichedTextInput = ({
           normalizeHtmlFromTiptap(
             editor.getHTML(),
             () => sanitizationConfigRef.current
+          )
+        ),
+      measureRanges: (ranges) =>
+        new Promise((resolve) =>
+          resolve(
+            runSafelyInEditor(editor, (e) => measureRanges(e.view, ranges)) ??
+              ranges.map(() => [])
           )
         ),
       toggleBold: () => runFocused(editor, (c) => c.toggleBold()),

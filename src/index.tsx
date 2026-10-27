@@ -13,6 +13,8 @@ export type {
   OnKeyPressEvent,
   OnPasteImagesEvent,
   OnSubmitEditing,
+  TextRange,
+  TextRect,
   HtmlStyle,
   MentionStyleProperties,
   FocusEvent,

@@ -13,6 +13,7 @@ import EnrichedTextInputNativeComponent, {
   type OnMentionEvent,
   type OnMentionDetectedInternal,
   type OnRequestHtmlResultEvent,
+  type OnRequestRangeRectsResultEvent,
 } from '../spec/EnrichedTextInputNativeComponent';
 import type {
   HostComponent,
@@ -31,6 +32,7 @@ import type {
   EnrichedTextInputProps,
   OnLinkDetected,
   OnMentionDetected,
+  TextRect,
 } from '../types';
 
 const warnMentionIndicators = (indicator: string) => {
@@ -43,6 +45,12 @@ type ComponentType = ComponentRef<HostComponent<NativeProps>>;
 
 type HtmlRequest = {
   resolve: (html: string) => void;
+  reject: (error: Error) => void;
+};
+
+type RangeRectsRequest = {
+  rangeCount: number;
+  resolve: (rects: TextRect[][]) => void;
   reject: (error: Error) => void;
 };
 
@@ -91,6 +99,11 @@ export const EnrichedTextInput = ({
   const nextHtmlRequestId = useRef(1);
   const pendingHtmlRequests = useRef(new Map<number, HtmlRequest>());
 
+  const nextRangeRectsRequestId = useRef(1);
+  const pendingRangeRectsRequests = useRef(
+    new Map<number, RangeRectsRequest>()
+  );
+
   // Store onPress callbacks in a ref so native only receives serializable data
   const contextMenuCallbacksRef = useRef<
     Map<string, ContextMenuItem['onPress']>
@@ -137,11 +150,16 @@ export const EnrichedTextInput = ({
 
   useEffect(() => {
     const pendingRequests = pendingHtmlRequests.current;
+    const pendingRectsRequests = pendingRangeRectsRequests.current;
     return () => {
       pendingRequests.forEach(({ reject }) => {
         reject(new Error('Component unmounted'));
       });
       pendingRequests.clear();
+      pendingRectsRequests.forEach(({ reject }) => {
+        reject(new Error('Component unmounted'));
+      });
+      pendingRectsRequests.clear();
     };
   }, []);
 
@@ -190,6 +208,26 @@ export const EnrichedTextInput = ({
         const requestId = nextHtmlRequestId.current++;
         pendingHtmlRequests.current.set(requestId, { resolve, reject });
         Commands.requestHTML(nullthrows(nativeRef.current), requestId);
+      });
+    },
+    measureRanges: (ranges) => {
+      const view = nullthrows(nativeRef.current);
+      if (ranges.length === 0) {
+        return Promise.resolve([]);
+      }
+      return new Promise<TextRect[][]>((resolve, reject) => {
+        const requestId = nextRangeRectsRequestId.current++;
+        pendingRangeRectsRequests.current.set(requestId, {
+          rangeCount: ranges.length,
+          resolve,
+          reject,
+        });
+        // Codegen does not support arrays of objects as Commands parameters, so ranges are flattened
+        Commands.requestRangeRects(
+          view,
+          requestId,
+          ranges.flatMap(({ start, end }) => [start, end])
+        );
       });
     },
     toggleBold: () => {
@@ -329,6 +367,25 @@ export const EnrichedTextInput = ({
     pendingHtmlRequests.current.delete(requestId);
   };
 
+  const handleRequestRangeRectsResult = (
+    e: NativeSyntheticEvent<OnRequestRangeRectsResultEvent>
+  ) => {
+    const { requestId, rects } = e.nativeEvent;
+    const pending = pendingRangeRectsRequests.current.get(requestId);
+    if (!pending) return;
+
+    const result: TextRect[][] = Array.from(
+      { length: pending.rangeCount },
+      () => []
+    );
+    for (const { range, x, y, width, height } of rects) {
+      result[range]?.push({ x, y, width, height });
+    }
+    pending.resolve(result);
+
+    pendingRangeRectsRequests.current.delete(requestId);
+  };
+
   return (
     <EnrichedTextInputNativeComponent
       ref={nativeRef}
@@ -358,6 +415,7 @@ export const EnrichedTextInput = ({
       onMention={handleMentionEvent}
       onChangeSelection={onChangeSelection}
       onRequestHtmlResult={handleRequestHtmlResult}
+      onRequestRangeRectsResult={handleRequestRangeRectsResult}
       onInputKeyPress={onKeyPress}
       contextMenuItems={nativeContextMenuItems}
       textShortcuts={textShortcuts}
