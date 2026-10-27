@@ -508,7 +508,12 @@ function flushLiBuffer(
   out: { buf: string },
   ctx: LiCtx
 ): void {
-  if (ib.buf.length === 0) return;
+  // Whitespace around blocks inside an <li> (e.g. `<li>\n<p>a</p>\n</li>`)
+  // is layout noise, not an extra list item.
+  if (isWhitespaceOnly(ib.buf)) {
+    ib.buf = '';
+    return;
+  }
   out.buf += `<li${emitAttributes(ctx.el, 'li')}>`;
   out.buf += emitStylesOpen(ctx.styles);
   out.buf += ib.buf;

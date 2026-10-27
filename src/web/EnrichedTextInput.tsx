@@ -18,12 +18,7 @@ import {
   nativePosToTiptapPos,
   nativeLeafText,
 } from './nativeMappers/positionMapping';
-import {
-  useEditor,
-  EditorContent,
-  type ChainedCommands,
-  Editor,
-} from '@tiptap/react';
+import { useEditor, EditorContent, Editor } from '@tiptap/react';
 import Document from '@tiptap/extension-document';
 import Paragraph from '@tiptap/extension-paragraph';
 import Text from '@tiptap/extension-text';
@@ -96,13 +91,8 @@ import { runSafelyInEditor } from './utils/runSafelyInEditor';
 import { useLinkPress } from './htmlExtensions/useLinkPress';
 import { useBaseFontFamily } from './utils/useBaseFontFamily';
 import { normalizeColorValue } from './normalization/colorNormalizer';
-
-function runFocused(
-  editor: Editor,
-  apply: (chain: ChainedCommands) => ChainedCommands
-) {
-  runSafelyInEditor(editor, (e) => apply(e.chain().focus()).run());
-}
+import { handleCheckboxPress } from './htmlExtensions/handleCheckboxPress';
+import { runFocused } from './utils/runFocused';
 
 export const EnrichedTextInput = ({
   ref,
@@ -297,7 +287,12 @@ export const EnrichedTextInput = ({
       editorProps: {
         handleKeyDown: (view, event) => handleKeyDown(view.state.doc, event),
         handleDOMEvents: {
-          click: (_view, event) => handleLinkPress(event),
+          click: (view, event) => {
+            if (handleCheckboxPress(event, editor, view)) {
+              return true;
+            }
+            return handleLinkPress(event);
+          },
           mousedown: (_view, event) => handleLinkMouseDown(event),
         },
         handlePaste: (_view, event) =>

@@ -38,5 +38,17 @@ target 'EnrichedTextInputExample' do
       :mac_catalyst_enabled => false,
       # :ccache_enabled => true
     )
+
+    # Some pods (e.g. react-native-image-picker) still declare an iOS 9.0 target,
+    # which current Xcode refuses to build.
+    min_ios = Pod::Version.new(min_ios_version_supported)
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |bc|
+        current = bc.build_settings['IPHONEOS_DEPLOYMENT_TARGET']
+        if current && Pod::Version.new(current) < min_ios
+          bc.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = min_ios.to_s
+        end
+      end
+    end
   end
 end

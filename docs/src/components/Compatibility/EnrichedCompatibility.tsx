@@ -10,11 +10,12 @@ const REACT_NATIVE_VERSIONS = [
   '0.85',
   '0.86',
   '0.87',
+  '0.88',
 ];
 
 const LIBRARY_VERSIONS = [
-  { version: 'nightly', supportedFrom: '0.82', supportedTo: '0.87' },
-  { version: '1.2.x (next)', supportedFrom: '0.82', supportedTo: '0.87' },
+  { version: 'nightly', supportedFrom: '0.82', supportedTo: '0.88' },
+  { version: '1.2.x (next)', supportedFrom: '0.82', supportedTo: '0.88' },
   { version: '1.1.x', supportedFrom: '0.81', supportedTo: '0.86' },
   { version: '1.0.x', supportedFrom: '0.81', supportedTo: '0.85' },
 ] as const;

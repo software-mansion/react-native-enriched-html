@@ -337,7 +337,7 @@ class EnrichedTextView : AppCompatTextView {
     }
 
     if (spannable !== currentText) {
-      setText(spannable, BufferType.SPANNABLE)
+      setText(spannable, BufferType.NORMAL)
     }
   }
 
