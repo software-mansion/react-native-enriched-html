@@ -110,6 +110,7 @@ export const EnrichedTextInput = ({
   autoCapitalize = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.autoCapitalize,
   scrollEnabled = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.scrollEnabled,
   mentionIndicators = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.mentionIndicators.slice(),
+  scrollEventThrottle = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.scrollEventThrottle,
   onFocus,
   style,
   onBlur,
@@ -197,10 +198,7 @@ export const EnrichedTextInput = ({
 
   const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
     if (
-      !shouldEmitScrollEvent(
-        scrollLastTickRef.current,
-        ENRICHED_TEXT_INPUT_DEFAULT_PROPS.scrollEventThrottle
-      )
+      !shouldEmitScrollEvent(scrollLastTickRef.current, scrollEventThrottle)
     ) {
       return;
     }

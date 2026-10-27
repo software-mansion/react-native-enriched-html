@@ -306,6 +306,13 @@ type Heading = {
   bold?: boolean;
 };
 
+export interface OnScrollEvent {
+  contentOffset: {
+    x: CodegenTypes.Int32;
+    y: CodegenTypes.Int32;
+  };
+}
+
 export interface HtmlStyleInternal {
   h1?: Heading;
   h2?: Heading;
@@ -370,6 +377,7 @@ export interface NativeProps extends ViewProps {
   spellCheck?: boolean;
   htmlStyle?: HtmlStyleInternal;
   scrollEnabled?: boolean;
+  scrollEventThrottle?: CodegenTypes.Int32;
   linkRegex?: LinkNativeRegex;
   contextMenuItems?: ReadonlyArray<Readonly<ContextMenuItemConfig>>;
   textShortcuts: ReadonlyArray<Readonly<TextShortcut>>;
@@ -390,6 +398,7 @@ export interface NativeProps extends ViewProps {
   onChangeSelection?: CodegenTypes.DirectEventHandler<OnChangeSelectionEvent>;
   onRequestHtmlResult?: CodegenTypes.DirectEventHandler<OnRequestHtmlResultEvent>;
   onInputKeyPress?: CodegenTypes.DirectEventHandler<OnKeyPressEvent>;
+  onInputScroll?: CodegenTypes.DirectEventHandler<OnScrollEvent>;
   onPasteImages?: CodegenTypes.DirectEventHandler<OnPasteImagesEvent>;
   onContextMenuItemPress?: CodegenTypes.DirectEventHandler<OnContextMenuItemPressEvent>;
   onSubmitEditing?: CodegenTypes.BubblingEventHandler<OnSubmitEditing>;

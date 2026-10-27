@@ -62,6 +62,8 @@ using namespace facebook::react;
   NSString *_submitBehavior;
   NSDictionary<NSAttributedStringKey, id> *_capturedAttributesBeforeChange;
   NSString *_recentlyEmittedAlignment;
+  CFTimeInterval _scrollLastTick;
+  int _scrollEventThrottle;
 }
 
 @synthesize blockEmitting = blockEmitting;
@@ -597,6 +599,10 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   if (newViewProps.scrollEnabled != oldViewProps.scrollEnabled ||
       textView.scrollEnabled != newViewProps.scrollEnabled) {
     [textView setScrollEnabled:newViewProps.scrollEnabled];
+  }
+
+  if (newViewProps.scrollEventThrottle != oldViewProps.scrollEventThrottle) {
+    _scrollEventThrottle = newViewProps.scrollEventThrottle;
   }
 
   if (newViewProps.allowFontScaling != oldViewProps.allowFontScaling) {
@@ -1499,6 +1505,29 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   auto emitter = [self getEventEmitter];
   if (emitter != nullptr) {
     emitter->onInputKeyPress({.key = [key toCppString]});
+  }
+}
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+  NSLog(@"[Enriched] y=%.0f contentH=%.0f boundsH=%.0f",
+        scrollView.contentOffset.y, scrollView.contentSize.height,
+        scrollView.bounds.size.height);
+
+  auto now = CACurrentMediaTime();
+  // now is in seconds _scrollEventThrottle is in miliseconds
+  if (now - _scrollLastTick < _scrollEventThrottle / 1000.0) {
+    return;
+  }
+  _scrollLastTick = now;
+  [self emitOnScroll:scrollView];
+}
+
+- (void)emitOnScroll:(UIScrollView *)scrollView {
+  auto emitter = [self getEventEmitter];
+  if (emitter != nullptr) {
+    emitter->onInputScroll({.contentOffset = {
+                                .x = (int)scrollView.contentOffset.x,
+                                .y = (int)scrollView.contentOffset.y,
+                            }});
   }
 }
 

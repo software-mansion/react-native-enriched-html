@@ -75,6 +75,7 @@ export const EnrichedTextInput = ({
   onChangeSelection,
   onKeyPress,
   onSubmitEditing,
+  onScroll,
   returnKeyType,
   returnKeyLabel,
   submitBehavior,
@@ -83,6 +84,7 @@ export const EnrichedTextInput = ({
   androidExperimentalSynchronousEvents = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.androidExperimentalSynchronousEvents,
   useHtmlNormalizer = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.useHtmlNormalizer,
   scrollEnabled = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.scrollEnabled,
+  scrollEventThrottle = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.scrollEventThrottle,
   allowFontScaling = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.allowFontScaling,
   ...rest
 }: EnrichedTextInputProps) => {
@@ -350,6 +352,7 @@ export const EnrichedTextInput = ({
       onInputBlur={onBlur}
       onChangeText={onChangeText}
       onChangeHtml={onChangeHtml}
+      onInputScroll={onScroll}
       isOnChangeHtmlSet={onChangeHtml !== undefined}
       isOnChangeTextSet={onChangeText !== undefined}
       onChangeState={onChangeState}
@@ -371,6 +374,7 @@ export const EnrichedTextInput = ({
       }
       useHtmlNormalizer={useHtmlNormalizer}
       scrollEnabled={scrollEnabled}
+      scrollEventThrottle={scrollEventThrottle}
       allowFontScaling={allowFontScaling}
       {...rest}
     />

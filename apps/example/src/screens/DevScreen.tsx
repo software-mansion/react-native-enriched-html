@@ -62,6 +62,7 @@ export function DevScreen({ onSwitch }: DevScreenProps) {
             onEndMention={editor.handleEndMention}
             onFocus={editor.handleFocusEvent}
             onBlur={editor.handleBlurEvent}
+            onScroll={(e) => console.log(e)}
             onChangeSelection={(e) =>
               editor.handleSelectionChangeEvent(e.nativeEvent)
             }
