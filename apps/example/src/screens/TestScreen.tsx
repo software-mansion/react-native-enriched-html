@@ -85,9 +85,7 @@ export function TestScreen({
             onEndMention={editor.handleEndMention}
             onFocus={editor.handleFocusEvent}
             onBlur={editor.handleBlurEvent}
-            onScroll={(e) =>
-              console.log([e.nativeEvent.contentOffset, e.timeStamp])
-            }
+            onScroll={(e) => editor.handleScroll(e.nativeEvent)}
             onChangeSelection={(e) =>
               editor.handleSelectionChangeEvent(e.nativeEvent)
             }

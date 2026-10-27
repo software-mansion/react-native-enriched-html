@@ -26,6 +26,7 @@ import {
   prepareImageDimensions,
 } from '../utils/prepareImageDimensions';
 import { launchImageLibrary } from 'react-native-image-picker';
+import type { OnScrollEvent } from '../../../../src/types';
 
 type CurrentLinkState = OnLinkDetected;
 
@@ -159,6 +160,10 @@ export function useEditorState() {
     console.log('Key pressed:', e.key);
   };
 
+  const handleScroll = (e: OnScrollEvent) => {
+    console.log('Scroll event:', e.contentOffset);
+  };
+
   const handleLinkDetected = (state: CurrentLinkState) => {
     console.log(state);
     setCurrentLink(state);
@@ -267,6 +272,7 @@ export function useEditorState() {
     handleSelectionChangeEvent,
     handleKeyPress,
     handleFocusEvent,
+    handleScroll,
     handleBlurEvent,
     handlePasteImagesEvent,
     handleStartMention,

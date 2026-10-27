@@ -1508,10 +1508,6 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   }
 }
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
-  NSLog(@"[Enriched] y=%.0f contentH=%.0f boundsH=%.0f",
-        scrollView.contentOffset.y, scrollView.contentSize.height,
-        scrollView.bounds.size.height);
-
   auto now = CACurrentMediaTime();
   // now is in seconds _scrollEventThrottle is in miliseconds
   if (now - _scrollLastTick < _scrollEventThrottle / 1000.0) {
