@@ -30,6 +30,6 @@ class EnrichedTextCustomStyleSpan(
       getFontSize(),
       getFontFamily(),
       getAssets(),
-      getAllowFontScaling(),
+      style.allowFontScaling,
     )
 }
