@@ -5,10 +5,12 @@ import com.facebook.react.bridge.ColorPropConverter
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.views.text.ReactTypefaceUtils.parseFontWeight
+import com.swmansion.enriched.common.DEFAULT_BACKGROUND_OPACITY
 import com.swmansion.enriched.common.EnrichedConstants
 import com.swmansion.enriched.common.EnrichedStyle
 import com.swmansion.enriched.common.MentionStyle
 import com.swmansion.enriched.common.pixelFromSpOrDp
+import com.swmansion.enriched.common.withOpacity
 import com.swmansion.enriched.textinput.EnrichedTextInputView
 import kotlin.Float
 import kotlin.Int
@@ -71,6 +73,9 @@ class HtmlStyle : EnrichedStyle {
   override var inlineCodeBackgroundColor: Int = Color.BLACK
 
   override var mentionsStyle: MutableMap<String, MentionStyle> = mutableMapOf()
+
+  val allowFontScaling: Boolean
+    get() = view?.allowFontScaling ?: EnrichedConstants.ALLOW_FONT_SCALING_DEFAULT
 
   constructor(view: EnrichedTextInputView?, style: ReadableMap?) {
     this.view = view
@@ -139,11 +144,11 @@ class HtmlStyle : EnrichedStyle {
     val codeBlockStyle = style.getMap("codeblock")
     codeBlockRadius = parseFloat(codeBlockStyle, "borderRadius")
     codeBlockColor = parseColor(codeBlockStyle, "color")
-    codeBlockBackgroundColor = parseColorWithOpacity(codeBlockStyle, "backgroundColor", 80)
+    codeBlockBackgroundColor = parseColorWithOpacity(codeBlockStyle, "backgroundColor")
 
     val inlineCodeStyle = style.getMap("code")
     inlineCodeColor = parseColor(inlineCodeStyle, "color")
-    inlineCodeBackgroundColor = parseColorWithOpacity(inlineCodeStyle, "backgroundColor", 80)
+    inlineCodeBackgroundColor = parseColorWithOpacity(inlineCodeStyle, "backgroundColor")
 
     val mentionStyle = style.getMap("mention")
     mentionsStyle = parseMentionsStyle(mentionStyle)
@@ -155,13 +160,13 @@ class HtmlStyle : EnrichedStyle {
   ): Float {
     val safeMap = ensureValueIsSet(map, key)
     val value = safeMap.getDouble(key)
-    return ceil(pixelFromSpOrDp(value, view?.allowFontScaling ?: EnrichedConstants.ALLOW_FONT_SCALING_DEFAULT))
+    return ceil(pixelFromSpOrDp(value, allowFontScaling))
   }
 
   private fun parseColorWithOpacity(
     map: ReadableMap?,
     key: String,
-    opacity: Int,
+    opacity: Int = DEFAULT_BACKGROUND_OPACITY,
   ): Int {
     val color = parseColor(map, key)
     return withOpacity(color, opacity)
@@ -191,15 +196,6 @@ class HtmlStyle : EnrichedStyle {
     }
 
     return parsedColor
-  }
-
-  private fun withOpacity(
-    color: Int,
-    alpha: Int,
-  ): Int {
-    if (Color.alpha(color) != 255) return color
-    val a = alpha.coerceIn(0, 255)
-    return (color and 0x00FFFFFF) or (a shl 24)
   }
 
   private fun parseIsUnderline(map: ReadableMap?): Boolean {
@@ -249,7 +245,7 @@ class HtmlStyle : EnrichedStyle {
       if (value == null) throw Error("Mention style for key '$key' cannot be null")
 
       val color = parseColor(value, "color")
-      val backgroundColor = parseColorWithOpacity(value, "backgroundColor", 80)
+      val backgroundColor = parseColorWithOpacity(value, "backgroundColor")
       val isUnderline = parseIsUnderline(value)
       val parsedStyle = MentionStyle(color, backgroundColor, isUnderline)
       parsedMentionsStyle.put(key, parsedStyle)

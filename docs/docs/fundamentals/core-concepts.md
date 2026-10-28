@@ -71,7 +71,7 @@ The HTML format that both components expect is identical, what allows you to int
 
 ## The style state model
 
-Not every style can be combined with every other. For example, a paragraph can't be both a heading and a list item, code blocks don't support inline formatting such as bold or italic. The editor tracks this and reports it through `onChangeState`, which gives each style three booleans:
+Not every style can be combined with every other. For example, a paragraph can't be both a heading and a list item, code blocks don't support inline formatting such as bold or italic. The editor tracks this and reports it through `onChangeState`, which gives the majority of styles three booleans:
 
 - **`isActive`** - whether the style is applied at the current selection. Use it to
   highlight a toolbar button.
@@ -81,6 +81,8 @@ Not every style can be combined with every other. For example, a paragraph can't
 - **`isConflicting`** - whether this style would replace an active one if toggled on.
   For example, switching a blockquote paragraph to a heading removes the
   blockquote. Use it to hint that the toggle is a swap, not an addition.
+
+Only [text alignment](/rich-text-formatting/text-alignment) and [custom style](/rich-text-formatting/custom-style) do not expose those three booleans in the `onChangeState` event, as they can be applied on any existing style. Instead, they simply carry their current value. To see the exact shape of the event's payload, see the `onChangeState` [API reference](/api-reference/enriched-text-input#onchangestate).
 
 Driving your toolbar from these three flags keeps the UI honest: buttons light
 up and grey out according to the editor's state.

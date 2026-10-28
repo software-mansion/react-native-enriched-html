@@ -9,6 +9,7 @@ import {
   isFormatBlocked,
 } from '../formats/formatRules';
 import type { HtmlStyle } from '../../types';
+import { normalizeColorToHex } from '../normalization/colorNormalizer';
 
 export const useOnChangeState = (
   editor: Editor | null,
@@ -63,6 +64,8 @@ function buildState(
     };
   }
 
+  const customStyle = getCurrentCustomStyleAttributes(editor);
+
   return {
     bold: inlineFormat('bold', false),
     italic: inlineFormat('italic', false),
@@ -99,22 +102,68 @@ function buildState(
       isBlocking: isFormatBlocked('image', editor, htmlStyle),
     },
     alignment: getCurrentAlignment(editor) ?? 'auto',
+    customStyle: {
+      foregroundColor: toHexColor(customStyle.foregroundColor),
+      backgroundColor: toHexColor(customStyle.backgroundColor),
+      fontSize: customStyle.fontSize ?? 0,
+      fontFamily: customStyle.fontFamily ?? '',
+    },
   };
 }
 
+function toHexColor(color: string | null | undefined): string {
+  return normalizeColorToHex(color) ?? color ?? '';
+}
+
+function getCurrentCustomStyleAttributes(editor: Editor): Record<string, any> {
+  const { selection, doc, schema } = editor.state;
+  if (selection.empty) {
+    const marks = editor.state.storedMarks ?? selection.$from.marks();
+    return schema.marks.customStyle?.isInSet(marks)?.attrs ?? {};
+  }
+
+  const foregroundColors = new Set<string | null>();
+  const backgroundColors = new Set<string | null>();
+  const fontSizes = new Set<number | null>();
+  const fontFamilies = new Set<string | null>();
+
+  doc.nodesBetween(selection.from, selection.to, (node) => {
+    if (!node.isText) return;
+    const attrs = schema.marks.customStyle?.isInSet(node.marks)?.attrs;
+    foregroundColors.add(toHexColor(attrs?.foregroundColor) || null);
+    backgroundColors.add(toHexColor(attrs?.backgroundColor) || null);
+    fontSizes.add(attrs?.fontSize ?? null);
+    fontFamilies.add(attrs?.fontFamily ?? null);
+  });
+
+  return {
+    foregroundColor: getSingleValue(foregroundColors),
+    backgroundColor: getSingleValue(backgroundColors),
+    fontSize: getSingleValue(fontSizes),
+    fontFamily: getSingleValue(fontFamilies),
+  };
+}
+
+function getSingleValue<T>(values: Set<T | null>): T | null {
+  return values.size === 1 ? ([...values][0] ?? null) : null;
+}
+
 function hashState(state: OnChangeStateEvent): string {
-  return Object.values(state)
-    .map((formatState) => {
-      if (typeof formatState === 'string') return formatState;
-      return String(
-        getFormatHash(
-          formatState.isActive,
-          formatState.isConflicting,
-          formatState.isBlocking
-        )
-      );
+  const formatEntries = Object.entries(state).filter(
+    ([key]) => key !== 'alignment' && key !== 'customStyle'
+  );
+  const formatHash = formatEntries
+    .map(([, formatState]) => {
+      const s = formatState as {
+        isActive: boolean;
+        isConflicting: boolean;
+        isBlocking: boolean;
+      };
+      return String(getFormatHash(s.isActive, s.isConflicting, s.isBlocking));
     })
     .join('');
+
+  return `${formatHash}|${state.alignment}|${state.customStyle.foregroundColor}|${state.customStyle.backgroundColor}|${state.customStyle.fontSize}|${state.customStyle.fontFamily}`;
 }
 
 function getFormatHash(

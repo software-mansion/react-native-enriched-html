@@ -15,6 +15,7 @@ typedef NS_ENUM(NSInteger, StyleType) {
   H4,
   H5,
   H6,
+  Custom,
   Link,
   Mention,
   Image,
