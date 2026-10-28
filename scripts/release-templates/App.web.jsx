@@ -1,5 +1,6 @@
 import { EnrichedTextInput } from 'react-native-enriched-html';
 import { useRef, useState } from 'react';
+import './App.css';
 
 export default function App() {
   const ref = useRef(null);
