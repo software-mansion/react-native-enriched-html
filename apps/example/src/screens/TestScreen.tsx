@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet, ScrollView, Text } from 'react-native';
 import { EnrichedTextInput } from 'react-native-enriched-html';
 import { Button } from '../components/Button';
 import { Toolbar } from '../components/Toolbar';
@@ -25,6 +25,7 @@ export function TestScreen({
 }: TestScreenProps) {
   const editor = useEditorState();
   const [sizeMode, setSizeMode] = useState<'base' | 'max'>('base');
+  const [scrollOffset, setScrollOffset] = useState(0);
 
   return (
     <View style={styles.container}>
@@ -85,7 +86,10 @@ export function TestScreen({
             onEndMention={editor.handleEndMention}
             onFocus={editor.handleFocusEvent}
             onBlur={editor.handleBlurEvent}
-            onScroll={(e) => editor.handleScroll(e.nativeEvent)}
+            onScroll={(e) => {
+              editor.handleScroll(e.nativeEvent);
+              setScrollOffset(e.nativeEvent.contentOffset.y);
+            }}
             onChangeSelection={(e) =>
               editor.handleSelectionChangeEvent(e.nativeEvent)
             }
@@ -106,6 +110,9 @@ export function TestScreen({
             onSelectImage={editor.openImageModal}
             layout="grid"
           />
+          <Text testID="scroll-offset-output" style={styles.scrollOffsetOutput}>
+            Scroll offset: {scrollOffset.toFixed(2)}
+          </Text>
         </View>
         <View style={styles.buttonRow}>
           <Button
@@ -216,5 +223,14 @@ const styles = StyleSheet.create({
   },
   editorInputMax: {
     maxHeight: 400,
+  },
+  scrollOffsetOutput: {
+    width: '100%',
+    backgroundColor: 'gainsboro',
+    padding: 8,
+    color: 'rgb(0, 26, 114)',
+    fontFamily: 'Nunito-Regular',
+    fontSize: 16,
+    textAlign: 'center',
   },
 });
