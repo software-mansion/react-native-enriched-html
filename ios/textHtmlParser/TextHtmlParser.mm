@@ -124,6 +124,12 @@
           }
         }
       }
+    } else if ([styleType isEqualToNumber:@([CustomStyle getType])]) {
+      CustomStyle *customStyle = (CustomStyle *)style;
+      [customStyle setCustomStyleData:stylePair.styleValue
+                                range:styleRange
+                           withTyping:NO
+                       withDirtyRange:NO];
     } else {
       [style add:styleRange withTyping:NO withDirtyRange:NO];
     }
@@ -154,7 +160,7 @@
     }
   }
 
-  // Respect the styling priority
+  // Respect the inline styling priority
   NSArray *sortedInlineApply =
       [pendingInlineApply sortedArrayBySortKey:^NSInteger(NSArray *entry) {
         return [((StyleBase *)entry[0]) stylePriority];

@@ -5,6 +5,8 @@ import com.facebook.react.bridge.ReactContext
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.uimanager.UIManagerHelper
 import com.facebook.react.uimanager.events.EventDispatcher
+import com.swmansion.enriched.common.CustomStyle
+import com.swmansion.enriched.common.parser.EnrichedColorParser
 import com.swmansion.enriched.textinput.EnrichedTextInputView
 import com.swmansion.enriched.textinput.events.OnChangeStateEvent
 import com.swmansion.enriched.textinput.spans.EnrichedSpans
@@ -53,6 +55,8 @@ class EnrichedSpanState(
   var mentionStart: Int? = null
     private set
   var currentAlignment: String = "auto"
+    private set
+  var customStyle: CustomStyle? = null
     private set
 
   fun setBoldStart(start: Int?) {
@@ -155,6 +159,16 @@ class EnrichedSpanState(
     emitStateChangeEvent()
   }
 
+  fun setCustomStyle(
+    fgColor: Int?,
+    bgColor: Int?,
+    fontSize: Float? = null,
+    fontFamily: String? = null,
+  ) {
+    this.customStyle = CustomStyle(fgColor, bgColor, fontSize, fontFamily)
+    emitStateChangeEvent()
+  }
+
   fun getStart(name: String): Int? {
     val start =
       when (name) {
@@ -254,6 +268,7 @@ class EnrichedSpanState(
     payload.putMap("mention", getStyleState(activeStyles, EnrichedSpans.MENTION))
     payload.putMap("checkboxList", getStyleState(activeStyles, EnrichedSpans.CHECKBOX_LIST))
     payload.putString("alignment", currentAlignment)
+    payload.putMap("customStyle", getCustomStylePayload())
 
     return payload
   }
@@ -310,6 +325,28 @@ class EnrichedSpanState(
     state.putBoolean("isConflicting", isConflicting)
 
     return state
+  }
+
+  private fun getCustomStylePayload(): WritableMap {
+    val customStyleMap = Arguments.createMap()
+    val customStyle = view.spanState?.customStyle
+
+    if (customStyle?.foregroundColor != null) {
+      customStyleMap.putString("foregroundColor", EnrichedColorParser.colorToHex(customStyle.foregroundColor))
+    } else {
+      customStyleMap.putString("foregroundColor", "")
+    }
+
+    if (customStyle?.backgroundColor != null) {
+      customStyleMap.putString("backgroundColor", EnrichedColorParser.colorToHex(customStyle.backgroundColor))
+    } else {
+      customStyleMap.putString("backgroundColor", "")
+    }
+
+    customStyleMap.putDouble("fontSize", (customStyle?.fontSize ?: 0f).toDouble())
+    customStyleMap.putString("fontFamily", customStyle?.fontFamily ?: "")
+
+    return customStyleMap
   }
 
   companion object {
