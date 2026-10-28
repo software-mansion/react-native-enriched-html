@@ -46,7 +46,9 @@ if [ "$STATE" != "(Booted)" ]; then
   xcrun simctl boot "$UDID"
 fi
 
-open -a Simulator
+# Newer Xcode versions replace Simulator.app with DeviceHub.app. 
+open -a Simulator 2>/dev/null || open -a DeviceHub 2>/dev/null
+
 
 echo "Simulator ready: $DEVICE_NAME ($UDID)"
 echo "DEVICE_ID=$UDID"
