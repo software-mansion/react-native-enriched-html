@@ -63,7 +63,15 @@ cp "$TEMPLATES_DIR/App.web.jsx" "$WEB_APP_DIR/src/App.jsx"
 cp "$TEMPLATES_DIR/App.web.css" "$WEB_APP_DIR/src/App.css"
 
 echo "==> [5/6] Installing mobile app"
-(cd "$MOBILE_APP_DIR" && yarn && cd ios && bundle install && bundle exec pod install && cd ..)
+(
+  cd "$MOBILE_APP_DIR"
+  yarn
+  if [ "$(uname -s)" = "Darwin" ]; then
+    cd ios
+    bundle install
+    bundle exec pod install
+  fi
+)
 
 echo "==> [6/6] Installing web app"
 (cd "$WEB_APP_DIR" && yarn)
