@@ -1,0 +1,39 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+}
+
+.input {
+  font-size: 18px;
+  color: #232736;
+  padding: 12px;
+  border-radius: 12px;
+  min-height: 96px;
+  background-color: #eef0ff;
+}
+
+.button {
+  align-self: center;
+  width: 100px;
+  padding: 8px;
+  border-radius: 24px;
+  border: 1px solid #919fcf;
+  background: transparent;
+  cursor: pointer;
+}
+
+.button-active {
+  border-color: #57b495;
+  background-color: #57b495;
+}
+
+.text {
+  text-align: center;
+  color: #919fcf;
+}
+
+.text-active {
+  color: #eef0ff;
+}
