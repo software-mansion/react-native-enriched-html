@@ -13,14 +13,12 @@ import { selectRange } from '../helpers/selection';
 // entries that can be undone independently.
 const HISTORY_GROUP_DELAY = 600;
 
-const MOD = process.platform === 'darwin' ? 'Meta' : 'Control';
-
 async function pressUndo(page: Page) {
-  await page.keyboard.press(`${MOD}+z`);
+  await page.keyboard.press('ControlOrMeta+z');
 }
 
 async function pressRedo(page: Page) {
-  await page.keyboard.press(`${MOD}+Shift+z`);
+  await page.keyboard.press('ControlOrMeta+Shift+z');
 }
 
 test.describe('undo / redo', () => {
@@ -74,7 +72,7 @@ test.describe('undo / redo', () => {
     await page.keyboard.type('Hello World');
     await page.waitForTimeout(HISTORY_GROUP_DELAY);
 
-    await page.keyboard.press(`${MOD}+a`);
+    await page.keyboard.press('ControlOrMeta+a');
     await toolbarButton(page, 'bold').click();
 
     expect(await getSerializedHtml(page)).toEqual(
@@ -93,7 +91,7 @@ test.describe('undo / redo', () => {
     await page.keyboard.type('Hello World!');
     await page.waitForTimeout(HISTORY_GROUP_DELAY);
 
-    await page.keyboard.press(`${MOD}+a`);
+    await page.keyboard.press('ControlOrMeta+a');
     await toolbarButton(page, 'bold').click();
     await page.waitForTimeout(HISTORY_GROUP_DELAY);
     await selectRange(page, 6, 11);

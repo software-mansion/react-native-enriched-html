@@ -72,10 +72,7 @@ for (const { label, tag, wrapperSelector, toolbarTestId } of WRAPPED_BLOCKS) {
 
       const secondP = paragraphsInWrapper.nth(1);
       await secondP.click();
-      await editor.press('End');
-      for (let i = 0; i < 'second'.length; i++) {
-        await editor.press('ArrowLeft', { delay: 60 });
-      }
+      await editor.press('Home');
 
       await editor.press('Backspace', { delay: 60 });
 
