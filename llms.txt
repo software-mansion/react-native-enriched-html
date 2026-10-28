@@ -36,6 +36,7 @@
 ## rich-text-formatting
 
 - [basic-styles](https://docs.swmansion.com/react-native-enriched-html/docs/rich-text-formatting/basic-styles)
+- [custom-style](https://docs.swmansion.com/react-native-enriched-html/docs/rich-text-formatting/custom-style)
 - [inline-images](https://docs.swmansion.com/react-native-enriched-html/docs/rich-text-formatting/inline-images)
 - [links](https://docs.swmansion.com/react-native-enriched-html/docs/rich-text-formatting/links)
 - [lists](https://docs.swmansion.com/react-native-enriched-html/docs/rich-text-formatting/lists)

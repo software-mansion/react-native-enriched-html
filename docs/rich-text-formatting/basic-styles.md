@@ -27,7 +27,7 @@ once.
 
 > **Note**
 >
-> There are two more inline styles, which you cannot toggle quite like the others - **links** and **mentions**. You'll learn about them in their respective sections, once you finish this chapter.
+> There are a few more inline styles, which you cannot toggle quite like the others - **custom style**, **links** and **mentions**. You'll learn about them in their respective sections, once you finish this chapter.
 
 ## Paragraph styles
 

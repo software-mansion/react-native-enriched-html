@@ -1,0 +1,84 @@
+# Custom style
+
+Aside from the predefined [basic styles](/rich-text-formatting/basic-styles)
+you can apply a **custom style**, which consists of four pieces of formatting:
+text color, highlight, font size and font family. Similarly as the style-toggling
+methods, it applies to the current input's selection.
+
+## Setting a custom style
+
+`setStyle` accepts an object with four optional fields:
+
+```tsx
+setStyle(
+  { 
+    foregroundColor?: string,
+    backgroundColor?: string,
+    fontSize?: number,
+    fontFamily?: string,
+  }
+);
+```
+
+Each call respects the already present custom style and modifies it with whatever
+fields you pass. For example, if you want to remove a single field, pass `null`:
+
+```tsx
+// Remove the highlight, keep the color, size and font as they are.
+ref.current?.setStyle({ backgroundColor: null });
+```
+
+Custom style doesn't conflict with or block any other style, so it combines
+freely with both inline styles and paragraph styles.
+
+> **Note**
+>
+> If a current style modifies the same thing that **custom style** sets, we have the following priority:
+> **paragraph style** \< **custom style** \< **inline style**. E.g. if you try to apply `foregroundColor` custom style to a text with a link (which is an inline style), the link's foreground color stays.
+
+## Reading the current style
+
+Since custom style carries values rather than a simple on/off flag, `onChangeState`
+reports it as a separate `customStyle` object instead of the usual
+`isActive` / `isBlocking` / `isConflicting`
+[booleans](/fundamentals/core-concepts#the-style-state-model):
+
+```ts
+customStyle: {
+  foregroundColor: string;
+  backgroundColor: string;
+  fontSize: number;
+  fontFamily: string;
+}
+```
+
+Each field holds the value at the current selection. When a field isn't set, it comes back
+empty: `''` for strings and `0` for `fontSize`. That makes it easy to check whether a field
+is applied:
+
+```tsx
+const customStyleButtons = [
+  {
+    label: 'Color',
+    isActive: !!state?.customStyle.foregroundColor,
+    onPress: () => ref.current?.setStyle({ foregroundColor: '#e5484d' }),
+  },
+  {
+    label: 'Font size',
+    isActive: !!state?.customStyle.fontSize,
+    onPress: () => ref.current?.setStyle({ fontSize: 26 }),
+  },
+];
+```
+
+> **Tip**
+>
+> Pass colors to `setStyle` as hex or named colors (e.g. `'red'`). They are
+> always reported as uppercase hex strings - `#RRGGBB`, or `#RRGGBBAA`.
+
+## Try it out
+
+Each button below sets one field of the custom style on the selection, and
+removes it when the field is already applied. Select a word and give it a color,
+then a highlight - notice how the second call doesn't touch the first one. Try
+mixing them with different fonts and sizes.
