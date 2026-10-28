@@ -11,45 +11,119 @@
 }
 
 + (NSString *)stringByEscapingHtml:(NSString *)html {
-  NSMutableString *escaped = [html mutableCopy];
-  NSDictionary *escapeMap = @{
-    @"&" : @"&amp;",
-    @"<" : @"&lt;",
-    @">" : @"&gt;",
-  };
-
-  for (NSString *key in escapeMap) {
-    [escaped replaceOccurrencesOfString:key
-                             withString:escapeMap[key]
-                                options:NSLiteralSearch
-                                  range:NSMakeRange(0, escaped.length)];
+  // Escape character by character so that the output of one replacement is
+  // never escaped again (e.g. U+00A0 -> "&nbsp;" must not become
+  // "&amp;nbsp;").
+  NSMutableString *escaped =
+      [[NSMutableString alloc] initWithCapacity:html.length];
+  for (NSUInteger i = 0; i < html.length; i++) {
+    unichar c = [html characterAtIndex:i];
+    switch (c) {
+    case '&':
+      [escaped appendString:@"&amp;"];
+      break;
+    case '<':
+      [escaped appendString:@"&lt;"];
+      break;
+    case '>':
+      [escaped appendString:@"&gt;"];
+      break;
+    case 0x00A0:
+      // Non-breaking space is emitted as an entity so it stays visible in the
+      // HTML and survives whitespace trimming.
+      [escaped appendString:@"&nbsp;"];
+      break;
+    default:
+      [escaped appendFormat:@"%C", c];
+      break;
+    }
   }
   return escaped;
 }
 
-+ (NSDictionary *)getEscapedCharactersInfoFrom:(NSString *)text {
-  NSDictionary *unescapeMap = @{
-    @"&amp;" : @"&",
-    @"&lt;" : @"<",
-    @"&gt;" : @">",
-  };
+// Named character references decoded by the parser. This is not the full
+// HTML5 table (2000+ entries); it covers the XML predefined entities and the
+// common HTML ones that editors and CMSs emit in practice. Unknown names are
+// left as literal text.
+static NSDictionary<NSString *, NSString *> *namedHtmlEntities(void) {
+  static NSDictionary<NSString *, NSString *> *entities;
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{
+    entities = @{
+      @"amp" : @"&",
+      @"lt" : @"<",
+      @"gt" : @">",
+      @"quot" : @"\"",
+      @"apos" : @"'",
+      @"nbsp" : @"\u00A0",
+      @"ensp" : @"\u2002",
+      @"emsp" : @"\u2003",
+      @"thinsp" : @"\u2009",
+      @"zwnj" : @"\u200C",
+      @"zwj" : @"\u200D",
+      @"shy" : @"\u00AD",
+      @"ndash" : @"\u2013",
+      @"mdash" : @"\u2014",
+      @"lsquo" : @"\u2018",
+      @"rsquo" : @"\u2019",
+      @"sbquo" : @"\u201A",
+      @"ldquo" : @"\u201C",
+      @"rdquo" : @"\u201D",
+      @"bdquo" : @"\u201E",
+      @"laquo" : @"\u00AB",
+      @"raquo" : @"\u00BB",
+      @"hellip" : @"\u2026",
+      @"bull" : @"\u2022",
+      @"middot" : @"\u00B7",
+      @"iexcl" : @"\u00A1",
+      @"iquest" : @"\u00BF",
+      @"copy" : @"\u00A9",
+      @"reg" : @"\u00AE",
+      @"trade" : @"\u2122",
+      @"sect" : @"\u00A7",
+      @"para" : @"\u00B6",
+      @"deg" : @"\u00B0",
+      @"plusmn" : @"\u00B1",
+      @"times" : @"\u00D7",
+      @"divide" : @"\u00F7",
+      @"euro" : @"\u20AC",
+      @"cent" : @"\u00A2",
+      @"pound" : @"\u00A3",
+      @"yen" : @"\u00A5",
+    };
+  });
+  return entities;
+}
 
++ (NSDictionary *)getEscapedCharactersInfoFrom:(NSString *)text {
   NSMutableDictionary *results = [[NSMutableDictionary alloc] init];
 
-  for (NSString *key in unescapeMap) {
-    NSRange searchRange = NSMakeRange(0, text.length);
-    NSRange foundRange;
+  // Named character references: &name;
+  NSDictionary<NSString *, NSString *> *entities = namedHtmlEntities();
+  NSRegularExpression *namedEntityRegex =
+      [NSRegularExpression regularExpressionWithPattern:@"&([a-zA-Z0-9]+);"
+                                                options:0
+                                                  error:nil];
 
-    while (searchRange.location < text.length) {
-      foundRange = [text rangeOfString:key options:0 range:searchRange];
-      if (foundRange.location == NSNotFound) {
-        break;
-      }
-      results[@(foundRange.location)] = @[ key, unescapeMap[key] ];
-      searchRange.location = foundRange.location + foundRange.length;
-      searchRange.length = text.length - searchRange.location;
-    }
-  }
+  [namedEntityRegex
+      enumerateMatchesInString:text
+                       options:0
+                         range:NSMakeRange(0, text.length)
+                    usingBlock:^(NSTextCheckingResult *match,
+                                 NSMatchingFlags flags, BOOL *stop) {
+                      if (match == nil) {
+                        return;
+                      }
+                      NSString *name =
+                          [text substringWithRange:[match rangeAtIndex:1]];
+                      NSString *decoded = entities[name];
+                      if (decoded == nil) {
+                        return;
+                      }
+                      NSRange fullRange = [match range];
+                      results[@(fullRange.location)] =
+                          @[ [text substringWithRange:fullRange], decoded ];
+                    }];
 
   // Numeric character references: &#NNNN; (decimal) and &#xHHHH; (hex)
   NSRegularExpression *numericEntityRegex = [NSRegularExpression
