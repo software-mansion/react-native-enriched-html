@@ -77,6 +77,7 @@ export const EnrichedTextInput = ({
   spellCheck,
   htmlStyle = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.htmlStyle,
   linkRegex: _linkRegex,
+  applyLinkOnPaste = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.applyLinkOnPaste,
   onFocus,
   onBlur,
   onChangeText,
@@ -387,6 +388,7 @@ export const EnrichedTextInput = ({
       spellCheck={spellCheck ?? autoCorrect}
       htmlStyle={normalizedHtmlStyle}
       linkRegex={linkRegex}
+      applyLinkOnPaste={applyLinkOnPaste}
       onInputFocus={onFocus}
       onInputBlur={onBlur}
       onChangeText={onChangeText}
