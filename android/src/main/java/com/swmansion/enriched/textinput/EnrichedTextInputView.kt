@@ -9,6 +9,7 @@ import android.graphics.Color
 import android.graphics.Rect
 import android.graphics.text.LineBreaker
 import android.os.Build
+import android.os.SystemClock
 import android.text.Editable
 import android.text.InputType
 import android.text.Spannable
@@ -47,6 +48,7 @@ import com.swmansion.enriched.textinput.events.MentionHandler
 import com.swmansion.enriched.textinput.events.OnContextMenuItemPressEvent
 import com.swmansion.enriched.textinput.events.OnInputBlurEvent
 import com.swmansion.enriched.textinput.events.OnInputFocusEvent
+import com.swmansion.enriched.textinput.events.OnInputScrollEvent
 import com.swmansion.enriched.textinput.events.OnRequestHtmlResultEvent
 import com.swmansion.enriched.textinput.events.OnSubmitEditingEvent
 import com.swmansion.enriched.textinput.spans.EnrichedInputH1Span
@@ -94,6 +96,8 @@ class EnrichedTextInputView :
   var isDuringTransaction: Boolean = false
   var isRemovingMany: Boolean = false
   var scrollEnabled: Boolean = true
+  var scrollEventThrottle: Int = 0
+  private var scrollLastTick:Long = 0
   var allowFontScaling: Boolean = EnrichedConstants.ALLOW_FONT_SCALING_DEFAULT
     set(value) {
       if (field != value) {
@@ -314,6 +318,28 @@ class EnrichedTextInputView :
   override fun canScrollVertically(direction: Int): Boolean = scrollEnabled
 
   override fun canScrollHorizontally(direction: Int): Boolean = scrollEnabled
+
+  override fun onScrollChanged(horiz: Int, vert: Int, oldHoriz: Int, oldVert: Int) {
+    super.onScrollChanged(horiz, vert, oldHoriz, oldVert)
+
+    val now = SystemClock.uptimeMillis()
+    if (now - scrollLastTick > scrollEventThrottle) {
+      scrollLastTick = now
+      val reactContext = context as? ReactContext ?: return
+      val surfaceId = UIManagerHelper.getSurfaceId(reactContext)
+      val dispatcher = UIManagerHelper.getEventDispatcher(reactContext)
+
+      dispatcher?.dispatchEvent(
+        OnInputScrollEvent(
+          surfaceId,
+          id,
+          horiz,
+          vert,
+          experimentalSynchronousEvents,
+        ),
+      )
+    }
+  }
 
   override fun onSelectionChanged(
     selStart: Int,
