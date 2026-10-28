@@ -10,7 +10,14 @@ export default function App() {
     <div className="container">
       <EnrichedTextInput
         ref={ref}
-        className="input"
+        style={{
+          fontSize: 18,
+          color: '#232736',
+          padding: 12,
+          borderRadius: 12,
+          minHeight: 96,
+          backgroundColor: '#eef0ff',
+        }}
         placeholder="Type something here..."
         onChangeState={(e) => setState(e.nativeEvent)}
       />
