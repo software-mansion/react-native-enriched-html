@@ -32,6 +32,10 @@ Both show up in the [`onChangeState`](/fundamentals/core-concepts#the-style-stat
 | Link          | `<a>`       | `<code>`, `<a>`, `<mention>` | `<codeblock>`, `<img>` |
 | Mention       | `<mention>` | `<code>`, `<a>`              | `<codeblock>`, `<img>` |
 | Image         | `<img>`     | `<a>`, `<mention>`           | `<code>`               |
+| Custom style  | `<span>`    | --                           | --                     |
+
+`<span>` carries the [custom style](/rich-text-formatting/custom-style) in its
+`style` attribute - `color`, `background-color`, `font-size` and `font-family`.
 
 :::note
 

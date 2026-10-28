@@ -2148,7 +2148,7 @@ SPEC CHECKSUMS:
   ReactCodegen: 5b3cdb1f612a81f3b543a94f425ecd8518c32f2c
   ReactCommon: c6895b36d81986f89a7e40a00b4b72ca70e82710
   ReactNativeDependencies: d3b7423ba1e52525e42085c8470109abde583d2e
-  ReactNativeEnrichedHtml: 1c9c0a82045119189130ba3be08eb0d40c25d992
+  ReactNativeEnrichedHtml: 081f493f00d992c230644a3af04d3a058424a6ff
   SocketRocket: d57b1af80c029e12a75cd9b218287c67381e4593
   Yoga: 58b502c52b14ad3c4468805d461fc37d275c2a42
 

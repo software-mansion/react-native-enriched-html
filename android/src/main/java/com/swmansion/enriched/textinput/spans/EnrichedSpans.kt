@@ -50,6 +50,9 @@ object EnrichedSpans {
   const val IMAGE = "image"
   const val MENTION = "mention"
 
+  // custom style
+  const val CUSTOM_STYLE = "custom_style"
+
   val inlineSpans: Map<String, BaseSpanConfig> =
     mapOf(
       BOLD to BaseSpanConfig(EnrichedInputBoldSpan::class.java),
@@ -85,7 +88,12 @@ object EnrichedSpans {
       MENTION to BaseSpanConfig(EnrichedInputMentionSpan::class.java),
     )
 
-  val allSpans: Map<String, ISpanConfig> = inlineSpans + paragraphSpans + listSpans + parametrizedStyles
+  val customStyles: Map<String, BaseSpanConfig> =
+    mapOf(
+      CUSTOM_STYLE to BaseSpanConfig(EnrichedInputCustomStyleSpan::class.java),
+    )
+
+  val allSpans: Map<String, ISpanConfig> = inlineSpans + paragraphSpans + listSpans + parametrizedStyles + customStyles
 
   fun getMergingConfigForStyle(
     style: String,
@@ -229,6 +237,10 @@ object EnrichedSpans {
         StylesMergingConfig(
           blockingStyles = arrayOf(INLINE_CODE, CODE_BLOCK, LINK),
         )
+      }
+
+      CUSTOM_STYLE -> {
+        StylesMergingConfig()
       }
 
       else -> {

@@ -1,0 +1,28 @@
+appId: swmansion.enriched.example
+---
+# Validates that custom style colors are displayed correctly
+- launchApp
+
+- tapOn:
+    id: 'toggle-screen-button'
+
+- tapOn:
+    id: 'toggle-enriched-text-screen-button'
+
+- runFlow:
+    file: '../subflows/set_enriched_text_value.yaml'
+    env:
+      VALUE: >
+        <html>
+          <p><span style="color: #FF5733;">Standard 6-digit Hex text</span></p>
+          <p><span style="background-color: #000000; color: #FFFFFF;">White text on black background</span></p>
+          <p><span style="background-color: #00FF0040;">25% transparent green background</span></p>
+          <p><span style="color: #0000FF80;">50% transparent blue text</span></p>
+          <p><span style="color: #F00;">Red 3-digit shorthand text</span></p>
+          <h6><span style="background-color: #0F0; color: #000;">Black text on green</span></h6>
+        </html>
+
+- runFlow:
+    file: '../subflows/capture_or_assert_screenshot.yaml'
+    env:
+      SCREENSHOT_NAME: 'custom_style_colors_visual'
