@@ -75,6 +75,7 @@ class EnrichedTextWatcher(
 
   private fun applyStyles(s: Editable) {
     view.inlineStyles?.afterTextChanged(s, startCursorPosition, endCursorPosition)
+    view.customStyles?.afterTextChanged(s, startCursorPosition, endCursorPosition)
     view.paragraphStyles?.afterTextChanged(s, endCursorPosition, previousTextLength)
     view.listStyles?.afterTextChanged(s, endCursorPosition, previousTextLength)
     view.alignmentStyles?.afterTextChanged(s, endCursorPosition, deletedText, anchorAlignmentToRestore)

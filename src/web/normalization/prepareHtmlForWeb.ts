@@ -1,4 +1,5 @@
 import { normalizeHtml } from './htmlNormalizer';
+import { withBaseFontFamilyFallback } from '../styleConversion/enrichedStyleToCSSVariables';
 
 export function prepareHtmlForWeb(
   html: string,
@@ -13,6 +14,7 @@ export function prepareHtmlForWeb(
 
   wrapBareLiContentInParagraph(doc);
   checkboxHtmlToWeb(doc);
+  addFontFamilyFallback(doc);
 
   return doc.body.innerHTML;
 }
@@ -96,5 +98,14 @@ function checkboxHtmlToWeb(doc: Document) {
         `<input type="checkbox"${checked ? ' checked' : ''}>` +
         `<label>${labelContent}</label>`;
     });
+  });
+}
+
+function addFontFamilyFallback(doc: Document) {
+  doc.querySelectorAll<HTMLElement>('span[style]').forEach((span) => {
+    const fontFamily = span.style.fontFamily;
+    if (fontFamily) {
+      span.style.fontFamily = withBaseFontFamilyFallback(fontFamily);
+    }
   });
 }

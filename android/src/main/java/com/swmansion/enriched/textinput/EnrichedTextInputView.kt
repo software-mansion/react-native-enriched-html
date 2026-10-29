@@ -62,6 +62,7 @@ import com.swmansion.enriched.textinput.spans.EnrichedLineHeightSpan
 import com.swmansion.enriched.textinput.spans.EnrichedSpans
 import com.swmansion.enriched.textinput.spans.interfaces.EnrichedInputSpan
 import com.swmansion.enriched.textinput.styles.AlignmentStyles
+import com.swmansion.enriched.textinput.styles.CustomStyles
 import com.swmansion.enriched.textinput.styles.HtmlStyle
 import com.swmansion.enriched.textinput.styles.InlineStyles
 import com.swmansion.enriched.textinput.styles.ListStyles
@@ -93,6 +94,7 @@ class EnrichedTextInputView :
   val shortcutsHandler: ShortcutsHandler? = ShortcutsHandler(this)
   val parametrizedStyles: ParametrizedStyles? = ParametrizedStyles(this)
   val alignmentStyles: AlignmentStyles? = AlignmentStyles(this)
+  val customStyles: CustomStyles? = CustomStyles(this)
   var isDuringTransaction: Boolean = false
   var isRemovingMany: Boolean = false
   var scrollEnabled: Boolean = true
@@ -102,6 +104,8 @@ class EnrichedTextInputView :
     set(value) {
       if (field != value) {
         field = value
+        // Invalidate the spannable factory so that it is recreated with the new allowFontScaling value
+        cachedSpannableFactory = null
         val raw = fontSizeRaw
         if (raw != null) {
           setFontSize(raw) // re-invokes invalidateStyles internally
@@ -150,7 +154,13 @@ class EnrichedTextInputView :
   private var defaultValueDirty: Boolean = false
 
   private var inputMethodManager: InputMethodManager? = null
-  private val spannableFactory = EnrichedTextInputSpannableFactory()
+
+  private var cachedSpannableFactory: EnrichedTextInputSpannableFactory? = null
+  private val spannableFactory: EnrichedTextInputSpannableFactory
+    get() =
+      cachedSpannableFactory
+        ?: EnrichedTextInputSpannableFactory(context.assets, allowFontScaling).also { cachedSpannableFactory = it }
+
   private var contextMenuItems: List<Pair<Int, String>> = emptyList()
 
   constructor(context: Context) : super(context) {
@@ -1058,6 +1068,16 @@ class EnrichedTextInputView :
       alignmentStyles?.setAlignment(alignment)
     }
     selection?.validateStyles()
+  }
+
+  fun setStyle(styleJSON: String) {
+    val isValid = verifyStyle(EnrichedSpans.CUSTOM_STYLE)
+    if (!isValid) return
+
+    runAsATransaction {
+      customStyles?.setStyle(styleJSON)
+    }
+    layoutManager.invalidateLayout()
   }
 
   fun requestHTML(requestId: Int) {

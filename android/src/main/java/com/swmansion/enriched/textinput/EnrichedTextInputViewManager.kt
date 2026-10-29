@@ -504,6 +504,13 @@ class EnrichedTextInputViewManager :
     view?.setTextAlignment(alignment)
   }
 
+  override fun setStyle(
+    view: EnrichedTextInputView?,
+    styleJSON: String,
+  ) {
+    view?.setStyle(styleJSON)
+  }
+
   override fun measure(
     context: Context,
     localData: ReadableMap?,

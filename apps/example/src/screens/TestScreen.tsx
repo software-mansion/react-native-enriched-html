@@ -8,6 +8,7 @@ import { MentionPopup } from '../components/MentionPopup';
 import { ImageModal } from '../components/ImageModal';
 import { ValueModal } from '../components/ValueModal';
 import { useEditorState } from '../hooks/useEditorState';
+import { useKeyboardHeight } from '../hooks/useKeyboardHeight';
 import {
   LINK_REGEX,
   htmlStyle,
@@ -26,12 +27,16 @@ export function TestScreen({
   const editor = useEditorState();
   const [sizeMode, setSizeMode] = useState<'base' | 'max'>('base');
   const [scrollOffset, setScrollOffset] = useState(0);
+  const keyboardHeight = useKeyboardHeight();
 
   return (
     <View style={styles.container}>
       <ScrollView
         style={styles.scrollContainer}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: styles.scrollContent.padding + keyboardHeight },
+        ]}
         testID="full-screen"
       >
         <View style={styles.buttonStack}>

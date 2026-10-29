@@ -1,12 +1,15 @@
 package com.swmansion.enriched.textinput
 
+import android.content.res.AssetManager
 import com.swmansion.enriched.common.parser.EnrichedSpanFactory
+import com.swmansion.enriched.common.spans.EnrichedCustomStyleSpan
 import com.swmansion.enriched.common.spans.EnrichedImageSpan
 import com.swmansion.enriched.textinput.spans.EnrichedInputAlignmentSpan
 import com.swmansion.enriched.textinput.spans.EnrichedInputBlockQuoteSpan
 import com.swmansion.enriched.textinput.spans.EnrichedInputBoldSpan
 import com.swmansion.enriched.textinput.spans.EnrichedInputCheckboxListSpan
 import com.swmansion.enriched.textinput.spans.EnrichedInputCodeBlockSpan
+import com.swmansion.enriched.textinput.spans.EnrichedInputCustomStyleSpan
 import com.swmansion.enriched.textinput.spans.EnrichedInputH1Span
 import com.swmansion.enriched.textinput.spans.EnrichedInputH2Span
 import com.swmansion.enriched.textinput.spans.EnrichedInputH3Span
@@ -24,7 +27,10 @@ import com.swmansion.enriched.textinput.spans.EnrichedInputUnderlineSpan
 import com.swmansion.enriched.textinput.spans.EnrichedInputUnorderedListSpan
 import com.swmansion.enriched.textinput.styles.HtmlStyle
 
-class EnrichedTextInputSpannableFactory : EnrichedSpanFactory<HtmlStyle> {
+class EnrichedTextInputSpannableFactory(
+  private val assets: AssetManager,
+  private val allowFontScaling: Boolean,
+) : EnrichedSpanFactory<HtmlStyle> {
   override fun createAlignmentSpan(cssValue: String) = EnrichedInputAlignmentSpan(cssValue)
 
   override fun createBoldSpan(style: HtmlStyle) = EnrichedInputBoldSpan(style)
@@ -83,4 +89,19 @@ class EnrichedTextInputSpannableFactory : EnrichedSpanFactory<HtmlStyle> {
   override fun createBlockQuoteSpan(style: HtmlStyle) = EnrichedInputBlockQuoteSpan(style)
 
   override fun createCodeBlockSpan(style: HtmlStyle) = EnrichedInputCodeBlockSpan(style)
+
+  override fun createCustomStyleSpan(
+    foregroundColor: Int?,
+    backgroundColor: Int?,
+    fontSize: Float?,
+    fontFamily: String?,
+  ): EnrichedCustomStyleSpan =
+    EnrichedInputCustomStyleSpan(
+      foregroundColor,
+      backgroundColor,
+      fontSize,
+      fontFamily,
+      assets,
+      allowFontScaling,
+    )
 }

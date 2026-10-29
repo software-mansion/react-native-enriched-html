@@ -34,6 +34,9 @@
 @interface EnrichedTextH6Style : H6Style
 @end
 
+@interface EnrichedTextCustomStyle : CustomStyle
+@end
+
 @interface EnrichedTextBlockQuoteStyle : BlockQuoteStyle
 @end
 
