@@ -99,7 +99,7 @@ class EnrichedTextInputView :
   var isRemovingMany: Boolean = false
   var scrollEnabled: Boolean = true
   var scrollEventThrottle: Int = 0
-  private var scrollLastTick:Long = 0
+  private var scrollLastTick: Long = 0
   var allowFontScaling: Boolean = EnrichedConstants.ALLOW_FONT_SCALING_DEFAULT
     set(value) {
       if (field != value) {
@@ -329,7 +329,12 @@ class EnrichedTextInputView :
 
   override fun canScrollHorizontally(direction: Int): Boolean = scrollEnabled
 
-  override fun onScrollChanged(horiz: Int, vert: Int, oldHoriz: Int, oldVert: Int) {
+  override fun onScrollChanged(
+    horiz: Int,
+    vert: Int,
+    oldHoriz: Int,
+    oldVert: Int,
+  ) {
     super.onScrollChanged(horiz, vert, oldHoriz, oldVert)
 
     val now = SystemClock.uptimeMillis()

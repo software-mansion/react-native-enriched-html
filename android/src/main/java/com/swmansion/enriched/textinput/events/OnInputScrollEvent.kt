@@ -10,8 +10,9 @@ class OnInputScrollEvent(
   private val contentOffsetX: Int,
   private val contentOffsetY: Int,
   private val experimentalSynchronousEvents: Boolean,
-): Event<OnInputScrollEvent>(surfaceId, viewId) {
+) : Event<OnInputScrollEvent>(surfaceId, viewId) {
   override fun getEventName(): String = EVENT_NAME
+
   override fun getEventData(): WritableMap {
     val eventData = Arguments.createMap()
     val contentOffset = Arguments.createMap()
