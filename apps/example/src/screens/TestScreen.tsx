@@ -214,6 +214,7 @@ const styles = StyleSheet.create({
   editorInput: {
     marginTop: 24,
     width: '100%',
+    minHeight: 50,
     maxHeight: 180,
     backgroundColor: 'gainsboro',
     fontSize: 18,
