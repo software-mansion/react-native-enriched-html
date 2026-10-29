@@ -71,7 +71,8 @@
     "test:e2e:android": ".maestro/scripts/run-tests.sh --platform android",
     "test:e2e:ios": ".maestro/scripts/run-tests.sh --platform ios",
     "test:e2e:web": ".playwright/scripts/run-tests.sh",
-    "test:e2e": "bash -c '.maestro/scripts/run-tests-all.sh \"$@\" && .playwright/scripts/run-tests.sh \"$@\"' _"
+    "test:e2e": "bash -c '.maestro/scripts/run-tests-all.sh \"$@\" && .playwright/scripts/run-tests.sh \"$@\"' _",
+    "create-release-apps": "bash scripts/create-release-apps.sh"
   },
   "keywords": [
     "react-native",
