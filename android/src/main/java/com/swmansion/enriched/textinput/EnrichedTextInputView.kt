@@ -327,16 +327,21 @@ class EnrichedTextInputView :
 
   override fun canScrollHorizontally(direction: Int): Boolean = scrollEnabled
 
-  private fun dispatchOnScrollEvent(
-    horizPx: Int,
-    vertPx: Int,
+  override fun onScrollChanged(
+    horiz: Int,
+    vert: Int,
+    oldHoriz: Int,
+    oldVert: Int,
   ) {
+    super.onScrollChanged(horiz, vert, oldHoriz, oldVert)
+    if (horiz == oldHoriz && vert == oldVert) return
+
     val reactContext = context as? ReactContext ?: return
     val surfaceId = UIManagerHelper.getSurfaceId(reactContext)
     val dispatcher = UIManagerHelper.getEventDispatcher(reactContext)
 
-    val dipHorizontal = PixelUtil.toDIPFromPixel(horizPx.toFloat())
-    val dipVertical = PixelUtil.toDIPFromPixel(vertPx.toFloat())
+    val dipHorizontal = PixelUtil.toDIPFromPixel(horiz.toFloat())
+    val dipVertical = PixelUtil.toDIPFromPixel(horiz.toFloat())
 
     dispatcher?.dispatchEvent(
       OnInputScrollEvent(
@@ -347,17 +352,6 @@ class EnrichedTextInputView :
         experimentalSynchronousEvents,
       ),
     )
-  }
-
-  override fun onScrollChanged(
-    horiz: Int,
-    vert: Int,
-    oldHoriz: Int,
-    oldVert: Int,
-  ) {
-    super.onScrollChanged(horiz, vert, oldHoriz, oldVert)
-    if (horiz == oldHoriz && vert == oldVert) return
-    dispatchOnScrollEvent(horiz, vert)
   }
 
   override fun onSelectionChanged(
