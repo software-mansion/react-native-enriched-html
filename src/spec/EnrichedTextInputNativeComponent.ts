@@ -320,8 +320,8 @@ type Heading = {
 
 export interface OnScrollEvent {
   contentOffset: {
-    x: CodegenTypes.Int32;
-    y: CodegenTypes.Int32;
+    x: CodegenTypes.Float;
+    y: CodegenTypes.Float;
   };
 }
 
@@ -389,7 +389,6 @@ export interface NativeProps extends ViewProps {
   spellCheck?: boolean;
   htmlStyle?: HtmlStyleInternal;
   scrollEnabled?: boolean;
-  scrollEventThrottle?: CodegenTypes.Int32;
   linkRegex?: LinkNativeRegex;
   contextMenuItems?: ReadonlyArray<Readonly<ContextMenuItemConfig>>;
   textShortcuts: ReadonlyArray<Readonly<TextShortcut>>;

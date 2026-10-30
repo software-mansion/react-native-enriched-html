@@ -242,14 +242,6 @@ class EnrichedTextInputViewManager :
     view.scrollEnabled = scrollEnabled
   }
 
-  @ReactProp(name = "scrollEventThrottle")
-  override fun setScrollEventThrottle(
-    view: EnrichedTextInputView,
-    value: Int,
-  ) {
-    view.scrollEventThrottle = value
-  }
-
   @ReactProp(name = "allowFontScaling")
   override fun setAllowFontScaling(
     view: EnrichedTextInputView,

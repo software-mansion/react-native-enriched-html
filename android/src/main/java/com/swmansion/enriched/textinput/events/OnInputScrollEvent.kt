@@ -7,8 +7,8 @@ import com.facebook.react.uimanager.events.Event
 class OnInputScrollEvent(
   surfaceId: Int,
   viewId: Int,
-  private val contentOffsetX: Int,
-  private val contentOffsetY: Int,
+  private val contentOffsetX: Float,
+  private val contentOffsetY: Float,
   private val experimentalSynchronousEvents: Boolean,
 ) : Event<OnInputScrollEvent>(surfaceId, viewId) {
   override fun getEventName(): String = EVENT_NAME
@@ -16,8 +16,8 @@ class OnInputScrollEvent(
   override fun getEventData(): WritableMap {
     val eventData = Arguments.createMap()
     val contentOffset = Arguments.createMap()
-    contentOffset.putInt("x", contentOffsetX)
-    contentOffset.putInt("y", contentOffsetY)
+    contentOffset.putDouble("x", contentOffsetX.toDouble())
+    contentOffset.putDouble("y", contentOffsetY.toDouble())
     eventData.putMap("contentOffset", contentOffset)
     return eventData
   }

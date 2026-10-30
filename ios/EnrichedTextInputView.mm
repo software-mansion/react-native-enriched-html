@@ -29,9 +29,11 @@
 #import <react/utils/ManagedObjectWrapper.h>
 
 #define GET_STYLE_STATE(TYPE_ENUM)                                             \
-  {.isActive = [self isStyleActive:TYPE_ENUM],                                 \
-   .isBlocking = [self isStyle:TYPE_ENUM activeInMap:blockingStyles],          \
-   .isConflicting = [self isStyle:TYPE_ENUM activeInMap:conflictingStyles]}
+  {                                                                            \
+    .isActive = [self isStyleActive:TYPE_ENUM],                                \
+    .isBlocking = [self isStyle:TYPE_ENUM activeInMap:blockingStyles],         \
+    .isConflicting = [self isStyle:TYPE_ENUM activeInMap:conflictingStyles]    \
+  }
 
 using namespace facebook::react;
 
@@ -63,8 +65,6 @@ using namespace facebook::react;
   NSDictionary<NSAttributedStringKey, id> *_capturedAttributesBeforeChange;
   NSString *_recentlyEmittedAlignment;
   CustomStyleData *_recentlyEmittedCustomStyle;
-  CFTimeInterval _scrollLastTick;
-  int _scrollEventThrottle;
 }
 
 @synthesize blockEmitting = blockEmitting;
@@ -600,10 +600,6 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   if (newViewProps.scrollEnabled != oldViewProps.scrollEnabled ||
       textView.scrollEnabled != newViewProps.scrollEnabled) {
     [textView setScrollEnabled:newViewProps.scrollEnabled];
-  }
-
-  if (newViewProps.scrollEventThrottle != oldViewProps.scrollEventThrottle) {
-    _scrollEventThrottle = newViewProps.scrollEventThrottle;
   }
 
   if (newViewProps.allowFontScaling != oldViewProps.allowFontScaling) {
@@ -1534,21 +1530,11 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   }
 }
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
-  auto now = CACurrentMediaTime();
-  // now is in seconds _scrollEventThrottle is in miliseconds
-  if (now - _scrollLastTick < _scrollEventThrottle / 1000.0) {
-    return;
-  }
-  _scrollLastTick = now;
-  [self emitOnScroll:scrollView];
-}
-
-- (void)emitOnScroll:(UIScrollView *)scrollView {
   auto emitter = [self getEventEmitter];
   if (emitter != nullptr) {
     emitter->onInputScroll({.contentOffset = {
-                                .x = (int)scrollView.contentOffset.x,
-                                .y = (int)scrollView.contentOffset.y,
+                                .x = scrollView.contentOffset.x,
+                                .y = scrollView.contentOffset.y,
                             }});
   }
 }

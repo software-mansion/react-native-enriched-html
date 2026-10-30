@@ -9,7 +9,6 @@ import android.graphics.Color
 import android.graphics.Rect
 import android.graphics.text.LineBreaker
 import android.os.Build
-import android.os.SystemClock
 import android.text.Editable
 import android.text.InputType
 import android.text.Spannable
@@ -34,6 +33,7 @@ import com.facebook.react.bridge.ReactContext
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.common.ReactConstants
+import com.facebook.react.uimanager.PixelUtil
 import com.facebook.react.uimanager.StateWrapper
 import com.facebook.react.uimanager.UIManagerHelper
 import com.facebook.react.views.text.ReactTypefaceUtils.applyStyles
@@ -98,8 +98,6 @@ class EnrichedTextInputView :
   var isDuringTransaction: Boolean = false
   var isRemovingMany: Boolean = false
   var scrollEnabled: Boolean = true
-  var scrollEventThrottle: Int = 0
-  private var scrollLastTick: Long = 0
   var allowFontScaling: Boolean = EnrichedConstants.ALLOW_FONT_SCALING_DEFAULT
     set(value) {
       if (field != value) {
@@ -329,6 +327,28 @@ class EnrichedTextInputView :
 
   override fun canScrollHorizontally(direction: Int): Boolean = scrollEnabled
 
+  private fun dispatchOnScrollEvent(
+    horizPx: Int,
+    vertPx: Int,
+  ) {
+    val reactContext = context as? ReactContext ?: return
+    val surfaceId = UIManagerHelper.getSurfaceId(reactContext)
+    val dispatcher = UIManagerHelper.getEventDispatcher(reactContext)
+
+    val dipHorizontal = PixelUtil.toDIPFromPixel(horizPx.toFloat())
+    val dipVertical = PixelUtil.toDIPFromPixel(vertPx.toFloat())
+
+    dispatcher?.dispatchEvent(
+      OnInputScrollEvent(
+        surfaceId,
+        id,
+        dipHorizontal,
+        dipVertical,
+        experimentalSynchronousEvents,
+      ),
+    )
+  }
+
   override fun onScrollChanged(
     horiz: Int,
     vert: Int,
@@ -336,24 +356,8 @@ class EnrichedTextInputView :
     oldVert: Int,
   ) {
     super.onScrollChanged(horiz, vert, oldHoriz, oldVert)
-
-    val now = SystemClock.uptimeMillis()
-    if (now - scrollLastTick > scrollEventThrottle) {
-      scrollLastTick = now
-      val reactContext = context as? ReactContext ?: return
-      val surfaceId = UIManagerHelper.getSurfaceId(reactContext)
-      val dispatcher = UIManagerHelper.getEventDispatcher(reactContext)
-
-      dispatcher?.dispatchEvent(
-        OnInputScrollEvent(
-          surfaceId,
-          id,
-          horiz,
-          vert,
-          experimentalSynchronousEvents,
-        ),
-      )
-    }
+    if (horiz == oldHoriz && vert == oldVert) return
+    dispatchOnScrollEvent(horiz, vert)
   }
 
   override fun onSelectionChanged(

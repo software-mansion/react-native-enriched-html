@@ -94,14 +94,6 @@ import { normalizeColorValue } from './normalization/colorNormalizer';
 import { handleCheckboxPress } from './htmlExtensions/handleCheckboxPress';
 import { runFocused } from './utils/runFocused';
 
-function shouldEmitScrollEvent(
-  lastTick: number,
-  eventThrottle: number
-): boolean {
-  const timeSinceLastTick = Date.now() - lastTick;
-  return eventThrottle > 0 && timeSinceLastTick >= eventThrottle;
-}
-
 export const EnrichedTextInput = ({
   ref,
   defaultValue,
@@ -114,7 +106,6 @@ export const EnrichedTextInput = ({
   autoCapitalize = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.autoCapitalize,
   scrollEnabled = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.scrollEnabled,
   mentionIndicators = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.mentionIndicators.slice(),
-  scrollEventThrottle = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.scrollEventThrottle,
   onFocus,
   style,
   onBlur,
@@ -178,8 +169,6 @@ export const EnrichedTextInput = ({
   const textShortcutsRef = useStableRef(textShortcuts);
 
   const editorInstanceRef = useRef<Editor | null>(null);
-  const scrollLastTickRef = useRef(0);
-
   const handleKeyDown = (doc: Node, event: KeyboardEvent): boolean => {
     onKeyPressRef.current?.(adaptWebToNativeEvent(event, { key: event.key }));
     if (event.key !== 'Enter') {
@@ -201,13 +190,6 @@ export const EnrichedTextInput = ({
   };
 
   const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
-    if (
-      !shouldEmitScrollEvent(scrollLastTickRef.current, scrollEventThrottle)
-    ) {
-      return;
-    }
-    scrollLastTickRef.current = Date.now();
-
     const element = event.currentTarget;
     onScroll?.(
       adaptWebToNativeEvent(event, {

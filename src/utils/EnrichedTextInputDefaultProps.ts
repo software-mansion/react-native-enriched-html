@@ -13,5 +13,4 @@ export const ENRICHED_TEXT_INPUT_DEFAULT_PROPS = {
     { trigger: '- ', style: 'unordered_list' },
     { trigger: '1. ', style: 'ordered_list' },
   ] as TextShortcut[],
-  scrollEventThrottle: 16,
 } as const;

@@ -721,12 +721,6 @@ export interface EnrichedTextInputProps extends Omit<ViewProps, 'children'> {
   scrollEnabled?: boolean;
 
   /**
-   * The number of milliseconds to throttle scroll events.
-   * Defaults to `16`.
-   */
-  scrollEventThrottle?: number;
-
-  /**
    * Regular expression used to auto-detect links as the user types. Set to
    * `null` to disable automatic link detection. Defaults to a built-in URL
    * pattern.
