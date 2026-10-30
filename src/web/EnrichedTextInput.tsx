@@ -117,6 +117,7 @@ export const EnrichedTextInput = ({
   onLinkDetected,
   onLinkPress,
   onSubmitEditing,
+  onScroll,
   returnKeyType,
   submitBehavior,
   onPasteImages,
@@ -168,7 +169,6 @@ export const EnrichedTextInput = ({
   const textShortcutsRef = useStableRef(textShortcuts);
 
   const editorInstanceRef = useRef<Editor | null>(null);
-
   const handleKeyDown = (doc: Node, event: KeyboardEvent): boolean => {
     onKeyPressRef.current?.(adaptWebToNativeEvent(event, { key: event.key }));
     if (event.key !== 'Enter') {
@@ -187,6 +187,15 @@ export const EnrichedTextInput = ({
     }
 
     return false;
+  };
+
+  const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
+    const element = event.currentTarget;
+    onScroll?.(
+      adaptWebToNativeEvent(event, {
+        contentOffset: { x: element.scrollLeft, y: element.scrollTop },
+      })
+    );
   };
 
   const { handleLinkPress, handleLinkMouseDown } = useLinkPress(
@@ -506,6 +515,7 @@ export const EnrichedTextInput = ({
         }
         style={finalStyle}
         data-placeholder={placeholder}
+        onScroll={handleScroll}
       />
     </>
   );

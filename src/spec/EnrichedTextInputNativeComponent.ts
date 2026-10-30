@@ -318,6 +318,13 @@ type Heading = {
   bold?: boolean;
 };
 
+export interface OnScrollEvent {
+  contentOffset: {
+    x: CodegenTypes.Float;
+    y: CodegenTypes.Float;
+  };
+}
+
 export interface HtmlStyleInternal {
   h1?: Heading;
   h2?: Heading;
@@ -402,6 +409,7 @@ export interface NativeProps extends ViewProps {
   onChangeSelection?: CodegenTypes.DirectEventHandler<OnChangeSelectionEvent>;
   onRequestHtmlResult?: CodegenTypes.DirectEventHandler<OnRequestHtmlResultEvent>;
   onInputKeyPress?: CodegenTypes.DirectEventHandler<OnKeyPressEvent>;
+  onInputScroll?: CodegenTypes.DirectEventHandler<OnScrollEvent>;
   onPasteImages?: CodegenTypes.DirectEventHandler<OnPasteImagesEvent>;
   onContextMenuItemPress?: CodegenTypes.DirectEventHandler<OnContextMenuItemPressEvent>;
   onSubmitEditing?: CodegenTypes.BubblingEventHandler<OnSubmitEditing>;

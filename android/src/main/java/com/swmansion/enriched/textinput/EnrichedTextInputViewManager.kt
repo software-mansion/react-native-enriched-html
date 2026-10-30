@@ -23,6 +23,7 @@ import com.swmansion.enriched.textinput.events.OnContextMenuItemPressEvent
 import com.swmansion.enriched.textinput.events.OnInputBlurEvent
 import com.swmansion.enriched.textinput.events.OnInputFocusEvent
 import com.swmansion.enriched.textinput.events.OnInputKeyPressEvent
+import com.swmansion.enriched.textinput.events.OnInputScrollEvent
 import com.swmansion.enriched.textinput.events.OnLinkDetectedEvent
 import com.swmansion.enriched.textinput.events.OnMentionDetectedEvent
 import com.swmansion.enriched.textinput.events.OnMentionEvent
@@ -76,7 +77,7 @@ class EnrichedTextInputViewManager :
     map.put(OnPasteImagesEvent.EVENT_NAME, mapOf("registrationName" to OnPasteImagesEvent.EVENT_NAME))
     map.put(OnContextMenuItemPressEvent.EVENT_NAME, mapOf("registrationName" to OnContextMenuItemPressEvent.EVENT_NAME))
     map.put(OnSubmitEditingEvent.EVENT_NAME, mapOf("registrationName" to OnSubmitEditingEvent.EVENT_NAME))
-
+    map.put(OnInputScrollEvent.EVENT_NAME, mapOf("registrationName" to OnInputScrollEvent.EVENT_NAME))
     return map
   }
 

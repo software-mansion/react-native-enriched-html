@@ -7,13 +7,22 @@
 #import "utils/TextListsUtils.h"
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
-@implementation EnrichedInputTextView
+@implementation EnrichedInputTextView {
+  CGSize _lastLayoutSize;
+}
 
 - (void)layoutSubviews {
   [super layoutSubviews];
   // UITextView resets contentSize during its own layout pass (triggered when
   // the frame is set on first mount). Re-schedule a relayout so our explicit
   // contentSize is applied after UITextView finishes its internal layout.
+  // layoutSubviews also runs on every scroll (only bounds.origin changes), so
+  // relayout only when the size changed to avoid a relayout <-> scroll loop.
+  if (CGSizeEqualToSize(self.bounds.size, _lastLayoutSize)) {
+    return;
+  }
+  _lastLayoutSize = self.bounds.size;
+
   EnrichedTextInputView *input = (EnrichedTextInputView *)_input;
   if (input != nil) {
     [input scheduleRelayoutIfNeeded];

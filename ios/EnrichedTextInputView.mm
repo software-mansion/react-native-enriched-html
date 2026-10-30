@@ -29,9 +29,11 @@
 #import <react/utils/ManagedObjectWrapper.h>
 
 #define GET_STYLE_STATE(TYPE_ENUM)                                             \
-  {.isActive = [self isStyleActive:TYPE_ENUM],                                 \
-   .isBlocking = [self isStyle:TYPE_ENUM activeInMap:blockingStyles],          \
-   .isConflicting = [self isStyle:TYPE_ENUM activeInMap:conflictingStyles]}
+  {                                                                            \
+    .isActive = [self isStyleActive:TYPE_ENUM],                                \
+    .isBlocking = [self isStyle:TYPE_ENUM activeInMap:blockingStyles],         \
+    .isConflicting = [self isStyle:TYPE_ENUM activeInMap:conflictingStyles]    \
+  }
 
 using namespace facebook::react;
 
@@ -1525,6 +1527,15 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   auto emitter = [self getEventEmitter];
   if (emitter != nullptr) {
     emitter->onInputKeyPress({.key = [key toCppString]});
+  }
+}
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+  auto emitter = [self getEventEmitter];
+  if (emitter != nullptr) {
+    emitter->onInputScroll({.contentOffset = {
+                                .x = scrollView.contentOffset.x,
+                                .y = scrollView.contentOffset.y,
+                            }});
   }
 }
 

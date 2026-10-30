@@ -1,0 +1,67 @@
+appId: swmansion.enriched.example
+---
+- launchApp
+
+- tapOn:
+    id: "toggle-screen-button"
+
+- runFlow:
+    file: "../subflows/set_editor_value.yaml"
+    env:
+      VALUE: "1<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>2"
+
+# Setting the value scrolls the input to the bottom on Android, so scroll back to the top
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - repeat:
+          times: 10
+          while:
+            notVisible:
+              id: "scroll-offset-output"
+              text: "Scroll offset: 0.00"
+          commands:
+            - swipe:
+                from:
+                  id: "editor-input"
+                direction: DOWN
+                duration: 300
+            - waitForAnimationToEnd
+
+- assertVisible:
+    id: "scroll-offset-output"
+    text: "Scroll offset: 0.00"
+
+- swipe:
+    from:
+      id: "editor-input"
+    direction: UP
+    duration: 1000
+- waitForAnimationToEnd
+- copyTextFrom:
+    id: "scroll-offset-output"
+- evalScript: "${output.afterFirstScroll = parseFloat(maestro.copiedText.match(/[0-9.]+/)[0])}"
+- assertTrue: "${output.afterFirstScroll > 0}"
+
+- swipe:
+    from:
+      id: "editor-input"
+    direction: UP
+    duration: 1000
+- waitForAnimationToEnd
+- copyTextFrom:
+    id: "scroll-offset-output"
+- evalScript: "${output.afterSecondScroll = parseFloat(maestro.copiedText.match(/[0-9.]+/)[0])}"
+- assertTrue: "${output.afterSecondScroll > output.afterFirstScroll}"
+
+- swipe:
+    from:
+      id: "editor-input"
+    direction: DOWN
+    duration: 1000
+- waitForAnimationToEnd
+- copyTextFrom:
+    id: "scroll-offset-output"
+- evalScript: "${output.afterScrollUp = parseFloat(maestro.copiedText.match(/[0-9.]+/)[0])}"
+- assertTrue: "${output.afterScrollUp < output.afterSecondScroll}"

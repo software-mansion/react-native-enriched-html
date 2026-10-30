@@ -8,6 +8,7 @@ import { TestEnrichedText } from './testScreens/TestEnrichedText';
 import { TestEllipsize } from './testScreens/TestEllipsize';
 import { TestRenderCycle } from './testScreens/TestRenderCycle';
 import { useEffect, useState } from 'react';
+import { TestScroll } from './testScreens/TestScroll';
 
 export default function RouteSelector() {
   const [path, setPath] = useState(window.location.pathname);
@@ -53,6 +54,10 @@ export default function RouteSelector() {
 
   if (path === '/test-render-cycle') {
     return <TestRenderCycle />;
+  }
+
+  if (path === '/test-scroll') {
+    return <TestScroll />;
   }
 
   return <App />;
