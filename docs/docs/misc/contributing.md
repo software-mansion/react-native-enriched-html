@@ -238,10 +238,13 @@ Append `--ui` for Playwright's
 inspect traces). The Playwright config starts the Vite dev server
 automatically, so you don't need to run `yarn example-web dev` separately.
 
-To debug in a locally installed browser (e.g. with `--headed`), install it once
-with `yarn playwright install chromium` and set `PW_LOCAL_BROWSER=1`. Screenshot
-assertions won't match the baselines in this mode, so always update baselines
-through the default Docker setup.
+Playwright's `--ui` window requires a host browser even when tests use Docker.
+Install it once with `yarn playwright install chromium` before running
+`yarn test:e2e:web --ui`, and leave `PW_LOCAL_BROWSER` unset to keep tests in Docker.
+
+To debug tests in that locally installed browser (e.g. with `--headed`), set
+`PW_LOCAL_BROWSER=1`. Screenshot assertions won't match the baselines in this
+mode, so always update baselines through the default Docker setup.
 
 ```sh
 PW_LOCAL_BROWSER=1 yarn test:e2e:web --headed
