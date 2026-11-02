@@ -12,8 +12,7 @@
 
 + (NSString *)stringByEscapingHtml:(NSString *)html {
   // Escape character by character so that the output of one replacement is
-  // never escaped again (e.g. U+00A0 -> "&nbsp;" must not become
-  // "&amp;nbsp;").
+  // never escaped again.
   NSMutableString *escaped =
       [[NSMutableString alloc] initWithCapacity:html.length];
   for (NSUInteger i = 0; i < html.length; i++) {
@@ -201,6 +200,48 @@ static NSDictionary<NSString *, NSString *> *namedHtmlEntities(void) {
                     }];
 
   return results;
+}
+
+// Escapes the characters that would otherwise let a value break out of a
+// HTML attribute (e.g. href="%@", src="%@", style="%@").
++ (NSString *)stringByEscapingHtmlAttribute:(NSString *)value {
+  NSMutableString *escaped =
+      [[NSMutableString alloc] initWithCapacity:value.length];
+  for (NSUInteger i = 0; i < value.length; i++) {
+    unichar c = [value characterAtIndex:i];
+    switch (c) {
+    case '&':
+      [escaped appendString:@"&amp;"];
+      break;
+    case '<':
+      [escaped appendString:@"&lt;"];
+      break;
+    case '>':
+      [escaped appendString:@"&gt;"];
+      break;
+    case '"':
+      [escaped appendString:@"&quot;"];
+      break;
+    default:
+      [escaped appendFormat:@"%C", c];
+      break;
+    }
+  }
+  return escaped;
+}
+
+// Reverses stringByEscapingHtmlAttribute:, and additionally decodes &apos;
+// since it's a value some external HTML sources may still use.
++ (NSString *)stringByUnescapingHtmlAttribute:(NSString *)value {
+  NSString *result = value;
+  for (NSArray<NSString *> *entity in @[
+         @[ @"&quot;", @"\"" ], @[ @"&apos;", @"'" ], @[ @"&#39;", @"'" ],
+         @[ @"&lt;", @"<" ], @[ @"&gt;", @">" ], @[ @"&amp;", @"&" ]
+       ]) {
+    result = [result stringByReplacingOccurrencesOfString:entity[0]
+                                               withString:entity[1]];
+  }
+  return result;
 }
 
 @end
