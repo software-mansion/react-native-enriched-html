@@ -213,11 +213,11 @@ to re-enable it afterwards with `-bool NO`.
 ### Web (Playwright)
 
 We use [Playwright](https://playwright.dev/) for end-to-end testing of the web
-example. Tests live in `.playwright/tests/`. Install the browser binaries once:
-
-```sh
-yarn playwright install
-```
+example. Tests live in `.playwright/tests/`. The browser runs inside the
+official [Playwright Docker image](https://playwright.dev/docs/docker), pinned
+in `.playwright/docker-image` (bump it together with `@playwright/test`), so screenshots render identically on
+every machine and in CI. Make sure [Docker](https://www.docker.com/) is running
+before you start the tests.
 
 Run the suite from the root directory:
 
@@ -237,6 +237,18 @@ Append `--ui` for Playwright's
 [UI mode](https://playwright.dev/docs/test-ui-mode) (pick tests, watch runs,
 inspect traces). The Playwright config starts the Vite dev server
 automatically, so you don't need to run `yarn example-web dev` separately.
+
+Playwright's `--ui` window requires a host browser even when tests use Docker.
+Install it once with `yarn playwright install chromium` before running
+`yarn test:e2e:web --ui`, and leave `PW_LOCAL_BROWSER` unset to keep tests in Docker.
+
+To debug tests in that locally installed browser (e.g. with `--headed`), set
+`PW_LOCAL_BROWSER=1`. Screenshot assertions won't match the baselines in this
+mode, so always update baselines through the default Docker setup.
+
+```sh
+PW_LOCAL_BROWSER=1 yarn test:e2e:web --headed
+```
 
 ## Documentation
 
