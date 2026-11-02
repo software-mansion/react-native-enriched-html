@@ -616,12 +616,97 @@ describe('htmlNormalizer', () => {
         '<p>Asdasd</p><p>Asdasd</p><p>Asdasda</p>',
       ],
       ['<p>Asdasd</p> <p>Asdasd</p>', '<p>Asdasd</p><p>Asdasd</p>'],
+      // Whitespace around blocks inside a list item must not add empty items.
+      [
+        '<ul><li>\n<p>a</p>\n</li><li>\n<p>b</p>\n</li></ul>',
+        '<ul><li>a</li><li>b</li></ul>',
+      ],
+      ['<ol><li><p>a</p> <p>b</p></li></ol>', '<ol><li>a</li><li>b</li></ol>'],
       // Significant inline content between blocks is still wrapped in <p>.
       ['<p>a</p> hello <p>b</p>', '<p>a</p><p> hello </p><p>b</p>'],
       // Spaces inside text / between inlines must be preserved.
       ['hello world', 'hello world'],
       ['<p>hello world</p>', '<p>hello world</p>'],
       ['<b>hello</b> <i>world</i>', '<b>hello</b> <i>world</i>'],
+    ])('%s → %s', (input, expected) => {
+      expect(normalizeHtml(input)).toBe(expected);
+    });
+  });
+
+  describe('NestedSpans', () => {
+    test.each([
+      // Child overrides the parent
+      [
+        '<span style="color: red">A<span style="color: blue">B</span>C</span>',
+        '<span style="color: red">A</span><span style="color: blue">B</span><span style="color: red">C</span>',
+      ],
+      // Child inherits properties it doesn't set
+      [
+        '<span style="color: red">A<span style="font-size: 20px">B</span></span>',
+        '<span style="color: red">A</span><span style="color: red; font-size: 20px">B</span>',
+      ],
+      // Unstyled spans are transparent
+      [
+        '<span style="color: red">A<span>B</span>C</span>',
+        '<span style="color: red">ABC</span>',
+      ],
+      // Styles are pushed down through other inline tags
+      [
+        '<span style="color: red"><b>A<span style="color: blue">B</span></b></span>',
+        '<b><span style="color: red">A</span><span style="color: blue">B</span></b>',
+      ],
+      // A wrapper inside a pushed-down span merges the inherited style, and its
+      // text isn't wrapped again
+      [
+        '<span style="color: red">A<b>B<span style="font-size: 20px">C</span></b><span>D</span></span>',
+        '<span style="color: red">A</span><b><span style="color: red">B</span><span style="color: red; font-size: 20px">C</span></b><span style="color: red">D</span>',
+      ],
+      // Styles are inherited across multiple levels
+      [
+        '<span style="color: red; background-color: yellow">A<span style="color: blue">B<span style="font-size: 20px">C</span></span></span>',
+        '<span style="color: red; background-color: yellow">A</span><span style="color: blue; background-color: yellow">B</span><span style="color: blue; background-color: yellow; font-size: 20px">C</span>',
+      ],
+      // Transparent background doesn't override the inherited one
+      [
+        '<span style="background-color: yellow">A<span style="color: blue; background-color: transparent">B</span></span>',
+        '<span style="background-color: yellow">A</span><span style="color: blue; background-color: yellow">B</span>',
+      ],
+      // `inherit` doesn't override the inherited value
+      [
+        '<span style="color: red">A<span style="color: inherit">B</span></span>',
+        '<span style="color: red">AB</span>',
+      ],
+      // Transparent background alone is treated as no style
+      ['<span style="background-color: TRANSPARENT">A</span>', 'A'],
+      // Whitespace between blocks is layout and doesn't become a paragraph
+      [
+        '<span style="color: red"><p>A</p> <p><span style="color: blue">B</span></p></span>',
+        '<p><span style="color: red">A</span></p><p><span style="color: blue">B</span></p>',
+      ],
+      // Whitespace between table parts is layout
+      [
+        '<span style="color: red">A<table>\n<tr>\n<td><span style="color: blue">B</span></td>\n</tr>\n</table></span>',
+        '<p><span style="color: red">A</span></p>\n<p>\n<span style="color: blue">B</span>\n</p>',
+      ],
+      // Whitespace inside a table cell is inline and keeps the style
+      [
+        '<span style="color: red">A<table><tr><td><span style="color: blue">B</span> <span style="color: green">C</span></td></tr></table></span>',
+        '<p><span style="color: red">A</span></p><p><span style="color: blue">B</span><span style="color: red"> </span><span style="color: green">C</span></p>',
+      ],
+      // Unstyled spans outside styled ones don't wrap anything
+      [
+        '<span>A<span style="color: red">B</span>C</span>',
+        'A<span style="color: red">B</span>C',
+      ],
+      // Context reaches list items and blockquotes
+      [
+        '<ul><li><span style="color: red">A<span style="color: blue">B</span></span></li></ul>',
+        '<ul><li><span style="color: red">A</span><span style="color: blue">B</span></li></ul>',
+      ],
+      [
+        '<blockquote><span style="color: red">A<span style="color: blue">B</span></span></blockquote>',
+        '<blockquote><p><span style="color: red">A</span><span style="color: blue">B</span></p></blockquote>',
+      ],
     ])('%s → %s', (input, expected) => {
       expect(normalizeHtml(input)).toBe(expected);
     });

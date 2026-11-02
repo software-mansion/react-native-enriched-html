@@ -1,13 +1,13 @@
 #import "TextHtmlParser.h"
-#import "AlignmentEntry.h"
-#import "ArrayExtension.h"
 #import "EnrichedTextView.h"
-#import "HtmlParser.h"
-#import "LinkData.h"
-#import "MentionParams.h"
-#import "StyleHeaders.h"
-#import "StyleUtils.h"
-#import "ZeroWidthSpaceUtils.h"
+#import "extensions/ArrayExtension.h"
+#import "htmlParser/HtmlParser.h"
+#import "interfaces/AlignmentEntry.h"
+#import "interfaces/LinkData.h"
+#import "interfaces/MentionParams.h"
+#import "interfaces/StyleHeaders.h"
+#import "utils/StyleUtils.h"
+#import "utils/ZeroWidthSpaceUtils.h"
 #import <React/RCTLog.h>
 
 @implementation TextHtmlParser
@@ -124,6 +124,12 @@
           }
         }
       }
+    } else if ([styleType isEqualToNumber:@([CustomStyle getType])]) {
+      CustomStyle *customStyle = (CustomStyle *)style;
+      [customStyle setCustomStyleData:stylePair.styleValue
+                                range:styleRange
+                           withTyping:NO
+                       withDirtyRange:NO];
     } else {
       [style add:styleRange withTyping:NO withDirtyRange:NO];
     }
@@ -154,7 +160,7 @@
     }
   }
 
-  // Respect the styling priority
+  // Respect the inline styling priority
   NSArray *sortedInlineApply =
       [pendingInlineApply sortedArrayBySortKey:^NSInteger(NSArray *entry) {
         return [((StyleBase *)entry[0]) stylePriority];

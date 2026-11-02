@@ -59,6 +59,7 @@ interface EnrichedTextInputProps extends Omit<ViewProps, 'children'> {
   onChangeHtml?: (e: NativeSyntheticEvent<OnChangeHtmlEvent>) => void;
   onChangeState?: (e: NativeSyntheticEvent<OnChangeStateEvent>) => void;
   onLinkDetected?: (e: OnLinkDetected) => void;
+  onLinkPress?: (event: OnLinkPressEvent) => void;
   onMentionDetected?: (e: OnMentionDetected) => void;
   onStartMention?: (indicator: string) => void;
   onChangeMention?: (e: OnChangeMentionEvent) => void;
@@ -84,6 +85,14 @@ All props are optional.
 ### `allowFontScaling` {#allowfontscaling}
 
 If `true`, the input respects the system's accessibility font scaling settings.
+
+| Type      | Default | Platforms    |
+| --------- | ------- | ------------ |
+| `boolean` | `true`  | Android, iOS |
+
+### `autoCorrect` {#autocorrect}
+
+If false, disables auto-correct.
 
 | Type      | Default | Platforms    |
 | --------- | ------- | ------------ |
@@ -338,6 +347,12 @@ interface OnChangeStateEvent {
   mention: StyleState;
   checkboxList: StyleState;
   alignment: string;
+  customStyle: {
+    foregroundColor: string;
+    backgroundColor: string;
+    fontSize: number;
+    fontFamily: string;
+  };
 }
 ```
 
@@ -347,6 +362,10 @@ interface OnChangeStateEvent {
 - `isConflicting` - toggling the style removes a conflicting active style
 - `alignment` - current text alignment of the paragraph at the cursor:
   `'left'`, `'center'`, `'right'`, `'justify'`, or `'auto'`
+- `customStyle` - the [custom style](/rich-text-formatting/custom-style) values
+  within the current selection. A field that isn't set, or
+  differs across the selection, is empty - `''` for strings and `0` for
+  `fontSize`. Colors are reported as hex strings (e.g. `#FF0000`)
 
 :::note
 
@@ -418,6 +437,23 @@ interface OnLinkDetected {
 | Type                              | Platforms         |
 | --------------------------------- | ----------------- |
 | `(event: OnLinkDetected) => void` | Android, iOS, Web |
+
+### `onLinkPress` {#onlinkpress}
+
+Called when the user clicks a link inside the editor. Receives an
+`OnLinkPressEvent` containing the link's URL. If not provided, clicking a link
+has no effect. See [Links](/rich-text-formatting/links) for more on how links
+are created and detected.
+
+```ts
+interface OnLinkPressEvent {
+  url: string;
+}
+```
+
+| Type                                | Platforms |
+| ----------------------------------- | --------- |
+| `(event: OnLinkPressEvent) => void` | Web       |
 
 ### `onMentionDetected` {#onmentiondetected}
 
@@ -633,6 +669,14 @@ cursor (caret) also uses this color.
 | ---------------------------------------------- | -------------- | ----------------- |
 | [`color`](https://reactnative.dev/docs/colors) | system default | Android, iOS, Web |
 
+### `spellCheck` {#spellcheck}
+
+If false, disables spell-check style (i.e. red underlines). The default value is inherited from the [`autoCorrect`](#autocorrect) prop.
+
+| Type      | Default                       | Platforms |
+| --------- | ----------------------------- | --------- |
+| `boolean` | [`autoCorrect`](#autocorrect) | iOS       |
+
 ### `style` {#style}
 
 Controls the layout, dimensions, typography, borders, shadows, opacity, and
@@ -704,6 +748,9 @@ already has an active paragraph style (for example it is already a heading or a
 list item), typing the trigger pattern has no effect.
 
 :::
+
+**[Text alignment](/rich-text-formatting/text-alignment)** shortcuts fire with the same scheme
+as paragraph styles, but don't require a plain paragraph to be effective.
 
 **[Inline styles](/fundamentals/html-format-and-supported-tags#inline-tags)**
 fire when a closing delimiter is typed around text (e.g. `**text**` → bold). The
@@ -844,6 +891,12 @@ details.
 - `text: string` - displayed text of the link
 - `url: string` - URL of the link
 
+:::note
+
+Using this method with `text=""` will result in removal of the text marked by the `start` and `end` indexes.
+
+;;;
+
 ### `.removeLink()`
 
 ```ts
@@ -929,6 +982,27 @@ On Android, `'justify'` is not supported. Calling
 up with natural alignment, the same as `'auto'`.
 
 :::
+
+### `.setStyle()`
+
+```ts
+setStyle: (customStyle: {
+  foregroundColor?: ColorValue | null;
+  backgroundColor?: ColorValue | null;
+  fontSize?: number | null;
+  fontFamily?: string | null;
+}) => void;
+```
+
+Sets the [custom style](/rich-text-formatting/custom-style) at the current
+selection. Omitting a field leaves the given formatting untouched, whereas passing `null` for a field removes it.
+
+- `foregroundColor` - text color; use a hex (e.g. `#FFE066`) or named (e.g.
+  `'red'`) color
+- `backgroundColor` - text highlight color; use a hex (e.g. `#FFE066`) or named
+  (e.g. `'red'`) color
+- `fontSize` - font size of the text
+- `fontFamily` - font family of the text
 
 ### `.startMention()`
 

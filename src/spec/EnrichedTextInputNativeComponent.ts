@@ -122,6 +122,12 @@ export interface OnChangeStateEvent {
     isBlocking: boolean;
   };
   alignment: string;
+  customStyle: {
+    foregroundColor: string;
+    backgroundColor: string;
+    fontSize: CodegenTypes.Float;
+    fontFamily: string;
+  };
 }
 
 export interface OnLinkDetected {
@@ -278,6 +284,12 @@ export interface OnContextMenuItemPressEvent {
       isBlocking: boolean;
     };
     alignment: string;
+    customStyle: {
+      foregroundColor: string;
+      backgroundColor: string;
+      fontSize: CodegenTypes.Float;
+      fontFamily: string;
+    };
   };
 }
 
@@ -366,6 +378,8 @@ export interface NativeProps extends ViewProps {
   cursorColor?: ColorValue;
   selectionColor?: ColorValue;
   autoCapitalize?: string;
+  autoCorrect?: boolean;
+  spellCheck?: boolean;
   htmlStyle?: HtmlStyleInternal;
   scrollEnabled?: boolean;
   linkRegex?: LinkNativeRegex;
@@ -480,6 +494,10 @@ interface NativeCommands {
     viewRef: React.ElementRef<ComponentType>,
     alignment: string
   ) => void;
+  setStyle: (
+    viewRef: React.ElementRef<ComponentType>,
+    styleJSON: string
+  ) => void;
 }
 
 export const Commands: NativeCommands = codegenNativeCommands<NativeCommands>({
@@ -514,6 +532,7 @@ export const Commands: NativeCommands = codegenNativeCommands<NativeCommands>({
     'addMention',
     'requestHTML',
     'setTextAlignment',
+    'setStyle',
   ],
 });
 

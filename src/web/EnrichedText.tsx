@@ -1,5 +1,6 @@
 import {
   memo,
+  useCallback,
   useImperativeHandle,
   useMemo,
   useRef,
@@ -11,7 +12,10 @@ import './EnrichedText.css';
 import { enrichedTextStyleToCSSProperties } from './styleConversion/enrichedTextStyleToCSSProperties';
 import { mergeWithDefaultEnrichedTextHtmlStyle } from './styleConversion/htmlStyleToCSSVariables';
 import { enrichedTextHtmlStyleToCSSVariables } from './styleConversion/htmlStyleToCSSVariables';
-import { ENRICHED_TEXT_CLASSNAME } from './constants/classNames';
+import {
+  ENRICHED_TEXT_CLASSNAME,
+  LINK_PRESSABLE_CLASSNAME,
+} from './constants/classNames';
 import { enrichedTextThemingToCSSProperties } from './styleConversion/enrichedThemingToCSSProperties';
 import { buildMentionRulesCSS } from './styleConversion/buildMentionRulesCSS';
 import { sanitizeHtml } from './sanitization/htmlSanitizer';
@@ -24,6 +28,8 @@ import { adaptWebToNativeEvent } from './nativeMappers/adaptWebToNativeEvent';
 import { useStableRef } from './utils/useStableRef';
 import { assertBrowserEnvironment } from './utils/assertBrowserEnvironment';
 import { useOrderedListMarkerWidth } from './htmlExtensions/useOrderedListMarkerWidth';
+import { enrichedStyleToCSSVariables } from './styleConversion/enrichedStyleToCSSVariables';
+import { useBaseFontFamily } from './utils/useBaseFontFamily';
 
 export const EnrichedText = memo(
   ({
@@ -41,6 +47,7 @@ export const EnrichedText = memo(
     onBlur,
     onLinkPress,
     onMentionPress,
+    onImagePress,
   }: EnrichedTextProps) => {
     assertBrowserEnvironment('EnrichedText');
 
@@ -83,12 +90,19 @@ export const EnrichedText = memo(
       [style]
     );
 
+    const getContainerElement = useCallback(() => containerRef.current, []);
+    const baseFontFamily = useBaseFontFamily(
+      getContainerElement,
+      textStyle.fontFamily
+    );
+
     const cssVars = useMemo(
       () => ({
         ...enrichedTextHtmlStyleToCSSVariables(resolvedHtmlStyle),
         ...INLINE_IMAGE_CSS_VARIABLES,
+        ...enrichedStyleToCSSVariables({ fontFamily: baseFontFamily }),
       }),
-      [resolvedHtmlStyle]
+      [resolvedHtmlStyle, baseFontFamily]
     );
 
     const themingStyle = useMemo(
@@ -123,11 +137,17 @@ export const EnrichedText = memo(
 
     const onLinkPressRef = useStableRef(onLinkPress);
     const onMentionPressRef = useStableRef(onMentionPress);
+    const onImagePressRef = useStableRef(onImagePress);
 
     useOrderedListMarkerWidth(containerRef, finalHtml);
 
     useImageErrorFallback(containerRef);
-    usePressInteractions(containerRef, onLinkPressRef, onMentionPressRef);
+    usePressInteractions(
+      containerRef,
+      onLinkPressRef,
+      onMentionPressRef,
+      onImagePressRef
+    );
 
     return (
       <>
@@ -136,7 +156,11 @@ export const EnrichedText = memo(
           ref={containerRef}
           tabIndex={-1}
           style={finalStyle}
-          className={ENRICHED_TEXT_CLASSNAME}
+          className={
+            onLinkPress
+              ? `${ENRICHED_TEXT_CLASSNAME} ${LINK_PRESSABLE_CLASSNAME}`
+              : ENRICHED_TEXT_CLASSNAME
+          }
           onFocus={(event) =>
             onFocus?.(adaptWebToNativeEvent(event, { target: -1 }))
           }

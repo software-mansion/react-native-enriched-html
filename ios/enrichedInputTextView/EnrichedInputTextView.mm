@@ -1,10 +1,10 @@
 #import "EnrichedInputTextView.h"
-#import "AlignmentUtils.h"
 #import "EnrichedTextInputView.h"
-#import "HtmlParser.h"
-#import "StringExtension.h"
-#import "TextInsertionUtils.h"
-#import "TextListsUtils.h"
+#import "extensions/StringExtension.h"
+#import "htmlParser/HtmlParser.h"
+#import "utils/AlignmentUtils.h"
+#import "utils/TextInsertionUtils.h"
+#import "utils/TextListsUtils.h"
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
 @implementation EnrichedInputTextView
@@ -56,6 +56,15 @@
     rect.origin.x = (containerWidth - rect.size.width) / 2.0;
   } else if (alignment == NSTextAlignmentRight) {
     rect.origin.x = containerWidth - rect.size.width;
+  } else {
+    // when we change selection to the last empty line in the editor,
+    // where we literally have no character there, UIKit seems to need to know
+    // the line's expected geometry (indent) and it derives typing attributes
+    // from the previous character (previous line). Happens even though we
+    // explicitly didn't want that in
+    // manageTypingAttributesWithOnlySelection:YES, so we can't trust typing
+    // attributes' pStyle here, manually setting the caret's position
+    rect.origin.x = 0;
   }
 
   return rect;

@@ -75,7 +75,9 @@ while [ "$i" -le "$NUM_DEVICES" ]; do
   i=$((i + 1))
 done
 
-open -a Simulator
+# Newer Xcode versions replace Simulator.app with DeviceHub.app. 
+open -a Simulator 2>/dev/null || open -a DeviceHub 2>/dev/null
+
 
 DEVICE_IDS=$(IFS=,; echo "${UDIDS[*]}")
 echo "DEVICE_ID=${UDIDS[0]}"

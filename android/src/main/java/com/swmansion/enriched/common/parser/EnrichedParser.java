@@ -6,12 +6,14 @@ import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.ParagraphStyle;
+import com.swmansion.enriched.common.CustomStyle;
 import com.swmansion.enriched.common.EnrichedConstants;
 import com.swmansion.enriched.common.EnrichedSpanFlags;
 import com.swmansion.enriched.common.spans.EnrichedAlignmentSpan;
 import com.swmansion.enriched.common.spans.EnrichedBoldSpan;
 import com.swmansion.enriched.common.spans.EnrichedCheckboxListSpan;
 import com.swmansion.enriched.common.spans.EnrichedCodeBlockSpan;
+import com.swmansion.enriched.common.spans.EnrichedCustomStyleSpan;
 import com.swmansion.enriched.common.spans.EnrichedH1Span;
 import com.swmansion.enriched.common.spans.EnrichedH2Span;
 import com.swmansion.enriched.common.spans.EnrichedH3Span;
@@ -345,6 +347,52 @@ public class EnrichedParser {
           // Don't output the placeholder character underlying the image.
           i = next;
         }
+        if (style[j] instanceof EnrichedCustomStyleSpan) {
+          EnrichedCustomStyleSpan cs = (EnrichedCustomStyleSpan) style[j];
+          Integer fgColor = cs.getForegroundColor();
+          Integer bgColor = cs.getBackgroundColor();
+          Float fontSize = cs.getFontSize();
+          String fontFamily = cs.getFontFamily();
+          if (!cs.toCustomStyle().isEmpty()) {
+            StringBuilder cssProps = new StringBuilder();
+            if (fgColor != null) {
+              cssProps
+                  .append("color: ")
+                  .append(EnrichedColorParser.colorToHex(fgColor))
+                  .append(";");
+            }
+            if (bgColor != null) {
+              if (cssProps.length() > 0) cssProps.append(" ");
+              cssProps
+                  .append("background-color: ")
+                  .append(EnrichedColorParser.colorToHex(bgColor))
+                  .append(";");
+            }
+            if (fontSize != null) {
+              if (cssProps.length() > 0) cssProps.append(" ");
+              cssProps.append("font-size: ").append(formatCssFontSizeValue(fontSize)).append("px;");
+            }
+            if (fontFamily != null && !fontFamily.isEmpty()) {
+              if (cssProps.length() > 0) cssProps.append(" ");
+              if (fontFamily.indexOf(' ') >= 0 || fontFamily.indexOf(',') >= 0) {
+                cssProps.append("font-family: '").append(fontFamily).append("';");
+              } else {
+                cssProps.append("font-family: ").append(fontFamily).append(";");
+              }
+            }
+            out.append("<span style=\"")
+                .append(
+                    cssProps
+                        .toString()
+                        .replace("&", "&amp;")
+                        .replace("<", "&lt;")
+                        .replace(">", "&gt;")
+                        .replace("\"", "&quot;"))
+                .append("\">");
+          } else {
+            out.append("<span>");
+          }
+        }
       }
       withinStyle(out, text, i, next);
       for (int j = style.length - 1; j >= 0; j--) {
@@ -368,6 +416,9 @@ public class EnrichedParser {
         }
         if (style[j] instanceof EnrichedItalicSpan) {
           out.append("</i>");
+        }
+        if (style[j] instanceof EnrichedCustomStyleSpan) {
+          out.append("</span>");
         }
       }
     }
@@ -407,6 +458,13 @@ public class EnrichedParser {
       }
     }
   }
+
+  private static String formatCssFontSizeValue(float fontSize) {
+    if (fontSize == Math.rint(fontSize) && !Float.isInfinite(fontSize)) {
+      return String.valueOf((int) fontSize);
+    }
+    return String.valueOf(fontSize);
+  }
 }
 
 class HtmlToSpannedConverter<T> implements ContentHandler {
@@ -424,6 +482,19 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
 
   private static final Pattern CSS_ALIGNMENT_PATTERN =
       Pattern.compile("text-align\\s*:\\s*(left|center|right)", Pattern.CASE_INSENSITIVE);
+
+  private static final Pattern CSS_FG_PATTERN =
+      Pattern.compile("(?:^|;)\\s*(?<!background-)color\\s*:\\s*([^;]+)", Pattern.CASE_INSENSITIVE);
+
+  private static final Pattern CSS_BG_PATTERN =
+      Pattern.compile("background-color\\s*:\\s*([^;]+)", Pattern.CASE_INSENSITIVE);
+
+  private static final Pattern CSS_FONT_SIZE_PATTERN =
+      Pattern.compile(
+          "font-size\\s*:\\s*([0-9.]+)(?:\\s*px)?(?=\\s*;|\\s*$)", Pattern.CASE_INSENSITIVE);
+
+  private static final Pattern CSS_FONT_FAMILY_PATTERN =
+      Pattern.compile("font-family\\s*:\\s*([^;]+)", Pattern.CASE_INSENSITIVE);
 
   private static String parseCssAlignmentValue(Attributes attributes) {
     String style = attributes.getValue("", "style");
@@ -509,7 +580,7 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
           if (mSpannableStringBuilder.getSpanStart(span) != start + 1) continue;
           int spanEnd = mSpannableStringBuilder.getSpanEnd(span);
           mSpannableStringBuilder.removeSpan(span);
-          mSpannableStringBuilder.setSpan(span, start, spanEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+          mSpannableStringBuilder.setSpan(span, start, spanEnd, EnrichedSpanFlags.forSpan(span));
         }
       }
 
@@ -587,6 +658,8 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
       start(mSpannableStringBuilder, new Code());
     } else if (tag.equalsIgnoreCase("mention")) {
       startMention(mSpannableStringBuilder, attributes);
+    } else if (tag.equalsIgnoreCase("span")) {
+      startSpan(mSpannableStringBuilder, attributes);
     }
   }
 
@@ -643,6 +716,8 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
       end(mSpannableStringBuilder, Code.class, mSpanFactory.createInlineCodeSpan(mStyle));
     } else if (tag.equalsIgnoreCase("mention")) {
       endMention(mSpannableStringBuilder, mStyle, mSpanFactory);
+    } else if (tag.equalsIgnoreCase("span")) {
+      endSpan(mSpannableStringBuilder, mStyle, mSpanFactory);
     }
   }
 
@@ -849,7 +924,8 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
 
   private static void start(Editable text, Object mark) {
     int len = text.length();
-    text.setSpan(mark, len, len, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+    text.setSpan(
+        mark, len, len, EnrichedSpanFlags.forSpan(mark, Spannable.SPAN_INCLUSIVE_EXCLUSIVE));
   }
 
   private static void end(Editable text, Class kind, Object repl) {
@@ -926,6 +1002,75 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
 
     setSpanFromMark(
         text, m, spanFactory.createMentionSpan(m.mText, m.mIndicator, m.mAttributes, style));
+  }
+
+  private static void startSpan(Editable text, Attributes attributes) {
+    String styleAttr = attributes.getValue("", "style");
+    Integer fg = null;
+    Integer bg = null;
+    Float fontSize = null;
+    String fontFamily = null;
+
+    if (styleAttr != null) {
+      Matcher fgMatcher = CSS_FG_PATTERN.matcher(styleAttr);
+      if (fgMatcher.find()) {
+        fg = EnrichedColorParser.parseCssColor(fgMatcher.group(1));
+      }
+      Matcher bgMatcher = CSS_BG_PATTERN.matcher(styleAttr);
+      if (bgMatcher.find()) {
+        bg = EnrichedColorParser.parseCssColor(bgMatcher.group(1));
+      }
+      Matcher fontSizeMatcher = CSS_FONT_SIZE_PATTERN.matcher(styleAttr);
+      if (fontSizeMatcher.find()) {
+        String fontSizeString = fontSizeMatcher.group(1);
+        if (fontSizeString != null) {
+          fontSize = Float.parseFloat(fontSizeString);
+        }
+      }
+      Matcher fontFamilyMatcher = CSS_FONT_FAMILY_PATTERN.matcher(styleAttr);
+      if (fontFamilyMatcher.find()) {
+        fontFamily = parseCssFontFamily(fontFamilyMatcher.group(1));
+      }
+    }
+
+    if (!new CustomStyle(fg, bg, fontSize, fontFamily).isEmpty()) {
+      start(text, new CustomStyleMark(fg, bg, fontSize, fontFamily));
+    }
+  }
+
+  private static String parseCssFontFamily(String raw) {
+    if (raw == null) return null;
+    String value = firstInFontFamilyString(raw).trim();
+    if (value.length() >= 2
+        && ((value.startsWith("'") && value.endsWith("'"))
+            || (value.startsWith("\"") && value.endsWith("\"")))) {
+      value = value.substring(1, value.length() - 1);
+    }
+    return value.isEmpty() ? null : value;
+  }
+
+  private static String firstInFontFamilyString(String value) {
+    char quote = 0;
+    for (int i = 0; i < value.length(); i++) {
+      char c = value.charAt(i);
+      if (quote != 0) {
+        if (c == quote) quote = 0;
+      } else if (c == '\'' || c == '"') {
+        quote = c;
+      } else if (c == ',') {
+        return value.substring(0, i);
+      }
+    }
+    return value;
+  }
+
+  private static <T> void endSpan(Editable text, T style, EnrichedSpanFactory<T> spanFactory) {
+    CustomStyleMark mark = getLast(text, CustomStyleMark.class);
+    if (mark == null) return;
+    setSpanFromMark(
+        text,
+        mark,
+        spanFactory.createCustomStyleSpan(mark.mFg, mark.mBg, mark.mFontSize, mark.mFontFamily));
   }
 
   public void setDocumentLocator(Locator locator) {}
@@ -1052,6 +1197,20 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
 
     public Newline(int numNewlines) {
       mNumNewlines = numNewlines;
+    }
+  }
+
+  private static class CustomStyleMark {
+    public final Integer mFg;
+    public final Integer mBg;
+    public final Float mFontSize;
+    public final String mFontFamily;
+
+    public CustomStyleMark(Integer fg, Integer bg, Float fontSize, String fontFamily) {
+      mFg = fg;
+      mBg = bg;
+      mFontSize = fontSize;
+      mFontFamily = fontFamily;
     }
   }
 

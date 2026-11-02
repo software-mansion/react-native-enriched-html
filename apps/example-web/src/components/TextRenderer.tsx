@@ -5,6 +5,7 @@ import {
   type BlurEvent,
   type EnrichedTextInstance,
   type FocusEvent,
+  type OnImagePressEvent,
   type OnLinkPressEvent,
   type OnMentionPressEvent,
 } from 'react-native-enriched-html';
@@ -45,6 +46,10 @@ export function TextRenderer({ htmlValue }: TextRendererProps) {
     console.log('[EnrichedText] mention press event', e);
   };
 
+  const handleImagePress = (e: OnImagePressEvent) => {
+    console.log('[EnrichedText] image press event', e);
+  };
+
   return (
     <div className="container enriched-text-container">
       <h1 className="app-title">Enriched Text</h1>
@@ -59,6 +64,7 @@ export function TextRenderer({ htmlValue }: TextRendererProps) {
         numberOfLines={numberOfLines}
         ellipsizeMode={ellipsizeMode}
         sanitizationConfig={SANITIZATION_CONFIG}
+        onImagePress={handleImagePress}
       >
         {htmlValue}
       </EnrichedText>

@@ -73,6 +73,14 @@ export interface OnMentionPressEvent {
   attributes: Record<string, string>;
 }
 
+export interface OnImagePressEvent {
+  image: {
+    uri: string;
+    width: CodegenTypes.Float;
+    height: CodegenTypes.Float;
+  };
+}
+
 export interface NativeProps extends ViewProps {
   // Custom props
   text: string;
@@ -89,6 +97,7 @@ export interface NativeProps extends ViewProps {
   // Events
   onLinkPress?: CodegenTypes.DirectEventHandler<OnLinkPressEvent>;
   onMentionPress?: CodegenTypes.DirectEventHandler<OnMentionPressEventInternal>;
+  onImagePress?: CodegenTypes.DirectEventHandler<OnImagePressEvent>;
 
   // Style related props - used for generating proper setters in component's manager
   // These should not be passed as regular props

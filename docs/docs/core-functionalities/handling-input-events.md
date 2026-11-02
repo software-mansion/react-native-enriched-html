@@ -14,7 +14,7 @@ Full payload shapes of the available callbacks can be found in the [`EnrichedTex
 
 This page covers `EnrichedTextInput` events. The read-only
 [`EnrichedText`](/core-functionalities/rendering-rich-text) component only
-exposes `onLinkPress` and `onMentionPress` callbacks.
+exposes `onLinkPress`, `onMentionPress`, and `onImagePress` callbacks.
 
 :::
 
