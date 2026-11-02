@@ -6225,7 +6225,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dompurify@npm:~3.4.17":
+"dompurify@npm:3.4.17":
   version: 3.4.17
   resolution: "dompurify@npm:3.4.17"
   dependencies:
@@ -11801,7 +11801,7 @@ __metadata:
     clang-format-node: "npm:^4.0.3"
     commitlint: "npm:^19.6.1"
     del-cli: "npm:^5.1.0"
-    dompurify: "npm:~3.4.17"
+    dompurify: "npm:3.4.17"
     eslint: "npm:^9.22.0"
     eslint-config-prettier: "npm:^10.1.1"
     eslint-plugin-prettier: "npm:^5.2.3"
