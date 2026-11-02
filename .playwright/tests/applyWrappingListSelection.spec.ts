@@ -41,9 +41,9 @@ for (const { label, toolbarTestId } of LIST_VARIANTS) {
       const editor = editorLocator(page);
       await editor.click();
 
-      await expect(editor).toHaveScreenshot(ROUND_TRIP_SNAPSHOT);
-
       await selectParagraphTextInclusive(page, 1, 3);
+
+      await expect(editor).toHaveScreenshot(ROUND_TRIP_SNAPSHOT);
 
       const listBtn = toolbarButton(page, toolbarTestId);
       await listBtn.click();

@@ -81,7 +81,7 @@ test.describe('strict marks', () => {
 
     await typeBoldText(page, 'hello world');
 
-    await editor.press('Meta+A');
+    await editor.press('ControlOrMeta+A');
     await editor.press('Backspace');
 
     await expect(toolbarButton(page, 'bold')).not.toHaveClass(
