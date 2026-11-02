@@ -7,6 +7,7 @@ import { LinkModal } from '../components/LinkModal';
 import { MentionPopup } from '../components/MentionPopup';
 import { ImageModal } from '../components/ImageModal';
 import { ValueModal } from '../components/ValueModal';
+import { HtmlSection } from '../components/HtmlSection';
 import { useEditorState } from '../hooks/useEditorState';
 import { useKeyboardHeight } from '../hooks/useKeyboardHeight';
 import {
@@ -111,6 +112,7 @@ export function TestScreen({
             layout="grid"
           />
         </View>
+        <HtmlSection currentHtml={editor.currentHtml} />
         <View style={styles.buttonRow}>
           <Button
             title="Set Value"
