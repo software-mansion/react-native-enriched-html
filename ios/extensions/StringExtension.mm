@@ -230,16 +230,27 @@ static NSDictionary<NSString *, NSString *> *namedHtmlEntities(void) {
   return escaped;
 }
 
-// Reverses stringByEscapingHtmlAttribute:, and additionally decodes &apos;
-// since it's a value some external HTML sources may still use.
+// Attribute values may come from arbitrary input HTML (not just our own
+// serializer's output), so this decodes the same full named/numeric entity set
+// as text content.
 + (NSString *)stringByUnescapingHtmlAttribute:(NSString *)value {
-  NSString *result = value;
-  for (NSArray<NSString *> *entity in @[
-         @[ @"&quot;", @"\"" ], @[ @"&apos;", @"'" ], @[ @"&#39;", @"'" ],
-         @[ @"&lt;", @"<" ], @[ @"&gt;", @">" ], @[ @"&amp;", @"&" ]
-       ]) {
-    result = [result stringByReplacingOccurrencesOfString:entity[0]
-                                               withString:entity[1]];
+  NSDictionary *entityInfo = [self getEscapedCharactersInfoFrom:value];
+  if (entityInfo.count == 0) {
+    return value;
+  }
+  NSMutableString *result = [value mutableCopy];
+  // Apply from the highest offset down so replacing one match never shifts
+  // the other matches.
+  NSArray<NSNumber *> *locations = [[entityInfo allKeys]
+      sortedArrayUsingDescriptors:@[ [NSSortDescriptor
+                                      sortDescriptorWithKey:@"integerValue"
+                                                  ascending:NO] ]];
+  for (NSNumber *location in locations) {
+    NSArray<NSString *> *entity = entityInfo[location];
+    NSString *escaped = entity[0];
+    NSString *decoded = entity[1];
+    NSRange range = NSMakeRange(location.unsignedIntegerValue, escaped.length);
+    [result replaceCharactersInRange:range withString:decoded];
   }
   return result;
 }
