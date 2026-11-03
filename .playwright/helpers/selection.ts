@@ -42,3 +42,18 @@ export async function selectRange(page: Page, start: number, end: number) {
   }
   await page.keyboard.up('Shift');
 }
+
+// ProseMirror reads DOM selection changes asynchronously (on `selectionchange`),
+// so a key pressed right after a caret move may still see the previous selection.
+export async function waitForCursorAtLineStart(page: Page): Promise<void> {
+  await page.waitForFunction(() => {
+    const root = document.querySelector('.eti-editor .ProseMirror') as
+      | (Element & {
+          editor?: {
+            state: { selection: { $cursor?: { parentOffset: number } } };
+          };
+        })
+      | null;
+    return root?.editor?.state.selection.$cursor?.parentOffset === 0;
+  });
+}
