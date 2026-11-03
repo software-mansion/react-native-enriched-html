@@ -16,6 +16,8 @@ class EnrichedTextViewShadowNode
           EnrichedTextViewEventEmitter, EnrichedTextViewState> {
 public:
   using ConcreteViewShadowNode::ConcreteViewShadowNode;
+  EnrichedTextViewShadowNode(const ShadowNode &sourceShadowNode,
+                             const ShadowNodeFragment &fragment);
   Size
   measureContent(const LayoutContext &layoutContext,
                  const LayoutConstraints &layoutConstraints) const override;

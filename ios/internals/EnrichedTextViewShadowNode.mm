@@ -4,6 +4,7 @@
 #import "EnrichedTextView.h"
 #import <React/RCTShadowView+Layout.h>
 #import <react/utils/ManagedObjectWrapper.h>
+#import <yoga/Yoga.h>
 
 namespace facebook::react {
 
@@ -16,6 +17,21 @@ id EnrichedTextViewShadowNode::setupMockTextView_(const Props::Shared &props) {
       initWithFrame:(CGRectMake(veryFarAway, veryFarAway, mockSize, mockSize))];
   [mockView updateProps:props oldProps:nullptr];
   return mockView;
+}
+
+EnrichedTextViewShadowNode::EnrichedTextViewShadowNode(
+    const ShadowNode &sourceShadowNode, const ShadowNodeFragment &fragment)
+    : ConcreteViewShadowNode(sourceShadowNode, fragment) {
+  // A new snapshot means the content may have a different size.
+  // React Native currently dirties measurable nodes on
+  // every clone anyway, but we don't want to depend on that.
+  const auto &sourceState =
+      static_cast<const EnrichedTextViewShadowNode &>(sourceShadowNode)
+          .getStateData();
+  if (getStateData().getMeasurementSnapshot() !=
+      sourceState.getMeasurementSnapshot()) {
+    YGNodeMarkDirty(&yogaNode_);
+  }
 }
 
 Size EnrichedTextViewShadowNode::measureContent(

@@ -37,7 +37,7 @@ public:
   }
 
 private:
-  int localForceHeightRecalculationCounter_;
+  int localForceHeightRecalculationCounter_{0};
   static id setupMockTextInputView_(const Props::Shared &props);
 };
 

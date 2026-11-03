@@ -34,7 +34,12 @@ id EnrichedTextInputViewShadowNode::setupMockTextInputView_(
 
 EnrichedTextInputViewShadowNode::EnrichedTextInputViewShadowNode(
     const ShadowNode &sourceShadowNode, const ShadowNodeFragment &fragment)
-    : ConcreteViewShadowNode(sourceShadowNode, fragment) {
+    : ConcreteViewShadowNode(sourceShadowNode, fragment),
+      // carry over the last counter this node family has already reacted to,
+      // so dirtyLayoutIfNeeded only fires for a genuinely new state
+      localForceHeightRecalculationCounter_(
+          static_cast<const EnrichedTextInputViewShadowNode &>(sourceShadowNode)
+              .localForceHeightRecalculationCounter_) {
   dirtyLayoutIfNeeded();
 }
 
