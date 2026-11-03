@@ -630,6 +630,8 @@ Class<RCTComponentViewProtocol> EnrichedTextViewCls(void) {
   if (_content.length == 0) {
     [textView.textStorage
         setAttributedString:[[NSAttributedString alloc] initWithString:@""]];
+    // drop image overlays left over from the previous content
+    [self layoutAttachments];
     return;
   }
   [_textParser replaceWholeFromHtml:_content];
