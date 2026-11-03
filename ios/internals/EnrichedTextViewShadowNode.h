@@ -28,7 +28,7 @@ public:
   }
 
 private:
-  id setupMockTextView_() const;
+  static id setupMockTextView_(const Props::Shared &props);
 };
 
 } // namespace facebook::react

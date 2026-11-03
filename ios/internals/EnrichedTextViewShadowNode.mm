@@ -1,5 +1,6 @@
 #import "EnrichedTextViewShadowNode.h"
 #import "CoreText/CoreText.h"
+#import "EnrichedMainThreadMeasure.h"
 #import "EnrichedTextView.h"
 #import <React/RCTShadowView+Layout.h>
 #import <react/utils/ManagedObjectWrapper.h>
@@ -8,12 +9,11 @@ namespace facebook::react {
 
 extern const char EnrichedTextViewComponentName[] = "EnrichedTextView";
 
-id EnrichedTextViewShadowNode::setupMockTextView_() const {
+id EnrichedTextViewShadowNode::setupMockTextView_(const Props::Shared &props) {
   const int veryFarAway = 20000;
   const int mockSize = 1000;
   EnrichedTextView *mockView = [[EnrichedTextView alloc]
       initWithFrame:(CGRectMake(veryFarAway, veryFarAway, mockSize, mockSize))];
-  const auto props = this->getProps();
   [mockView updateProps:props oldProps:nullptr];
   return mockView;
 }
@@ -21,52 +21,43 @@ id EnrichedTextViewShadowNode::setupMockTextView_() const {
 Size EnrichedTextViewShadowNode::measureContent(
     const LayoutContext &layoutContext,
     const LayoutConstraints &layoutConstraints) const {
-  const auto state = this->getStateData();
-  const auto componentRef = state.getComponentViewRef();
-  RCTInternalGenericWeakWrapper *weakWrapper =
-      (RCTInternalGenericWeakWrapper *)unwrapManagedObject(componentRef);
+  // Never block on the main thread here - layout may run on the JS thread
+  // while main waits for the shadow tree lock / JS runtime. Measure the
+  // immutable snapshot that the component view put into the state instead.
+  const CGFloat maxWidth = layoutConstraints.maximumSize.width;
+  const auto &state = this->getStateData();
+  CGSize estimatedSize;
 
-  if (weakWrapper != nullptr) {
-    id componentObject = weakWrapper.object;
-    EnrichedTextView *typedComponentObject =
-        (EnrichedTextView *)componentObject;
+  NSAttributedString *snapshot =
+      (NSAttributedString *)unwrapManagedObject(state.getMeasurementSnapshot());
 
-    if (typedComponentObject != nullptr) {
-      __block CGSize estimatedSize;
-
-      if ([NSThread isMainThread]) {
-        estimatedSize = [typedComponentObject
-            measureSize:layoutConstraints.maximumSize.width];
-      } else {
-        dispatch_sync(dispatch_get_main_queue(), ^{
-          estimatedSize = [typedComponentObject
-              measureSize:layoutConstraints.maximumSize.width];
-        });
-      }
-
-      return {estimatedSize.width,
-              MIN(estimatedSize.height, layoutConstraints.maximumSize.height)};
-    }
+  if (snapshot != nil) {
+    estimatedSize = [EnrichedTextView
+             measureSnapshot:snapshot
+                    maxWidth:maxWidth
+        maximumNumberOfLines:(NSUInteger)state.getMaximumNumberOfLines()
+               lineBreakMode:(NSLineBreakMode)state.getLineBreakMode()];
+  } else if ([NSThread isMainThread]) {
+    // not mounted yet - measure the initial props using a mock view
+    EnrichedTextView *mockView = setupMockTextView_(this->getProps());
+    estimatedSize = [mockView measureSize:maxWidth];
   } else {
-    __block CGSize estimatedSize;
-
-    if ([NSThread isMainThread]) {
-      EnrichedTextView *mockView = setupMockTextView_();
-      estimatedSize =
-          [mockView measureSize:layoutConstraints.maximumSize.width];
-    } else {
-      dispatch_sync(dispatch_get_main_queue(), ^{
-        EnrichedTextView *mockView = setupMockTextView_();
-        estimatedSize =
-            [mockView measureSize:layoutConstraints.maximumSize.width];
-      });
+    // Not mounted yet and off the main thread: the mock view has to be created
+    // on main, but we only wait for it for a bounded time. If main doesn't
+    // respond, report no height for now.
+    const auto props = this->getProps();
+    if (!enrichedMeasureOnMainThread(
+            ^CGSize {
+              EnrichedTextView *mockView = setupMockTextView_(props);
+              return [mockView measureSize:maxWidth];
+            },
+            estimatedSize)) {
+      estimatedSize = CGSizeMake(maxWidth, 0);
     }
-
-    return {estimatedSize.width,
-            MIN(estimatedSize.height, layoutConstraints.maximumSize.height)};
   }
 
-  return Size();
+  return {estimatedSize.width,
+          MIN(estimatedSize.height, layoutConstraints.maximumSize.height)};
 }
 
 } // namespace facebook::react

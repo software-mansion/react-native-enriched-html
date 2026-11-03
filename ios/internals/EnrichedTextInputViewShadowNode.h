@@ -38,7 +38,7 @@ public:
 
 private:
   int localForceHeightRecalculationCounter_;
-  id setupMockTextInputView_() const;
+  static id setupMockTextInputView_(const Props::Shared &props);
 };
 
 } // namespace facebook::react
