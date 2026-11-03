@@ -1,0 +1,26 @@
+appId: swmansion.enriched.example
+---
+# Entities inside href="..." must decode too, not just inside text content -
+# regression test for the href attribute-escaping fix.
+- launchApp
+
+- tapOn:
+    id: 'toggle-screen-button'
+
+- tapOn:
+    id: 'toggle-enriched-text-screen-button'
+
+- runFlow:
+    file: '../subflows/set_enriched_text_value.yaml'
+    env:
+      VALUE: '<html><p><a href="https://example.com/a&amp;b&quot;c">link</a></p></html>'
+
+- tapOn:
+    id: 'enriched-text'
+    point: '5%,50%'
+
+- assertVisible:
+    text: 'You pressed the link: https://example.com/a&b"c'
+
+- assertNotVisible:
+    text: '.*&(amp|quot);.*'
