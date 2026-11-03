@@ -1,0 +1,26 @@
+appId: swmansion.enriched.example
+---
+# Entities inside src="..." must decode too - regression test for the src
+# attribute-escaping fix.
+- launchApp
+
+- tapOn:
+    id: 'toggle-screen-button'
+
+- tapOn:
+    id: 'toggle-enriched-text-screen-button'
+
+- runFlow:
+    file: '../subflows/set_enriched_text_value.yaml'
+    env:
+      VALUE: '<html><img src="https://example.com/img&amp;x.png" width="100" height="100"/></html>'
+
+- tapOn:
+    id: 'enriched-text'
+    point: '5%,50%'
+
+- assertVisible:
+    text: 'You pressed the image:.*img&x.png.*'
+
+- assertNotVisible:
+    text: '.*&amp;.*'

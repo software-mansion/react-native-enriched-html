@@ -697,7 +697,7 @@
           [params substringWithRange:NSMakeRange(srcRange.location + 5,
                                                  srcRange.length - 6)];
       ImageData *imageData = [[ImageData alloc] init];
-      imageData.uri = uri;
+      imageData.uri = [NSString stringByUnescapingHtmlAttribute:uri];
 
       NSRegularExpression *widthRegex = [NSRegularExpression
           regularExpressionWithPattern:@"width=\"([0-9.]+)\""
@@ -755,9 +755,10 @@
       NSRange hrefRange = match.range;
       [styleArr addObject:@([LinkStyle getType])];
       // cut only the url from the href="..." string
-      NSString *url =
+      NSString *rawUrl =
           [params substringWithRange:NSMakeRange(hrefRange.location + 6,
                                                  hrefRange.length - 7)];
+      NSString *url = [NSString stringByUnescapingHtmlAttribute:rawUrl];
 
       // tagRange location includes one extra offset per preceding image
       // placeholder, which don't exist in plainText. Subtract them to map
@@ -794,9 +795,10 @@
                              if (result.numberOfRanges == 4) {
                                NSString *key = [params
                                    substringWithRange:[result rangeAtIndex:1]];
-                               NSString *value = [params
+                               NSString *rawValue = [params
                                    substringWithRange:[result rangeAtIndex:3]];
-                               paramsDict[key] = value;
+                               paramsDict[key] = [NSString
+                                   stringByUnescapingHtmlAttribute:rawValue];
                              }
                            }];
 
@@ -1391,9 +1393,11 @@
       if (imageStyle != nullptr) {
         ImageData *data = [imageStyle getImageDataAt:location];
         if (data != nullptr && data.uri != nullptr) {
+          NSString *escapedUri =
+              [NSString stringByEscapingHtmlAttribute:data.uri];
           return [NSString
               stringWithFormat:@"img src=\"%@\" width=\"%d\" height=\"%d\"",
-                               data.uri, (int)floor(data.width),
+                               escapedUri, (int)floor(data.width),
                                (int)floor(data.height)];
         }
       }
@@ -1414,7 +1418,9 @@
       if (linkStyle != nullptr) {
         LinkData *data = [linkStyle getLinkDataAt:location];
         if (data != nullptr && data.url != nullptr) {
-          return [NSString stringWithFormat:@"a href=\"%@\"", data.url];
+          NSString *escapedUrl =
+              [NSString stringByEscapingHtmlAttribute:data.url];
+          return [NSString stringWithFormat:@"a href=\"%@\"", escapedUrl];
         }
       }
       return @"a";
@@ -1444,15 +1450,22 @@
             // format dict keys and values into string
             [json enumerateKeysAndObjectsUsingBlock:^(
                       id _Nonnull key, id _Nonnull obj, BOOL *_Nonnull stop) {
-              [attrsStr
-                  appendString:[NSString stringWithFormat:@" %@=\"%@\"",
-                                                          (NSString *)key,
-                                                          (NSString *)obj]];
+              NSString *escapedKey =
+                  [NSString stringByEscapingHtmlAttribute:(NSString *)key];
+              NSString *escapedValue =
+                  [NSString stringByEscapingHtmlAttribute:(NSString *)obj];
+              [attrsStr appendString:[NSString stringWithFormat:@" %@=\"%@\"",
+                                                                escapedKey,
+                                                                escapedValue]];
             }];
           }
+          NSString *escapedText =
+              [NSString stringByEscapingHtmlAttribute:params.text];
+          NSString *escapedIndicator =
+              [NSString stringByEscapingHtmlAttribute:params.indicator];
           return [NSString
               stringWithFormat:@"mention text=\"%@\" indicator=\"%@\"%@",
-                               params.text, params.indicator, attrsStr];
+                               escapedText, escapedIndicator, attrsStr];
         }
       }
       return @"mention";
@@ -1529,17 +1542,7 @@
           }
           if (cssProps.length > 0) {
             NSString *escapedStyle =
-                [cssProps stringByReplacingOccurrencesOfString:@"&"
-                                                    withString:@"&amp;"];
-            escapedStyle =
-                [escapedStyle stringByReplacingOccurrencesOfString:@"<"
-                                                        withString:@"&lt;"];
-            escapedStyle =
-                [escapedStyle stringByReplacingOccurrencesOfString:@">"
-                                                        withString:@"&gt;"];
-            escapedStyle =
-                [escapedStyle stringByReplacingOccurrencesOfString:@"\""
-                                                        withString:@"&quot;"];
+                [NSString stringByEscapingHtmlAttribute:cssProps];
             return
                 [NSString stringWithFormat:@"span style=\"%@\"", escapedStyle];
           }
@@ -1637,13 +1640,7 @@
 
   NSString *css = [params substringWithRange:[attrMatch rangeAtIndex:1]];
   // decode entities escaped by the serializers
-  for (NSArray<NSString *> *entity in @[
-         @[ @"&quot;", @"\"" ], @[ @"&#39;", @"'" ], @[ @"&lt;", @"<" ],
-         @[ @"&gt;", @">" ], @[ @"&amp;", @"&" ]
-       ]) {
-    css = [css stringByReplacingOccurrencesOfString:entity[0]
-                                         withString:entity[1]];
-  }
+  css = [NSString stringByUnescapingHtmlAttribute:css];
   CustomStyleData *data = [[CustomStyleData alloc] init];
 
   NSTextCheckingResult *fgMatch =

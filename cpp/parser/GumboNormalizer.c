@@ -309,12 +309,13 @@ static const char *find_css_value(const char *style, size_t style_len,
   return NULL;
 }
 
-static void append_style_prop(buffer_t *out, const char *prefix,
-                              const char *val, size_t val_len, bool *first) {
-  if (!*first)
-    buffer_append_str(out, "; ");
-  *first = false;
-  buffer_append_str(out, prefix);
+/* Escapes the characters that would otherwise let a value break out of a
+ * double-quoted HTML attribute. Gumbo's GumboAttribute.value is already
+ * character-reference-decoded, so every attribute value written to `out`
+ * must go through this before being re-parsed downstream - otherwise it's
+ * decoded a second time there. */
+static void append_escaped_attr_value(buffer_t *out, const char *val,
+                                      size_t val_len) {
   for (size_t i = 0; i < val_len; i++) {
     if (val[i] == '&')
       buffer_append_str(out, "&amp;");
@@ -327,6 +328,15 @@ static void append_style_prop(buffer_t *out, const char *prefix,
     else
       buffer_append(out, &val[i], 1);
   }
+}
+
+static void append_style_prop(buffer_t *out, const char *prefix,
+                              const char *val, size_t val_len, bool *first) {
+  if (!*first)
+    buffer_append_str(out, "; ");
+  *first = false;
+  buffer_append_str(out, prefix);
+  append_escaped_attr_value(out, val, val_len);
 }
 
 static bool css_val_contains(const char *val, size_t val_len,
@@ -501,7 +511,7 @@ static void emit_one_attr(buffer_t *out, GumboElement *el,
     buffer_append_str(out, " ");
     buffer_append_str(out, attr_name);
     buffer_append_str(out, "=\"");
-    buffer_append_str(out, val);
+    append_escaped_attr_value(out, val, strlen(val));
     buffer_append_str(out, "\"");
   }
 }
