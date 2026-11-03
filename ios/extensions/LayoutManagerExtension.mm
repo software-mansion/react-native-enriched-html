@@ -103,23 +103,38 @@ static void const *kInputKey = &kInputKey;
     NSRange glyphRange = [self glyphRangeForCharacterRange:range
                                       actualCharacterRange:nullptr];
     // one rect per line in case the mention wraps
-    [self
-        enumerateEnclosingRectsForGlyphRange:glyphRange
-                    withinSelectedGlyphRange:NSMakeRange(NSNotFound, 0)
-                             inTextContainer:host.textView.textContainer
-                                  usingBlock:^(CGRect rect, BOOL *stop) {
-                                    CGRect bgRect =
-                                        [self getTextAlignedUsedRect:rect
-                                                                font:font];
-                                    bgRect.origin.x += origin.x;
-                                    bgRect.origin.y += origin.y;
-                                    CGFloat radius =
-                                        MIN(props.borderRadius,
-                                            bgRect.size.height / 2);
-                                    [[UIBezierPath
-                                        bezierPathWithRoundedRect:bgRect
-                                                     cornerRadius:radius] fill];
-                                  }];
+    NSMutableArray<NSValue *> *lineRects = [[NSMutableArray alloc] init];
+    [self enumerateEnclosingRectsForGlyphRange:glyphRange
+                      withinSelectedGlyphRange:NSMakeRange(NSNotFound, 0)
+                               inTextContainer:host.textView.textContainer
+                                    usingBlock:^(CGRect rect, BOOL *stop) {
+                                      [lineRects
+                                          addObject:[NSValue
+                                                        valueWithCGRect:rect]];
+                                    }];
+
+    // only the mention's start and end get rounded, so a wrapped mention
+    // still has 4 rounded corners in total
+    for (NSUInteger i = 0; i < lineRects.count; i++) {
+      CGRect bgRect = [self getTextAlignedUsedRect:[lineRects[i] CGRectValue]
+                                              font:font];
+      bgRect.origin.x += origin.x;
+      bgRect.origin.y += origin.y;
+
+      UIRectCorner corners = 0;
+      if (i == 0) {
+        corners |= UIRectCornerTopLeft | UIRectCornerBottomLeft;
+      }
+      if (i == lineRects.count - 1) {
+        corners |= UIRectCornerTopRight | UIRectCornerBottomRight;
+      }
+
+      CGFloat radius = MIN(props.borderRadius, bgRect.size.height / 2);
+      [[UIBezierPath bezierPathWithRoundedRect:bgRect
+                             byRoundingCorners:corners
+                                   cornerRadii:CGSizeMake(radius, radius)]
+          fill];
+    }
   }
 }
 
