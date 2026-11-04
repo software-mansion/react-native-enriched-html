@@ -59,6 +59,7 @@ using namespace facebook::react;
   UIColor *_placeholderColor;
   BOOL _emitFocusBlur;
   BOOL _emitTextChange;
+  CGPoint _lastEmittedContentOffset;
   NSMutableDictionary<NSValue *, UIImageView *> *_attachmentViews;
   NSArray<NSDictionary *> *_contextMenuItems;
   NSString *_submitBehavior;
@@ -1530,6 +1531,12 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   }
 }
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+  if (CGPointEqualToPoint(scrollView.contentOffset,
+                          _lastEmittedContentOffset)) {
+    return;
+  }
+  _lastEmittedContentOffset = scrollView.contentOffset;
+
   auto emitter = [self getEventEmitter];
   if (emitter != nullptr) {
     emitter->onInputScroll({.contentOffset = {
