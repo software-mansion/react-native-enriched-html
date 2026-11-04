@@ -123,7 +123,7 @@ static void const *kInputKey = &kInputKey;
 
       UIRectCorner corners = 0;
       if (i == 0) {
-        corners |= UIRectCornerTopLeft | UIRectCornerBottomLeft;
+        corners = UIRectCornerTopLeft | UIRectCornerBottomLeft;
       }
       if (i == lineRects.count - 1) {
         corners |= UIRectCornerTopRight | UIRectCornerBottomRight;
