@@ -632,6 +632,11 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
                          getComplexPropsFromFollyDynamic:newMentionStyle]];
     }
 
+    // Parse mentionStyleRules (embedded as __rules__ in the mention dict)
+    [newConfig setMentionStyleRules:
+                   [MentionStyleProps
+                       getStyleRulesFromFollyDynamic:newMentionStyle]];
+
     stylePropChanged = YES;
   }
 

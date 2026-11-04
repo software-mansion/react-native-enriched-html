@@ -49,7 +49,8 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
   }
 
   MentionStyleProps *styleProps =
-      [self.host.config mentionStylePropsForIndicator:params.indicator];
+      [self.host.config mentionStylePropsForIndicator:params.indicator
+                                            attributes:params.attributes];
 
   NSMutableDictionary *newAttrs = [@{
     NSForegroundColorAttributeName : styleProps.color,
@@ -133,9 +134,24 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
 }
 
 - (void)applyMentionMeta:(MentionParams *)params range:(NSRange)range {
-  [self.host.textView.textStorage addAttribute:MentionAttributeName
-                                         value:params
-                                         range:range];
+  MentionStyleProps *styleProps =
+      [self.host.config mentionStylePropsForIndicator:params.indicator
+                                            attributes:params.attributes];
+
+  NSMutableDictionary *newAttrs = [@{
+    MentionAttributeName : params,
+    NSForegroundColorAttributeName : styleProps.color,
+    NSUnderlineColorAttributeName : styleProps.color,
+    NSStrikethroughColorAttributeName : styleProps.color,
+    NSBackgroundColorAttributeName :
+        [styleProps.backgroundColor colorWithResolvedAlpha],
+  } mutableCopy];
+
+  if (styleProps.decorationLine == DecorationUnderline) {
+    newAttrs[NSUnderlineStyleAttributeName] = @(NSUnderlineStyleSingle);
+  }
+
+  [self.host.textView.textStorage addAttributes:newAttrs range:range];
 }
 
 // MARK: - Public non-standard methods
@@ -157,6 +173,10 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
   params.text = text;
   params.indicator = indicator;
   params.attributes = attributes;
+
+  MentionStyleProps *styleProps =
+      [self.host.config mentionStylePropsForIndicator:indicator
+                                            attributes:attributes];
 
   NSRange rangeToBeReplaced = [_activeMentionRange rangeValue];
 
