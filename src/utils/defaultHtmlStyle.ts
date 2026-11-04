@@ -68,6 +68,7 @@ export const DEFAULT_HTML_STYLE: Required<HtmlStyle> = {
     marginLeft: 16,
     boxColor: 'blue',
   },
+  mentionStyleRules: [],
 };
 
 export const DEFAULT_ENRICHED_TEXT_STYLE: Required<EnrichedTextHtmlStyle> = {
