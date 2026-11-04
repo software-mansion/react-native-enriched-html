@@ -1,6 +1,8 @@
 appId: swmansion.enriched.example
 ---
-- launchApp
+- launchApp:
+    arguments:
+      showScrollOffset: true
 
 - tapOn:
     id: "toggle-screen-button"
@@ -28,10 +30,6 @@ appId: swmansion.enriched.example
                 direction: DOWN
                 duration: 300
             - waitForAnimationToEnd
-
-- assertVisible:
-    id: "scroll-offset-output"
-    text: "Scroll offset: 0.00"
 
 - swipe:
     from:

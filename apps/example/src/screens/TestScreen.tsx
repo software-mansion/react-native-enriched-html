@@ -16,11 +16,13 @@ import {
 } from '../constants/editorConfig';
 
 interface TestScreenProps {
+  showScrollOffset: boolean;
   onSwitch: () => void;
   onSwitchEnrichedText: () => void;
 }
 
 export function TestScreen({
+  showScrollOffset,
   onSwitch,
   onSwitchEnrichedText,
 }: TestScreenProps) {
@@ -115,9 +117,14 @@ export function TestScreen({
             onSelectImage={editor.openImageModal}
             layout="grid"
           />
-          <Text testID="scroll-offset-output" style={styles.scrollOffsetOutput}>
-            Scroll offset: {scrollOffset.toFixed(2)}
-          </Text>
+          {showScrollOffset && (
+            <Text
+              testID="scroll-offset-output"
+              style={styles.scrollOffsetOutput}
+            >
+              Scroll offset: {scrollOffset.toFixed(2)}
+            </Text>
+          )}
         </View>
         <View style={styles.buttonRow}>
           <Button
@@ -219,7 +226,6 @@ const styles = StyleSheet.create({
   editorInput: {
     marginTop: 24,
     width: '100%',
-    minHeight: 50,
     maxHeight: 180,
     backgroundColor: 'gainsboro',
     fontSize: 18,
