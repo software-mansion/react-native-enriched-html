@@ -95,7 +95,9 @@ export function TestScreen({
             onBlur={editor.handleBlurEvent}
             onScroll={(e) => {
               editor.handleScroll(e.nativeEvent);
-              setScrollOffset(e.nativeEvent.contentOffset.y);
+              if (showScrollOffset) {
+                setScrollOffset(e.nativeEvent.contentOffset.y);
+              }
             }}
             onChangeSelection={(e) =>
               editor.handleSelectionChangeEvent(e.nativeEvent)
