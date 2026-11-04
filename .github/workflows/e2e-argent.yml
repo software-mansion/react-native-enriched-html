@@ -6,6 +6,13 @@
 #   gh workflow run e2e-argent.yml --ref <branch>
 # Only one run can hold the machine at a time. A run that finds it busy waits,
 # and its log names the run that most likely holds it.
+#
+# Flow (see .argent/README.md):
+#   app-cache    (ubuntu)  hash the native code, look for a cached Debug .app
+#   build-ios-app (macos)  only on a cache miss: build the .app and cache it
+#   e2e-tests    (ubuntu)  restore the .app, start Metro, run the tests
+# The JS bundle comes from Metro at test time, so JS-only and test-only
+# changes reuse the cached .app and need no macOS runner.
 name: E2E (Argent Cloud)
 
 on:
@@ -23,18 +30,80 @@ on:
         description: 'How long to wait for a free Argent Cloud machine'
         type: number
         default: 30
+  # Keeps the cached .app of main fresh, so branches start with a cache hit.
+  # Builds only; the tests run on workflow_dispatch alone.
+  push:
+    branches: [main]
+    paths:
+      - 'ios/**'
+      - 'cpp/**'
+      - '*.podspec'
+      - 'Package.swift'
+      - 'src/spec/**'
+      - 'package.json' # codegenConfig
+      - 'react-native.config.js'
+      - 'yarn.lock'
+      - 'apps/example/ios/**'
+      - 'apps/example/assets/**'
+      - 'apps/example/react-native.config.js'
+      - '.argent/scripts/build-ios-app.sh'
+      - '.github/workflows/e2e-argent.yml'
 
 permissions:
   contents: read
   actions: read # lets the acquire step name the run that holds the machine
 
+env:
+  XCODE_VERSION: '26.3'
+  # Bump to throw away every cached .app (for example after a change to how it is built).
+  APP_CACHE_VERSION: 'v1'
+  # Where the cached .app lives in the workspace. Save and restore must use the same path.
+  APP_DIR: .argent/app
+
 jobs:
-  test-e2e-ios-remote:
-    runs-on: macos-26
-    timeout-minutes: 150
+  app-cache:
+    name: Look up the cached app
+    runs-on: ubuntu-latest
+    outputs:
+      key: ${{ steps.key.outputs.key }}
+      hit: ${{ steps.lookup.outputs.cache-hit }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+
+      # Everything that changes the native build. Keep in sync with `paths` above.
+      - name: Fingerprint the native code
+        id: key
+        env:
+          NATIVE_HASH: ${{ hashFiles('ios/**', 'cpp/**', '*.podspec', 'Package.swift', 'src/spec/**', 'package.json', 'react-native.config.js', 'yarn.lock', 'apps/example/ios/**', '!apps/example/ios/Pods/**', '!apps/example/ios/build/**', 'apps/example/assets/**', 'apps/example/react-native.config.js', '.argent/scripts/build-ios-app.sh') }}
+        run: echo "key=argent-ios-app-${APP_CACHE_VERSION}-xcode${XCODE_VERSION}-${NATIVE_HASH}" >> "$GITHUB_OUTPUT"
+
+      - name: Look up the cache
+        id: lookup
+        uses: actions/cache/restore@v5
+        with:
+          path: ${{ env.APP_DIR }}
+          key: ${{ steps.key.outputs.key }}
+          lookup-only: true
+          enableCrossOsArchive: true
+
+      - name: Report
+        run: |
+          if [ "${{ steps.lookup.outputs.cache-hit }}" = "true" ]; then
+            echo "Native code unchanged: reusing the cached app (${{ steps.key.outputs.key }}). No macOS build." | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No cached app for this native code (${{ steps.key.outputs.key }}): building it on macOS." | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
+
+  build-ios-app:
+    name: Build the app (cache miss only)
+    needs: app-cache
+    if: needs.app-cache.outputs.hit != 'true'
+    runs-on: macos-26
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
 
       - name: Setup
         uses: ./.github/actions/setup
@@ -42,19 +111,71 @@ jobs:
       - name: Set up Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: '26.3'
+          xcode-version: ${{ env.XCODE_VERSION }}
 
-      # Build before acquiring, so the job does not hold the machine during the build.
-      - name: Build example app for the simulator
+      - name: Build the Debug app for the simulator
         run: |
           APP_PATH=$(.argent/scripts/build-ios-app.sh | grep '^APP_PATH=' | cut -d= -f2-)
-          echo "APP_PATH=$APP_PATH" >> "$GITHUB_ENV"
+          mkdir -p "$APP_DIR"
+          ditto "$APP_PATH" "$APP_DIR/EnrichedTextInputExample.app"
+
+      - name: Save the app to the cache
+        uses: actions/cache/save@v5
+        with:
+          path: ${{ env.APP_DIR }}
+          key: ${{ needs.app-cache.outputs.key }}
+          enableCrossOsArchive: true
+
+  e2e-tests:
+    name: Run the e2e tests on Argent Cloud
+    needs: [app-cache, build-ios-app]
+    if: >-
+      always() && github.event_name == 'workflow_dispatch' &&
+      needs.app-cache.result == 'success' &&
+      (needs.build-ios-app.result == 'success' || needs.build-ios-app.result == 'skipped')
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      # Simulator on the Argent Cloud machine. Snapshot baselines belong to this
+      # runtime: when you change it, re-record them with update-baselines.
+      IOS_VERSION: '26.5'
+      IOS_DEVICE_TYPE: com.apple.CoreSimulator.SimDeviceType.iPhone-17
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: Restore the app from the cache
+        uses: actions/cache/restore@v5
+        with:
+          path: ${{ env.APP_DIR }}
+          key: ${{ needs.app-cache.outputs.key }}
+          enableCrossOsArchive: true
+          fail-on-cache-miss: true
 
       - name: Install Argent
         run: npm install -g @swmansion/argent@0.31.0
 
       - name: Install sim-remote
         uses: software-mansion-labs/argent-cloud-actions/install@fa197d08fb72476f6a93d499ce3479b1f5bd7618 # v1.0.0
+
+      # The Debug app loads its JS bundle from Metro. run-tests.sh opens a
+      # reverse tunnel, so the hosted simulator reaches this Metro on port 8081.
+      - name: Start Metro
+        run: |
+          nohup yarn example start > metro.log 2>&1 &
+          for _ in $(seq 1 60); do
+            curl -sf http://localhost:8081/status | grep -q packager-status:running && break
+            sleep 2
+          done
+          curl -sf http://localhost:8081/status | grep -q packager-status:running \
+            || { echo "::error title=Metro::Metro did not start"; cat metro.log; exit 1; }
+          # Build the bundle once now, so the first app launch does not wait for it.
+          curl -sf --max-time 600 -o /dev/null "http://localhost:8081/index.bundle?platform=ios&dev=true&minify=false" \
+            || { echo "::error title=Metro::Metro could not build the JS bundle"; tail -50 metro.log; exit 1; }
+          echo "Metro is running and the bundle is built."
 
       - name: Acquire the Argent Cloud machine
         run: .argent/scripts/acquire-machine.sh
@@ -68,7 +189,7 @@ jobs:
           TESTS: ${{ inputs.tests }}
           UPDATE_BASELINES: ${{ inputs.update-baselines }}
         run: |
-          ARGS=(--app "$APP_PATH")
+          ARGS=(--app "$APP_DIR/EnrichedTextInputExample.app" --metro-port 8081)
           [ "$UPDATE_BASELINES" = "true" ] && ARGS+=(--update-baselines)
           read -r -a TEST_ARGS <<< "$TESTS"
           .argent/scripts/run-tests.sh --platform ios-remote "${ARGS[@]}" ${TEST_ARGS[@]+"${TEST_ARGS[@]}"}
@@ -76,14 +197,20 @@ jobs:
       # Also runs when the job fails or is cancelled, so the machine goes back to the team.
       - name: Release the Argent Cloud machine
         if: always()
-        run: sim-remote logout || true
+        run: |
+          sim-remote logout || true
+          # Also stop the background daemon, so the runner has no orphan to kill.
+          sim-remote daemon stop || true
 
       - name: Upload failure artifacts
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: argent-e2e-artifacts
-          path: .argent/artifacts/
+          path: |
+            .argent/artifacts/
+            metro.log
+          if-no-files-found: ignore
           retention-days: 7
 
       - name: Pack new baselines
@@ -103,7 +230,7 @@ jobs:
 
       - name: Upload new baselines
         if: always() && inputs.update-baselines
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: argent-baselines
           path: argent-baselines.tgz

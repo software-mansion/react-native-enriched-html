@@ -60,7 +60,7 @@ explain_busy() {
   local runs=""
   if [ -n "${GH_TOKEN:-}" ] && [ -n "${GITHUB_REPOSITORY:-}" ] && command -v gh >/dev/null 2>&1; then
     runs=$(gh run list -R "$GITHUB_REPOSITORY" --workflow e2e-argent.yml --status in_progress \
-      --json databaseId,number,headBranch,startedAt,url \
+      --event workflow_dispatch --json databaseId,number,headBranch,startedAt,url \
       --jq ".[] | select(.databaseId != ${GITHUB_RUN_ID:-0}) | \"#\(.number) on \(.headBranch), started \(.startedAt): \(.url)\"" \
       2>/dev/null || true)
   fi

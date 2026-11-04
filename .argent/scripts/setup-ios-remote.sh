@@ -6,7 +6,9 @@
 # `DEVICE_ID=remote:<UDID>`, the id that `argent e2e run --device` takes.
 #
 # Environment overrides:
-#   IOS_VERSION        iOS runtime of the simulator (default 26.2, same as Maestro)
+#   IOS_VERSION        iOS runtime of the simulator (default 26.5). Pinned: snapshot
+#                      baselines belong to one runtime, so a machine without it
+#                      fails the run instead of using another one.
 #   IOS_DEVICE_TYPE    simctl device type (default iPhone 17)
 
 set -euo pipefail
@@ -14,10 +16,8 @@ set -euo pipefail
 log() { echo "$@" >&2; }
 die() { log "Error: $*"; exit 1; }
 
-IOS_VERSION="${IOS_VERSION:-26.2}"
+IOS_VERSION="${IOS_VERSION:-26.5}"
 IOS_DEVICE_TYPE="${IOS_DEVICE_TYPE:-com.apple.CoreSimulator.SimDeviceType.iPhone-17}"
-RUNTIME="com.apple.CoreSimulator.SimRuntime.iOS-${IOS_VERSION//./-}"
-DEVICE_NAME="iPhone17-iOS${IOS_VERSION}-Enriched"
 
 command -v sim-remote >/dev/null 2>&1 || die "sim-remote not found on PATH"
 
@@ -42,13 +42,25 @@ find_udid() {
   ' "$1"
 }
 
+RUNTIME="com.apple.CoreSimulator.SimRuntime.iOS-${IOS_VERSION//./-}"
 # Capture first: under pipefail, `grep -q` closing the pipe early fails the pipeline.
 RUNTIMES="$(sim-remote simctl list runtimes)"
 if ! grep -q "$RUNTIME" <<<"$RUNTIMES"; then
-  log "Error: the machine has no iOS $IOS_VERSION runtime. Available runtimes:"
+  log "Available runtimes:"
   log "$RUNTIMES"
-  die "pick one with IOS_VERSION=<version>. Baselines are tied to the runtime, so re-record them when you change it."
+  msg="The Argent Cloud machine has no iOS $IOS_VERSION runtime, and the e2e tests are pinned to it because snapshot baselines belong to one runtime. To move to a runtime from the list above, set IOS_VERSION in e2e-argent.yml and re-record the baselines with update-baselines."
+  if [ "${GITHUB_ACTIONS:-}" = "true" ]; then echo "::error title=Argent Cloud::$msg" >&2; fi
+  die "$msg"
 fi
+
+DEVICE_TYPES="$(sim-remote simctl list devicetypes)"
+if ! grep -q "$IOS_DEVICE_TYPE" <<<"$DEVICE_TYPES"; then
+  log "$DEVICE_TYPES"
+  die "the machine has no '$IOS_DEVICE_TYPE' device type. Set IOS_DEVICE_TYPE in e2e-argent.yml to one from the list above."
+fi
+
+DEVICE_NAME="iPhone17-iOS${IOS_VERSION}-Enriched"
+log "Using $IOS_DEVICE_TYPE with iOS $IOS_VERSION"
 
 UDID="$(find_udid "$DEVICE_NAME")"
 if [ -z "$UDID" ]; then

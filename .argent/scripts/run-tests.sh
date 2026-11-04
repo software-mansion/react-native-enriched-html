@@ -16,6 +16,8 @@
 # Options:
 #   --update-baselines  Write snapshot baselines instead of comparing them.
 #   --app <path>        Install this .app instead of building one.
+#   --metro-port <port> Open a reverse tunnel so the simulator reaches Metro on
+#                       this port of the runner (needed for a Debug app).
 #   --output <dir>      Where failure screenshots and diffs go (default .argent/artifacts).
 #   test ...            E2E test files or directories. Defaults to every suite.
 #
@@ -35,6 +37,7 @@ SUITES="enrichedInput enrichedText"
 PLATFORM=""
 UPDATE_BASELINES=""
 APP_PATH=""
+METRO_PORT=""
 OUTPUT=".argent/artifacts"
 TARGETS=()
 
@@ -43,6 +46,7 @@ while [ $# -gt 0 ]; do
     --platform)         PLATFORM="$2"; shift 2 ;;
     --update-baselines) UPDATE_BASELINES="true"; shift ;;
     --app)              APP_PATH="$2"; shift 2 ;;
+    --metro-port)       METRO_PORT="$2"; shift 2 ;;
     --output)           OUTPUT="$2"; shift 2 ;;
     -*)                 echo "Error: unknown option $1" >&2; exit 2 ;;
     *)                  TARGETS+=("$1"); shift ;;
@@ -109,6 +113,11 @@ KEEPALIVE_PID=$!
 
 # A released machine is erased, so every run installs the app.
 install_app
+
+if [ -n "$METRO_PORT" ]; then
+  echo "=== Tunnelling port $METRO_PORT of the simulator to Metro on this runner ===" >&2
+  sim-remote reverse start "$UDID" "$METRO_PORT" >&2
+fi
 
 # --- pick the tests -----------------------------------------------------------
 

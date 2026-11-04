@@ -92,8 +92,9 @@ nitrogen/
 # Maestro screenshot diffs
 .maestro/**/*_diff.png
 
-# Argent e2e failure artifacts
+# Argent e2e: failure artifacts and the app restored from the CI cache
 .argent/artifacts/
+.argent/app/
 
 # Claude skills
 .claude/skills/*-internal.md

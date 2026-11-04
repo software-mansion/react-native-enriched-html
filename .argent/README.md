@@ -13,7 +13,7 @@ stays until the port is done.
   scripts/run-tests.sh               CI: simulator setup + install + run
   scripts/acquire-machine.sh         CI: Argent Cloud login, wait for a free machine
   scripts/setup-ios-remote.sh        CI: boot the simulator on that machine
-  scripts/build-ios-app.sh           Release simulator build (JS bundle embedded)
+  scripts/build-ios-app.sh           CI: Debug simulator build (JS comes from Metro)
 ```
 
 ## Argent Cloud runs only in CI
@@ -50,6 +50,31 @@ or is cancelled.
 run `tar -xzf argent-baselines.tgz` at the repo root, review the images and commit them.
 
 Failure screenshots and snapshot diffs are in the `argent-e2e-artifacts` artifact.
+
+### How the app is built and cached
+
+The workflow has three jobs:
+
+1. **Look up the cached app** (Ubuntu). Hashes every file that affects the native build:
+   `ios/`, `cpp/`, the podspec, `src/spec/` and the root `package.json` (codegen), `apps/example/ios/` (with
+   `Podfile.lock`), the example's assets, `yarn.lock`, the RN config files and
+   `build-ios-app.sh`. The cache key is `argent-ios-app-<APP_CACHE_VERSION>-xcode<XCODE_VERSION>-<hash>`.
+2. **Build the app** (macOS). Runs only when no cache entry has that key: builds a
+   Debug simulator `.app` and saves it to the GitHub Actions cache.
+3. **Run the e2e tests** (Ubuntu). Restores the `.app`, starts Metro on the runner, and
+   runs the tests. `run-tests.sh` opens a reverse tunnel so the hosted simulator loads the
+   JS bundle from that Metro.
+
+So a change to JS or to the tests reuses the cached app and needs no macOS runner. A
+change to native code builds once, and later runs with the same native code reuse it.
+
+The cache is the repository's GitHub Actions cache (Settings > Actions > Caches, or
+`gh cache list`). A run can read entries saved on its own branch and on `main`. Every push
+to `main` that touches native code builds and caches the app for `main`, so a new branch
+starts with a hit until it changes native code itself. GitHub evicts entries that are
+unused for 7 days, and the oldest ones when the repository passes its cache size limit.
+To force a rebuild, bump `APP_CACHE_VERSION` in the workflow or delete the entry with
+`gh cache delete <key>`.
 
 ## Writing tests
 
