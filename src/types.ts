@@ -814,7 +814,7 @@ export interface EnrichedTextInputProps extends Omit<ViewProps, 'children'> {
    */
   onPasteImages?: (e: NativeSyntheticEvent<OnPasteImagesEvent>) => void;
 
-  /** Called when the user scrolls the editor content. */
+  /** Called when the inputs content is scrolled by the user or programmatically. */
   onScroll?: (e: ScrollEvent) => void;
 
   /**
