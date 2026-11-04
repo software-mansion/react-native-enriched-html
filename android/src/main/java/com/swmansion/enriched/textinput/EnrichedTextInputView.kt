@@ -341,7 +341,7 @@ class EnrichedTextInputView :
     val dispatcher = UIManagerHelper.getEventDispatcher(reactContext)
 
     val dipHorizontal = PixelUtil.toDIPFromPixel(horiz.toFloat())
-    val dipVertical = PixelUtil.toDIPFromPixel(horiz.toFloat())
+    val dipVertical = PixelUtil.toDIPFromPixel(vert.toFloat())
 
     dispatcher?.dispatchEvent(
       OnInputScrollEvent(
