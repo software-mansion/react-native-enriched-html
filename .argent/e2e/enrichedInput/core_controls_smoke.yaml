@@ -1,19 +1,16 @@
-# Port of .maestro/enrichedInput/flows/core_controls_smoke.yaml
 steps:
   - echo: Open the EnrichedTextInput test screen
   - launch: swmansion.enriched.example
   - tap: { id: toggle-screen-button }
-  - await: { visible: { id: editor-input } }
+  - await: { visible: { id: blur-button } }
   - await: { idle: true }
 
   - echo: Editor controls are on screen
+  - assert: { visible: { id: editor-input } }
   - assert: { visible: { id: focus-button } }
   - assert: { visible: { id: blur-button } }
   - assert: { visible: { id: set-value-button } }
 
-  # The toolbar is a horizontal ScrollView, so the buttons past the right edge
-  # are not visible. `exists` checks that they are rendered, which is what the
-  # Maestro assertVisible checked in practice.
   - echo: Every toolbar button is rendered
   - assert: { exists: { id: toolbar-bold } }
   - assert: { exists: { id: toolbar-italic } }

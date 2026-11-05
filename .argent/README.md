@@ -1,9 +1,9 @@
 # Argent e2e tests
 
-Mobile e2e tests that run with [Argent](https://docs.swmansion.com/argent/docs/features/e2e),
-on a hosted iOS simulator from [Argent Cloud](https://docs.swmansion.com/argent/docs/cloud/fundamentals/getting-started)
-or on a local simulator or emulator. They replace the Maestro suite in `.maestro/`, which
-stays until the port is done.
+Mobile e2e tests that run with [Argent](https://docs.swmansion.com/argent/docs/features/e2e)
+on a hosted iOS simulator from [Argent Cloud](https://docs.swmansion.com/argent/docs/cloud/fundamentals/getting-started),
+in GitHub Actions. They replace the Maestro suite in `.maestro/`, which stays until the port
+is done.
 
 ```
 .argent/
@@ -101,16 +101,40 @@ To force a rebuild, bump `APP_CACHE_VERSION` in the workflow or delete the entry
 ## Writing tests
 
 See the [E2E YAML reference](https://docs.swmansion.com/argent/docs/reference/e2e-yaml).
-Rules of thumb for this repo:
+Test files hold steps and `echo` labels only. How to run, record or port them belongs in
+this README, not in comments in the YAML.
 
-- Start every test with `launch: swmansion.enriched.example` and open the screen with
-  `tap: { id: toggle-screen-button }`.
-- Type into the editor with `tool: keyboard` (`args: { text: ... }` or `args: { key: enter }`),
-  not `type:`. `type:` taps the centre of the field first, which moves the caret.
-- After a screen change, `await: { visible: ... }` then `await: { idle: true }`.
-- Snapshots: `snapshot: { name: ..., cropOn: { id: editor-input } }`, after a tap on
-  `blur-button`. Review each new baseline before you commit it.
-- Platform-only steps go in `when: { platform: ios }` / `when: { platform: android }`.
+Rules for this repo:
+
+- **Opening the test screen.** Start with `launch: swmansion.enriched.example`, then
+  `tap: { id: toggle-screen-button }`, then `await: { visible: { id: blur-button } }` and
+  `await: { idle: true }`. Prove the screen with `blur-button`, not `editor-input`: the
+  start screen (DevScreen) has an `editor-input` too, so it proves nothing.
+- **Typing into the editor.** Use `tool: keyboard` with `args: { text: ... }` or
+  `args: { key: enter }` / `{ key: backspace }`. It types into whatever has focus, like
+  Maestro's `inputText`. Do not use `type:`: it taps the centre of its target first, which
+  moves the caret inside the editor.
+- **Toolbar buttons.** The toolbar is a horizontal scroll view, so the buttons past the right
+  edge are rendered but not visible. Check them with `assert: { exists: ... }`. Tapping one
+  that is off screen needs a `scroll-to:` first.
+- **Snapshots.** Tap `blur-button`, wait with `await: { idle: true }`, then
+  `snapshot: { name: ..., cropOn: { id: editor-input } }`. That is what Maestro's
+  `capture_or_assert_screenshot` subflow did. Baselines are written to
+  `<suite>/__baselines__/<test>/` and belong to the pinned simulator (`IOS_VERSION` and
+  `IOS_DEVICE_TYPE` in the workflow).
+- **Recording a baseline.** A new snapshot step fails until it has a baseline. Record it with
+  `yarn e2e --update-baselines <test file>`, review the images, commit them, then run the
+  test normally once to see it pass.
+- **Platform-only steps** go in `when: { platform: ios }` / `when: { platform: android }`.
+
+## Ported tests
+
+| Argent test                                  | Maestro source                                        | Baseline |
+| -------------------------------------------- | ----------------------------------------------------- | -------- |
+| `enrichedInput/core_controls_smoke.yaml`     | `.maestro/enrichedInput/flows/core_controls_smoke.yaml` | none needed |
+| `enrichedInput/inline_styles_visual.yaml`    | `.maestro/enrichedInput/flows/inline_styles_visual.yaml` | not recorded yet |
+
+Add a row for each test you port, and remove the Maestro flow once its Argent test passes in CI.
 
 ## Porting Maestro flows
 

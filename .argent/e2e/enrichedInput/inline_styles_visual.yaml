@@ -1,16 +1,8 @@
-# Port of .maestro/enrichedInput/flows/inline_styles_visual.yaml
-#
-# Text goes in with `tool: keyboard`, not `type:`. `type:` taps the centre of
-# its target first, which would move the caret inside the editor. This matches
-# Maestro's inputText, which types into whatever has focus.
-#
-# The baseline lives in __baselines__/inline_styles_visual/. Record and apply it with
-#   yarn e2e --update-baselines .argent/e2e/enrichedInput/inline_styles_visual.yaml
 steps:
   - echo: Open the EnrichedTextInput test screen
   - launch: swmansion.enriched.example
   - tap: { id: toggle-screen-button }
-  - await: { visible: { id: editor-input } }
+  - await: { visible: { id: blur-button } }
   - await: { idle: true }
 
   - tap: { id: editor-input }
@@ -55,8 +47,6 @@ steps:
     args: { text: "code" }
   - tap: { id: toolbar-inline-code }
 
-  # Same as the Maestro capture_or_assert_screenshot subflow: blur, then
-  # compare the editor only.
   - echo: Compare the editor with the baseline
   - tap: { id: blur-button }
   - await: { idle: true }
