@@ -19,13 +19,13 @@ object MentionBackgroundDrawer {
 
   // Must be called with the canvas translated to the layout origin, before the text is drawn.
   fun draw(
-          canvas: Canvas,
-          layout: Layout,
-          text: Spanned,
-          style: EnrichedStyle,
-          backgroundColorFor: (EnrichedMentionSpan, MentionStyle) -> Int = { _, mentionStyle ->
-            mentionStyle.backgroundColor
-          }, // lambda to handle press state bg color for enrichedText
+    canvas: Canvas,
+    layout: Layout,
+    text: Spanned,
+    style: EnrichedStyle,
+    backgroundColorFor: (EnrichedMentionSpan, MentionStyle) -> Int = { _, mentionStyle ->
+      mentionStyle.backgroundColor
+    }, // lambda to handle press state bg color for enrichedText
   ) {
     val spans = text.getSpans(0, text.length, EnrichedMentionSpan::class.java)
     for (span in spans) {
@@ -42,11 +42,11 @@ object MentionBackgroundDrawer {
   }
 
   private fun drawSpanBackground(
-          canvas: Canvas,
-          layout: Layout,
-          start: Int,
-          end: Int,
-          radius: Float,
+    canvas: Canvas,
+    layout: Layout,
+    start: Int,
+    end: Int,
+    radius: Float,
   ) {
     val firstLine = layout.getLineForOffset(start)
     val lastLine = layout.getLineForOffset(end - 1)
@@ -56,19 +56,19 @@ object MentionBackgroundDrawer {
       val isLast = line == lastLine
 
       val segmentStart =
-              if (isFirst) layout.getPrimaryHorizontal(start) else layout.getLineLeft(line)
+        if (isFirst) layout.getPrimaryHorizontal(start) else layout.getLineLeft(line)
       val segmentEnd =
-              if (isLast) {
-                layout.getPrimaryHorizontal(end)
-              } else {
-                layout.getLineRight(line)
-              }
+        if (isLast) {
+          layout.getPrimaryHorizontal(end)
+        } else {
+          layout.getLineRight(line)
+        }
 
       rect.set(
-              segmentStart,
-              layout.getLineTop(line).toFloat(),
-              segmentEnd,
-              layout.getLineBottom(line).toFloat(),
+        segmentStart,
+        layout.getLineTop(line).toFloat(),
+        segmentEnd,
+        layout.getLineBottom(line).toFloat(),
       )
 
       // Only round the outer ends of a wrapped mention.
