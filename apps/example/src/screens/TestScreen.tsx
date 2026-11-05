@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet, ScrollView, Text } from 'react-native';
 import { EnrichedTextInput } from 'react-native-enriched-html';
 import { Button } from '../components/Button';
 import { Toolbar } from '../components/Toolbar';
@@ -17,16 +17,19 @@ import {
 } from '../constants/editorConfig';
 
 interface TestScreenProps {
+  showScrollOffset: boolean;
   onSwitch: () => void;
   onSwitchEnrichedText: () => void;
 }
 
 export function TestScreen({
+  showScrollOffset,
   onSwitch,
   onSwitchEnrichedText,
 }: TestScreenProps) {
   const editor = useEditorState();
   const [sizeMode, setSizeMode] = useState<'base' | 'max'>('base');
+  const [scrollOffset, setScrollOffset] = useState(0);
   const keyboardHeight = useKeyboardHeight();
 
   return (
@@ -91,6 +94,12 @@ export function TestScreen({
             onEndMention={editor.handleEndMention}
             onFocus={editor.handleFocusEvent}
             onBlur={editor.handleBlurEvent}
+            onScroll={(e) => {
+              editor.handleScroll(e.nativeEvent);
+              if (showScrollOffset) {
+                setScrollOffset(e.nativeEvent.contentOffset.y);
+              }
+            }}
             onChangeSelection={(e) =>
               editor.handleSelectionChangeEvent(e.nativeEvent)
             }
@@ -111,6 +120,14 @@ export function TestScreen({
             onSelectImage={editor.openImageModal}
             layout="grid"
           />
+          {showScrollOffset && (
+            <Text
+              testID="scroll-offset-output"
+              style={styles.scrollOffsetOutput}
+            >
+              Scroll offset: {scrollOffset.toFixed(2)}
+            </Text>
+          )}
         </View>
         <HtmlSection currentHtml={editor.currentHtml} />
         <View style={styles.buttonRow}>
@@ -222,5 +239,14 @@ const styles = StyleSheet.create({
   },
   editorInputMax: {
     maxHeight: 400,
+  },
+  scrollOffsetOutput: {
+    width: '100%',
+    backgroundColor: 'gainsboro',
+    padding: 8,
+    color: 'rgb(0, 26, 114)',
+    fontFamily: 'Nunito-Regular',
+    fontSize: 16,
+    textAlign: 'center',
   },
 });

@@ -1,5 +1,6 @@
 package swmansion.enriched.example
 
+import android.os.Bundle
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
@@ -18,5 +19,14 @@ class MainActivity : ReactActivity() {
    * which allows you to enable New Architecture with a single boolean flags [fabricEnabled]
    */
   override fun createReactActivityDelegate(): ReactActivityDelegate =
-      DefaultReactActivityDelegate(this, mainComponentName, fabricEnabled)
+      object : DefaultReactActivityDelegate(this, mainComponentName, fabricEnabled) {
+        // Forwards Maestro launch arguments (intent extras) to the JS app as initial props
+        override fun getLaunchOptions(): Bundle =
+            Bundle().apply {
+              putBoolean(
+                  "showScrollOffset",
+                  intent?.getBooleanExtra("showScrollOffset", false) ?: false,
+              )
+            }
+      }
 }

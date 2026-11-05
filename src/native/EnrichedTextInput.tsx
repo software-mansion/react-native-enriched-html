@@ -90,6 +90,7 @@ export const EnrichedTextInput = ({
   onChangeSelection,
   onKeyPress,
   onSubmitEditing,
+  onScroll,
   returnKeyType,
   returnKeyLabel,
   submitBehavior,
@@ -391,6 +392,7 @@ export const EnrichedTextInput = ({
       onInputBlur={onBlur}
       onChangeText={onChangeText}
       onChangeHtml={onChangeHtml}
+      onInputScroll={onScroll}
       isOnChangeHtmlSet={onChangeHtml !== undefined}
       isOnChangeTextSet={onChangeText !== undefined}
       onChangeState={onChangeState}
