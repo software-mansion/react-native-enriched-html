@@ -70,31 +70,40 @@ static void const *kInputKey = &kInputKey;
                         origin:(CGPoint)origin
               visibleCharRange:(NSRange)visibleCharRange {
   NSTextStorage *textStorage = host.textView.textStorage;
+  NSRange wholeText = NSMakeRange(0, textStorage.length);
   NSMutableArray<NSValue *> *ranges = [[NSMutableArray alloc] init];
-  [textStorage enumerateAttribute:MentionRoundedBackgroundAttributeName
+  [textStorage enumerateAttribute:@"EnrichedMention"
                           inRange:visibleCharRange
                           options:0
                        usingBlock:^(id _Nullable value, NSRange range,
                                     BOOL *_Nonnull stop) {
-                         if (value != nullptr && range.length > 0) {
-                           [ranges addObject:[NSValue valueWithRange:range]];
+                         if (value == nullptr || range.length == 0) {
+                           return;
                          }
+                         NSRange fullRange;
+                         [textStorage attribute:@"EnrichedMention"
+                                           atIndex:range.location
+                             longestEffectiveRange:&fullRange
+                                           inRange:wholeText];
+                         [ranges addObject:[NSValue valueWithRange:fullRange]];
                        }];
 
   for (NSValue *rangeValue in ranges) {
     NSRange range = [rangeValue rangeValue];
-    MentionParams *params = [textStorage attribute:@"EnrichedMention"
-                                           atIndex:range.location
-                                    effectiveRange:nullptr];
-    if (params == nullptr) {
-      continue;
-    }
-    MentionStyleProps *props =
-        [host.config mentionStylePropsForIndicator:params.indicator];
     UIColor *bgColor =
         [textStorage attribute:MentionRoundedBackgroundAttributeName
                        atIndex:range.location
                 effectiveRange:nullptr];
+    // mentions without a border radius are drawn natively via
+    // NSBackgroundColorAttributeName
+    if (bgColor == nullptr) {
+      continue;
+    }
+    MentionParams *params = [textStorage attribute:@"EnrichedMention"
+                                           atIndex:range.location
+                                    effectiveRange:nullptr];
+    MentionStyleProps *props =
+        [host.config mentionStylePropsForIndicator:params.indicator];
     UIFont *font = [textStorage attribute:NSFontAttributeName
                                   atIndex:range.location
                            effectiveRange:nullptr];
