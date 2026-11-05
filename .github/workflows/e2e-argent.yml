@@ -8,11 +8,12 @@
 # and its log names the run that most likely holds it.
 #
 # Flow (see .argent/README.md):
-#   app-cache    (ubuntu)  hash the native code, look for a cached Debug .app
+#   app-cache    (ubuntu)  hash the native code, look for a cached Release .app
 #   build-ios-app (macos)  only on a cache miss: build the .app and cache it
-#   e2e-tests    (ubuntu)  restore the .app, start Metro, run the tests
-# The JS bundle comes from Metro at test time, so JS-only and test-only
-# changes reuse the cached .app and need no macOS runner.
+#   e2e-tests    (ubuntu)  restore the .app, repack it with this commit's JS,
+#                          run the tests
+# Repacking rebuilds only the JS bundle, so JS-only and test-only changes
+# reuse the cached .app and need no macOS runner.
 name: E2E (Argent Cloud)
 
 on:
@@ -56,7 +57,7 @@ permissions:
 env:
   XCODE_VERSION: '26.3'
   # Bump to throw away every cached .app (for example after a change to how it is built).
-  APP_CACHE_VERSION: 'v1'
+  APP_CACHE_VERSION: 'v2'
   # Where the cached .app lives in the workspace. Save and restore must use the same path.
   APP_DIR: .argent/app
 
@@ -113,7 +114,7 @@ jobs:
         with:
           xcode-version: ${{ env.XCODE_VERSION }}
 
-      - name: Build the Debug app for the simulator
+      - name: Build the Release app for the simulator
         run: |
           APP_PATH=$(.argent/scripts/build-ios-app.sh | grep '^APP_PATH=' | cut -d= -f2-)
           mkdir -p "$APP_DIR"
@@ -161,21 +162,12 @@ jobs:
       - name: Install sim-remote
         uses: software-mansion-labs/argent-cloud-actions/install@fa197d08fb72476f6a93d499ce3479b1f5bd7618 # v1.0.0
 
-      # The Debug app loads its JS bundle from Metro. run-tests.sh opens a
-      # reverse tunnel, so the hosted simulator reaches this Metro on port 8081.
-      - name: Start Metro
+      # The cached app holds the JS of the commit it was built from. Rebuild the
+      # bundle from this checkout and swap it in (Hermes bytecode, as Xcode does).
+      - name: Repack the app with this commit's JS
         run: |
-          nohup yarn example start > metro.log 2>&1 &
-          for _ in $(seq 1 60); do
-            curl -sf http://localhost:8081/status | grep -q packager-status:running && break
-            sleep 2
-          done
-          curl -sf http://localhost:8081/status | grep -q packager-status:running \
-            || { echo "::error title=Metro::Metro did not start"; cat metro.log; exit 1; }
-          # Build the bundle once now, so the first app launch does not wait for it.
-          curl -sf --max-time 600 -o /dev/null "http://localhost:8081/index.bundle?platform=ios&dev=true&minify=false" \
-            || { echo "::error title=Metro::Metro could not build the JS bundle"; tail -50 metro.log; exit 1; }
-          echo "Metro is running and the bundle is built."
+          .argent/scripts/repack-ios-app.sh "$APP_DIR/EnrichedTextInputExample.app" \
+            "$RUNNER_TEMP/repacked/EnrichedTextInputExample.app"
 
       - name: Acquire the Argent Cloud machine
         run: .argent/scripts/acquire-machine.sh
@@ -189,7 +181,7 @@ jobs:
           TESTS: ${{ inputs.tests }}
           UPDATE_BASELINES: ${{ inputs.update-baselines }}
         run: |
-          ARGS=(--app "$APP_DIR/EnrichedTextInputExample.app" --metro-port 8081)
+          ARGS=(--app "$RUNNER_TEMP/repacked/EnrichedTextInputExample.app")
           [ "$UPDATE_BASELINES" = "true" ] && ARGS+=(--update-baselines)
           read -r -a TEST_ARGS <<< "$TESTS"
           .argent/scripts/run-tests.sh --platform ios-remote "${ARGS[@]}" ${TEST_ARGS[@]+"${TEST_ARGS[@]}"}
@@ -209,7 +201,6 @@ jobs:
           name: argent-e2e-artifacts
           path: |
             .argent/artifacts/
-            metro.log
             ~/.local/state/radon/logs/
           if-no-files-found: ignore
           retention-days: 7

@@ -1,0 +1,44 @@
+steps:
+  - echo: Open the EnrichedTextInput test screen
+  - launch: swmansion.enriched.example
+  - tap: { id: toggle-screen-button }
+  - await: { visible: { id: blur-button } }
+  - await: { idle: true }
+
+  - tap: { id: editor-input }
+
+  - echo: Blockquote with two lines
+  - scroll-to: { target: { id: toolbar-quote }, direction: down, within: { id: full-screen } }
+  - tap: { id: toolbar-quote }
+  - tool: keyboard
+    args: { text: "Quote 1" }
+  - tool: keyboard
+    args: { key: enter }
+  - tool: keyboard
+    args: { text: "Quote 2" }
+  - tool: keyboard
+    args: { key: enter }
+  - scroll-to: { target: { id: toolbar-quote }, direction: down, within: { id: full-screen } }
+  - tap: { id: toolbar-quote }
+
+  - echo: Normal paragraph
+  - tool: keyboard
+    args: { text: "Normal paragraph" }
+  - tool: keyboard
+    args: { key: enter }
+
+  - echo: Code block with two lines
+  - scroll-to: { target: { id: toolbar-code-block }, direction: down, within: { id: full-screen } }
+  - tap: { id: toolbar-code-block }
+  - tool: keyboard
+    args: { text: "Code 1" }
+  - tool: keyboard
+    args: { key: enter }
+  - tool: keyboard
+    args: { text: "Code 2" }
+
+  - echo: Compare the editor with the baseline
+  - tap: { id: blur-button }
+  - await: { idle: true }
+  - scroll-to: { target: { id: editor-input }, direction: up, within: { id: full-screen } }
+  - snapshot: { name: paragraph_styles_blocks, cropOn: { id: editor-input } }

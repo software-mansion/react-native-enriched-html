@@ -160,8 +160,8 @@ tests. Every run releases the machine at the end, even when it fails or is cance
 
 ### Artifacts
 
-- `argent-e2e-artifacts` (failed runs): failure screenshots and snapshot diffs, the Metro
-  log, and the `sim-remote` logs. Kept 7 days.
+- `argent-e2e-artifacts` (failed runs): failure screenshots and snapshot diffs, and the
+  `sim-remote` logs. Kept 7 days.
 - `argent-baselines--<time>Z--<branch>--run<N>` (runs with `update-baselines`): the
   baselines. Kept 14 days.
 
@@ -173,14 +173,31 @@ The workflow has three jobs:
    `ios/`, `cpp/`, the podspec, `src/spec/` and the root `package.json` (codegen), `apps/example/ios/` (with
    `Podfile.lock`), the example's assets, `yarn.lock`, the RN config files and
    `build-ios-app.sh`. The cache key is `argent-ios-app-<APP_CACHE_VERSION>-xcode<XCODE_VERSION>-<hash>`.
-2. **Build the app** (macOS). Runs only when no cache entry has that key: builds a
-   Debug simulator `.app` and saves it to the GitHub Actions cache.
-3. **Run the e2e tests** (Ubuntu). Restores the `.app`, starts Metro on the runner, and
-   runs the tests. `run-tests.sh` opens a reverse tunnel so the hosted simulator loads the
-   JS bundle from that Metro.
+2. **Build the app** (macOS). Runs only when no cache entry has that key: builds an
+   unsigned Release simulator `.app` and saves it to the GitHub Actions cache.
+3. **Run the e2e tests** (Ubuntu). Restores the `.app` and repacks it with this commit's JS
+   (`repack-ios-app.sh`), then runs the tests on it.
 
-So a change to JS or to the tests reuses the cached app and needs no macOS runner. A
-change to native code builds once, and later runs with the same native code reuse it.
+**Repacking** is the same idea as [Expo's repack](https://docs.expo.dev/build-reference/repack/),
+done with plain React Native because the example app does not use Expo. The cached app holds
+the JS bundle of the commit it was built from. The script rebuilds the bundle from the
+checkout exactly as Xcode's "Bundle React Native code and images" phase does (Metro, then
+`hermesc` from React Native's `hermes-compiler` package, which has a Linux build), and swaps
+it and the JS image assets into a copy of the app. It refuses to produce an app that would
+not run:
+
+- The new Hermes bytecode must have the same version as the bundle Xcode put in the app. If
+  the npm `hermes-compiler` and the app's Hermes engine ever disagree, the step fails and
+  says to rebuild the app (bump `APP_CACHE_VERSION`).
+- The app must be unsigned (`build-ios-app.sh` builds it so), because a signature seals the
+  bundle. Simulators run unsigned apps.
+- The app must not use React Native's `RCTUseAssetCatalog` image catalog, which only macOS
+  can compile.
+
+So a change to JS or to the tests reuses the cached app and needs no macOS runner, and every
+run still tests a Release build: the same JS engine mode as a shipped app, no Metro and no
+development overlays. A change to native code builds once, and later runs with the same
+native code reuse it.
 
 The cache is the repository's GitHub Actions cache (Settings > Actions > Caches, or
 `gh cache list`). A run can read entries saved on its own branch and on `main`. Every push
@@ -200,9 +217,10 @@ To force a rebuild, bump `APP_CACHE_VERSION` in the workflow or delete the entry
   scripts/e2e.mjs                    `yarn e2e`
   scripts/update-baselines.mjs       `yarn e2e:update-baselines`
   scripts/acquire-machine.sh         CI: Argent Cloud login, wait for a free machine
-  scripts/build-ios-app.sh           CI: Debug simulator build (JS comes from Metro)
+  scripts/build-ios-app.sh           CI: unsigned Release simulator build (macOS)
+  scripts/repack-ios-app.sh          CI: swap this commit's JS into the cached app
   scripts/setup-ios-remote.sh        CI: boot the simulator on the machine
-  scripts/run-tests.sh               CI: install the app, tunnel to Metro, run the tests
+  scripts/run-tests.sh               CI: install the app, run the tests
 ```
 
 ## Writing tests
@@ -221,6 +239,12 @@ Rules for this repo:
   `args: { key: enter }` / `{ key: backspace }`. It types into whatever has focus, like
   Maestro's `inputText`. Do not use `type:`: it taps the centre of its target first, which
   moves the caret inside the editor.
+- **If text gets the wrong styles.** A toolbar tap reaches the native editor through
+  JavaScript, while Argent types right away. The tests run without waits there, on the
+  assumption that the Release build is fast enough. If a snapshot shows styles landing on
+  the wrong words, put
+  `await: { idle: true }` after the toolbar taps and `tool: keyboard` steps around them.
+  `idle` reports a blinking caret as "a small part kept moving"; that warning is expected.
 - **Toolbar buttons.** On the test screen the toolbar is a grid inside the `full-screen`
   scroll view, below the editor. While the keyboard is up, and as the editor grows with
   text, its buttons can sit under the keyboard or below the screen. Argent does not scroll
@@ -238,8 +262,10 @@ Rules for this repo:
   `-crop-<hash>` when the snapshot has `cropOn` (the hash identifies the crop selector, so a
   changed `cropOn` gets a new baseline instead of being compared with the old one).
 - **Recording a baseline.** A new snapshot step fails until it has a baseline. Record it with
-  `yarn e2e --update-baselines <test file>`, review the images, commit them, then run the
-  test normally once to see it pass.
+  `yarn e2e --update-baselines <test file>`, then compare each image with the Maestro
+  screenshot of the same name in `.maestro/<suite>/screenshots/ios/`: the text and styles
+  must match (the rendering may differ slightly, the simulator does). Commit the images,
+  then run the test normally once to see it pass.
 - **Platform-only steps** go in `when: { platform: ios }` / `when: { platform: android }`.
 
 ## Ported tests
@@ -247,7 +273,8 @@ Rules for this repo:
 | Argent test                                  | Maestro source                                        | Baseline |
 | -------------------------------------------- | ----------------------------------------------------- | -------- |
 | `enrichedInput/core_controls_smoke.yaml`     | `.maestro/enrichedInput/flows/core_controls_smoke.yaml` | none needed |
-| `enrichedInput/inline_styles_visual.yaml`    | `.maestro/enrichedInput/flows/inline_styles_visual.yaml` | recorded |
+| `enrichedInput/inline_styles_visual.yaml`    | `.maestro/enrichedInput/flows/inline_styles_visual.yaml` | wrong, re-record (styles landed on the wrong words) |
+| `enrichedInput/paragraph_styles_blocks_visual.yaml` | `.maestro/enrichedInput/flows/paragraph_styles_blocks_visual.yaml` | not recorded yet |
 
 Add a row for each test you port, and remove the Maestro flow once its Argent test passes in CI.
 
