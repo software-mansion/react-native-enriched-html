@@ -116,11 +116,16 @@ Rules for this repo:
   `args: { key: enter }` / `{ key: backspace }`. It types into whatever has focus, like
   Maestro's `inputText`. Do not use `type:`: it taps the centre of its target first, which
   moves the caret inside the editor.
-- **Toolbar buttons.** The toolbar is a horizontal scroll view, so the buttons past the right
-  edge are rendered but not visible. Check them with `assert: { exists: ... }`. Tapping one
-  that is off screen needs a `scroll-to:` first.
-- **Snapshots.** Tap `blur-button`, wait with `await: { idle: true }`, then
-  `snapshot: { name: ..., cropOn: { id: editor-input } }`. That is what Maestro's
+- **Toolbar buttons.** On the test screen the toolbar is a grid inside the `full-screen`
+  scroll view, below the editor. While the keyboard is up, and as the editor grows with
+  text, its buttons can sit under the keyboard or below the screen. Argent does not scroll
+  on its own, so put
+  `scroll-to: { target: { id: toolbar-… }, direction: down, within: { id: full-screen } }`
+  before every toolbar tap; it does nothing when the button is already visible. To only
+  check that buttons are rendered, use `assert: { exists: ... }`.
+- **Snapshots.** Tap `blur-button`, wait with `await: { idle: true }`, bring the editor back
+  with `scroll-to: { target: { id: editor-input }, direction: up, within: { id: full-screen } }`,
+  then `snapshot: { name: ..., cropOn: { id: editor-input } }`. That is what Maestro's
   `capture_or_assert_screenshot` subflow did. Baselines are written to
   `<suite>/__baselines__/<test>/` and belong to the pinned simulator (`IOS_VERSION` and
   `IOS_DEVICE_TYPE` in the workflow).

@@ -10,44 +10,55 @@ steps:
     args: { text: "Plain " }
 
   - echo: Bold
+  - scroll-to: { target: { id: toolbar-bold }, direction: down, within: { id: full-screen } }
   - tap: { id: toolbar-bold }
   - tool: keyboard
     args: { text: "bold" }
+  - scroll-to: { target: { id: toolbar-bold }, direction: down, within: { id: full-screen } }
   - tap: { id: toolbar-bold }
   - tool: keyboard
     args: { text: " " }
 
   - echo: Italic
+  - scroll-to: { target: { id: toolbar-italic }, direction: down, within: { id: full-screen } }
   - tap: { id: toolbar-italic }
   - tool: keyboard
     args: { text: "italic" }
+  - scroll-to: { target: { id: toolbar-italic }, direction: down, within: { id: full-screen } }
   - tap: { id: toolbar-italic }
   - tool: keyboard
     args: { text: " " }
 
   - echo: Underline
+  - scroll-to: { target: { id: toolbar-underline }, direction: down, within: { id: full-screen } }
   - tap: { id: toolbar-underline }
   - tool: keyboard
     args: { text: "underline" }
+  - scroll-to: { target: { id: toolbar-underline }, direction: down, within: { id: full-screen } }
   - tap: { id: toolbar-underline }
   - tool: keyboard
     args: { text: " " }
 
   - echo: Strikethrough
+  - scroll-to: { target: { id: toolbar-strikethrough }, direction: down, within: { id: full-screen } }
   - tap: { id: toolbar-strikethrough }
   - tool: keyboard
     args: { text: "strike-through" }
+  - scroll-to: { target: { id: toolbar-strikethrough }, direction: down, within: { id: full-screen } }
   - tap: { id: toolbar-strikethrough }
   - tool: keyboard
     args: { text: " " }
 
   - echo: Inline code
+  - scroll-to: { target: { id: toolbar-inline-code }, direction: down, within: { id: full-screen } }
   - tap: { id: toolbar-inline-code }
   - tool: keyboard
     args: { text: "code" }
+  - scroll-to: { target: { id: toolbar-inline-code }, direction: down, within: { id: full-screen } }
   - tap: { id: toolbar-inline-code }
 
   - echo: Compare the editor with the baseline
   - tap: { id: blur-button }
   - await: { idle: true }
+  - scroll-to: { target: { id: editor-input }, direction: up, within: { id: full-screen } }
   - snapshot: { name: inline_styles, cropOn: { id: editor-input } }
