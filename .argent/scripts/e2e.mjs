@@ -14,6 +14,9 @@
 //   --ref <branch>            run another pushed branch instead of the current one
 //   --no-watch                start the run and exit
 //
+// While the run goes, the jobs and steps are redrawn every 10 s; their names
+// link to their logs. Ctrl-C or q stops following, the run itself goes on.
+//
 // Needs the GitHub CLI, logged in (gh auth login), and the branch pushed:
 // the workflow runs what is on GitHub, not your working tree.
 
@@ -193,6 +196,112 @@ function applyBaselines(repo, runId, conclusion) {
   }
 }
 
+// --- following the run ---------------------------------------------------------
+
+const POLL_MS = 10_000;
+
+// OSC 8 hyperlink: clickable in iTerm2, VS Code, Ghostty, WezTerm, Kitty and
+// others; terminals without support show the plain text.
+const link = (url, text) => (tty ? `\x1b]8;;${url}\x1b\\${text}\x1b]8;;\x1b\\` : text);
+
+function icon(item) {
+  if (item.status === 'in_progress') return c.yellow('*');
+  if (item.status !== 'completed') return c.dim('·');
+  if (item.conclusion === 'success') return c.green('✓');
+  if (item.conclusion === 'skipped' || item.conclusion === 'neutral') return c.dim('-');
+  if (item.conclusion === 'cancelled') return c.dim('×');
+  return c.red('X');
+}
+
+function elapsed(from, to) {
+  const start = Date.parse(from);
+  if (!start) return '';
+  const end = Date.parse(to) || Date.now();
+  const secs = Math.max(0, Math.round((end - start) / 1000));
+  return secs < 60 ? `${secs}s` : `${Math.floor(secs / 60)}m ${String(secs % 60).padStart(2, '0')}s`;
+}
+
+const fit = (text, max) => (text.length > max ? `${text.slice(0, max - 1)}…` : text);
+
+function renderLines(state, runUrl) {
+  const max = Math.max(20, (process.stdout.columns || 100) - 24);
+  const lines = [];
+  for (const job of state.jobs || []) {
+    const jobUrl = `${runUrl}/job/${job.databaseId}`;
+    const time = job.startedAt && job.status !== 'queued' ? c.dim(` ${elapsed(job.startedAt, job.completedAt)}`) : '';
+    const waiting = job.status === 'queued' || job.status === 'waiting' ? c.dim(' waiting for a runner') : '';
+    lines.push(`${icon(job)} ${link(jobUrl, c.bold(fit(job.name, max)))}${time}${waiting}`);
+    const failed = job.status === 'completed' && !['success', 'skipped', 'neutral'].includes(job.conclusion);
+    if (job.status === 'in_progress' || failed) {
+      for (const step of job.steps || []) {
+        if (job.status !== 'in_progress' && step.status !== 'completed') continue;
+        lines.push(`    ${icon(step)} ${link(`${jobUrl}#step:${step.number}:1`, fit(step.name, max - 4))}`);
+      }
+    }
+  }
+  return lines;
+}
+
+// Polls the run every 10 s and redraws its jobs and steps. Job and step names
+// link to their logs. Ctrl-C (or q) stops following; the run itself goes on.
+async function watchRun(repo, runId, runUrl) {
+  let stopped = false;
+  const stop = () => (stopped = true);
+  const interactive = tty && process.stdin.isTTY;
+  const onKey = (d) => (d.includes(3) || d.includes(113) ? stop() : null); // Ctrl-C, q
+  if (interactive) {
+    // Raw input: keys typed while watching do not land between the redrawn lines.
+    process.stdin.setRawMode(true);
+    process.stdin.resume();
+    process.stdin.on('data', onKey);
+    process.stdout.write('\x1b[?25l');
+  } else {
+    process.on('SIGINT', stop);
+  }
+  const restore = () => {
+    if (interactive) {
+      process.stdin.off('data', onKey);
+      process.stdin.setRawMode(false);
+      process.stdin.pause();
+      process.stdout.write('\x1b[?25h');
+    }
+  };
+  process.once('exit', restore);
+
+  console.log(`\n${c.bold('JOBS')} ${c.dim(`(refreshes every ${POLL_MS / 1000}s; Ctrl-C or q stops following, the run keeps going)`)}`);
+  let drawn = 0;
+  const printed = new Map();
+  let state = null;
+  while (!stopped) {
+    const json = tryRun('gh', ['run', 'view', runId, '-R', repo, '--json', 'status,conclusion,jobs']);
+    if (json) {
+      state = JSON.parse(json);
+      const lines = renderLines(state, runUrl);
+      if (tty) {
+        if (drawn) process.stdout.write(`\x1b[${drawn}A\x1b[J`);
+        const footer = c.dim(`updated ${new Date().toLocaleTimeString()}`);
+        process.stdout.write([...lines, footer].join('\n') + '\n');
+        drawn = lines.length + 1;
+      } else {
+        // Not a terminal (CI, a pipe): print each line once, when it changes.
+        for (const line of lines) {
+          const key = line.replace(/^\s*\S+\s/, '');
+          if (printed.get(key) !== line) {
+            printed.set(key, line);
+            console.log(line);
+          }
+        }
+      }
+      if (state.status === 'completed') break;
+    }
+    for (let t = 0; t < POLL_MS && !stopped; t += 200) await sleep(200);
+  }
+  restore();
+  process.off('exit', restore);
+  process.off('SIGINT', stop);
+  return { state, stopped };
+}
+
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
   const tests = normalizeTests(opts.tests);
@@ -225,16 +334,20 @@ async function main() {
   console.log(`Run: ${url}`);
   if (!opts.watch) return 0;
 
-  process.on('SIGINT', () => {}); // let gh run watch handle Ctrl-C, then say what happened
-  spawnSync('gh', ['run', 'watch', runId, '-R', ctx.repo, '--interval', '10'], { stdio: 'inherit' });
-
-  const state = JSON.parse(tryRun('gh', ['run', 'view', runId, '-R', ctx.repo, '--json', 'status,conclusion']) || '{}');
-  if (state.status !== 'completed') {
+  const { state, stopped } = await watchRun(ctx.repo, runId, url);
+  if (stopped || state?.status !== 'completed') {
     console.log(`\nStopped following. The run keeps going: ${url}\nCancel it with: gh run cancel ${runId} -R ${ctx.repo}`);
     return 130;
   }
   const conclusion = state.conclusion || 'unknown';
   console.log(conclusion === 'success' ? c.green(`\nThe run passed: ${url}`) : c.red(`\nThe run finished with "${conclusion}": ${url}`));
+  // Plain links too, for terminals that do not make the names clickable.
+  for (const job of state.jobs || []) {
+    if (job.status === 'completed' && !['success', 'skipped', 'neutral'].includes(job.conclusion)) {
+      const failedStep = (job.steps || []).find((st) => st.conclusion === 'failure');
+      console.log(`  ${job.name}${failedStep ? ` › ${failedStep.name}` : ''}: ${url}/job/${job.databaseId}${failedStep ? `#step:${failedStep.number}:1` : ''}`);
+    }
+  }
   if (conclusion !== 'success' && !opts.updateBaselines) {
     console.log(c.dim(`Failure screenshots and diffs: gh run download ${runId} -R ${ctx.repo} -n argent-e2e-artifacts`));
   }

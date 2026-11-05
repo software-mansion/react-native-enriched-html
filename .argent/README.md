@@ -27,7 +27,9 @@ emulator: one machine for every run keeps results, and baselines, comparable. No
 the key on their computer.
 
 To test a change, push your branch and run `yarn e2e`. It starts the workflow on your
-current branch, follows it in the terminal and exits with its result. It needs the GitHub CLI
+current branch, follows it in the terminal and exits with its result. While the run goes, its
+jobs and steps are redrawn every 10 seconds, and their names link to their logs on GitHub
+(Cmd-click in most terminals). Ctrl-C or `q` stops following; the run itself keeps going. It needs the GitHub CLI
 logged in (`gh auth login`), and it refuses to start when GitHub's copy of the branch is not
 your `HEAD`, because the workflow runs what is on GitHub.
 
