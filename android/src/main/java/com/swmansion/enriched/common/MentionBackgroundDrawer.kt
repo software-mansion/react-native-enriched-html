@@ -25,7 +25,7 @@ object MentionBackgroundDrawer {
           style: EnrichedStyle,
           backgroundColorFor: (EnrichedMentionSpan, MentionStyle) -> Int = { _, mentionStyle ->
             mentionStyle.backgroundColor
-          },
+          }, // lambda to handle press state bg color for enrichedText
   ) {
     val spans = text.getSpans(0, text.length, EnrichedMentionSpan::class.java)
     for (span in spans) {
@@ -35,7 +35,6 @@ object MentionBackgroundDrawer {
 
       val start = text.getSpanStart(span)
       val end = text.getSpanEnd(span)
-      if (start < 0 || end <= start) continue
 
       paint.color = color
       drawSpanBackground(canvas, layout, start, end, mentionStyle.borderRadius)
@@ -71,18 +70,20 @@ object MentionBackgroundDrawer {
               segmentEnd,
               layout.getLineBottom(line).toFloat(),
       )
-      if (rect.width() <= 0f) continue
 
       // Only round the outer ends of a wrapped mention.
       val leftRadius = if (isFirst) radius else 0f
       val rightRadius = if (isLast) radius else 0f
-      // Corner order: top-left, top-right, bottom-right, bottom-left
+      // top-left
       radii[0] = leftRadius
       radii[1] = leftRadius
+      // top-right
       radii[2] = rightRadius
       radii[3] = rightRadius
+      // bottom-right
       radii[4] = rightRadius
       radii[5] = rightRadius
+      // bottom-left
       radii[6] = leftRadius
       radii[7] = leftRadius
 
