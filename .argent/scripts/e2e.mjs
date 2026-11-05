@@ -7,7 +7,6 @@
 //   yarn e2e --update-baselines [tests...]      record baselines, then apply them here
 //
 // Options (same names and defaults as the workflow inputs):
-//   --tests "<paths>"         tests, space separated (or pass them as arguments)
 //   --update-baselines        write baselines instead of comparing them
 //   --max-wait-minutes <n>    how long the run waits for a free machine (default 30)
 // Other options:
@@ -71,9 +70,6 @@ function parseArgs(argv) {
     switch (a) {
       case '--update-baselines':
         opts.updateBaselines = inline === null ? true : inline === 'true';
-        break;
-      case '--tests':
-        opts.tests.push(...take().split(/\s+/).filter(Boolean));
         break;
       case '--max-wait-minutes':
         opts.maxWait = Number(take());
