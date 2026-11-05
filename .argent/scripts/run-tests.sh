@@ -114,9 +114,40 @@ KEEPALIVE_PID=$!
 # A released machine is erased, so every run installs the app.
 install_app
 
+# The tunnel is set up by a port forwarder on the Argent Cloud machine, which
+# sometimes times out (HTTP 504). Retry, and check whether a timed-out request
+# created the tunnel anyway.
+tunnel_active() {
+  local status
+  status=$(sim-remote reverse status 2>/dev/null) || return 1
+  grep "$UDID" <<<"$status" | grep -qw "$METRO_PORT"
+}
+
+start_metro_tunnel() {
+  local attempt out delays=(5 10 20 30)
+  for attempt in 1 2 3 4 5; do
+    if out=$(sim-remote reverse start "$UDID" "$METRO_PORT" 2>&1); then
+      echo "$out" >&2
+      return 0
+    fi
+    if tunnel_active; then
+      echo "The tunnel is up although the request reported: $out" >&2
+      return 0
+    fi
+    echo "Attempt $attempt to open the tunnel failed: $out" >&2
+    [ "$attempt" -lt 5 ] || break
+    echo "Retrying in ${delays[$((attempt - 1))]}s..." >&2
+    sleep "${delays[$((attempt - 1))]}"
+  done
+  local msg="Argent Cloud could not open the tunnel from the simulator to Metro (port $METRO_PORT) after 5 attempts. This is an error on the Argent Cloud machine, not in the tests: re-run, and if it keeps failing, send the sim-remote logs from the argent-e2e-artifacts artifact to Software Mansion."
+  [ "${GITHUB_ACTIONS:-}" = "true" ] && echo "::error title=Argent Cloud::$msg" >&2
+  echo "Error: $msg" >&2
+  return 1
+}
+
 if [ -n "$METRO_PORT" ]; then
   echo "=== Tunnelling port $METRO_PORT of the simulator to Metro on this runner ===" >&2
-  sim-remote reverse start "$UDID" "$METRO_PORT" >&2
+  start_metro_tunnel
 fi
 
 # --- pick the tests -----------------------------------------------------------
