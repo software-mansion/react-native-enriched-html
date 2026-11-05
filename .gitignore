@@ -92,5 +92,8 @@ nitrogen/
 # Maestro screenshot diffs
 .maestro/**/*_diff.png
 
+# Argent e2e failure artifacts
+.argent/artifacts/
+
 # Claude skills
 .claude/skills/*-internal.md

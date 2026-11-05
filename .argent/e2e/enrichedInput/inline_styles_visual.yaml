@@ -1,0 +1,63 @@
+# Port of .maestro/enrichedInput/flows/inline_styles_visual.yaml
+#
+# Text goes in with `tool: keyboard`, not `type:`. `type:` taps the centre of
+# its target first, which would move the caret inside the editor. This matches
+# Maestro's inputText, which types into whatever has focus.
+#
+# The baseline lives in __baselines__/inline_styles_visual/. Record it with
+#   gh workflow run e2e-argent.yml --ref <branch> -f update-baselines=true -f tests=.argent/e2e/enrichedInput/inline_styles_visual.yaml
+steps:
+  - echo: Open the EnrichedTextInput test screen
+  - launch: swmansion.enriched.example
+  - tap: { id: toggle-screen-button }
+  - await: { visible: { id: editor-input } }
+  - await: { idle: true }
+
+  - tap: { id: editor-input }
+  - tool: keyboard
+    args: { text: "Plain " }
+
+  - echo: Bold
+  - tap: { id: toolbar-bold }
+  - tool: keyboard
+    args: { text: "bold" }
+  - tap: { id: toolbar-bold }
+  - tool: keyboard
+    args: { text: " " }
+
+  - echo: Italic
+  - tap: { id: toolbar-italic }
+  - tool: keyboard
+    args: { text: "italic" }
+  - tap: { id: toolbar-italic }
+  - tool: keyboard
+    args: { text: " " }
+
+  - echo: Underline
+  - tap: { id: toolbar-underline }
+  - tool: keyboard
+    args: { text: "underline" }
+  - tap: { id: toolbar-underline }
+  - tool: keyboard
+    args: { text: " " }
+
+  - echo: Strikethrough
+  - tap: { id: toolbar-strikethrough }
+  - tool: keyboard
+    args: { text: "strike-through" }
+  - tap: { id: toolbar-strikethrough }
+  - tool: keyboard
+    args: { text: " " }
+
+  - echo: Inline code
+  - tap: { id: toolbar-inline-code }
+  - tool: keyboard
+    args: { text: "code" }
+  - tap: { id: toolbar-inline-code }
+
+  # Same as the Maestro capture_or_assert_screenshot subflow: blur, then
+  # compare the editor only.
+  - echo: Compare the editor with the baseline
+  - tap: { id: blur-button }
+  - await: { idle: true }
+  - snapshot: { name: inline_styles, cropOn: { id: editor-input } }
