@@ -12,6 +12,9 @@
 + (BOOL)handleResetTypingAttributesOnBackspace:(NSRange)range
                                replacementText:(NSString *)text
                                          input:(id)input;
++ (BOOL)handleNewlineInEmptyListItem:(NSRange)range
+                     replacementText:(NSString *)text
+                               input:(id)input;
 + (BOOL)isParagraphEmpty:(NSRange)range inString:(NSString *)string;
 + (void)resetTypingAttributes:(EnrichedTextInputView *)input
           preservingAlignment:(NSTextAlignment)alignment;
