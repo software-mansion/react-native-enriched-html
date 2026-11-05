@@ -14,6 +14,7 @@ stays until the port is done.
   scripts/acquire-machine.sh         CI: Argent Cloud login, wait for a free machine
   scripts/setup-ios-remote.sh        CI: boot the simulator on that machine
   scripts/build-ios-app.sh           CI: Debug simulator build (JS comes from Metro)
+  scripts/update-baselines.mjs       local: apply a downloaded baselines artifact
 ```
 
 ## Argent Cloud runs only in CI
@@ -46,8 +47,20 @@ about 16 minutes. A run that gets no machine within `max-wait-minutes` fails wit
 that says so, and runs no tests. Every run releases the machine at the end, even when it fails
 or is cancelled.
 
-**New baselines**: run with `update-baselines`, download the `argent-baselines` artifact,
-run `tar -xzf argent-baselines.tgz` at the repo root, review the images and commit them.
+**New baselines**: run the workflow with `update-baselines`, download the artifact whose
+name starts with `argent-baselines--` from the run page (the name also holds the UTC time,
+the branch and the run number), then run:
+
+```bash
+yarn e2e:update-baselines                     # pick one of the downloads in ~/Downloads
+yarn e2e:update-baselines --dir ~/somewhere   # look in another folder
+yarn e2e:update-baselines path/to/argent-baselines--…zip
+```
+
+The script copies and unpacks the artifact in a temporary directory, adds or replaces the
+baselines under `.argent/e2e/`, deletes the temporary files, and then deletes the downloaded
+artifact (it holds only these baselines; the run page keeps it for 14 days). Review the
+images with `git status .argent/e2e` before you commit them.
 
 Failure screenshots and snapshot diffs are in the `argent-e2e-artifacts` artifact.
 
