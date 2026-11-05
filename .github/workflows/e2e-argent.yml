@@ -1,0 +1,111 @@
+# Argent e2e tests on an Argent Cloud iOS simulator.
+#
+# This is the only place the Argent Cloud tests run: the repository has one API
+# key (the SIM_REMOTE_API_KEY secret), shared by every run. To test a change,
+# push the branch and start this workflow from the Actions tab or with
+#   gh workflow run e2e-argent.yml --ref <branch>
+# Only one run can hold the machine at a time. A run that finds it busy waits,
+# and its log names the run that most likely holds it.
+name: E2E (Argent Cloud)
+
+on:
+  workflow_dispatch:
+    inputs:
+      tests:
+        description: 'Test files or directories, space separated (empty: every suite)'
+        required: false
+        default: ''
+      update-baselines:
+        description: 'Write snapshot baselines instead of comparing them (download them from the run artifacts)'
+        type: boolean
+        default: false
+      max-wait-minutes:
+        description: 'How long to wait for a free Argent Cloud machine'
+        type: number
+        default: 30
+
+permissions:
+  contents: read
+  actions: read # lets the acquire step name the run that holds the machine
+
+jobs:
+  test-e2e-ios-remote:
+    runs-on: macos-26
+    timeout-minutes: 150
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: Set up Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '26.3'
+
+      # Build before acquiring, so the job does not hold the machine during the build.
+      - name: Build example app for the simulator
+        run: |
+          APP_PATH=$(.argent/scripts/build-ios-app.sh | grep '^APP_PATH=' | cut -d= -f2-)
+          echo "APP_PATH=$APP_PATH" >> "$GITHUB_ENV"
+
+      - name: Install Argent
+        run: npm install -g @swmansion/argent@0.31.0
+
+      - name: Install sim-remote
+        uses: software-mansion-labs/argent-cloud-actions/install@fa197d08fb72476f6a93d499ce3479b1f5bd7618 # v1.0.0
+
+      - name: Acquire the Argent Cloud machine
+        run: .argent/scripts/acquire-machine.sh
+        env:
+          SIM_REMOTE_API_KEY: ${{ secrets.SIM_REMOTE_API_KEY }}
+          MAX_WAIT_MINUTES: ${{ inputs.max-wait-minutes }}
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Run e2e tests
+        env:
+          TESTS: ${{ inputs.tests }}
+          UPDATE_BASELINES: ${{ inputs.update-baselines }}
+        run: |
+          ARGS=(--app "$APP_PATH")
+          [ "$UPDATE_BASELINES" = "true" ] && ARGS+=(--update-baselines)
+          read -r -a TEST_ARGS <<< "$TESTS"
+          .argent/scripts/run-tests.sh --platform ios-remote "${ARGS[@]}" ${TEST_ARGS[@]+"${TEST_ARGS[@]}"}
+
+      # Also runs when the job fails or is cancelled, so the machine goes back to the team.
+      - name: Release the Argent Cloud machine
+        if: always()
+        run: sim-remote logout || true
+
+      - name: Upload failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: argent-e2e-artifacts
+          path: .argent/artifacts/
+          retention-days: 7
+
+      - name: Pack new baselines
+        if: always() && inputs.update-baselines
+        run: |
+          if [ -z "$(find .argent/e2e -path '*/__baselines__/*' -type f)" ]; then
+            echo "No baselines were written." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          find .argent/e2e -path '*/__baselines__/*' -type f -print0 \
+            | tar --null -czf argent-baselines.tgz -T -
+          {
+            echo "### New baselines"
+            echo
+            echo 'Download the `argent-baselines` artifact, then from the repo root run `tar -xzf argent-baselines.tgz`. Review the images before you commit them.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload new baselines
+        if: always() && inputs.update-baselines
+        uses: actions/upload-artifact@v4
+        with:
+          name: argent-baselines
+          path: argent-baselines.tgz
+          if-no-files-found: ignore
+          retention-days: 14

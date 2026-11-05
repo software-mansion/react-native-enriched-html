@@ -43,6 +43,8 @@ NS_ASSUME_NONNULL_BEGIN
   BOOL preserveTypingAttributesOnNextEmptyCheck;
 }
 - (CGSize)measureSize:(CGFloat)maxWidth;
++ (CGSize)measureSnapshot:(NSAttributedString *)snapshot
+                 maxWidth:(CGFloat)maxWidth;
 - (void)emitOnLinkDetectedEvent:(LinkData *)linkData range:(NSRange)range;
 - (void)emitOnMentionEvent:(NSString *)indicator text:(nullable NSString *)text;
 - (void)emitOnPasteImagesEvent:(NSArray<NSDictionary *> *)images;
