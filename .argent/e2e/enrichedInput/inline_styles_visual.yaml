@@ -4,9 +4,8 @@
 # its target first, which would move the caret inside the editor. This matches
 # Maestro's inputText, which types into whatever has focus.
 #
-# The baseline lives in __baselines__/inline_styles_visual/. Record it with
-#   gh workflow run e2e-argent.yml --ref <branch> -f update-baselines=true -f tests=.argent/e2e/enrichedInput/inline_styles_visual.yaml
-# then download the argent-baselines--* artifact and run yarn e2e:update-baselines.
+# The baseline lives in __baselines__/inline_styles_visual/. Record and apply it with
+#   yarn e2e --update-baselines .argent/e2e/enrichedInput/inline_styles_visual.yaml
 steps:
   - echo: Open the EnrichedTextInput test screen
   - launch: swmansion.enriched.example

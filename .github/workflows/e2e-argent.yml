@@ -2,8 +2,8 @@
 #
 # This is the only place the Argent Cloud tests run: the repository has one API
 # key (the SIM_REMOTE_API_KEY secret), shared by every run. To test a change,
-# push the branch and start this workflow from the Actions tab or with
-#   gh workflow run e2e-argent.yml --ref <branch>
+# push the branch and run `yarn e2e` (.argent/scripts/e2e.mjs), or start this
+# workflow from the Actions tab or with gh workflow run e2e-argent.yml --ref <branch>
 # Only one run can hold the machine at a time. A run that finds it busy waits,
 # and its log names the run that most likely holds it.
 #

@@ -22,7 +22,7 @@ notice() { echo "::notice title=Argent Cloud::$*"; }
 
 if [ "${GITHUB_ACTIONS:-}" != "true" ]; then
   echo "Error: Argent Cloud runs only in GitHub Actions. Push your branch and start the" >&2
-  echo "'E2E (Argent Cloud)' workflow: gh workflow run e2e-argent.yml --ref <branch>" >&2
+  echo "'E2E (Argent Cloud)' workflow: yarn e2e (or gh workflow run e2e-argent.yml --ref <branch>)" >&2
   exit 1
 fi
 

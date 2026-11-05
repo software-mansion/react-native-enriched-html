@@ -73,6 +73,7 @@
     "test:e2e:web": ".playwright/scripts/run-tests.sh",
     "test:e2e": "bash -c '.maestro/scripts/run-tests-all.sh \"$@\" && .playwright/scripts/run-tests.sh \"$@\"' _",
     "create-release-apps": "bash scripts/create-release-apps.sh",
+    "e2e": "node .argent/scripts/e2e.mjs",
     "e2e:update-baselines": "node .argent/scripts/update-baselines.mjs"
   },
   "keywords": [

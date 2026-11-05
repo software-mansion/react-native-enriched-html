@@ -46,7 +46,7 @@ function parseArgs(argv) {
     const a = argv[i];
     if (a === '--dir') opts.dir = argv[++i] ?? fail('--dir needs a path');
     else if (a === '-h' || a === '--help') {
-      console.log(fs.readFileSync(fileURLToPath(import.meta.url), 'utf8').split('\n').slice(1, 19).map((l) => l.replace(/^\/\/ ?/, '')).join('\n'));
+      console.log(fs.readFileSync(fileURLToPath(import.meta.url), 'utf8').split('\n').slice(1).filter((l, i, all) => all.slice(0, i + 1).every((x) => x.startsWith('//'))).map((l) => l.replace(/^\/\/ ?/, '')).join('\n'));
       process.exit(0);
     } else if (a.startsWith('-')) fail(`unknown option ${a}`);
     else opts.file = a;

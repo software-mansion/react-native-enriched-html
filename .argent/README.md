@@ -14,6 +14,7 @@ stays until the port is done.
   scripts/acquire-machine.sh         CI: Argent Cloud login, wait for a free machine
   scripts/setup-ios-remote.sh        CI: boot the simulator on that machine
   scripts/build-ios-app.sh           CI: Debug simulator build (JS comes from Metro)
+  scripts/e2e.mjs                    local: `yarn e2e`, start the workflow and follow it
   scripts/update-baselines.mjs       local: apply a downloaded baselines artifact
 ```
 
@@ -25,13 +26,20 @@ Cloud)** workflow (`.github/workflows/e2e-argent.yml`), never on a local simulat
 emulator: one machine for every run keeps results, and baselines, comparable. Nobody needs
 the key on their computer.
 
-To test a change, push your branch and start the workflow from the Actions tab, or:
+To test a change, push your branch and run `yarn e2e`. It starts the workflow on your
+current branch, follows it in the terminal and exits with its result. It needs the GitHub CLI
+logged in (`gh auth login`), and it refuses to start when GitHub's copy of the branch is not
+your `HEAD`, because the workflow runs what is on GitHub.
 
 ```bash
-gh workflow run e2e-argent.yml --ref my-branch
-gh workflow run e2e-argent.yml --ref my-branch -f tests=".argent/e2e/enrichedInput/core_controls_smoke.yaml"
-gh workflow run e2e-argent.yml --ref my-branch -f update-baselines=true
+yarn e2e                                                   # every suite
+yarn e2e .argent/e2e/enrichedInput/core_controls_smoke.yaml  # some tests (files or directories)
+yarn e2e --update-baselines .argent/e2e/enrichedInput        # record baselines and apply them here
+yarn e2e --max-wait-minutes 60 --no-watch                  # start it and exit
 ```
+
+You can also start the workflow from the Actions tab, or with
+`gh workflow run e2e-argent.yml --ref <branch> -f tests=... -f update-baselines=true`.
 
 | Input              | Default | Meaning                                                      |
 | ------------------ | ------- | ------------------------------------------------------------ |
@@ -47,9 +55,10 @@ about 16 minutes. A run that gets no machine within `max-wait-minutes` fails wit
 that says so, and runs no tests. Every run releases the machine at the end, even when it fails
 or is cancelled.
 
-**New baselines**: run the workflow with `update-baselines`, download the artifact whose
-name starts with `argent-baselines--` from the run page (the name also holds the UTC time,
-the branch and the run number), then run:
+**New baselines**: `yarn e2e --update-baselines [tests...]` waits for the run, downloads its
+baselines artifact and applies it (if the run failed, it asks first). For a run started
+another way, download the artifact whose name starts with `argent-baselines--` from the run
+page (the name also holds the UTC time, the branch and the run number), then run:
 
 ```bash
 yarn e2e:update-baselines                     # pick one of the downloads in ~/Downloads

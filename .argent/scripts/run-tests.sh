@@ -56,7 +56,7 @@ done
 if [ "${GITHUB_ACTIONS:-}" != "true" ]; then
   echo "Error: Argent e2e tests run only in GitHub Actions, because the repository has one" >&2
   echo "shared Argent Cloud key. Push your branch and start the 'E2E (Argent Cloud)' workflow:" >&2
-  echo "  gh workflow run e2e-argent.yml --ref <branch>" >&2
+  echo "  yarn e2e   (or: gh workflow run e2e-argent.yml --ref <branch>)" >&2
   exit 1
 fi
 
