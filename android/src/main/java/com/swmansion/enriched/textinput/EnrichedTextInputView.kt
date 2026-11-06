@@ -5,6 +5,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.graphics.BlendMode
 import android.graphics.BlendModeColorFilter
+import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Rect
 import android.graphics.text.LineBreaker
@@ -41,6 +42,7 @@ import com.facebook.react.views.text.ReactTypefaceUtils.parseFontWeight
 import com.swmansion.enriched.common.EnrichedConstants
 import com.swmansion.enriched.common.EnrichedSpanFlags
 import com.swmansion.enriched.common.GumboNormalizer
+import com.swmansion.enriched.common.MentionBackgroundDrawer
 import com.swmansion.enriched.common.parser.EnrichedParser
 import com.swmansion.enriched.common.pixelFromSpOrDp
 import com.swmansion.enriched.textinput.events.MentionHandler
@@ -291,6 +293,19 @@ class EnrichedTextInputView :
         experimentalSynchronousEvents,
       ),
     )
+  }
+
+  override fun onDraw(canvas: Canvas) {
+    val currentLayout = layout
+    val currentText = text
+    if (currentLayout != null && currentText != null) {
+      canvas.save()
+      canvas.translate(totalPaddingLeft.toFloat(), totalPaddingTop.toFloat())
+      MentionBackgroundDrawer.draw(canvas, currentLayout, currentText, htmlStyle)
+      canvas.restore()
+    }
+
+    super.onDraw(canvas)
   }
 
   // https://github.com/facebook/react-native/blob/36df97f500aa0aa8031098caf7526db358b6ddc1/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt#L295C1-L296C1

@@ -247,7 +247,8 @@ class HtmlStyle : EnrichedStyle {
       val color = parseColor(value, "color")
       val backgroundColor = parseColorWithOpacity(value, "backgroundColor")
       val isUnderline = parseIsUnderline(value)
-      val parsedStyle = MentionStyle(color, backgroundColor, isUnderline)
+      val borderRadius = parseFloat(value, "borderRadius")
+      val parsedStyle = MentionStyle(color, backgroundColor, isUnderline, borderRadius)
       parsedMentionsStyle.put(key, parsedStyle)
     }
 

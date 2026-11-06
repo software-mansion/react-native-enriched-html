@@ -2,6 +2,8 @@
 #import "extensions/StringExtension.h"
 #import <React/RCTConversions.h>
 
+NSString *const MentionBackgroundAttributeName = @"EnrichedMentionBackground";
+
 @implementation MentionStyleProps
 
 + (MentionStyleProps *)getSingleMentionStylePropsFromFollyDynamic:
@@ -32,6 +34,12 @@
                                      : DecorationNone;
   } else {
     nativeProps.decorationLine = DecorationUnderline;
+  }
+
+  if (folly["borderRadius"].isNumber()) {
+    nativeProps.borderRadius = folly["borderRadius"].asDouble();
+  } else {
+    nativeProps.borderRadius = 0;
   }
 
   // text only

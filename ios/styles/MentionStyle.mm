@@ -55,7 +55,8 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
     NSForegroundColorAttributeName : styleProps.color,
     NSUnderlineColorAttributeName : styleProps.color,
     NSStrikethroughColorAttributeName : styleProps.color,
-    NSBackgroundColorAttributeName :
+    // backgrounds are drawn by the layout manager
+    MentionBackgroundAttributeName :
         [styleProps.backgroundColor colorWithResolvedAlpha],
   } mutableCopy];
 

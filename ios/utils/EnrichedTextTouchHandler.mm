@@ -121,7 +121,7 @@
       newAttrs[NSStrikethroughColorAttributeName] = color;
     }
     if (bgColor) {
-      newAttrs[NSBackgroundColorAttributeName] =
+      newAttrs[MentionBackgroundAttributeName] =
           [bgColor colorWithResolvedAlpha];
     }
 

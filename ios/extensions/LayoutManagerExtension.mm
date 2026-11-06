@@ -1,6 +1,7 @@
 #import "LayoutManagerExtension.h"
 #import "ColorExtension.h"
 #import "interfaces/EnrichedViewHost.h"
+#import "interfaces/MentionStyleProps.h"
 #import "interfaces/StyleHeaders.h"
 #import "utils/RangeUtils.h"
 #import "utils/WeakBox.h"
@@ -60,6 +61,92 @@ static void const *kInputKey = &kInputKey;
   [self drawBlockQuotes:host origin:origin visibleCharRange:visibleCharRange];
   [self drawLists:host origin:origin visibleCharRange:visibleCharRange];
   [self drawCodeBlocks:host origin:origin visibleCharRange:visibleCharRange];
+  [self drawMentionBackgrounds:host
+                        origin:origin
+              visibleCharRange:visibleCharRange];
+}
+
+- (void)drawMentionBackgrounds:(id<EnrichedViewHost>)host
+                        origin:(CGPoint)origin
+              visibleCharRange:(NSRange)visibleCharRange {
+  NSTextStorage *textStorage = host.textView.textStorage;
+  NSRange wholeText = NSMakeRange(0, textStorage.length);
+  NSMutableArray<NSValue *> *ranges = [[NSMutableArray alloc] init];
+  [textStorage enumerateAttribute:@"EnrichedMention"
+                          inRange:visibleCharRange
+                          options:0
+                       usingBlock:^(id _Nullable value, NSRange range,
+                                    BOOL *_Nonnull stop) {
+                         if (value == nullptr || range.length == 0) {
+                           return;
+                         }
+                         NSRange fullRange;
+                         [textStorage attribute:@"EnrichedMention"
+                                           atIndex:range.location
+                             longestEffectiveRange:&fullRange
+                                           inRange:wholeText];
+                         [ranges addObject:[NSValue valueWithRange:fullRange]];
+                       }];
+
+  for (NSValue *rangeValue in ranges) {
+    NSRange range = [rangeValue rangeValue];
+    UIColor *bgColor = [textStorage attribute:MentionBackgroundAttributeName
+                                      atIndex:range.location
+                               effectiveRange:nullptr];
+    if (bgColor == nullptr || CGColorGetAlpha(bgColor.CGColor) == 0) {
+      continue;
+    }
+    MentionParams *params = [textStorage attribute:@"EnrichedMention"
+                                           atIndex:range.location
+                                    effectiveRange:nullptr];
+    MentionStyleProps *props =
+        [host.config mentionStylePropsForIndicator:params.indicator];
+    UIFont *font = [textStorage attribute:NSFontAttributeName
+                                  atIndex:range.location
+                           effectiveRange:nullptr];
+    [bgColor setFill];
+
+    NSRange glyphRange = [self glyphRangeForCharacterRange:range
+                                      actualCharacterRange:nullptr];
+    // one rect per line in case the mention wraps
+    NSMutableArray<NSValue *> *lineRects = [[NSMutableArray alloc] init];
+    [self enumerateEnclosingRectsForGlyphRange:glyphRange
+                      withinSelectedGlyphRange:NSMakeRange(NSNotFound, 0)
+                               inTextContainer:host.textView.textContainer
+                                    usingBlock:^(CGRect rect, BOOL *stop) {
+                                      [lineRects
+                                          addObject:[NSValue
+                                                        valueWithCGRect:rect]];
+                                    }];
+
+    // only the mention's start and end get rounded, so a wrapped mention
+    // still has 4 rounded corners in total
+    for (NSUInteger i = 0; i < lineRects.count; i++) {
+      CGRect bgRect = [self getTextAlignedUsedRect:[lineRects[i] CGRectValue]
+                                              font:font];
+      bgRect.origin.x += origin.x;
+      bgRect.origin.y += origin.y;
+
+      if (props.borderRadius <= 0) {
+        [[UIBezierPath bezierPathWithRect:bgRect] fill];
+        continue;
+      }
+
+      UIRectCorner corners = 0;
+      if (i == 0) {
+        corners = UIRectCornerTopLeft | UIRectCornerBottomLeft;
+      }
+      if (i == lineRects.count - 1) {
+        corners |= UIRectCornerTopRight | UIRectCornerBottomRight;
+      }
+
+      CGFloat radius = MIN(props.borderRadius, bgRect.size.height / 2);
+      [[UIBezierPath bezierPathWithRoundedRect:bgRect
+                             byRoundingCorners:corners
+                                   cornerRadii:CGSizeMake(radius, radius)]
+          fill];
+    }
+  }
 }
 
 - (void)drawCodeBlocks:(id<EnrichedViewHost>)host

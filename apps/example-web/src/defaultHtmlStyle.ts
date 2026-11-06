@@ -68,6 +68,7 @@ export const WEB_DEFAULT_HTML_STYLE: HtmlStyle = {
       backgroundColor: 'lightgreen',
       color: 'green',
       textDecorationLine: 'none',
+      borderRadius: 0,
     },
     '#': {
       backgroundColor: 'lightblue',

@@ -523,7 +523,7 @@ Class<RCTComponentViewProtocol> EnrichedTextViewCls(void) {
     bool newSingleProps = NO;
 
     for (const auto &obj : newMentionStyle.items()) {
-      if (obj.second.isInt() || obj.second.isString()) {
+      if (obj.second.isNumber() || obj.second.isString()) {
         newSingleProps = YES;
         break;
       } else if (obj.second.isObject()) {
