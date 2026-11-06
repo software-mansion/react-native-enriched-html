@@ -134,21 +134,94 @@ EXTRA=()
 [ -n "$UPDATE_BASELINES" ] && EXTRA+=(--update-baselines)
 
 FAILED=0
+
+# Argent Cloud's port forwarder sometimes answers HTTP 504 (Gateway Timeout),
+# mostly right after the simulator boots. Argent needs it to launch the app
+# (it opens a tunnel for its native devtools) and does not retry, so the test
+# errors at its first step. A test that failed that way runs once more; a test
+# that failed for any other reason is never retried.
+INFRA_ERROR='port forwarder|Service dependency failed|HTTP 50[234]'
+
+notice_infra() {
+  local msg="$1"
+  if [ "${GITHUB_ACTIONS:-}" = "true" ]; then echo "::warning title=Argent Cloud::$msg" >&2; else echo "Warning: $msg" >&2; fi
+}
+
+# Open and close one tunnel until the port forwarder answers, so the first test
+# does not pay for its cold start.
+warm_up_port_forwarder() {
+  local attempt port=65431
+  for attempt in 1 2 3 4 5; do
+    if sim-remote reverse start "$UDID" "$port" >/dev/null 2>&1; then
+      sim-remote reverse stop "$UDID" "$port" >/dev/null 2>&1 || true
+      [ "$attempt" -gt 1 ] && echo "The Argent Cloud port forwarder answered on attempt $attempt." >&2
+      return 0
+    fi
+    sleep $((attempt * 5))
+  done
+  notice_infra "The Argent Cloud port forwarder did not answer during warm-up; tests may hit HTTP 504 errors."
+}
+
+# Prints the test files whose failure was an Argent Cloud error, from the
+# "Failed e2e tests" summary of `argent e2e run` (each entry ends with a
+# "re-run: argent e2e run <file> ..." line).
+infra_failures() {
+  sed 's/\x1b\[[0-9;]*m//g' "$1" | awk -v re="$INFRA_ERROR" '
+    /^Failed e2e tests/ { in_summary = 1; next }
+    in_summary && /^  [^ ]/ { entry = "" }
+    in_summary { entry = entry "\n" $0 }
+    in_summary && /^ *re-run: argent e2e run / {
+      if (entry ~ re) { for (i = 1; i <= NF; i++) if ($i == "run") { print $(i + 1); break } }
+      entry = ""
+    }'
+}
+
+# Runs `argent e2e run` on one test file or directory, printing its output and
+# keeping a copy in $1.
+argent_run() {
+  local log="$1" target="$2" out="$3" rc
+  set +e
+  argent e2e run "$target" --platform "$PLATFORM" --device "$DEVICE_ID" --output "$out" \
+    ${EXTRA[@]+"${EXTRA[@]}"} 2>&1 | tee "$log"
+  rc=${PIPESTATUS[0]}
+  set -e
+  return "$rc"
+}
+
 run_argent() {
-  local target="$1" rel out tmp rc
+  local target="$1" rel out tmp rc retry_tmp infra other f
   # argent adds <test>/ itself, so a file run uses the directory of the file.
   rel="${target#"$E2E_ROOT"/}"
   [ -f "$target" ] && rel="$(dirname "$rel")"
   out="$OUTPUT/${rel%/}"
   tmp=$(mktemp)
-  set +e
-  argent e2e run "$target" --platform "$PLATFORM" --device "$DEVICE_ID" --output "$out" \
-    ${EXTRA[@]+"${EXTRA[@]}"} 2>&1 | tee "$tmp"
-  rc=${PIPESTATUS[0]}
-  set -e
+  rc=0
+  argent_run "$tmp" "$target" "$out" || rc=$?
+
   if [ "$rc" -ne 0 ] && grep -q "no device resolved" "$tmp"; then
     echo "hint: Argent did not see the remote simulator. Its tool-server may have started" >&2
     echo "      before sim-remote was on PATH; 'argent server stop' makes the next run restart it." >&2
+  fi
+
+  if [ "$rc" -ne 0 ]; then
+    infra=$(infra_failures "$tmp")
+    if [ -n "$infra" ]; then
+      # Failures in the summary that were not Argent Cloud errors stay failures.
+      other=$(( $(grep -c '^ *re-run: argent e2e run ' "$tmp" || true) - $(printf '%s\n' "$infra" | grep -c . || true) ))
+      [ "$other" -gt 0 ] && FAILED=1
+      for f in $infra; do
+        notice_infra "$f failed with an Argent Cloud error (port forwarder); running it once more."
+        retry_tmp=$(mktemp)
+        if argent_run "$retry_tmp" "$f" "$OUTPUT/$(dirname "${f#"$E2E_ROOT"/}")"; then
+          echo "=== $f passed on the second attempt ===" >&2
+        else
+          FAILED=1
+        fi
+        rm -f "$retry_tmp"
+      done
+      rm -f "$tmp"
+      return
+    fi
   fi
   rm -f "$tmp"
   [ "$rc" -eq 0 ] || FAILED=1
@@ -156,6 +229,8 @@ run_argent() {
 
 # A previous run could have died before its EXIT trap fired.
 set_font_scale default
+
+warm_up_port_forwarder
 
 if [ ${#REGULAR[@]} -gt 0 ]; then
   echo "=== Running argent e2e tests ===" >&2

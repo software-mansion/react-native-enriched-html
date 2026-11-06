@@ -158,6 +158,18 @@ killed before it could release it; the server frees it within about 16 minutes. 
 gets no machine within `max-wait-minutes` fails with an error that says so, and runs no
 tests. Every run releases the machine at the end, even when it fails or is cancelled.
 
+### When Argent Cloud errors
+
+The port forwarder on the Argent Cloud machine sometimes answers HTTP 504 (Gateway
+Timeout), mostly right after the simulator boots. Argent needs it to launch the app and does
+not retry, so a test that hits it errors at its first step. `run-tests.sh` handles this:
+
+- Before the first test, it opens and closes a tunnel until the port forwarder answers (up
+  to 5 attempts). If it never does, the run shows a warning and the tests run anyway.
+- A test that failed with a port forwarder error (also "Service dependency failed", HTTP
+  502/503/504) runs once more, with a warning on the run page. The run passes if the second
+  attempt passes. Tests that failed for any other reason are never retried.
+
 ### Artifacts
 
 - `argent-e2e-artifacts` (failed runs): failure screenshots and snapshot diffs, and the
