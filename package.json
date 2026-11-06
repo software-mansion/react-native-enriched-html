@@ -64,7 +64,7 @@
     "lint-clang:fix": "yarn lint-clang:ios:fix && yarn lint-clang:android:fix",
     "clean": "./scripts/git-clean.sh",
     "generate:colors": "node scripts/generate-css-colors.js",
-    "prepare": "yarn generate:colors && bob build",
+    "prepare": "bob build",
     "release": "release-it",
     "android-studio": "open -a 'Android Studio' apps/example/android",
     "xcode": "open -a 'Xcode' apps/example/ios/EnrichedTextInputExample.xcworkspace",

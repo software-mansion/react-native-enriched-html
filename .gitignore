@@ -97,6 +97,3 @@ nitrogen/
 
 # Claude skills
 .claude/skills/*-internal.md
-# Generated CSS named color maps (scripts/generate-css-colors.js)
-ios/extensions/CSSNamedColors.generated.h
-android/src/main/java/com/swmansion/enriched/common/parser/CSSNamedColors.kt
