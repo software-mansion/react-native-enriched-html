@@ -1,0 +1,26 @@
+appId: swmansion.enriched.example
+---
+# Validates that images wrap correctly
+- launchApp
+
+- tapOn:
+    id: 'toggle-screen-button'
+
+- tapOn:
+    id: 'toggle-enriched-text-screen-button'
+
+- runFlow:
+    file: '../subflows/set_enriched_text_value.yaml'
+    env:
+      VALUE: >
+        <html><p><img src="https://picsum.photos/id/1/300/100" width="300" height="100"/><img src="https://picsum.photos/id/1/500/100" width="500" height="100"/><img src="https://picsum.photos/id/1/500/100" width="500" height="100"/></p></html>
+
+- swipe:
+    start: "5%, 35%"
+    end: "5%, 35%"
+    duration: 3000
+
+- runFlow:
+    file: '../subflows/capture_or_assert_screenshot.yaml'
+    env:
+      SCREENSHOT_NAME: 'image_wrap'
