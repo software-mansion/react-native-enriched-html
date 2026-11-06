@@ -103,7 +103,6 @@
   if (pressed) {
     UIColor *color = nil;
     UIColor *bgColor = nil;
-    NSAttributedStringKey bgKey = NSBackgroundColorAttributeName;
 
     if ([_activeAttrKey isEqualToString:@"EnrichedMention"]) {
       MentionParams *m = (MentionParams *)_activeValue;
@@ -111,9 +110,6 @@
           [self.view.config mentionStylePropsForIndicator:m.indicator];
       color = [mProps pressColor];
       bgColor = [mProps pressBackgroundColor];
-      if (mProps.borderRadius > 0) {
-        bgKey = MentionRoundedBackgroundAttributeName;
-      }
     } else {
       color = [self.view.config linkPressColor];
     }
@@ -125,7 +121,8 @@
       newAttrs[NSStrikethroughColorAttributeName] = color;
     }
     if (bgColor) {
-      newAttrs[bgKey] = [bgColor colorWithResolvedAlpha];
+      newAttrs[MentionBackgroundAttributeName] =
+          [bgColor colorWithResolvedAlpha];
     }
 
     [self.view.textView.textStorage addAttributes:newAttrs range:_activeRange];

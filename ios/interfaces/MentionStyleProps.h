@@ -4,9 +4,9 @@
 #import <UIKit/UIKit.h>
 #import <folly/dynamic.h>
 
-// holds the mention's background color when it should be drawn with rounded
-// corners by the layout manager instead of NSBackgroundColorAttributeName
-extern NSString *const MentionRoundedBackgroundAttributeName;
+// holds the mention's background color, drawn by the layout manager instead of
+// NSBackgroundColorAttributeName so the corners can be rounded
+extern NSString *const MentionBackgroundAttributeName;
 
 @interface MentionStyleProps : NSObject
 @property UIColor *color;

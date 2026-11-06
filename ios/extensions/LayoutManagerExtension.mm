@@ -90,13 +90,10 @@ static void const *kInputKey = &kInputKey;
 
   for (NSValue *rangeValue in ranges) {
     NSRange range = [rangeValue rangeValue];
-    UIColor *bgColor =
-        [textStorage attribute:MentionRoundedBackgroundAttributeName
-                       atIndex:range.location
-                effectiveRange:nullptr];
-    // mentions without a border radius are drawn natively via
-    // NSBackgroundColorAttributeName
-    if (bgColor == nullptr) {
+    UIColor *bgColor = [textStorage attribute:MentionBackgroundAttributeName
+                                      atIndex:range.location
+                               effectiveRange:nullptr];
+    if (bgColor == nullptr || CGColorGetAlpha(bgColor.CGColor) == 0) {
       continue;
     }
     MentionParams *params = [textStorage attribute:@"EnrichedMention"
@@ -129,6 +126,11 @@ static void const *kInputKey = &kInputKey;
                                               font:font];
       bgRect.origin.x += origin.x;
       bgRect.origin.y += origin.y;
+
+      if (props.borderRadius <= 0) {
+        [[UIBezierPath bezierPathWithRect:bgRect] fill];
+        continue;
+      }
 
       UIRectCorner corners = 0;
       if (i == 0) {

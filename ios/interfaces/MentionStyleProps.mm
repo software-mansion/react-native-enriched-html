@@ -2,8 +2,7 @@
 #import "extensions/StringExtension.h"
 #import <React/RCTConversions.h>
 
-NSString *const MentionRoundedBackgroundAttributeName =
-    @"EnrichedMentionRoundedBackground";
+NSString *const MentionBackgroundAttributeName = @"EnrichedMentionBackground";
 
 @implementation MentionStyleProps
 

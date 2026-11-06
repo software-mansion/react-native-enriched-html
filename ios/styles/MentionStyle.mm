@@ -55,13 +55,10 @@ static NSString *const MentionAttributeName = @"EnrichedMention";
     NSForegroundColorAttributeName : styleProps.color,
     NSUnderlineColorAttributeName : styleProps.color,
     NSStrikethroughColorAttributeName : styleProps.color,
+    // backgrounds are drawn by the layout manager
+    MentionBackgroundAttributeName :
+        [styleProps.backgroundColor colorWithResolvedAlpha],
   } mutableCopy];
-
-  // rounded backgrounds are drawn by the layout manager
-  NSAttributedStringKey bgKey = styleProps.borderRadius > 0
-                                    ? MentionRoundedBackgroundAttributeName
-                                    : NSBackgroundColorAttributeName;
-  newAttrs[bgKey] = [styleProps.backgroundColor colorWithResolvedAlpha];
 
   if (styleProps.decorationLine == DecorationUnderline) {
     newAttrs[NSUnderlineStyleAttributeName] = @(NSUnderlineStyleSingle);
