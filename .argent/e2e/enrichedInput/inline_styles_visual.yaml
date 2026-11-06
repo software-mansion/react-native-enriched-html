@@ -6,56 +6,77 @@ steps:
   - await: { idle: true }
 
   - tap: { id: editor-input }
+  - await: { idle: true, stableFor: 500 }
   - tool: keyboard
     args: { text: "Plain " }
+  - await: { idle: true, stableFor: 500 }
 
   - echo: Bold
   - scroll-to: { target: { id: toolbar-bold }, direction: down, within: { id: full-screen } }
   - tap: { id: toolbar-bold }
+  - await: { idle: true, stableFor: 500 }
   - tool: keyboard
     args: { text: "bold" }
+  - await: { idle: true, stableFor: 500 }
   - scroll-to: { target: { id: toolbar-bold }, direction: down, within: { id: full-screen } }
   - tap: { id: toolbar-bold }
+  - await: { idle: true, stableFor: 500 }
   - tool: keyboard
     args: { text: " " }
+  - await: { idle: true, stableFor: 500 }
 
   - echo: Italic
   - scroll-to: { target: { id: toolbar-italic }, direction: down, within: { id: full-screen } }
   - tap: { id: toolbar-italic }
+  - await: { idle: true, stableFor: 500 }
   - tool: keyboard
     args: { text: "italic" }
+  - await: { idle: true, stableFor: 500 }
   - scroll-to: { target: { id: toolbar-italic }, direction: down, within: { id: full-screen } }
   - tap: { id: toolbar-italic }
+  - await: { idle: true, stableFor: 500 }
   - tool: keyboard
     args: { text: " " }
+  - await: { idle: true, stableFor: 500 }
 
   - echo: Underline
   - scroll-to: { target: { id: toolbar-underline }, direction: down, within: { id: full-screen } }
   - tap: { id: toolbar-underline }
+  - await: { idle: true, stableFor: 500 }
   - tool: keyboard
     args: { text: "underline" }
+  - await: { idle: true, stableFor: 500 }
   - scroll-to: { target: { id: toolbar-underline }, direction: down, within: { id: full-screen } }
   - tap: { id: toolbar-underline }
+  - await: { idle: true, stableFor: 500 }
   - tool: keyboard
     args: { text: " " }
+  - await: { idle: true, stableFor: 500 }
 
   - echo: Strikethrough
   - scroll-to: { target: { id: toolbar-strikethrough }, direction: down, within: { id: full-screen } }
   - tap: { id: toolbar-strikethrough }
+  - await: { idle: true, stableFor: 500 }
   - tool: keyboard
     args: { text: "strike-through" }
+  - await: { idle: true, stableFor: 500 }
   - scroll-to: { target: { id: toolbar-strikethrough }, direction: down, within: { id: full-screen } }
   - tap: { id: toolbar-strikethrough }
+  - await: { idle: true, stableFor: 500 }
   - tool: keyboard
     args: { text: " " }
+  - await: { idle: true, stableFor: 500 }
 
   - echo: Inline code
   - scroll-to: { target: { id: toolbar-inline-code }, direction: down, within: { id: full-screen } }
   - tap: { id: toolbar-inline-code }
+  - await: { idle: true, stableFor: 500 }
   - tool: keyboard
     args: { text: "code" }
+  - await: { idle: true, stableFor: 500 }
   - scroll-to: { target: { id: toolbar-inline-code }, direction: down, within: { id: full-screen } }
   - tap: { id: toolbar-inline-code }
+  - await: { idle: true, stableFor: 500 }
 
   - echo: Compare the editor with the baseline
   - tap: { id: blur-button }

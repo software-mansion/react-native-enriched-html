@@ -251,12 +251,13 @@ Rules for this repo:
   `args: { key: enter }` / `{ key: backspace }`. It types into whatever has focus, like
   Maestro's `inputText`. Do not use `type:`: it taps the centre of its target first, which
   moves the caret inside the editor.
-- **If text gets the wrong styles.** A toolbar tap reaches the native editor through
-  JavaScript, while Argent types right away. The tests run without waits there, on the
-  assumption that the Release build is fast enough. If a snapshot shows styles landing on
-  the wrong words, put
-  `await: { idle: true }` after the toolbar taps and `tool: keyboard` steps around them.
-  `idle` reports a blinking caret as "a small part kept moving"; that warning is expected.
+- **Let the editor catch up.** Put `await: { idle: true, stableFor: 500 }` after every tap
+  on the editor or a toolbar button, and after every `tool: keyboard` step. On an Argent Cloud
+  simulator the keyboard step returns once the keystrokes are sent, not once the app has
+  them, so without the wait a following tap overtakes them: styles land on the wrong words,
+  and Enter presses go missing. A Release build does not change that. `stableFor: 500` keeps
+  the wait from settling in a gap between keystrokes. `idle` reports the blinking caret as
+  "a small part kept moving"; that warning is expected.
 - **Toolbar buttons.** On the test screen the toolbar is a grid inside the `full-screen`
   scroll view, below the editor. While the keyboard is up, and as the editor grows with
   text, its buttons can sit under the keyboard or below the screen. Argent does not scroll

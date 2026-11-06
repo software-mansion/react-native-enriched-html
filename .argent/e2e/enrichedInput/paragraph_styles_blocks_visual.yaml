@@ -6,36 +6,49 @@ steps:
   - await: { idle: true }
 
   - tap: { id: editor-input }
+  - await: { idle: true, stableFor: 500 }
 
   - echo: Blockquote with two lines
   - scroll-to: { target: { id: toolbar-quote }, direction: down, within: { id: full-screen } }
   - tap: { id: toolbar-quote }
+  - await: { idle: true, stableFor: 500 }
   - tool: keyboard
     args: { text: "Quote 1" }
+  - await: { idle: true, stableFor: 500 }
   - tool: keyboard
     args: { key: enter }
+  - await: { idle: true, stableFor: 500 }
   - tool: keyboard
     args: { text: "Quote 2" }
+  - await: { idle: true, stableFor: 500 }
   - tool: keyboard
     args: { key: enter }
+  - await: { idle: true, stableFor: 500 }
   - scroll-to: { target: { id: toolbar-quote }, direction: down, within: { id: full-screen } }
   - tap: { id: toolbar-quote }
+  - await: { idle: true, stableFor: 500 }
 
   - echo: Normal paragraph
   - tool: keyboard
     args: { text: "Normal paragraph" }
+  - await: { idle: true, stableFor: 500 }
   - tool: keyboard
     args: { key: enter }
+  - await: { idle: true, stableFor: 500 }
 
   - echo: Code block with two lines
   - scroll-to: { target: { id: toolbar-code-block }, direction: down, within: { id: full-screen } }
   - tap: { id: toolbar-code-block }
+  - await: { idle: true, stableFor: 500 }
   - tool: keyboard
     args: { text: "Code 1" }
+  - await: { idle: true, stableFor: 500 }
   - tool: keyboard
     args: { key: enter }
+  - await: { idle: true, stableFor: 500 }
   - tool: keyboard
     args: { text: "Code 2" }
+  - await: { idle: true, stableFor: 500 }
 
   - echo: Compare the editor with the baseline
   - tap: { id: blur-button }
