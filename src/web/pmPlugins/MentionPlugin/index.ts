@@ -22,6 +22,7 @@ export const MentionPlugin = Extension.create<MentionPluginOptions>({
           'MentionPlugin.configure({ getIndicators }) is required'
         );
       },
+      getRemoveInvalidMentionContent: () => false,
     };
   },
   addProseMirrorPlugins() {
@@ -38,7 +39,13 @@ export const MentionPlugin = Extension.create<MentionPluginOptions>({
           },
         },
         state: makeMentionPluginState(this.options.getIndicators),
-        appendTransaction: removeMentionMarksIfSpansResized,
+        appendTransaction: (transactions, oldState, newState) =>
+          removeMentionMarksIfSpansResized(
+            transactions,
+            oldState,
+            newState,
+            this.options.getRemoveInvalidMentionContent()
+          ),
       }),
     ];
   },

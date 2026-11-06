@@ -12,6 +12,7 @@ export type TriggerState =
 
 export interface MentionPluginOptions {
   getIndicators: () => string[];
+  getRemoveInvalidMentionContent: () => boolean;
 }
 
 export interface MentionCallbacks {

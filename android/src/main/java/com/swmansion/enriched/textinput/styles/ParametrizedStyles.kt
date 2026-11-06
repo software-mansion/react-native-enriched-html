@@ -23,6 +23,7 @@ class ParametrizedStyles(
   private var isSettingLinkSpan = false
 
   var mentionIndicators: Array<String> = emptyArray<String>()
+  var removeInvalidMentionContent = false
 
   fun <T> removeSpansForRange(
     spannable: Spannable,
@@ -94,7 +95,23 @@ class ParametrizedStyles(
     endCursorPosition: Int,
   ) {
     afterTextChangedLinks(startCursorPosition, endCursorPosition)
+    // the deletion re-runs this watcher on the final text with fresh positions
+    if (removeInvalidMentionContent && removeInvalidMentions(s)) return
     detectActiveMention(s, startCursorPosition)
+  }
+
+  private fun removeInvalidMentions(s: Editable): Boolean {
+    var removed = false
+    for (span in s.getSpans(0, s.length, EnrichedInputMentionSpan::class.java)) {
+      val start = s.getSpanStart(span)
+      val end = s.getSpanEnd(span)
+      if (s.subSequence(start, end).toString() == span.getText()) continue
+
+      s.removeSpan(span)
+      s.delete(start, end)
+      removed = true
+    }
+    return removed
   }
 
   // Re-runs in-progress mention detection on a pure caret move (no text change),
