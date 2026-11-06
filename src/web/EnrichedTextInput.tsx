@@ -106,6 +106,7 @@ export const EnrichedTextInput = ({
   autoCapitalize = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.autoCapitalize,
   scrollEnabled = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.scrollEnabled,
   mentionIndicators = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.mentionIndicators.slice(),
+  removeInvalidMentionContent = false,
   onFocus,
   style,
   onBlur,
@@ -158,6 +159,9 @@ export const EnrichedTextInput = ({
   const htmlStyleRef = useStableRef(resolvedHtmlStyle);
   const onPasteImagesRef = useStableRef(onPasteImages);
   const mentionIndicatorsRef = useStableRef(mentionIndicators);
+  const removeInvalidMentionContentRef = useStableRef(
+    removeInvalidMentionContent
+  );
   const submitBehaviorRef = useStableRef(submitBehavior);
   const onSubmitEditingRef = useStableRef(onSubmitEditing);
   const onKeyPressRef = useStableRef(onKeyPress);
@@ -239,6 +243,8 @@ export const EnrichedTextInput = ({
       StrictMarksPlugin,
       MentionPlugin.configure({
         getIndicators: () => mentionIndicatorsRef.current,
+        getRemoveInvalidMentionContent: () =>
+          removeInvalidMentionContentRef.current,
       }),
       ShortcutPlugin.configure({
         getHtmlStyle: () => htmlStyleRef.current,
@@ -255,7 +261,13 @@ export const EnrichedTextInput = ({
         showOnlyWhenEditable: true,
       }),
     ],
-    [placeholder, htmlStyleRef, mentionIndicatorsRef, textShortcutsRef]
+    [
+      placeholder,
+      htmlStyleRef,
+      mentionIndicatorsRef,
+      removeInvalidMentionContentRef,
+      textShortcutsRef,
+    ]
   );
 
   const editor = useEditor(

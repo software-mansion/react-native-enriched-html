@@ -786,6 +786,12 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
     [config setMentionIndicators:newIndicators];
   }
 
+  if (newViewProps.removeInvalidMentionContent !=
+      oldViewProps.removeInvalidMentionContent) {
+    [config setRemoveInvalidMentionContent:newViewProps
+                                               .removeInvalidMentionContent];
+  }
+
   // selection color sets both selection and cursor on iOS (just as in RN)
   if (newViewProps.selectionColor != oldViewProps.selectionColor) {
     if (isColorMeaningful(newViewProps.selectionColor)) {

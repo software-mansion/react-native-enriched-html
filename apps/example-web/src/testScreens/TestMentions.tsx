@@ -16,6 +16,8 @@ export function TestMentions() {
   const [detectedText, setDetectedText] = useState('');
   const [detectedIndicator, setDetectedIndicator] = useState('');
   const [lastEndEvent, setLastEndEvent] = useState('');
+  const [removeInvalidMentionContent, setRemoveInvalidMentionContent] =
+    useState(false);
 
   const preventDefault = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -31,6 +33,7 @@ export function TestMentions() {
           style={editorStyle}
           htmlStyle={WEB_DEFAULT_HTML_STYLE}
           mentionIndicators={['@', '#']}
+          removeInvalidMentionContent={removeInvalidMentionContent}
           onStartMention={(indicator) => {
             setEventType('start');
             setEventIndicator(indicator);
@@ -112,6 +115,13 @@ export function TestMentions() {
         Start mention (channel)
       </button>
       <button data-testid="mention-blur-target">Blur Editor</button>
+      <button
+        data-testid="mention-remove-invalid-toggle"
+        onMouseDown={preventDefault}
+        onClick={() => setRemoveInvalidMentionContent((value) => !value)}
+      >
+        removeInvalidMentionContent: {String(removeInvalidMentionContent)}
+      </button>
     </div>
   );
 }

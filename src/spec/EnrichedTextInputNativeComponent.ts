@@ -375,6 +375,7 @@ export interface NativeProps extends ViewProps {
   placeholder?: string;
   placeholderTextColor?: ColorValue;
   mentionIndicators: string[];
+  removeInvalidMentionContent?: boolean;
   cursorColor?: ColorValue;
   selectionColor?: ColorValue;
   autoCapitalize?: string;
