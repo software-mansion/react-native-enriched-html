@@ -10,6 +10,7 @@
 @property TextDecorationLineEnum decorationLine;
 + (NSDictionary *)getSinglePropsFromFollyDynamic:(folly::dynamic)folly;
 + (NSDictionary *)getComplexPropsFromFollyDynamic:(folly::dynamic)folly;
++ (NSArray *)getStyleRulesFromFollyDynamic:(folly::dynamic)folly;
 
 // MARK: - Text only props
 @property UIColor *pressColor;

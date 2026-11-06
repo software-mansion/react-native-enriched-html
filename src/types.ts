@@ -197,6 +197,17 @@ export interface MentionStyleProperties {
   textDecorationLine?: 'underline' | 'none';
 }
 
+/**
+ * Attribute-based style override for mentions.
+ * When a mention's attributes contain all key-value pairs in `match`,
+ * `style` is applied instead of the indicator-based default.
+ * First matching rule wins.
+ */
+export interface MentionStyleRule {
+  match: Record<string, string>;
+  style: MentionStyleProperties;
+}
+
 export interface HtmlStyle {
   h1?: HeadingStyle;
   h2?: HeadingStyle;
@@ -226,6 +237,7 @@ export interface HtmlStyle {
     pressColor?: ColorValue;
   };
   mention?: Record<string, MentionStyleProperties> | MentionStyleProperties;
+  mentionStyleRules?: MentionStyleRule[];
   ol?: {
     gapWidth?: number;
     marginLeft?: number;

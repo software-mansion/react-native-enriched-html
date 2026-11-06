@@ -9,6 +9,7 @@ import com.swmansion.enriched.common.DEFAULT_BACKGROUND_OPACITY
 import com.swmansion.enriched.common.EnrichedConstants
 import com.swmansion.enriched.common.EnrichedStyle
 import com.swmansion.enriched.common.MentionStyle
+import com.swmansion.enriched.common.MentionStyleRule
 import com.swmansion.enriched.common.pixelFromSpOrDp
 import com.swmansion.enriched.common.withOpacity
 import com.swmansion.enriched.textinput.EnrichedTextInputView
@@ -73,6 +74,7 @@ class HtmlStyle : EnrichedStyle {
   override var inlineCodeBackgroundColor: Int = Color.BLACK
 
   override var mentionsStyle: MutableMap<String, MentionStyle> = mutableMapOf()
+  override var mentionStyleRules: List<MentionStyleRule> = emptyList()
 
   val allowFontScaling: Boolean
     get() = view?.allowFontScaling ?: EnrichedConstants.ALLOW_FONT_SCALING_DEFAULT
@@ -152,6 +154,9 @@ class HtmlStyle : EnrichedStyle {
 
     val mentionStyle = style.getMap("mention")
     mentionsStyle = parseMentionsStyle(mentionStyle)
+
+    // Parse mentionStyleRules (embedded as __rules__ in the mention dict)
+    mentionStyleRules = parseMentionStyleRules(mentionStyle)
   }
 
   private fun parseFloat(
@@ -240,6 +245,9 @@ class HtmlStyle : EnrichedStyle {
     val iterator = mentionsStyle.keySetIterator()
     while (iterator.hasNextKey()) {
       val key = iterator.nextKey()
+      // Skip __rules__ as it's handled by parseMentionStyleRules
+      if (key == "__rules__") continue
+
       val value = mentionsStyle.getMap(key)
 
       if (value == null) throw Error("Mention style for key '$key' cannot be null")
@@ -252,6 +260,45 @@ class HtmlStyle : EnrichedStyle {
     }
 
     return parsedMentionsStyle
+  }
+
+  private fun parseMentionStyleRules(mentionsStyle: ReadableMap?): List<MentionStyleRule> {
+    if (mentionsStyle == null || !mentionsStyle.hasKey("__rules__")) {
+      return emptyList()
+    }
+
+    val rulesArray = mentionsStyle.getArray("__rules__") ?: return emptyList()
+    val parsedRules: MutableList<MentionStyleRule> = mutableListOf()
+
+    for (i in 0 until rulesArray.size()) {
+      val ruleMap = rulesArray.getMap(i) ?: continue
+
+      val matchMap = ruleMap.getMap("match")
+      val styleMap = ruleMap.getMap("style")
+
+      if (matchMap == null || styleMap == null) continue
+
+      // Parse match object
+      val match: MutableMap<String, String> = mutableMapOf()
+      val matchIterator = matchMap.keySetIterator()
+      while (matchIterator.hasNextKey()) {
+        val key = matchIterator.nextKey()
+        val value = matchMap.getString(key)
+        if (value != null) {
+          match[key] = value
+        }
+      }
+
+      // Parse style object
+      val color = parseColor(styleMap, "color")
+      val backgroundColor = parseColorWithOpacity(styleMap, "backgroundColor")
+      val isUnderline = parseIsUnderline(styleMap)
+      val style = MentionStyle(color, backgroundColor, isUnderline)
+
+      parsedRules.add(MentionStyleRule(match, style))
+    }
+
+    return parsedRules
   }
 
   private fun parseOptionalFontWeight(
@@ -313,7 +360,8 @@ class HtmlStyle : EnrichedStyle {
       inlineCodeColor == other.inlineCodeColor &&
       inlineCodeBackgroundColor == other.inlineCodeBackgroundColor &&
 
-      mentionsStyle == other.mentionsStyle
+      mentionsStyle == other.mentionsStyle &&
+      mentionStyleRules == other.mentionStyleRules
   }
 
   override fun hashCode(): Int {
@@ -361,6 +409,7 @@ class HtmlStyle : EnrichedStyle {
     result = 31 * result + inlineCodeBackgroundColor.hashCode()
 
     result = 31 * result + mentionsStyle.hashCode()
+    result = 31 * result + mentionStyleRules.hashCode()
 
     return result
   }
