@@ -307,7 +307,10 @@ static NSString *const MentionBackgroundAttributeName =
       if (prevRange.location + prevRange.length == currentRange.location) {
         [rangesToRemove addObject:[NSValue valueWithRange:prevRange]];
         [rangesToRemove addObject:[NSValue valueWithRange:currentRange]];
-        continue;
+        // with removeInvalidMentionContent an edited one still has to go
+        if (![self.host.config removeInvalidMentionContent]) {
+          continue;
+        }
       }
     }
 

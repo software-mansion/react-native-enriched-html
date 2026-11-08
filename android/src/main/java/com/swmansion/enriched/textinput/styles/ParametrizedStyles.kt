@@ -105,6 +105,8 @@ class ParametrizedStyles(
     for (span in s.getSpans(0, s.length, EnrichedInputMentionSpan::class.java)) {
       val start = s.getSpanStart(span)
       val end = s.getSpanEnd(span)
+      // the nested watcher pass may have removed it already
+      if (start == -1) continue
       if (s.subSequence(start, end).toString() == span.getText()) continue
 
       s.removeSpan(span)
