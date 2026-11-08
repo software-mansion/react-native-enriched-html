@@ -81,6 +81,12 @@ describe('removeMentionMarksIfSpansResized', () => {
     expect(doc.textContent).toBe('Hi  and @John ');
   });
 
+  test('removes a mention when a character is replaced, like autocorrect', () => {
+    const { doc } = run((state) => state.tr.insertText('k', 7, 8), true);
+
+    expect(doc.textContent).toBe('Hi  and @John ');
+  });
+
   test('ignores typing right after a mention', () => {
     const { fix } = run((state) => state.tr.insertText('x', 9), true);
 

@@ -31,7 +31,13 @@ export function removeMentionMarksIfSpansResized(
       newTo = t.mapping.map(newTo, -1);
     }
 
-    if (newTo - newFrom !== origLen) {
+    const resized = newTo - newFrom !== origLen;
+    const edited =
+      removeContent &&
+      newState.doc.textBetween(newFrom, newTo) !==
+        oldState.doc.textBetween(from, to);
+
+    if (resized || edited) {
       if (removeContent) {
         // earlier deletions in this transaction shift the positions
         tr.delete(tr.mapping.map(newFrom), tr.mapping.map(newTo));
