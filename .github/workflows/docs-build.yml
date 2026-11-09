@@ -1,0 +1,55 @@
+name: docs build
+
+on:
+  pull_request:
+    paths:
+      - 'docs/**'
+      - '.github/workflows/docs-build.yml'
+  workflow_dispatch:
+
+jobs:
+  docs-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: docs
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+          cache-dependency-path: |
+            yarn.lock
+            docs/yarn.lock
+
+      - name: Install library dependencies (local source)
+        working-directory: ${{ github.workspace }}
+        run: yarn install --immutable
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Typecheck docs
+        working-directory: ${{ github.workspace }}
+        run: yarn typecheck:docs
+
+      - name: Build docs
+        run: yarn build
+
+      - name: Check docs llms.txt
+        run: |
+          file=build/llms.txt
+          if [ ! -s "$file" ]; then
+            echo "::error::$file is missing or empty"
+            exit 1
+          fi
+          count=$(grep -cE '^- \[[^]]+\]\(https://docs\.swmansion\.com/react-native-enriched-html/[^)]+\)' "$file" || true)
+          if [ "$count" -eq 0 ]; then
+            echo "::error::$file lists no pages"
+            exit 1
+          fi
+          echo "llms.txt lists $count pages"

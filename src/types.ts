@@ -2,7 +2,10 @@ import type { RefObject } from 'react';
 import type {
   ColorValue,
   DimensionValue,
-  NativeMethods,
+  HostInstance,
+  MeasureInWindowOnSuccessCallback,
+  MeasureLayoutOnSuccessCallback,
+  MeasureOnSuccessCallback,
   NativeSyntheticEvent,
   ReturnKeyTypeOptions,
   TargetedEvent,
@@ -34,7 +37,7 @@ export interface EnrichedInputStyle {
   display?: TextStyle['display'];
   end?: DimensionValue;
   flex?: number;
-  flexBasis?: DimensionValue;
+  flexBasis?: string | number;
   flexGrow?: number;
   flexShrink?: number;
   height?: DimensionValue;
@@ -219,6 +222,8 @@ export interface HtmlStyle {
   a?: {
     color?: ColorValue;
     textDecorationLine?: 'underline' | 'none';
+    /** @platform web */
+    pressColor?: ColorValue;
   };
   mention?: Record<string, MentionStyleProperties> | MentionStyleProperties;
   ol?: {
@@ -257,7 +262,11 @@ export type TextShortcutStyle =
   | 'codeblock'
   | 'unordered_list'
   | 'ordered_list'
-  | 'checkbox_list';
+  | 'checkbox_list'
+  | 'left'
+  | 'center'
+  | 'right'
+  | 'justify';
 
 /**
  * Defines a single text shortcut: a character sequence that, when typed is replaced by the corresponding paragraph or inline style.
@@ -380,6 +389,12 @@ export interface OnChangeStateEvent {
     isBlocking: boolean;
   };
   alignment: string;
+  customStyle: {
+    foregroundColor: string;
+    backgroundColor: string;
+    fontSize: number;
+    fontFamily: string;
+  };
 }
 
 export interface OnLinkDetected {
@@ -430,7 +445,16 @@ export type BlurEvent = NativeSyntheticEvent<TargetedEvent>;
  * to the component's `ref` prop. All methods are safe to call after the
  * component has mounted.
  */
-export interface EnrichedTextInputInstance extends NativeMethods {
+export interface EnrichedTextInputInstance {
+  measureInWindow: (callback: MeasureInWindowOnSuccessCallback) => void;
+  measure: (callback: MeasureOnSuccessCallback) => void;
+  measureLayout: (
+    relativeToNativeComponentRef: HostInstance | number,
+    onSuccess: MeasureLayoutOnSuccessCallback,
+    onFail?: () => void
+  ) => void;
+  setNativeProps: (nativeProps: object) => void;
+
   /** Focuses the editor, opening the software keyboard on mobile. */
   focus: () => void;
 
@@ -564,6 +588,22 @@ export interface EnrichedTextInputInstance extends NativeMethods {
   setTextAlignment: (
     alignment: 'left' | 'center' | 'right' | 'justify' | 'auto'
   ) => void;
+
+  /**
+   * Sets the custom style (text and background colors, font size, font family) for
+   * the current text selection.
+   *
+   * @param customStyle - An object specifying the styles to apply.
+   * Provide `foregroundColor` to change the text color, `backgroundColor` to change
+   * the text highlight color, `fontSize` to change the font size, and `fontFamily`
+   * to change the font family. Passing `null` for a property will remove that specific style.
+   */
+  setStyle: (customStyle: {
+    foregroundColor?: ColorValue | null;
+    backgroundColor?: ColorValue | null;
+    fontSize?: number | null;
+    fontFamily?: string | null;
+  }) => void;
 }
 
 export interface ContextMenuItem {
@@ -583,6 +623,25 @@ export interface ContextMenuItem {
 export interface OnChangeMentionEvent {
   indicator: string;
   text: string;
+}
+
+/**
+ * Web-only configuration for the HTML sanitization step.
+ *
+ * @platform web
+ */
+export interface SanitizationConfig {
+  /**
+   * Regular expression used to decide which link URIs survive sanitization.
+   * Maps directly to DOMPurify's `ALLOWED_URI_REGEXP`, so it fully replaces
+   * the default allow-list rather than extending it — include the standard
+   * protocols you still want to permit in addition to any custom ones.
+   *
+   * When omitted, DOMPurify's built-in default is used.
+   *
+   * @platform web
+   */
+  linkRegex?: RegExp;
 }
 
 /**
@@ -631,6 +690,15 @@ export interface EnrichedTextInputProps extends Omit<ViewProps, 'children'> {
 
   /** Controls automatic capitalization of typed text. Defaults to `"sentences"`. */
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
+
+  /** If false, disables auto-correct. Defaults `true`. */
+  autoCorrect?: boolean;
+
+  /** If false, disables spell-check style (i.e. red underlines). The default value is inherited from the `autoCorrect` prop.
+   *
+   * @platform ios
+   */
+  spellCheck?: boolean;
 
   /** Style overrides applied to the rendered HTML content inside the editor. */
   htmlStyle?: HtmlStyle;
@@ -691,6 +759,15 @@ export interface EnrichedTextInputProps extends Omit<ViewProps, 'children'> {
 
   /** Called when the editor auto-detects a URL matching `linkRegex`. */
   onLinkDetected?: (e: OnLinkDetected) => void;
+
+  /**
+   * Web only. Called when the user clicks a link inside the editor. If not
+   * provided, clicking a link has no effect (the default, cross-platform
+   * behavior).
+   *
+   * @platform web
+   */
+  onLinkPress?: (event: OnLinkPressEvent) => void;
 
   /** Called when the editor resolves a mention node. */
   onMentionDetected?: (e: OnMentionDetected) => void;
@@ -758,9 +835,16 @@ export interface EnrichedTextInputProps extends Omit<ViewProps, 'children'> {
    * normalized through the HTML normalizer before being applied.
    * This converts arbitrary HTML into the canonical tag subset that the enriched
    * parser understands.
-   * Disabled by default.
+   * Enabled by default.
    */
   useHtmlNormalizer?: boolean;
+
+  /**
+   * Web-only configuration for the HTML sanitization step.
+   *
+   * @platform web
+   */
+  sanitizationConfig?: SanitizationConfig;
 
   /**
    * If true, fonts will scale to respect the system's accessibility text size.
@@ -772,11 +856,22 @@ export interface EnrichedTextInputProps extends Omit<ViewProps, 'children'> {
 /**
  * Imperative handle exposed via `ref` on `<EnrichedText />`.
  *
- * Inherits the full React Native `NativeMethods` surface (`measure`,
- * `measureInWindow`, `measureLayout`, `setNativeProps`, `focus`, `blur`).
+ * Exposes native measurement helpers (`measure`, `measureInWindow`,
+ * `measureLayout`, `setNativeProps`, `focus`, `blur`).
  * Obtain a reference with `useRef<EnrichedTextInstance>(null)`.
  */
-export interface EnrichedTextInstance extends NativeMethods {}
+export interface EnrichedTextInstance {
+  measureInWindow: (callback: MeasureInWindowOnSuccessCallback) => void;
+  measure: (callback: MeasureOnSuccessCallback) => void;
+  measureLayout: (
+    relativeToNativeComponentRef: HostInstance | number,
+    onSuccess: MeasureLayoutOnSuccessCallback,
+    onFail?: () => void
+  ) => void;
+  setNativeProps: (nativeProps: object) => void;
+  focus: () => void;
+  blur: () => void;
+}
 
 /**
  * Props for the `<EnrichedText />` read-only rich-text rendering component.
@@ -784,7 +879,7 @@ export interface EnrichedTextInstance extends NativeMethods {}
 export interface EnrichedTextProps extends ViewProps {
   /**
    * Ref to the imperative handle that exposes native measurement and focus
-   * methods inherited from `NativeMethods`.
+   * methods.
    * Create with `useRef<EnrichedTextInstance>(null)`.
    */
   ref?: RefObject<EnrichedTextInstance | null>;
@@ -800,9 +895,16 @@ export interface EnrichedTextProps extends ViewProps {
 
   /**
    * If true, external HTML will be normalized through the HTML normalizer
-   * before being rendered. Disabled by default.
+   * before being rendered. Enabled by default.
    */
   useHtmlNormalizer?: boolean;
+
+  /**
+   * Web-only configuration for the HTML sanitization step.
+   *
+   * @platform web
+   */
+  sanitizationConfig?: SanitizationConfig;
 
   /**
    * How to truncate text when it overflows `numberOfLines`.
@@ -836,6 +938,9 @@ export interface EnrichedTextProps extends ViewProps {
 
   /** Called when the user taps a mention node inside the rendered content. */
   onMentionPress?: (event: OnMentionPressEvent) => void;
+
+  /** Called when the user taps an inline image inside the rendered content. */
+  onImagePress?: (event: OnImagePressEvent) => void;
 }
 
 export interface EnrichedTextMentionStyleProperties extends MentionStyleProperties {
@@ -847,7 +952,10 @@ export interface EnrichedTextHtmlStyle extends Omit<
   HtmlStyle,
   'a' | 'mention'
 > {
-  a?: HtmlStyle['a'] & {
+  a?: Omit<NonNullable<HtmlStyle['a']>, 'pressColor'> & {
+    // the documentation comment below is to suppress the base HtmlStyle's
+    // web-only note about pressColor, as in EnrichedText it is cross-platform
+    /***/
     pressColor?: ColorValue;
   };
   mention?:
@@ -863,4 +971,12 @@ export interface OnMentionPressEvent {
   text: string;
   indicator: string;
   attributes: Record<string, string>;
+}
+
+export interface OnImagePressEvent {
+  image: {
+    uri: string;
+    width: number;
+    height: number;
+  };
 }

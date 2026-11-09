@@ -116,7 +116,11 @@ object MeasurementStore {
 
     try {
       val htmlStyle = HtmlStyle(defaultView, props.getMap("htmlStyle"))
-      val factory = EnrichedTextInputSpannableFactory()
+      val factory =
+        EnrichedTextInputSpannableFactory(
+          defaultView.context.assets,
+          allowFontScalingFromProps(props),
+        )
       val parsed = EnrichedParser.fromHtml(defaultValue, htmlStyle, factory)
       return parsed.trimEnd('\n')
     } catch (e: Exception) {
@@ -130,7 +134,7 @@ object MeasurementStore {
     props: ReadableMap?,
   ): Float {
     val propsFontSize = props?.getDouble("fontSize")?.toFloat()
-    if (propsFontSize == null) return defaultView.textSize
+    if (propsFontSize == null || propsFontSize <= 0) return defaultView.textSize
 
     return ceil(pixelFromSpOrDp(propsFontSize, allowFontScalingFromProps(props)))
   }

@@ -1,0 +1,34 @@
+appId: swmansion.enriched.example
+---
+# Verifies that typing attributes are properly preserved on selection changes
+- launchApp
+
+- tapOn:
+    id: 'toggle-screen-button'
+
+- tapOn:
+    id: "editor-input"
+
+- tapOn:
+    id: "toolbar-bold"
+
+- inputText: 'bold text'
+- pressKey: Enter
+- pressKey: Enter
+- pressKey: Enter
+- inputText: 'another line'
+
+- doubleTapOn:
+    id: 'editor-input'
+    point: '20%, 75%'
+
+- tapOn:
+    id: 'editor-input'
+    point: '50%, 15%'
+
+- inputText: 'new'
+
+- runFlow:
+    file: '../subflows/capture_or_assert_screenshot.yaml'
+    env:
+      SCREENSHOT_NAME: 'preserve_typing_attributes_on_selection_changes'

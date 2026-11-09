@@ -1,13 +1,18 @@
+import { sanitizeHtml } from '../sanitization/htmlSanitizer';
+import type { SanitizationConfig } from '../../types';
 import {
   checkboxHtmlForTiptap,
   checkboxHtmlFromTiptap,
 } from './checkboxHtmlNormalizer';
+import { normalizeColorToHex } from './colorNormalizer';
 import { normalizeHtml } from './htmlNormalizer';
 
 export function prepareHtmlForTiptap(
   html: string,
-  useHtmlNormalizer: boolean | undefined
+  useHtmlNormalizer: boolean | undefined,
+  sanitizationConfig?: SanitizationConfig
 ): string {
+  html = sanitizeHtml(html, sanitizationConfig);
   if (useHtmlNormalizer) {
     html = normalizeHtml(html);
   }
@@ -16,7 +21,12 @@ export function prepareHtmlForTiptap(
   return html;
 }
 
-export function normalizeHtmlFromTiptap(html: string): string {
+export function normalizeHtmlFromTiptap(
+  html: string,
+  getSanitizationConfig: () => SanitizationConfig | undefined
+): string {
+  const sanitizationConfig = getSanitizationConfig();
+  html = sanitizeHtml(html, sanitizationConfig);
   html = checkboxHtmlFromTiptap(html);
 
   // Strip <p> wrappers inside <li> elements.
@@ -37,6 +47,31 @@ export function normalizeHtmlFromTiptap(html: string): string {
       return `<img${attrs}>`;
     }
     return `<img${attrs}/>`;
+  });
+
+  // Find all style="..." attributes in the HTML
+  html = html.replace(/style="([^"]*)"/gi, (_, styleString: string) => {
+    let updatedStyle = styleString;
+
+    // Convert color: <value> to hex
+    updatedStyle = updatedStyle.replace(
+      /(?:^|;)\s*color\s*:\s*([^;]+)/gi,
+      (match, colorValue) => {
+        const hex = normalizeColorToHex(colorValue);
+        return hex ? match.replace(colorValue, hex) : match;
+      }
+    );
+
+    // Convert background-color: <value> to hex
+    updatedStyle = updatedStyle.replace(
+      /(?:^|;)\s*background-color\s*:\s*([^;]+)/gi,
+      (match, bgColorValue) => {
+        const hex = normalizeColorToHex(bgColorValue);
+        return hex ? match.replace(bgColorValue, hex) : match;
+      }
+    );
+
+    return `style="${updatedStyle}"`;
   });
 
   return `<html>${html}</html>`;

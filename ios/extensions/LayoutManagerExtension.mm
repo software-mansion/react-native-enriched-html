@@ -1,9 +1,9 @@
 #import "LayoutManagerExtension.h"
 #import "ColorExtension.h"
-#import "EnrichedViewHost.h"
-#import "RangeUtils.h"
-#import "StyleHeaders.h"
-#import "WeakBox.h"
+#import "interfaces/EnrichedViewHost.h"
+#import "interfaces/StyleHeaders.h"
+#import "utils/RangeUtils.h"
+#import "utils/WeakBox.h"
 #import <objc/runtime.h>
 
 @implementation NSLayoutManager (LayoutManagerExtension)
@@ -264,6 +264,7 @@ static void const *kInputKey = &kInputKey;
       NSForegroundColorAttributeName : [host.config orderedListMarkerColor]
     };
     CGFloat indent = pStyle.firstLineHeadIndent;
+    UIFont *referenceFont = [host.config primaryFont];
 
     NSArray *paragraphs =
         [RangeUtils getSeparateParagraphsRangesIn:host.textView
@@ -283,13 +284,9 @@ static void const *kInputKey = &kInputKey;
                                      NSUInteger charIdx =
                                          [self characterIndexForGlyphAtIndex:
                                                    lineGlyphRange.location];
-                                     UIFont *font = [host.textView.textStorage
-                                              attribute:NSFontAttributeName
-                                                atIndex:charIdx
-                                         effectiveRange:nil];
-                                     CGRect textUsedRect =
-                                         [self getTextAlignedUsedRect:usedRect
-                                                                 font:font];
+                                     CGRect textUsedRect = [self
+                                         getTextAlignedUsedRect:usedRect
+                                                           font:referenceFont];
 
                                      for (NSTextList *list in pStyle
                                               .textLists) {

@@ -1,0 +1,27 @@
+appId: swmansion.enriched.example
+---
+# Entities inside mention attributes (a JSON blob spliced into key="value"
+# pairs) must decode too - regression test for the mention attribute-escaping
+# fix.
+- launchApp
+
+- tapOn:
+    id: 'toggle-screen-button'
+
+- tapOn:
+    id: 'toggle-enriched-text-screen-button'
+
+- runFlow:
+    file: '../subflows/set_enriched_text_value.yaml'
+    env:
+      VALUE: '<html><p><mention text="@John Doe" indicator="@" id="1&amp;2">@John Doe</mention></p></html>'
+
+- tapOn:
+    id: 'enriched-text'
+    point: '5%,50%'
+
+- assertVisible:
+    text: 'You pressed the mention:.*"id":"1&2".*'
+
+- assertNotVisible:
+    text: '.*&amp;.*'

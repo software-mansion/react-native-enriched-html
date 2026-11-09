@@ -7,6 +7,7 @@ export const visualRegressionSelectors = {
   setValueButton: '[data-testid="visual-regression-set-value-button"]',
   editorHtmlOutput: '[data-testid="visual-regression-editor-html-output"]',
   htmlStyleOverride: '[data-testid="visual-regression-html-style-override"]',
+  textShortcutsOverride: '[data-testid="visual-regression-text-shortcuts"]',
 } as const;
 
 export function editorLocator(page: Page): Locator {
@@ -51,4 +52,11 @@ export async function setHtmlStyleOverride(
   json: string
 ): Promise<void> {
   await page.fill(visualRegressionSelectors.htmlStyleOverride, json);
+}
+
+export async function setTextShortcutsOverride(
+  page: Page,
+  json: string
+): Promise<void> {
+  await page.fill(visualRegressionSelectors.textShortcutsOverride, json);
 }

@@ -14,10 +14,10 @@ import {
   type OnSubmitEditing,
   type OnChangeMentionEvent,
   type OnMentionDetected,
-  EnrichedText,
+  type OnLinkPressEvent,
 } from 'react-native-enriched-html';
 import { WEB_DEFAULT_HTML_STYLE } from './defaultHtmlStyle';
-import type { NativeSyntheticEvent, TextStyle } from 'react-native';
+import type { NativeSyntheticEvent } from 'react-native';
 import { EditorActions } from './components/EditorActions';
 import { SetValueModal } from './components/SetValueModal';
 import { ImageModal } from './components/ImageModal';
@@ -28,6 +28,7 @@ import { Toolbar } from './components/Toolbar';
 import { MentionPopup, type MentionItem } from './components/MentionPopup';
 import { useUserMention } from './hooks/useUserMention';
 import { useChannelMention } from './hooks/useChannelMention';
+import { TextRenderer } from './components/TextRenderer';
 
 const DEFAULT_LINK_STATE: OnLinkDetected = {
   text: '',
@@ -37,6 +38,11 @@ const DEFAULT_LINK_STATE: OnLinkDetected = {
 };
 const LINK_REGEX =
   /^(?:enriched:\/\/\S+|(?:https?:\/\/)?(?:www\.)?swmansion\.com(?:\/\S*)?)$/i;
+
+const SANITIZATION_CONFIG = {
+  linkRegex:
+    /^(?:enriched:\/\/\S+|(?:https?:\/\/)?(?:www\.)?swmansion\.com(?:\/\S*)?|https?:\/\/\S+)$/i,
+};
 
 function App() {
   const ref = useRef<EnrichedTextInputInstance>(null);
@@ -121,16 +127,16 @@ function App() {
 
   const handleUserMentionSelected = (item: MentionItem) => {
     ref.current?.setMention('@', `@${item.name}`, {
-      id: item.id,
-      type: 'user',
+      'id': item.id,
+      'data-type': 'user',
     });
     closeUserMentionPopup();
   };
 
   const handleChannelMentionSelected = (item: MentionItem) => {
     ref.current?.setMention('#', `#${item.name}`, {
-      id: item.id,
-      type: 'channel',
+      'id': item.id,
+      'data-type': 'channel',
     });
     closeChannelMentionPopup();
   };
@@ -219,6 +225,10 @@ function App() {
     setCurrentLink(e);
   };
 
+  const handleLinkPress = (e: OnLinkPressEvent) => {
+    console.log('[EnrichedTextInput] onLinkPress event', e);
+  };
+
   const handlePasteImages = (e: NativeSyntheticEvent<OnPasteImagesEvent>) => {
     const DEFAULT_W = 80;
     const DEFAULT_H = 80;
@@ -270,6 +280,7 @@ function App() {
           onChangeState={handleChangeState}
           onSubmitEditing={handleSubmitEditing}
           onLinkDetected={handleOnLinkDetected}
+          onLinkPress={handleLinkPress}
           onPasteImages={handlePasteImages}
           onStartMention={handleStartMention}
           onChangeMention={handleChangeMention}
@@ -278,7 +289,7 @@ function App() {
           mentionIndicators={['@', '#']}
           htmlStyle={WEB_DEFAULT_HTML_STYLE}
           linkRegex={LINK_REGEX}
-          useHtmlNormalizer
+          sanitizationConfig={SANITIZATION_CONFIG}
         />
         <MentionPopup
           variant="user"
@@ -330,15 +341,7 @@ function App() {
 
       {showHtmlOutput && <HtmlOutputPanel html={currentHtml} />}
 
-      <div className="container enriched-text-container">
-        <h1 className="app-title">Enriched Text</h1>
-        <EnrichedText
-          style={enrichedTextStyle}
-          htmlStyle={WEB_DEFAULT_HTML_STYLE}
-        >
-          {enrichedTextValue}
-        </EnrichedText>
-      </div>
+      <TextRenderer htmlValue={enrichedTextValue} />
 
       {isSetValueModalOpen && (
         <SetValueModal
@@ -374,16 +377,6 @@ const enrichedInputStyle: EnrichedInputStyle = {
   width: '100%',
   marginVertical: 12,
   maxHeight: 300,
-  paddingVertical: 12,
-  paddingHorizontal: 14,
-  borderRadius: 8,
-  fontSize: 18,
-};
-
-const enrichedTextStyle: TextStyle = {
-  backgroundColor: 'gainsboro',
-  width: '100%',
-  marginVertical: 12,
   paddingVertical: 12,
   paddingHorizontal: 14,
   borderRadius: 8,

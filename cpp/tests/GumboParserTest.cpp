@@ -253,6 +253,104 @@ TEST(GumboParserTest, SpanRemappings) {
                 "<span style='text-decoration: line-through; font-weight: "
                 "bold; font-style: italic;'>x</span>"),
             "<b><i><s>x</s></i></b>");
+
+  // Foreground color only
+  EXPECT_EQ(GumboParser::normalizeHtml("<span style=\"color: red;\">x</span>"),
+            "<span style=\"color: red\">x</span>");
+  EXPECT_EQ(
+      GumboParser::normalizeHtml("<span style=\"color: #ff0000\">x</span>"),
+      "<span style=\"color: #ff0000\">x</span>");
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<span style='color: rgb(255, 0, 0)'>x</span>"),
+            "<span style=\"color: rgb(255, 0, 0)\">x</span>");
+
+  // Background color only
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<span style=\"background-color: blue;\">x</span>"),
+            "<span style=\"background-color: blue\">x</span>");
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<span style=\"background-color: rgba(0,0,0,0.5)\">x</span>"),
+            "<span style=\"background-color: rgba(0,0,0,0.5)\">x</span>");
+
+  // Both colors combined
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<span style=\"color: red; background-color: blue;\">x</span>"),
+            "<span style=\"color: red; background-color: blue\">x</span>");
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<span style=\"background-color: blue; color: red;\">x</span>"),
+            "<span style=\"color: red; background-color: blue\">x</span>");
+
+  // Color + Single Formatter
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<span style=\"color: red; font-weight: bold;\">x</span>"),
+            "<span style=\"color: red\"><b>x</b></span>");
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<span style=\"font-weight: bold; color: red;\">x</span>"),
+            "<span style=\"color: red\"><b>x</b></span>");
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<span style=\"background-color: yellow; font-style: "
+                "italic;\">x</span>"),
+            "<span style=\"background-color: yellow\"><i>x</i></span>");
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<span style=\"text-decoration: underline; color: green;\">x</"
+                "span>"),
+            "<span style=\"color: green\"><u>x</u></span>");
+
+  // Color + Multiple inline styles
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<span style=\"color: #ffffff; background-color: #000000; "
+                "font-weight: bold; text-decoration: underline;\">x</span>"),
+            "<span style=\"color: #ffffff; background-color: "
+            "#000000\"><b><u>x</u></b></span>");
+
+  // Mix of colors and inline styles
+  EXPECT_EQ(
+      GumboParser::normalizeHtml(
+          "<span style=\"text-decoration: line-through; color: rgb(255, 0, "
+          "0); font-style: italic; background-color: rgb(0, 0, 255); "
+          "font-weight: bold;\">x</span>"),
+      "<span style=\"color: rgb(255, 0, 0); background-color: rgb(0, 0, "
+      "255)\"><b><i><s>x</s></i></b></span>");
+
+  // Quotes can't break out of the style attribute
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<span style='color: red\" onclick=\"x'>x</span>"),
+            "<span style=\"color: red&quot; onclick=&quot;x\">x</span>");
+
+  // Font size
+  EXPECT_EQ(
+      GumboParser::normalizeHtml("<span style=\"font-size: 20px;\">x</span>"),
+      "<span style=\"font-size: 20px\">x</span>");
+
+  // Font family: the whole stack is passed through, picking the family is up
+  // to the parsers
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<span style=\"font-family: Roboto, sans-serif\">x</span>"),
+            "<span style=\"font-family: Roboto, sans-serif\">x</span>");
+  EXPECT_EQ(
+      GumboParser::normalizeHtml(
+          "<span style='font-family: \"SWM, Inc\", Arial'>x</span>"),
+      "<span style=\"font-family: &quot;SWM, Inc&quot;, Arial\">x</span>");
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<span style=\"font-family: 'Open Sans'\">x</span>"),
+            "<span style=\"font-family: 'Open Sans'\">x</span>");
+
+  // All custom styles combined, with inline styles
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<span style=\"font-family: Inter; font-weight: bold; "
+                "font-size: 12px; background-color: blue; color: red\">x</"
+                "span>"),
+            "<span style=\"color: red; background-color: blue; font-size: "
+            "12px; font-family: Inter\"><b>x</b></span>");
+
+  // `&` and `"` are escaped
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<span style='font-size: 1px\" onclick=\"x'>x</span>"),
+            "<span style=\"font-size: 1px&quot; onclick=&quot;x\">x</span>");
+  EXPECT_EQ(
+      GumboParser::normalizeHtml("<span style=\"font-family: &quot;Black &amp; "
+                                 "White&quot;\">x</span>"),
+      "<span style=\"font-family: &quot;Black &amp; White&quot;\">x</span>");
 }
 
 TEST(GumboParserTest, EnrichedTagRemappings) {
@@ -282,6 +380,11 @@ TEST(GumboParserTest, EnrichedTagRemappings) {
   EXPECT_EQ(
       GumboParser::normalizeHtml("<img src='x' width='100' height='100' />"),
       "<img src=\"x\" width=\"100\" height=\"100\" />");
+  EXPECT_EQ(GumboParser::normalizeHtml("<img width=\"100\" height=\"100\" />"),
+            "<img src=\"\" width=\"100\" height=\"100\" />");
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<img src=\"\" width=\"100\" height=\"100\" />"),
+            "<img src=\"\" width=\"100\" height=\"100\" />");
 
   // Lists
   EXPECT_EQ(GumboParser::normalizeHtml("<ul><li>x</li></ul>"),
@@ -307,13 +410,20 @@ TEST(GumboParserTest, EnrichedTagRemappings) {
   EXPECT_EQ(
       GumboParser::normalizeHtml(
           "<mention text='@John Doe' indicator='@' id='1'>@John Doe</mention>"),
-      "<mention id=\"1\" text=\"@John Doe\" indicator=\"@\">@John "
+      "<mention text=\"@John Doe\" indicator=\"@\" id=\"1\">@John "
       "Doe</mention>");
   EXPECT_EQ(
       GumboParser::normalizeHtml("<mention text=\"@John Doe\" indicator=\"@\" "
                                  "id=\"1\">@John Doe</mention>"),
-      "<mention id=\"1\" text=\"@John Doe\" indicator=\"@\">@John "
+      "<mention text=\"@John Doe\" indicator=\"@\" id=\"1\">@John "
       "Doe</mention>");
+  // Custom mention attributes are preserved
+  EXPECT_EQ(
+      GumboParser::normalizeHtml(
+          "<mention id=\"1\" text=\"@John Doe\" indicator=\"@\" type=\"user\" "
+          "data-custom=\"custom data\">@John Doe</mention>"),
+      "<mention id=\"1\" text=\"@John Doe\" indicator=\"@\" type=\"user\" "
+      "data-custom=\"custom data\">@John Doe</mention>");
 
   // Link
   EXPECT_EQ(GumboParser::normalizeHtml(
@@ -401,7 +511,7 @@ TEST(GumboParserTest, DivRemappings) {
           "</b>hello<div><br></div><div>hi</div></li></ul></div></div></"
           "blockquote></span>"),
       "<p>what do you think of this craziness</p><blockquote><p><b>another one "
-      "</b>hello</p><p>hi</p></blockquote>");
+      "</b>hello</p><br><p>hi</p></blockquote>");
 }
 
 TEST(GumboParserTest, ListFlattening) {
@@ -508,4 +618,222 @@ TEST(GumboParserTest, BrRemappings) {
                 "href='https://google.com'>Net</a></p>"),
             "<p><b>Asdasdasd</b></p><br><br><p>Sent with <a "
             "href=\"https://google.com\">Net</a></p>");
+  // A <br> between blockquote paragraphs is preserved.
+  EXPECT_EQ(
+      GumboParser::normalizeHtml(
+          "<blockquote><p>this is a pretty short blockquote.</p><br><p>This is "
+          "a line after an empty line.</p></blockquote>"),
+      "<blockquote><p>this is a pretty short blockquote.</p><br><p>This is a "
+      "line after an empty line.</p></blockquote>");
+}
+
+// Preserve text alignment
+TEST(GumboParserTest, TextAlignment) {
+  EXPECT_EQ(GumboParser::normalizeHtml("<p style=\"text-align: left\">x</p>"),
+            "<p style=\"text-align: left\">x</p>");
+  EXPECT_EQ(GumboParser::normalizeHtml("<p style=\"text-align: center\">x</p>"),
+            "<p style=\"text-align: center\">x</p>");
+  EXPECT_EQ(GumboParser::normalizeHtml("<p style=\"text-align: right\">x</p>"),
+            "<p style=\"text-align: right\">x</p>");
+  EXPECT_EQ(
+      GumboParser::normalizeHtml("<p style=\"text-align: justify\">x</p>"),
+      "<p style=\"text-align: justify\">x</p>");
+
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<ul style=\"text-align: center\"><li>x</li></ul>"),
+            "<ul style=\"text-align: center\"><li>x</li></ul>");
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<ol style=\"text-align: right\"><li>x</li></ol>"),
+            "<ol style=\"text-align: right\"><li>x</li></ol>");
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<ul data-type=\"checkbox\" style=\"text-align: center\">"
+                "<li>x</li></ul>"),
+            "<ul data-type=\"checkbox\" style=\"text-align: center\">"
+            "<li>x</li></ul>");
+
+  EXPECT_EQ(
+      GumboParser::normalizeHtml("<h1 style=\"text-align: center\">x</h1>"),
+      "<h1 style=\"text-align: center\">x</h1>");
+  EXPECT_EQ(
+      GumboParser::normalizeHtml("<h6 style=\"text-align: justify\">x</h6>"),
+      "<h6 style=\"text-align: justify\">x</h6>");
+
+  // Value is normalized to lowercase
+  EXPECT_EQ(GumboParser::normalizeHtml("<p style=\"text-align: CENTER\">x</p>"),
+            "<p style=\"text-align: center\">x</p>");
+
+  // Coexists with inline formatting on the same tag
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<p style=\"font-weight: bold; text-align: center\">x</p>"),
+            "<p style=\"text-align: center\"><b>x</b></p>");
+
+  // Invalid value is stripped
+  EXPECT_EQ(GumboParser::normalizeHtml("<p style=\"text-align: bogus\">x</p>"),
+            "<p>x</p>");
+
+  // Not emitted on non-alignable tags
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<ul><li style=\"text-align: center\">x</li></ul>"),
+            "<ul><li>x</li></ul>");
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<blockquote style=\"text-align: center\">x</blockquote>"),
+            "<blockquote><p>x</p></blockquote>");
+
+  // Preserved per-paragraph when a <p> blocks are flattened
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<blockquote><p style=\"text-align: left\">l</p>"
+                "<p style=\"text-align: center\">c</p>"
+                "<p style=\"text-align: right\">r</p></blockquote>"),
+            "<blockquote><p style=\"text-align: left\">l</p>"
+            "<p style=\"text-align: center\">c</p>"
+            "<p style=\"text-align: right\">r</p></blockquote>");
+}
+
+TEST(GumboParserTest, InterBlockWhitespace) {
+  // Pretty-printed consecutive paragraphs must not gain empty <p>s from the
+  // newlines between them (those would later serialize as extra <br>s).
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<p>Asdasd</p>\n<p>Asdasd</p>\n<p>Asdasda</p>"),
+            "<p>Asdasd</p><p>Asdasd</p><p>Asdasda</p>");
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<p>Asdasd</p>\n\n<p>Asdasd</p>\n\n<p>Asdasda</p>"),
+            "<p>Asdasd</p><p>Asdasd</p><p>Asdasda</p>");
+  EXPECT_EQ(
+      GumboParser::normalizeHtml(
+          "<html>\n<p>Asdasd</p>\n<p>Asdasd</p>\n<p>Asdasda</p>\n</html>"),
+      "<p>Asdasd</p><p>Asdasd</p><p>Asdasda</p>");
+  EXPECT_EQ(GumboParser::normalizeHtml("<p>Asdasd</p> <p>Asdasd</p>"),
+            "<p>Asdasd</p><p>Asdasd</p>");
+
+  // Whitespace around blocks inside a list item must not add empty items.
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<ul><li>\n<p>a</p>\n</li><li>\n<p>b</p>\n</li></ul>"),
+            "<ul><li>a</li><li>b</li></ul>");
+  EXPECT_EQ(GumboParser::normalizeHtml("<ol><li><p>a</p> <p>b</p></li></ol>"),
+            "<ol><li>a</li><li>b</li></ol>");
+
+  // Significant inline content between blocks is still wrapped in <p>.
+  EXPECT_EQ(GumboParser::normalizeHtml("<p>a</p> hello <p>b</p>"),
+            "<p>a</p><p> hello </p><p>b</p>");
+
+  // Spaces inside text / between inlines must be preserved.
+  EXPECT_EQ(GumboParser::normalizeHtml("hello world"), "hello world");
+  EXPECT_EQ(GumboParser::normalizeHtml("<p>hello world</p>"),
+            "<p>hello world</p>");
+  EXPECT_EQ(GumboParser::normalizeHtml("<b>hello</b> <i>world</i>"),
+            "<b>hello</b> <i>world</i>");
+}
+
+TEST(GumboParserTest, NestedSpans) {
+  // Child overrides the parent
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<span style=\"color: red\">A<span style=\"color: "
+                "blue\">B</span>C</span>"),
+            "<span style=\"color: red\">A</span><span style=\"color: "
+            "blue\">B</span><span style=\"color: red\">C</span>");
+
+  // Child inherits properties it doesn't set
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<span style=\"color: red\">A<span style=\"font-size: "
+                "20px\">B</span></span>"),
+            "<span style=\"color: red\">A</span><span style=\"color: red; "
+            "font-size: 20px\">B</span>");
+
+  // Unstyled spans are transparent
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<span style=\"color: red\">A<span>B</span>C</span>"),
+            "<span style=\"color: red\">ABC</span>");
+
+  // Styles are pushed down through other inline tags
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<span style=\"color: red\"><b>A<span style=\"color: "
+                "blue\">B</span></b></span>"),
+            "<b><span style=\"color: red\">A</span><span style=\"color: "
+            "blue\">B</span></b>");
+
+  // A wrapper inside a pushed-down span merges the inherited style, and its
+  // text isn't wrapped again
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<span style=\"color: red\">A<b>B<span style=\"font-size: "
+                "20px\">C</span></b><span>D</span></span>"),
+            "<span style=\"color: red\">A</span><b><span style=\"color: "
+            "red\">B</span><span style=\"color: red; font-size: "
+            "20px\">C</span></b><span style=\"color: red\">D</span>");
+
+  // Styles are inherited across multiple levels
+  EXPECT_EQ(
+      GumboParser::normalizeHtml(
+          "<span style=\"color: red; background-color: yellow\">A<span "
+          "style=\"color: blue\">B<span style=\"font-size: "
+          "20px\">C</span></span></span>"),
+      "<span style=\"color: red; background-color: yellow\">A</span><span "
+      "style=\"color: blue; background-color: yellow\">B</span><span "
+      "style=\"color: blue; background-color: yellow; font-size: "
+      "20px\">C</span>");
+
+  // Transparent background doesn't override the inherited one
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<span style=\"background-color: yellow\">A<span "
+                "style=\"color: blue; background-color: "
+                "transparent\">B</span></span>"),
+            "<span style=\"background-color: yellow\">A</span><span "
+            "style=\"color: blue; background-color: yellow\">B</span>");
+
+  // `inherit` doesn't override the inherited value
+  EXPECT_EQ(
+      GumboParser::normalizeHtml("<span style=\"color: red\">A<span "
+                                 "style=\"color: inherit\">B</span></span>"),
+      "<span style=\"color: red\">AB</span>");
+
+  // Transparent background alone is treated as no style
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<span style=\"background-color: TRANSPARENT\">A</span>"),
+            "A");
+
+  // Whitespace between blocks is layout and doesn't become a paragraph
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<span style=\"color: red\"><p>A</p> <p><span style=\"color: "
+                "blue\">B</span></p></span>"),
+            "<p><span style=\"color: red\">A</span></p><p><span "
+            "style=\"color: blue\">B</span></p>");
+
+  // Whitespace between table parts is layout
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<span style=\"color: red\">A<table>\n<tr>\n<td><span "
+                "style=\"color: blue\">B</span></td>\n</tr>\n</table></span>"),
+            "<p><span style=\"color: red\">A</span></p>\n<p>\n<span "
+            "style=\"color: blue\">B</span>\n</p>");
+
+  // Whitespace inside a table cell is inline and keeps the style
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<span style=\"color: red\">A<table><tr><td><span "
+                "style=\"color: blue\">B</span> <span style=\"color: "
+                "green\">C</span></td></tr></table></span>"),
+            "<p><span style=\"color: red\">A</span></p><p><span "
+            "style=\"color: blue\">B</span><span style=\"color: red\"> "
+            "</span><span style=\"color: green\">C</span></p>");
+
+  // Unstyled spans outside styled ones don't wrap anything
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<span>A<span style=\"color: red\">B</span>C</span>"),
+            "A<span style=\"color: red\">B</span>C");
+
+  // Inherited values are escaped like the wrapper's own ones
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<span style='color: a\"b'>A<span style=\"font-family: "
+                "&quot;Open Sans&quot;\">B</span></span>"),
+            "<span style=\"color: a&quot;b\">A</span><span style=\"color: "
+            "a&quot;b; font-family: &quot;Open Sans&quot;\">B</span>");
+
+  // Context reaches list items and blockquotes
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<ul><li><span style=\"color: red\">A<span style=\"color: "
+                "blue\">B</span></span></li></ul>"),
+            "<ul><li><span style=\"color: red\">A</span><span "
+            "style=\"color: blue\">B</span></li></ul>");
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<blockquote><span style=\"color: red\">A<span "
+                "style=\"color: blue\">B</span></span></blockquote>"),
+            "<blockquote><p><span style=\"color: red\">A</span><span "
+            "style=\"color: blue\">B</span></p></blockquote>");
 }

@@ -1,4 +1,4 @@
-#import "EnrichedTextStyleHeaders.h"
+#import "interfaces/EnrichedTextStyleHeaders.h"
 
 @implementation EnrichedTextBoldStyle
 @end
@@ -31,6 +31,9 @@
 @end
 
 @implementation EnrichedTextH6Style
+@end
+
+@implementation EnrichedTextCustomStyle
 @end
 
 @implementation EnrichedTextBlockQuoteStyle

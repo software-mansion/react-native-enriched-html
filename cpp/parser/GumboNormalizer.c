@@ -28,6 +28,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 
 /* ------------------------------------------------------------------ */
 /*  Dynamic string buffer                                              */
@@ -219,6 +220,20 @@ static bool is_purely_inline(GumboNode *node) {
   return true;
 }
 
+static bool is_table_tag(const char *name) {
+  return strcmp(name, "table") == 0 || strcmp(name, "thead") == 0 ||
+         strcmp(name, "tbody") == 0 || strcmp(name, "tfoot") == 0 ||
+         strcmp(name, "tr") == 0 || strcmp(name, "td") == 0 ||
+         strcmp(name, "th") == 0 || strcmp(name, "caption") == 0 ||
+         strcmp(name, "colgroup") == 0 || strcmp(name, "col") == 0;
+}
+
+/** Table tags that hold inline text rather than other table tags. */
+static bool is_table_text_tag(const char *name) {
+  return strcmp(name, "td") == 0 || strcmp(name, "th") == 0 ||
+         strcmp(name, "caption") == 0;
+}
+
 /** True if any direct child is block-producing or a blockquote. */
 static bool has_block_or_bq_child(GumboNode *node) {
   if (!is_element(node))
@@ -237,10 +252,23 @@ static bool has_block_or_bq_child(GumboNode *node) {
 /* ------------------------------------------------------------------ */
 
 typedef struct {
+  const char *val;
+  size_t len;
+} css_slice_t;
+
+typedef struct {
+  css_slice_t fg;
+  css_slice_t bg;
+  css_slice_t font_size;
+  css_slice_t font_family;
+} custom_style_t;
+
+typedef struct {
   bool bold;
   bool italic;
   bool underline;
   bool strikethrough;
+  custom_style_t custom;
 } css_styles_t;
 
 static const char *find_css_value(const char *style, size_t style_len,
@@ -281,6 +309,36 @@ static const char *find_css_value(const char *style, size_t style_len,
   return NULL;
 }
 
+/* Escapes the characters that would otherwise let a value break out of a
+ * double-quoted HTML attribute. Gumbo's GumboAttribute.value is already
+ * character-reference-decoded, so every attribute value written to `out`
+ * must go through this before being re-parsed downstream - otherwise it's
+ * decoded a second time there. */
+static void append_escaped_attr_value(buffer_t *out, const char *val,
+                                      size_t val_len) {
+  for (size_t i = 0; i < val_len; i++) {
+    if (val[i] == '&')
+      buffer_append_str(out, "&amp;");
+    else if (val[i] == '"')
+      buffer_append_str(out, "&quot;");
+    else if (val[i] == '<')
+      buffer_append_str(out, "&lt;");
+    else if (val[i] == '>')
+      buffer_append_str(out, "&gt;");
+    else
+      buffer_append(out, &val[i], 1);
+  }
+}
+
+static void append_style_prop(buffer_t *out, const char *prefix,
+                              const char *val, size_t val_len, bool *first) {
+  if (!*first)
+    buffer_append_str(out, "; ");
+  *first = false;
+  buffer_append_str(out, prefix);
+  append_escaped_attr_value(out, val, val_len);
+}
+
 static bool css_val_contains(const char *val, size_t val_len,
                              const char *needle) {
   size_t nlen = strlen(needle);
@@ -301,8 +359,24 @@ static bool css_val_contains(const char *val, size_t val_len,
   return false;
 }
 
+static bool css_value_is(css_slice_t value, const char *keyword) {
+  return value.len == strlen(keyword) &&
+         strncasecmp(value.val, keyword, value.len) == 0;
+}
+
+static css_slice_t find_custom_css_value(const char *style, size_t style_len,
+                                         const char *prop_name) {
+  css_slice_t slice = {NULL, 0};
+  slice.val = find_css_value(style, style_len, prop_name, &slice.len);
+  // `inherit` must not overwrite the parent span's value
+  if (!slice.val || css_value_is(slice, "inherit"))
+    return (css_slice_t){NULL, 0};
+  return slice;
+}
+
 static css_styles_t parse_css_style(const char *style_value, size_t style_len) {
-  css_styles_t result = {false, false, false, false};
+  css_styles_t result = {
+      false, false, false, false, {{NULL, 0}, {NULL, 0}, {NULL, 0}, {NULL, 0}}};
   if (!style_value || style_len == 0)
     return result;
 
@@ -351,6 +425,17 @@ static css_styles_t parse_css_style(const char *style_value, size_t style_len) {
     }
   }
 
+  result.custom.fg = find_custom_css_value(style_value, style_len, "color");
+  result.custom.bg =
+      find_custom_css_value(style_value, style_len, "background-color");
+  // `transparent` must not overwrite the parent span's background-color value
+  if (css_value_is(result.custom.bg, "transparent"))
+    result.custom.bg = (css_slice_t){NULL, 0};
+  result.custom.font_size =
+      find_custom_css_value(style_value, style_len, "font-size");
+  result.custom.font_family =
+      find_custom_css_value(style_value, style_len, "font-family");
+
   return result;
 }
 
@@ -388,6 +473,26 @@ static void emit_styles_close(buffer_t *out, css_styles_t s) {
     buffer_append_str(out, "</b>");
 }
 
+static bool custom_style_is_empty(custom_style_t s) {
+  return !s.fg.len && !s.bg.len && !s.font_size.len && !s.font_family.len;
+}
+
+static void emit_custom_style_open(buffer_t *out, custom_style_t s) {
+  bool first = true;
+  buffer_append_str(out, "<span style=\"");
+  if (s.fg.len)
+    append_style_prop(out, "color: ", s.fg.val, s.fg.len, &first);
+  if (s.bg.len)
+    append_style_prop(out, "background-color: ", s.bg.val, s.bg.len, &first);
+  if (s.font_size.len)
+    append_style_prop(out, "font-size: ", s.font_size.val, s.font_size.len,
+                      &first);
+  if (s.font_family.len)
+    append_style_prop(out, "font-family: ", s.font_family.val,
+                      s.font_family.len, &first);
+  buffer_append_str(out, "\">");
+}
+
 /* ------------------------------------------------------------------ */
 /*  Attribute emission helpers                                         */
 /* ------------------------------------------------------------------ */
@@ -406,9 +511,56 @@ static void emit_one_attr(buffer_t *out, GumboElement *el,
     buffer_append_str(out, " ");
     buffer_append_str(out, attr_name);
     buffer_append_str(out, "=\"");
-    buffer_append_str(out, val);
+    append_escaped_attr_value(out, val, strlen(val));
     buffer_append_str(out, "\"");
   }
+}
+
+/* Tags that may carry a text-align style in our canonical output */
+static bool is_alignable_tag(const char *tag_name) {
+  return strcmp(tag_name, "p") == 0 || strcmp(tag_name, "ul") == 0 ||
+         strcmp(tag_name, "ol") == 0 || strcmp(tag_name, "h1") == 0 ||
+         strcmp(tag_name, "h2") == 0 || strcmp(tag_name, "h3") == 0 ||
+         strcmp(tag_name, "h4") == 0 || strcmp(tag_name, "h5") == 0 ||
+         strcmp(tag_name, "h6") == 0;
+}
+
+static const char *canonical_alignment(const char *val, size_t val_len) {
+  static const char *aligns[] = {"left", "center", "right", "justify"};
+  for (size_t i = 0; i < 4; i++) {
+    size_t alen = strlen(aligns[i]);
+    if (alen != val_len)
+      continue;
+    bool match = true;
+    for (size_t j = 0; j < val_len; j++) {
+      if (tolower((unsigned char)val[j]) != aligns[i][j]) {
+        match = false;
+        break;
+      }
+    }
+    if (match)
+      return aligns[i];
+  }
+  return NULL;
+}
+
+static void emit_alignment(GumboElement *el, const char *tag_name,
+                           buffer_t *out) {
+  if (!is_alignable_tag(tag_name))
+    return;
+  const char *style = get_attr(el, "style");
+  if (!style)
+    return;
+  size_t vlen;
+  const char *val = find_css_value(style, strlen(style), "text-align", &vlen);
+  if (!val)
+    return;
+  const char *canon = canonical_alignment(val, vlen);
+  if (!canon)
+    return;
+  buffer_append_str(out, " style=\"text-align: ");
+  buffer_append_str(out, canon);
+  buffer_append_str(out, "\"");
 }
 
 static bool is_checkbox_list(GumboElement *el) {
@@ -444,7 +596,12 @@ static void emit_attributes(GumboElement *el, const char *tag_name,
   if (strcmp(tag_name, "a") == 0) {
     emit_one_attr(out, el, "href");
   } else if (strcmp(tag_name, "img") == 0) {
-    emit_one_attr(out, el, "src");
+    const char *src_val = get_attr(el, "src");
+    if (src_val && src_val[0]) {
+      emit_one_attr(out, el, "src");
+    } else {
+      buffer_append_str(out, " src=\"\"");
+    }
     emit_one_attr(out, el, "alt");
     emit_one_attr(out, el, "width");
     emit_one_attr(out, el, "height");
@@ -452,6 +609,7 @@ static void emit_attributes(GumboElement *el, const char *tag_name,
     if (is_checkbox_list(el)) {
       buffer_append_str(out, " data-type=\"checkbox\"");
     }
+    emit_alignment(el, tag_name, out);
   } else if (strcmp(tag_name, "li") == 0) {
     const char *data_checked = get_attr(el, "data-checked");
     const char *aria_checked = get_attr(el, "aria-checked");
@@ -465,9 +623,13 @@ static void emit_attributes(GumboElement *el, const char *tag_name,
       buffer_append_str(out, " checked");
     }
   } else if (strcmp(tag_name, "mention") == 0) {
-    emit_one_attr(out, el, "id");
-    emit_one_attr(out, el, "text");
-    emit_one_attr(out, el, "indicator");
+    for (unsigned int i = 0; i < el->attributes.length; i++) {
+      GumboAttribute *attr = (GumboAttribute *)el->attributes.data[i];
+      emit_one_attr(out, el, attr->name);
+    }
+  } else {
+    /* preserve text-align */
+    emit_alignment(el, tag_name, out);
   }
 }
 
@@ -486,56 +648,124 @@ static bool is_google_docs_wrapper(GumboElement *el, const char *tag_name) {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Nested custom style spans                                          */
+/* ------------------------------------------------------------------ */
+
+static bool is_styled_span(GumboNode *node) {
+  char buf[64];
+  const char *n = get_tag_name(node, buf, sizeof(buf));
+  if (!n || strcmp(n, "span") != 0)
+    return false;
+  const char *sval = get_attr(&node->v.element, "style");
+  return !custom_style_is_empty(
+      parse_css_style(sval, sval ? strlen(sval) : 0).custom);
+}
+
+static bool has_styled_span_descendant(GumboNode *node) {
+  if (!is_element(node))
+    return false;
+  GumboVector *children = &node->v.element.children;
+  for (unsigned int i = 0; i < children->length; i++) {
+    GumboNode *c = children->data[i];
+    if (is_styled_span(c) || has_styled_span_descendant(c))
+      return true;
+  }
+  return false;
+}
+
+/* ------------------------------------------------------------------ */
 /*  Recursive DOM tree walker                                          */
 /* ------------------------------------------------------------------ */
 
-static void walk_node(GumboNode *node, buffer_t *out);
+static void walk_node(GumboNode *node, buffer_t *out,
+                      const custom_style_t *inherited);
 
 /* ------------------------------------------------------------------ */
 /*  Blockquote content flattening                                      */
 /* ------------------------------------------------------------------ */
 
-static void flatten_bq_node(GumboNode *node, buffer_t *ib, buffer_t *out);
+static void flatten_bq_node(GumboNode *node, buffer_t *ib, buffer_t *out,
+                            const custom_style_t *inherited);
 
-static void flush_inline_p(buffer_t *ib, buffer_t *out) {
-  if (ib->len > 0) {
-    buffer_append_str(out, "<p>");
-    buffer_append(out, ib->data, ib->len);
-    buffer_append_str(out, "</p>");
-    buffer_clear(ib);
+/** True if buf is empty or contains only ASCII whitespace. */
+static bool is_whitespace_only(const char *data, size_t len) {
+  for (size_t i = 0; i < len; i++) {
+    unsigned char c = (unsigned char)data[i];
+    if (c != ' ' && c != '\t' && c != '\n' && c != '\r' && c != '\f')
+      return false;
   }
+  return true;
 }
 
-static void flatten_bq_children(GumboNode *node, buffer_t *ib, buffer_t *out) {
+/** Whitespace-only text next to blocks or between table parts is just layout.
+ *  E.g. `<p>123</p>\n<p>456</p>`. */
+static bool is_layout_whitespace(GumboNode *node) {
+  if (node->type != GUMBO_NODE_WHITESPACE)
+    return false;
+  char buf[64];
+  const char *parent_name = get_tag_name(node->parent, buf, sizeof(buf));
+  return parent_name &&
+         (has_block_or_bq_child(node->parent) ||
+          (is_table_tag(parent_name) && !is_table_text_tag(parent_name)));
+}
+
+/**
+ * Flush buffered inline content as a <p>. Inter-block whitespace (newlines /
+ * spaces between block tags in pretty-printed HTML) is discarded so it does
+ * not become empty paragraphs that later serialize as extra <br>s.
+ */
+static bool flush_inline_p(buffer_t *ib, buffer_t *out,
+                           GumboElement *align_el) {
+  bool emitted = ib->len > 0 && !is_whitespace_only(ib->data, ib->len);
+  if (emitted) {
+    buffer_append_str(out, "<p");
+    if (align_el)
+      emit_alignment(align_el, "p", out);
+    buffer_append_str(out, ">");
+    buffer_append(out, ib->data, ib->len);
+    buffer_append_str(out, "</p>");
+  }
+  buffer_clear(ib);
+  return emitted;
+}
+
+static void flatten_bq_children(GumboNode *node, buffer_t *ib, buffer_t *out,
+                                const custom_style_t *inherited) {
   if (!is_element(node))
     return;
   GumboVector *children = &node->v.element.children;
   for (unsigned int i = 0; i < children->length; i++) {
-    flatten_bq_node(children->data[i], ib, out);
+    flatten_bq_node(children->data[i], ib, out, inherited);
   }
 }
 
-static void flatten_bq_node(GumboNode *node, buffer_t *ib, buffer_t *out) {
+static void flatten_bq_node(GumboNode *node, buffer_t *ib, buffer_t *out,
+                            const custom_style_t *inherited) {
   if (!node)
     return;
   if (is_text(node)) {
-    walk_node(node, ib);
+    walk_node(node, ib, inherited);
     return;
   }
   if (!is_element(node)) {
     return;
   }
   if (is_br_node(node)) {
-    flush_inline_p(ib, out);
+    // Emit the canonical <br> so it is not silently dropped.
+    // With buffered inline content it just terminates the current paragraph.
+    if (!flush_inline_p(ib, out, NULL)) {
+      buffer_append_str(out, "<br>");
+    }
     return;
   }
   if (is_block_producing(node) || is_blockquote_node(node)) {
-    flush_inline_p(ib, out);
-    flatten_bq_children(node, ib, out);
-    flush_inline_p(ib, out);
+    flush_inline_p(ib, out, NULL);
+    flatten_bq_children(node, ib, out, inherited);
+    // The flattened block becomes a <p>; carry over its text-align (if any).
+    flush_inline_p(ib, out, &node->v.element);
     return;
   }
-  walk_node(node, ib);
+  walk_node(node, ib, inherited);
 }
 
 /* ------------------------------------------------------------------ */
@@ -549,14 +779,19 @@ typedef struct {
   int *nested_count;
   int max_nested;
   bool has_emitted;
+  const custom_style_t *inherited;
 } li_ctx_t;
 
 static void flatten_li_node(GumboNode *node, buffer_t *ib, buffer_t *out,
                             li_ctx_t *ctx);
 
 static void flush_li_buffer(buffer_t *ib, buffer_t *out, li_ctx_t *ctx) {
-  if (ib->len == 0)
+  /* Whitespace around blocks inside an <li> (e.g. `<li>\n<p>a</p>\n</li>`)
+   * is layout noise, not an extra list item. */
+  if (is_whitespace_only(ib->data, ib->len)) {
+    buffer_clear(ib);
     return;
+  }
   buffer_append_str(out, "<li");
   emit_attributes(ctx->el, "li", out);
   buffer_append_str(out, ">");
@@ -583,7 +818,7 @@ static void flatten_li_node(GumboNode *node, buffer_t *ib, buffer_t *out,
   if (!node)
     return;
   if (is_text(node)) {
-    walk_node(node, ib);
+    walk_node(node, ib, ctx->inherited);
     return;
   }
   if (!is_element(node)) {
@@ -618,14 +853,15 @@ static void flatten_li_node(GumboNode *node, buffer_t *ib, buffer_t *out,
     flush_li_buffer(ib, out, ctx);
     return;
   }
-  walk_node(node, ib);
+  walk_node(node, ib, ctx->inherited);
 }
 
 /* ------------------------------------------------------------------ */
 /*  walk_children — the main child-iteration driver                    */
 /* ------------------------------------------------------------------ */
 
-static void walk_children(GumboNode *node, buffer_t *out) {
+static void walk_children(GumboNode *node, buffer_t *out,
+                          const custom_style_t *inherited) {
   if (!is_element(node))
     return;
 
@@ -647,7 +883,7 @@ static void walk_children(GumboNode *node, buffer_t *out) {
 
     /* Flatten list-inside-list */
     if (parent_is_list && is_list_node(child)) {
-      walk_children(child, out);
+      walk_children(child, out, inherited);
       i++;
       continue;
     }
@@ -657,10 +893,10 @@ static void walk_children(GumboNode *node, buffer_t *out) {
       buffer_append_str(out, "<blockquote>");
       buffer_t bq_ib = buffer_create(64);
       while (i < children->length && is_blockquote_node(children->data[i])) {
-        flatten_bq_children(children->data[i], &bq_ib, out);
+        flatten_bq_children(children->data[i], &bq_ib, out, inherited);
         i++;
       }
-      flush_inline_p(&bq_ib, out);
+      flush_inline_p(&bq_ib, out, NULL);
       free(bq_ib.data);
       buffer_append_str(out, "</blockquote>");
       continue;
@@ -674,29 +910,28 @@ static void walk_children(GumboNode *node, buffer_t *out) {
              !is_blockquote_node(children->data[i])) {
         child = children->data[i];
         if (is_br_node(child)) {
-          if (ib.len > 0)
-            flush_inline_p(&ib, out);
-          else
+          /* Whitespace-only buffer is layout noise; treat like empty → <br> */
+          if (!flush_inline_p(&ib, out, NULL))
             buffer_append_str(out, "<br>");
           i++;
           continue;
         }
         /* Transparent inline wrapper for block/bq children */
         if (is_element(child) && has_block_or_bq_child(child)) {
-          flush_inline_p(&ib, out);
-          walk_children(child, out);
+          flush_inline_p(&ib, out, NULL);
+          walk_children(child, out, inherited);
           i++;
           continue;
         }
-        walk_node(child, &ib);
+        walk_node(child, &ib, inherited);
         i++;
       }
-      flush_inline_p(&ib, out);
+      flush_inline_p(&ib, out, NULL);
       free(ib.data);
       continue;
     }
 
-    walk_node(child, out);
+    walk_node(child, out, inherited);
     i++;
   }
 }
@@ -705,7 +940,8 @@ static void walk_children(GumboNode *node, buffer_t *out) {
 /*  walk_node — process a single DOM node                              */
 /* ------------------------------------------------------------------ */
 
-static void walk_node(GumboNode *node, buffer_t *out) {
+static void walk_node(GumboNode *node, buffer_t *out,
+                      const custom_style_t *inherited) {
   if (!node)
     return;
 
@@ -714,6 +950,9 @@ static void walk_node(GumboNode *node, buffer_t *out) {
     const char *text_raw = node->v.text.text;
     if (text_raw) {
       size_t text_len = strlen(text_raw);
+      bool wrap = inherited && !is_layout_whitespace(node);
+      if (wrap)
+        emit_custom_style_open(out, *inherited);
       for (size_t i = 0; i < text_len; i++) {
         char c = text_raw[i];
         switch (c) {
@@ -731,19 +970,21 @@ static void walk_node(GumboNode *node, buffer_t *out) {
           break;
         }
       }
+      if (wrap)
+        buffer_append_str(out, "</span>");
     }
     return;
   }
 
   if (!is_element(node)) {
-    walk_children(node, out);
+    walk_children(node, out, inherited);
     return;
   }
 
   GumboElement *el = &node->v.element;
   char name_buf[64];
   if (!get_tag_name(node, name_buf, sizeof(name_buf))) {
-    walk_children(node, out);
+    walk_children(node, out, inherited);
     return;
   }
 
@@ -755,7 +996,7 @@ static void walk_node(GumboNode *node, buffer_t *out) {
 
   /* Google Docs wrapper */
   if (is_google_docs_wrapper(el, name_buf)) {
-    walk_children(node, out);
+    walk_children(node, out, inherited);
     return;
   }
 
@@ -770,9 +1011,47 @@ static void walk_node(GumboNode *node, buffer_t *out) {
     const char *sval = get_attr(el, "style");
     size_t slen = sval ? strlen(sval) : 0;
     css_styles_t s = parse_css_style(sval, slen);
+
+    // own properties override the inherited ones
+    custom_style_t own = s.custom;
+    custom_style_t style = {{NULL, 0}, {NULL, 0}, {NULL, 0}, {NULL, 0}};
+    if (inherited)
+      style = *inherited;
+    if (own.fg.len)
+      style.fg = own.fg;
+    if (own.bg.len)
+      style.bg = own.bg;
+    if (own.font_size.len)
+      style.font_size = own.font_size;
+    if (own.font_family.len)
+      style.font_family = own.font_family;
+
+    const custom_style_t *children_style = inherited;
+    bool wrap = false;
+    if (!custom_style_is_empty(own)) {
+      // if there are no nested spans deeper, we can emit a wrapper immediately,
+      // otherwise we hold off with that and we'll emit span tags deeper, after flattening
+      if (has_styled_span_descendant(node)) {
+        children_style = &style;
+      } else {
+        wrap = true;
+        children_style = NULL;
+      }
+    }
+    if (wrap) {
+      emit_custom_style_open(out, style);
+    }
+
+    // handle inner formatting (<b>, <i>, etc.) and children
     emit_styles_open(out, s);
-    walk_children(node, out);
+    walk_children(node, out, children_style);
     emit_styles_close(out, s);
+
+    // close the wrapper span
+    if (wrap) {
+      buffer_append_str(out, "</span>");
+    }
+
     return;
   }
 
@@ -801,7 +1080,7 @@ static void walk_node(GumboNode *node, buffer_t *out) {
           buffer_clear(&pb);
           continue;
         }
-        walk_node(dc, &pb);
+        walk_node(dc, &pb, inherited);
       }
       if (pb.len > 0) {
         buffer_append_str(out, "<p>");
@@ -813,20 +1092,16 @@ static void walk_node(GumboNode *node, buffer_t *out) {
       free(pb.data);
     } else {
       emit_styles_open(out, s);
-      walk_children(node, out);
+      walk_children(node, out, inherited);
       emit_styles_close(out, s);
     }
     return;
   }
 
   /* --- Table elements --- */
-  if (strcmp(name_buf, "table") == 0 || strcmp(name_buf, "thead") == 0 ||
-      strcmp(name_buf, "tbody") == 0 || strcmp(name_buf, "tfoot") == 0 ||
-      strcmp(name_buf, "tr") == 0 || strcmp(name_buf, "td") == 0 ||
-      strcmp(name_buf, "th") == 0 || strcmp(name_buf, "caption") == 0 ||
-      strcmp(name_buf, "colgroup") == 0 || strcmp(name_buf, "col") == 0) {
+  if (is_table_tag(name_buf)) {
     if (strcmp(name_buf, "td") == 0 || strcmp(name_buf, "th") == 0) {
-      walk_children(node, out);
+      walk_children(node, out, inherited);
       /* Check if there's a next sibling element */
       GumboNode *parent = node->parent;
       if (parent && is_element(parent)) {
@@ -846,7 +1121,7 @@ static void walk_node(GumboNode *node, buffer_t *out) {
       }
     } else if (strcmp(name_buf, "tr") == 0) {
       buffer_t row = buffer_create(64);
-      walk_children(node, &row);
+      walk_children(node, &row, inherited);
       if (row.len > 0) {
         buffer_append_str(out, "<p>");
         buffer_append(out, row.data, row.len);
@@ -854,7 +1129,7 @@ static void walk_node(GumboNode *node, buffer_t *out) {
       }
       free(row.data);
     } else {
-      walk_children(node, out);
+      walk_children(node, out, inherited);
     }
     return;
   }
@@ -863,7 +1138,7 @@ static void walk_node(GumboNode *node, buffer_t *out) {
   switch (cls) {
   case TAG_CLASS_PASS:
   case TAG_CLASS_SKIP:
-    walk_children(node, out);
+    walk_children(node, out, inherited);
     break;
 
   case TAG_CLASS_SELF_CLOSING:
@@ -884,7 +1159,8 @@ static void walk_node(GumboNode *node, buffer_t *out) {
       GumboNode *nested_lists[16];
       int nested_count = 0;
       buffer_t li_ib = buffer_create(64);
-      li_ctx_t ctx = {el, es, nested_lists, &nested_count, 16};
+      li_ctx_t ctx = {el, es, nested_lists, &nested_count,
+                      16, false, inherited};
       flatten_li_children(node, &li_ib, out, &ctx);
       flush_li_buffer(&li_ib, out, &ctx);
 
@@ -897,7 +1173,7 @@ static void walk_node(GumboNode *node, buffer_t *out) {
 
       free(li_ib.data);
       for (int k = 0; k < nested_count; k++)
-        walk_children(nested_lists[k], out);
+        walk_children(nested_lists[k], out, inherited);
       break;
     }
 
@@ -907,7 +1183,7 @@ static void walk_node(GumboNode *node, buffer_t *out) {
       buffer_append_str(out, "<codeblock>");
       if (wrap)
         buffer_append_str(out, "<p>");
-      walk_children(node, out);
+      walk_children(node, out, inherited);
       if (wrap)
         buffer_append_str(out, "</p>");
       buffer_append_str(out, "</codeblock>");
@@ -920,7 +1196,7 @@ static void walk_node(GumboNode *node, buffer_t *out) {
     emit_attributes(el, out_name, out);
     buffer_append_str(out, ">");
     emit_styles_open(out, es);
-    walk_children(node, out);
+    walk_children(node, out, inherited);
     emit_styles_close(out, es);
     buffer_append_str(out, "</");
     buffer_append_str(out, out_name);
@@ -964,7 +1240,7 @@ char *normalize_html(const char *html, size_t len) {
     body = output->root;
 
   buffer_t buf = buffer_create(len * 2);
-  walk_children(body, &buf);
+  walk_children(body, &buf, NULL);
 
   gumbo_destroy_output(&kGumboDefaultOptions, output);
   return buffer_finish(&buf);

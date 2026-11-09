@@ -1,0 +1,73 @@
+appId: swmansion.enriched.example
+---
+# Regression test for href="..." attribute-injection: a URL containing " (or
+# &) must be HTML-attribute-escaped on serialize, and the escaped output must
+# decode back to the original, un-escaped URL when re-parsed.
+- launchApp
+
+- tapOn:
+    id: 'toggle-screen-button'
+
+- tapOn:
+    id: 'editor-input'
+
+- inputText: 'Hello '
+
+- runFlow:
+    file: '../subflows/insert_link.yaml'
+    env:
+      LINK_TEXT: 'test'
+      LINK_URL: 'https://example.com/a&b"c'
+
+- extendedWaitUntil:
+    notVisible:
+      id: 'link-modal-submit-button'
+    timeout: 10000
+
+- tapOn:
+    id: 'toggle-html-button'
+
+# the raw " and & must not reach the output unescaped (that's the
+# attribute-injection bug: it would break out of href="...")
+- assertVisible:
+    id: 'html-output'
+    text: '.*href="https://example.com/a&amp;b&quot;c".*'
+
+- assertNotVisible:
+    id: 'html-output'
+    text: '.*href="https://example.com/a&b"c".*'
+
+# Restart the app before the round-trip check below. On iOS, presenting a
+# second Modal right after dismissing one (LinkModal -> ValueModal) can leave
+# the accessibility snapshot stuck empty indefinitely - the screen still
+# renders correctly, but Maestro can't see any element in it. A full relaunch
+# resets the native view/accessibility state; losing the editor content here
+# is fine since the next step overwrites it anyway via "Set Value".
+- launchApp
+
+- tapOn:
+    id: 'toggle-screen-button'
+
+# Feed the escaped HTML back in. The round trip is verified via the HTML
+# output box rather than by reopening the link modal to read LinkData.url:
+# reopening it is a second Modal in this same session and hits the exact
+# accessibility-snapshot issue above. Checking the re-serialized HTML instead
+# proves the same thing - decode must turn "&amp;b&quot;c" back into the raw
+# "&b"c" that re-encode then escapes right back to "&amp;b&quot;c" - without
+# ever presenting a second Modal.
+- runFlow:
+    file: '../subflows/set_editor_value.yaml'
+    env:
+      VALUE: '<html><p><a href="https://example.com/a&amp;b&quot;c">test</a></p></html>'
+
+- tapOn:
+    id: 'toggle-html-button'
+
+- assertVisible:
+    id: 'html-output'
+    text: '.*href="https://example.com/a&amp;b&quot;c".*'
+
+# if decode left the entities un-decoded, re-encoding would double-escape them
+- assertNotVisible:
+    id: 'html-output'
+    text: '.*href="https://example.com/a&amp;amp;.*'

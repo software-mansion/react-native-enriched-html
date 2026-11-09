@@ -5,6 +5,8 @@ import { TestSetSelection } from './testScreens/TestSetSelection';
 import { VisualRegression } from './testScreens/VisualRegression';
 import { TestSubmitProps } from './testScreens/TestSubmitProps';
 import { TestEnrichedText } from './testScreens/TestEnrichedText';
+import { TestEllipsize } from './testScreens/TestEllipsize';
+import { TestRenderCycle } from './testScreens/TestRenderCycle';
 import { useEffect, useState } from 'react';
 
 export default function RouteSelector() {
@@ -43,6 +45,14 @@ export default function RouteSelector() {
 
   if (path === '/test-enriched-text') {
     return <TestEnrichedText />;
+  }
+
+  if (path === '/test-ellipsize') {
+    return <TestEllipsize />;
+  }
+
+  if (path === '/test-render-cycle') {
+    return <TestRenderCycle />;
   }
 
   return <App />;

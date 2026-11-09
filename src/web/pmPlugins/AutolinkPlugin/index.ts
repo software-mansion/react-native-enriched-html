@@ -6,8 +6,8 @@ import type { OnLinkDetected } from '../../../types';
 import {
   emitLinkDetected,
   type LinkEmitterState,
-} from '../../emitLinkDetected';
-import { tiptapPosToNativePos } from '../../positionMapping';
+} from '../../tiptapWatchers/emitLinkDetected';
+import { tiptapPosToNativePos } from '../../nativeMappers/positionMapping';
 import { findAutolinkRangesInWord } from './autolinkRegex';
 
 interface Run {

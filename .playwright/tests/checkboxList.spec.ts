@@ -59,4 +59,33 @@ test.describe('checkbox list (web)', () => {
     const html = await getSerializedHtml(page);
     expect(html.match(/<li checked/g)?.length).toBe(1);
   });
+
+  test('clicking checkbox moves cursor', async ({ page }) => {
+    await setEditorHtml(
+      page,
+      '<html><ul data-type="checkbox"><li>one</li><li>two</li></ul></html>'
+    );
+
+    const editor = editorLocator(page);
+    const checkbox = editor.locator('input[type="checkbox"]').first();
+    await checkbox.click();
+
+    const selection = await editor.evaluate(() => {
+      const s = window.getSelection();
+      if (!s || s.rangeCount === 0) {
+        return null;
+      }
+      const range = s.getRangeAt(0);
+      return {
+        startOffset: range.startOffset,
+        endOffset: range.endOffset,
+        collapsed: range.collapsed,
+      };
+    });
+    expect(selection).toEqual({
+      startOffset: 3,
+      endOffset: 3,
+      collapsed: true,
+    });
+  });
 });

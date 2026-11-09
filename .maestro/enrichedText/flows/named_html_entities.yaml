@@ -1,0 +1,23 @@
+appId: swmansion.enriched.example
+---
+# Issue #818 - named character references (&nbsp;, &quot;, &apos;, ...) are
+# decoded instead of being rendered literally.
+- launchApp
+
+- tapOn:
+    id: 'toggle-screen-button'
+
+- tapOn:
+    id: 'toggle-enriched-text-screen-button'
+
+- runFlow:
+    file: '../subflows/set_enriched_text_value.yaml'
+    env:
+      VALUE: "<html><p>Hello&nbsp;world &quot;q&quot; &apos;a&apos; &mdash;</p></html>"
+
+# '.' matches the decoded U+00A0 between "Hello" and "world"
+- assertVisible:
+    text: "Hello.world \"q\" 'a' —"
+
+- assertNotVisible:
+    text: '.*&(nbsp|quot|apos|mdash);.*'

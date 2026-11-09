@@ -262,6 +262,14 @@ describe('htmlNormalizer', () => {
         "<img src='x' width='100' height='100' />",
         '<img src="x" width="100" height="100" />',
       ],
+      [
+        '<img width="100" height="100" />',
+        '<img src="" width="100" height="100" />',
+      ],
+      [
+        '<img src="" width="100" height="100" />',
+        '<img src="" width="100" height="100" />',
+      ],
 
       // Lists
       ['<ul><li>x</li></ul>', '<ul><li>x</li></ul>'],
@@ -285,14 +293,19 @@ describe('htmlNormalizer', () => {
         '<ul data-type="checkbox"><li checked>x</li></ul>',
       ],
 
-      // Mentions (note: cpp reorders attrs to id, text, indicator)
+      // Mentions
       [
         "<mention text='@John Doe' indicator='@' id='1'>@John Doe</mention>",
-        '<mention id="1" text="@John Doe" indicator="@">@John Doe</mention>',
+        '<mention text="@John Doe" indicator="@" id="1">@John Doe</mention>',
       ],
       [
         '<mention text="@John Doe" indicator="@" id="1">@John Doe</mention>',
-        '<mention id="1" text="@John Doe" indicator="@">@John Doe</mention>',
+        '<mention text="@John Doe" indicator="@" id="1">@John Doe</mention>',
+      ],
+      // Custom mention attributes are preserved
+      [
+        '<mention id="1" text="@John Doe" indicator="@" type="user" data-custom="custom data">@John Doe</mention>',
+        '<mention id="1" text="@John Doe" indicator="@" type="user" data-custom="custom data">@John Doe</mention>',
       ],
 
       // Link
@@ -359,7 +372,7 @@ describe('htmlNormalizer', () => {
       ],
       [
         '<div>what do you think of this craziness</div><span><blockquote><div><div><ul><li><b>another one </b>hello<div><br></div><div>hi</div></li></ul></div></div></blockquote></span>',
-        '<p>what do you think of this craziness</p><blockquote><p><b>another one </b>hello</p><p>hi</p></blockquote>',
+        '<p>what do you think of this craziness</p><blockquote><p><b>another one </b>hello</p><br><p>hi</p></blockquote>',
       ],
     ])('%s → %s', (input, expected) => {
       expect(normalizeHtml(input)).toBe(expected);
@@ -477,6 +490,16 @@ describe('htmlNormalizer', () => {
         '<p><b>Asdasdasd</b></p><br><br><p>Sent with <a href="https://google.com">Net</a></p>'
       );
     });
+
+    test('<br> between blockquote paragraphs is preserved', () => {
+      expect(
+        normalizeHtml(
+          '<blockquote><p>this is a pretty short blockquote.</p><br><p>This is a line after an empty line.</p></blockquote>'
+        )
+      ).toBe(
+        '<blockquote><p>this is a pretty short blockquote.</p><br><p>This is a line after an empty line.</p></blockquote>'
+      );
+    });
   });
 
   describe('character escaping', () => {
@@ -492,6 +515,197 @@ describe('htmlNormalizer', () => {
       [
         '<a href="https://example.com?a=1&b=\'2\'">x</a>',
         '<a href="https://example.com?a=1&amp;b=&#39;2&#39;">x</a>',
+      ],
+    ])('%s → %s', (input, expected) => {
+      expect(normalizeHtml(input)).toBe(expected);
+    });
+  });
+
+  // Preserve text alignment
+  describe('TextAlignment', () => {
+    test.each([
+      [
+        '<p style="text-align: left">x</p>',
+        '<p style="text-align: left">x</p>',
+      ],
+      [
+        '<p style="text-align: center">x</p>',
+        '<p style="text-align: center">x</p>',
+      ],
+      [
+        '<p style="text-align: right">x</p>',
+        '<p style="text-align: right">x</p>',
+      ],
+      [
+        '<p style="text-align: justify">x</p>',
+        '<p style="text-align: justify">x</p>',
+      ],
+
+      [
+        '<ul style="text-align: center"><li>x</li></ul>',
+        '<ul style="text-align: center"><li>x</li></ul>',
+      ],
+      [
+        '<ol style="text-align: right"><li>x</li></ol>',
+        '<ol style="text-align: right"><li>x</li></ol>',
+      ],
+      [
+        '<ul data-type="checkbox" style="text-align: center"><li>x</li></ul>',
+        '<ul data-type="checkbox" style="text-align: center"><li>x</li></ul>',
+      ],
+
+      [
+        '<h1 style="text-align: center">x</h1>',
+        '<h1 style="text-align: center">x</h1>',
+      ],
+      [
+        '<h6 style="text-align: justify">x</h6>',
+        '<h6 style="text-align: justify">x</h6>',
+      ],
+
+      // Value is normalized to lowercase
+      [
+        '<p style="text-align: CENTER">x</p>',
+        '<p style="text-align: center">x</p>',
+      ],
+
+      // Coexists with inline formatting on the same tag
+      [
+        '<p style="font-weight: bold; text-align: center">x</p>',
+        '<p style="text-align: center"><b>x</b></p>',
+      ],
+
+      // Invalid value is stripped
+      ['<p style="text-align: bogus">x</p>', '<p>x</p>'],
+
+      // Not emitted on non-alignable tags
+      ['<ul><li style="text-align: center">x</li></ul>', '<ul><li>x</li></ul>'],
+      [
+        '<blockquote style="text-align: center">x</blockquote>',
+        '<blockquote><p>x</p></blockquote>',
+      ],
+
+      // Preserved per-paragraph when a <p> blocks are flattened
+      [
+        '<blockquote><p style="text-align: left">l</p>' +
+          '<p style="text-align: center">c</p>' +
+          '<p style="text-align: right">r</p></blockquote>',
+        '<blockquote><p style="text-align: left">l</p>' +
+          '<p style="text-align: center">c</p>' +
+          '<p style="text-align: right">r</p></blockquote>',
+      ],
+    ])('%s → %s', (input, expected) => {
+      expect(normalizeHtml(input)).toBe(expected);
+    });
+  });
+
+  describe('InterBlockWhitespace', () => {
+    // Pretty-printed consecutive paragraphs must not gain empty <p>s from the
+    // newlines between them (those would later serialize as extra <br>s).
+    test.each([
+      [
+        '<p>Asdasd</p>\n<p>Asdasd</p>\n<p>Asdasda</p>',
+        '<p>Asdasd</p><p>Asdasd</p><p>Asdasda</p>',
+      ],
+      [
+        '<p>Asdasd</p>\n\n<p>Asdasd</p>\n\n<p>Asdasda</p>',
+        '<p>Asdasd</p><p>Asdasd</p><p>Asdasda</p>',
+      ],
+      [
+        '<html>\n<p>Asdasd</p>\n<p>Asdasd</p>\n<p>Asdasda</p>\n</html>',
+        '<p>Asdasd</p><p>Asdasd</p><p>Asdasda</p>',
+      ],
+      ['<p>Asdasd</p> <p>Asdasd</p>', '<p>Asdasd</p><p>Asdasd</p>'],
+      // Whitespace around blocks inside a list item must not add empty items.
+      [
+        '<ul><li>\n<p>a</p>\n</li><li>\n<p>b</p>\n</li></ul>',
+        '<ul><li>a</li><li>b</li></ul>',
+      ],
+      ['<ol><li><p>a</p> <p>b</p></li></ol>', '<ol><li>a</li><li>b</li></ol>'],
+      // Significant inline content between blocks is still wrapped in <p>.
+      ['<p>a</p> hello <p>b</p>', '<p>a</p><p> hello </p><p>b</p>'],
+      // Spaces inside text / between inlines must be preserved.
+      ['hello world', 'hello world'],
+      ['<p>hello world</p>', '<p>hello world</p>'],
+      ['<b>hello</b> <i>world</i>', '<b>hello</b> <i>world</i>'],
+    ])('%s → %s', (input, expected) => {
+      expect(normalizeHtml(input)).toBe(expected);
+    });
+  });
+
+  describe('NestedSpans', () => {
+    test.each([
+      // Child overrides the parent
+      [
+        '<span style="color: red">A<span style="color: blue">B</span>C</span>',
+        '<span style="color: red">A</span><span style="color: blue">B</span><span style="color: red">C</span>',
+      ],
+      // Child inherits properties it doesn't set
+      [
+        '<span style="color: red">A<span style="font-size: 20px">B</span></span>',
+        '<span style="color: red">A</span><span style="color: red; font-size: 20px">B</span>',
+      ],
+      // Unstyled spans are transparent
+      [
+        '<span style="color: red">A<span>B</span>C</span>',
+        '<span style="color: red">ABC</span>',
+      ],
+      // Styles are pushed down through other inline tags
+      [
+        '<span style="color: red"><b>A<span style="color: blue">B</span></b></span>',
+        '<b><span style="color: red">A</span><span style="color: blue">B</span></b>',
+      ],
+      // A wrapper inside a pushed-down span merges the inherited style, and its
+      // text isn't wrapped again
+      [
+        '<span style="color: red">A<b>B<span style="font-size: 20px">C</span></b><span>D</span></span>',
+        '<span style="color: red">A</span><b><span style="color: red">B</span><span style="color: red; font-size: 20px">C</span></b><span style="color: red">D</span>',
+      ],
+      // Styles are inherited across multiple levels
+      [
+        '<span style="color: red; background-color: yellow">A<span style="color: blue">B<span style="font-size: 20px">C</span></span></span>',
+        '<span style="color: red; background-color: yellow">A</span><span style="color: blue; background-color: yellow">B</span><span style="color: blue; background-color: yellow; font-size: 20px">C</span>',
+      ],
+      // Transparent background doesn't override the inherited one
+      [
+        '<span style="background-color: yellow">A<span style="color: blue; background-color: transparent">B</span></span>',
+        '<span style="background-color: yellow">A</span><span style="color: blue; background-color: yellow">B</span>',
+      ],
+      // `inherit` doesn't override the inherited value
+      [
+        '<span style="color: red">A<span style="color: inherit">B</span></span>',
+        '<span style="color: red">AB</span>',
+      ],
+      // Transparent background alone is treated as no style
+      ['<span style="background-color: TRANSPARENT">A</span>', 'A'],
+      // Whitespace between blocks is layout and doesn't become a paragraph
+      [
+        '<span style="color: red"><p>A</p> <p><span style="color: blue">B</span></p></span>',
+        '<p><span style="color: red">A</span></p><p><span style="color: blue">B</span></p>',
+      ],
+      // Whitespace between table parts is layout
+      [
+        '<span style="color: red">A<table>\n<tr>\n<td><span style="color: blue">B</span></td>\n</tr>\n</table></span>',
+        '<p><span style="color: red">A</span></p>\n<p>\n<span style="color: blue">B</span>\n</p>',
+      ],
+      // Whitespace inside a table cell is inline and keeps the style
+      [
+        '<span style="color: red">A<table><tr><td><span style="color: blue">B</span> <span style="color: green">C</span></td></tr></table></span>',
+        '<p><span style="color: red">A</span></p><p><span style="color: blue">B</span><span style="color: red"> </span><span style="color: green">C</span></p>',
+      ],
+      // Unstyled spans outside styled ones don't wrap anything
+      [
+        '<span>A<span style="color: red">B</span>C</span>',
+        'A<span style="color: red">B</span>C',
+      ],
+      // Context reaches list items and blockquotes
+      [
+        '<ul><li><span style="color: red">A<span style="color: blue">B</span></span></li></ul>',
+        '<ul><li><span style="color: red">A</span><span style="color: blue">B</span></li></ul>',
+      ],
+      [
+        '<blockquote><span style="color: red">A<span style="color: blue">B</span></span></blockquote>',
+        '<blockquote><p><span style="color: red">A</span><span style="color: blue">B</span></p></blockquote>',
       ],
     ])('%s → %s', (input, expected) => {
       expect(normalizeHtml(input)).toBe(expected);

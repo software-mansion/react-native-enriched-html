@@ -53,15 +53,12 @@ export function mergeWithDefaultHtmlStyle(
 export function mergeWithDefaultEnrichedTextHtmlStyle(
   htmlStyle?: EnrichedTextHtmlStyle
 ): Required<EnrichedTextHtmlStyle> {
+  const style = htmlStyle ?? {};
+
   const merged = mergeWithDefaultHtmlStyle(
-    htmlStyle as HtmlStyle,
+    style as HtmlStyle,
     DEFAULT_ENRICHED_TEXT_STYLE
   );
-
-  const a = {
-    ...DEFAULT_ENRICHED_TEXT_STYLE.a,
-    ...htmlStyle?.a,
-  };
 
   const mentionDefaults = DEFAULT_ENRICHED_TEXT_STYLE.mention;
   const passedMentionMap = htmlStyle?.mention;
@@ -82,7 +79,6 @@ export function mergeWithDefaultEnrichedTextHtmlStyle(
 
   return {
     ...merged,
-    a,
     mention,
   } as Required<EnrichedTextHtmlStyle>;
 }
@@ -99,6 +95,7 @@ const ET_CSS_VARS = {
   codeblockBorderRadius: '--et-codeblock-border-radius',
   linkColor: '--et-link-color',
   linkTextDecorationLine: '--et-link-text-decoration-line',
+  linkPressColor: '--et-link-press-color',
   ulBulletColor: '--et-ul-bullet-color',
   ulBulletSize: '--et-ul-bullet-size',
   ulMarginLeft: '--et-ul-margin-left',
@@ -187,6 +184,7 @@ function applyLinkVars(
   if (anchor?.textDecorationLine != null) {
     vars[ET_CSS_VARS.linkTextDecorationLine] = anchor.textDecorationLine;
   }
+  setColorVar(vars, ET_CSS_VARS.linkPressColor, anchor?.pressColor);
 }
 
 function applyUnorderedListVars(
@@ -261,17 +259,74 @@ function expandMentionStylesForIndicatorsIncludeDefault(
 
 export function htmlStyleToCSSVariables(htmlStyle: HtmlStyle): CSSProperties {
   const vars: Record<string, string> = {};
-  applyCodeVars(vars, htmlStyle?.code);
+  applyCodeVars(vars, htmlStyle.code);
   applyHeadingVars(vars, htmlStyle);
-  applyBlockquoteVars(vars, htmlStyle?.blockquote);
-  applyCodeblockVars(vars, htmlStyle?.codeblock);
-  applyLinkVars(vars, htmlStyle?.a);
-  applyUnorderedListVars(vars, htmlStyle?.ul);
-  applyOrderedListVars(vars, htmlStyle?.ol);
-  applyCheckboxListVars(vars, htmlStyle?.ulCheckbox);
+  applyBlockquoteVars(vars, htmlStyle.blockquote);
+  applyCodeblockVars(vars, htmlStyle.codeblock);
+  applyLinkVars(vars, htmlStyle.a);
+  applyUnorderedListVars(vars, htmlStyle.ul);
+  applyOrderedListVars(vars, htmlStyle.ol);
+  applyCheckboxListVars(vars, htmlStyle.ulCheckbox);
   applyMentionVars(
     vars,
     htmlStyle.mention as Record<string, MentionStyleProperties>
   );
   return vars as CSSProperties;
+}
+
+export const ET_MENTION_PRESS_CSS_VARS = {
+  pressColor: (indicator: string) =>
+    `--et-mention-${indicatorToMentionCssKey(indicator)}-press-color`,
+  pressBackgroundColor: (indicator: string) =>
+    `--et-mention-${indicatorToMentionCssKey(indicator)}-press-background-color`,
+} as const;
+
+const DEFAULT_MENTION_PRESS =
+  DEFAULT_ENRICHED_TEXT_STYLE.mention as EnrichedTextMentionStyleProperties;
+
+function expandVarsWithEnrichedTextMention(
+  vars: Record<string, string>,
+  mention?: EnrichedTextHtmlStyle['mention']
+): void {
+  const isStyleRecord = isMentionStyleRecord(mention);
+
+  const mentionIndicators = isStyleRecord ? Object.keys(mention) : [];
+
+  if (!mentionIndicators.includes(MENTION_STYLE_DEFAULT_KEY))
+    mentionIndicators.push(MENTION_STYLE_DEFAULT_KEY);
+
+  for (const indicator of mentionIndicators) {
+    const style = isStyleRecord ? mention?.[indicator] : mention;
+
+    setColorVar(
+      vars,
+      ET_MENTION_PRESS_CSS_VARS.pressColor(indicator),
+      style?.pressColor ??
+        (isStyleRecord ? mention.default?.pressColor : undefined) ??
+        DEFAULT_MENTION_PRESS.pressColor
+    );
+    setColorVar(
+      vars,
+      ET_MENTION_PRESS_CSS_VARS.pressBackgroundColor(indicator),
+      style?.pressBackgroundColor ??
+        (isStyleRecord ? mention.default?.pressBackgroundColor : undefined) ??
+        DEFAULT_MENTION_PRESS.pressBackgroundColor
+    );
+  }
+}
+
+function expandCSSPropertiesWithEnrichedTextHtmlStyle(
+  htmlStyle: EnrichedTextHtmlStyle | undefined,
+  cssProperties: CSSProperties
+): CSSProperties {
+  const vars = { ...cssProperties } as Record<string, string>;
+  expandVarsWithEnrichedTextMention(vars, htmlStyle?.mention);
+  return vars as CSSProperties;
+}
+
+export function enrichedTextHtmlStyleToCSSVariables(
+  htmlStyle: EnrichedTextHtmlStyle
+): CSSProperties {
+  const vars = htmlStyleToCSSVariables(htmlStyle);
+  return expandCSSPropertiesWithEnrichedTextHtmlStyle(htmlStyle, vars);
 }

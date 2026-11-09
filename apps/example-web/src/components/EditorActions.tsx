@@ -1,4 +1,4 @@
-import './EditorActions.css';
+import './Actions.css';
 
 interface EditorActionsProps {
   showHtmlOutput: boolean;

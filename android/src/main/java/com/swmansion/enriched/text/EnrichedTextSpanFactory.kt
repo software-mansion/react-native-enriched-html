@@ -1,11 +1,14 @@
 package com.swmansion.enriched.text
 
+import android.content.res.AssetManager
 import com.swmansion.enriched.common.parser.EnrichedSpanFactory
+import com.swmansion.enriched.common.spans.EnrichedCustomStyleSpan
 import com.swmansion.enriched.text.spans.EnrichedTextAlignmentSpan
 import com.swmansion.enriched.text.spans.EnrichedTextBlockQuoteSpan
 import com.swmansion.enriched.text.spans.EnrichedTextBoldSpan
 import com.swmansion.enriched.text.spans.EnrichedTextCheckboxListSpan
 import com.swmansion.enriched.text.spans.EnrichedTextCodeBlockSpan
+import com.swmansion.enriched.text.spans.EnrichedTextCustomStyleSpan
 import com.swmansion.enriched.text.spans.EnrichedTextH1Span
 import com.swmansion.enriched.text.spans.EnrichedTextH2Span
 import com.swmansion.enriched.text.spans.EnrichedTextH3Span
@@ -22,7 +25,10 @@ import com.swmansion.enriched.text.spans.EnrichedTextStrikeThroughSpan
 import com.swmansion.enriched.text.spans.EnrichedTextUnderlineSpan
 import com.swmansion.enriched.text.spans.EnrichedTextUnorderedListSpan
 
-class EnrichedTextSpanFactory : EnrichedSpanFactory<EnrichedTextStyle> {
+class EnrichedTextSpanFactory(
+  private val assets: AssetManager,
+  private val allowFontScaling: Boolean,
+) : EnrichedSpanFactory<EnrichedTextStyle> {
   override fun createAlignmentSpan(cssValue: String) = EnrichedTextAlignmentSpan(cssValue)
 
   override fun createBoldSpan(style: EnrichedTextStyle) = EnrichedTextBoldSpan(style)
@@ -81,4 +87,19 @@ class EnrichedTextSpanFactory : EnrichedSpanFactory<EnrichedTextStyle> {
   override fun createBlockQuoteSpan(style: EnrichedTextStyle) = EnrichedTextBlockQuoteSpan(style)
 
   override fun createCodeBlockSpan(style: EnrichedTextStyle) = EnrichedTextCodeBlockSpan(style)
+
+  override fun createCustomStyleSpan(
+    foregroundColor: Int?,
+    backgroundColor: Int?,
+    fontSize: Float?,
+    fontFamily: String?,
+  ): EnrichedCustomStyleSpan =
+    EnrichedTextCustomStyleSpan(
+      foregroundColor,
+      backgroundColor,
+      fontSize,
+      fontFamily,
+      assets,
+      allowFontScaling,
+    )
 }

@@ -1,13 +1,15 @@
 #import "HtmlParser.h"
-#import "AlignmentEntry.h"
-#import "AlignmentUtils.h"
-#import "EnrichedConfig.h"
-#import "ImageData.h"
-#import "LinkData.h"
-#import "MentionParams.h"
-#import "StringExtension.h"
-#import "StyleHeaders.h"
-#import "StylePair.h"
+#import "config/EnrichedConfig.h"
+#import "extensions/ColorExtension.h"
+#import "extensions/StringExtension.h"
+#import "interfaces/AlignmentEntry.h"
+#import "interfaces/CustomStyleData.h"
+#import "interfaces/ImageData.h"
+#import "interfaces/LinkData.h"
+#import "interfaces/MentionParams.h"
+#import "interfaces/StyleHeaders.h"
+#import "interfaces/StylePair.h"
+#import "utils/AlignmentUtils.h"
 
 #include "GumboParser.hpp"
 
@@ -42,9 +44,10 @@
  * you MUST add it to the `textTags` set below.
  */
 + (NSString *)stripExtraWhiteSpacesAndNewlines:(NSString *)html {
-  NSSet *textTags = [NSSet setWithObjects:@"p", @"h1", @"h2", @"h3", @"h4",
-                                          @"h5", @"h6", @"li", @"b", @"a", @"s",
-                                          @"mention", @"code", @"u", @"i", nil];
+  NSSet *textTags =
+      [NSSet setWithObjects:@"p", @"h1", @"h2", @"h3", @"h4", @"h5", @"h6",
+                            @"li", @"b", @"a", @"s", @"mention", @"code", @"u",
+                            @"i", @"span", nil];
 
   NSMutableString *output = [NSMutableString stringWithCapacity:html.length];
   NSMutableString *currentTagBuffer = [NSMutableString string];
@@ -474,7 +477,12 @@
           // Track checkbox state if we're inside a checkbox list
           if (insideCheckboxList) {
             BOOL isChecked = [currentTagParams containsString:@"checked"];
-            checkboxStates[@(plainText.length)] = @(isChecked);
+            // Key by the position in the final NSTextStorage, which holds one
+            // placeholder per preceding image that 'plainText' doesn't have
+            // yet. This matches the image-shifted list range the states are
+            // later filtered by in prepareCheckboxListStyleValue:.
+            checkboxStates[@(plainText.length + precedingImageCount)] =
+                @(isChecked);
           }
           // Record the start location so we can check if it's empty when
           // closing
@@ -670,7 +678,7 @@
       [styleArr addObject:@([ItalicStyle getType])];
     } else if ([tagName isEqualToString:@"img"]) {
       NSRegularExpression *srcRegex =
-          [NSRegularExpression regularExpressionWithPattern:@"src=\"([^\"]+)\""
+          [NSRegularExpression regularExpressionWithPattern:@"src=\"([^\"]*)\""
                                                     options:0
                                                       error:nullptr];
       NSTextCheckingResult *match =
@@ -689,7 +697,7 @@
           [params substringWithRange:NSMakeRange(srcRange.location + 5,
                                                  srcRange.length - 6)];
       ImageData *imageData = [[ImageData alloc] init];
-      imageData.uri = uri;
+      imageData.uri = [NSString stringByUnescapingHtmlAttribute:uri];
 
       NSRegularExpression *widthRegex = [NSRegularExpression
           regularExpressionWithPattern:@"width=\"([0-9.]+)\""
@@ -747,9 +755,10 @@
       NSRange hrefRange = match.range;
       [styleArr addObject:@([LinkStyle getType])];
       // cut only the url from the href="..." string
-      NSString *url =
+      NSString *rawUrl =
           [params substringWithRange:NSMakeRange(hrefRange.location + 6,
                                                  hrefRange.length - 7)];
+      NSString *url = [NSString stringByUnescapingHtmlAttribute:rawUrl];
 
       // tagRange location includes one extra offset per preceding image
       // placeholder, which don't exist in plainText. Subtract them to map
@@ -786,9 +795,10 @@
                              if (result.numberOfRanges == 4) {
                                NSString *key = [params
                                    substringWithRange:[result rangeAtIndex:1]];
-                               NSString *value = [params
+                               NSString *rawValue = [params
                                    substringWithRange:[result rangeAtIndex:3]];
-                               paramsDict[key] = value;
+                               paramsDict[key] = [NSString
+                                   stringByUnescapingHtmlAttribute:rawValue];
                              }
                            }];
 
@@ -834,9 +844,15 @@
       [styleArr addObject:@([BlockQuoteStyle getType])];
     } else if ([tagName isEqualToString:@"codeblock"]) {
       [styleArr addObject:@([CodeBlockStyle getType])];
+    } else if ([tagName isEqualToString:@"span"]) {
+      CustomStyleData *data = [self parseCustomStyleDataFromSpanParams:params];
+      if (data == nil || data.isEmpty) {
+        continue;
+      }
+      [styleArr addObject:@([CustomStyle getType])];
+      stylePair.styleValue = data;
     } else {
-      // some other external tags like span just don't get put into the
-      // processed styles
+      // some other external tags don't get put into the processed styles
       continue;
     }
 
@@ -866,6 +882,7 @@
   BOOL inCodeBlock = NO;
   BOOL inCheckboxList = NO;
   unichar lastCharacter = 0;
+  CustomStyleData *lastCustomStyleData = nil;
 
   for (int i = 0; i < text.length; i++) {
     NSRange currentRange = NSMakeRange(offset + i, 1);
@@ -957,7 +974,16 @@
             inCheckboxList = NO;
           }
         } else {
-          [result appendString:@"\n<br>"];
+          NSString *cssStyleString =
+              [self prepareCssStyleString:currentRange.location
+                             isOpeningTag:YES
+                                     host:host];
+          if (cssStyleString.length > 0) {
+            [result appendString:[NSString stringWithFormat:@"\n<p%@></p>",
+                                                            cssStyleString]];
+          } else {
+            [result appendString:@"\n<br>"];
+          }
         }
       } else {
         // newline finishes a paragraph and all style tags need to be closed
@@ -1005,6 +1031,7 @@
 
       // clear the previous styles
       previousActiveStyles = [[NSSet<NSNumber *> alloc] init];
+      lastCustomStyleData = nil;
 
       // next character opens new paragraph
       newLine = YES;
@@ -1166,6 +1193,36 @@
         }
       }
 
+      // Force close+reopen if CustomStyle is continuously active but its data
+      // changed, so adjacent runs with different styles produce separate <span>
+      // tags instead of being merged into one.
+      NSNumber *customType = @([CustomStyle getType]);
+      if (![endedStyles member:customType] &&
+          [currentActiveStyles member:customType] &&
+          [previousActiveStyles member:customType]) {
+        CustomStyle *customStyleObj =
+            (CustomStyle *)host.stylesDict[customType];
+        CustomStyleData *currentData =
+            [customStyleObj getStoredCustomStyleDataAt:currentRange.location];
+        if (![currentData isEqual:lastCustomStyleData]) {
+          [fixedEndedStyles addObject:customType];
+          [stylesToBeReAdded addObject:customType];
+
+          // Inner styles (e.g. bold) must also close before the span ends and
+          // reopen inside the new span, otherwise tags cross span boundaries.
+          for (NSNumber *activeStyle in currentActiveStyles) {
+            if ([activeStyle isEqualToNumber:customType] ||
+                [activeStyle isEqualToNumber:@([ImageStyle getType])]) {
+              continue;
+            }
+            if ([activeStyle integerValue] > [customType integerValue]) {
+              [fixedEndedStyles addObject:activeStyle];
+              [stylesToBeReAdded addObject:activeStyle];
+            }
+          }
+        }
+      }
+
       // they are sorted in a descending order
       NSArray<NSNumber *> *sortedEndedStyles = [fixedEndedStyles
           sortedArrayUsingDescriptors:@[ [NSSortDescriptor
@@ -1210,6 +1267,11 @@
 
       // append the letter and escape it if needed
       [result appendString:[NSString stringByEscapingHtml:currentCharacterStr]];
+
+      // track CustomStyleData for the next character's data-change check
+      lastCustomStyleData =
+          [(CustomStyle *)host.stylesDict[@([CustomStyle getType])]
+              getStoredCustomStyleDataAt:currentRange.location];
 
       // save current styles for next character's checks
       previousActiveStyles = currentActiveStyles;
@@ -1331,9 +1393,11 @@
       if (imageStyle != nullptr) {
         ImageData *data = [imageStyle getImageDataAt:location];
         if (data != nullptr && data.uri != nullptr) {
+          NSString *escapedUri =
+              [NSString stringByEscapingHtmlAttribute:data.uri];
           return [NSString
               stringWithFormat:@"img src=\"%@\" width=\"%d\" height=\"%d\"",
-                               data.uri, (int)floor(data.width),
+                               escapedUri, (int)floor(data.width),
                                (int)floor(data.height)];
         }
       }
@@ -1354,7 +1418,9 @@
       if (linkStyle != nullptr) {
         LinkData *data = [linkStyle getLinkDataAt:location];
         if (data != nullptr && data.url != nullptr) {
-          return [NSString stringWithFormat:@"a href=\"%@\"", data.url];
+          NSString *escapedUrl =
+              [NSString stringByEscapingHtmlAttribute:data.url];
+          return [NSString stringWithFormat:@"a href=\"%@\"", escapedUrl];
         }
       }
       return @"a";
@@ -1384,15 +1450,22 @@
             // format dict keys and values into string
             [json enumerateKeysAndObjectsUsingBlock:^(
                       id _Nonnull key, id _Nonnull obj, BOOL *_Nonnull stop) {
-              [attrsStr
-                  appendString:[NSString stringWithFormat:@" %@=\"%@\"",
-                                                          (NSString *)key,
-                                                          (NSString *)obj]];
+              NSString *escapedKey =
+                  [NSString stringByEscapingHtmlAttribute:(NSString *)key];
+              NSString *escapedValue =
+                  [NSString stringByEscapingHtmlAttribute:(NSString *)obj];
+              [attrsStr appendString:[NSString stringWithFormat:@" %@=\"%@\"",
+                                                                escapedKey,
+                                                                escapedValue]];
             }];
           }
+          NSString *escapedText =
+              [NSString stringByEscapingHtmlAttribute:params.text];
+          NSString *escapedIndicator =
+              [NSString stringByEscapingHtmlAttribute:params.indicator];
           return [NSString
               stringWithFormat:@"mention text=\"%@\" indicator=\"%@\"%@",
-                               params.text, params.indicator, attrsStr];
+                               escapedText, escapedIndicator, attrsStr];
         }
       }
       return @"mention";
@@ -1431,6 +1504,54 @@
              [style isEqualToNumber:@([CodeBlockStyle getType])]) {
     // blockquotes and codeblock use <p> tags the same way lists use <li>
     return [NSString stringWithFormat:@"p%@", cssStyleString];
+  } else if ([style isEqualToNumber:@([CustomStyle getType])]) {
+    if (openingTag) {
+      CustomStyle *customStyle =
+          (CustomStyle *)host.stylesDict[@([CustomStyle getType])];
+      if (customStyle != nil) {
+        CustomStyleData *data =
+            [customStyle getStoredCustomStyleDataAt:location];
+        if (data != nil && !data.isEmpty) {
+          NSMutableString *cssProps = [NSMutableString string];
+          NSString *fg = [[data foregroundColor] hexString];
+          NSString *bg = [[data backgroundColor] hexString];
+          if (fg.length > 0) {
+            [cssProps appendFormat:@"color: %@;", fg];
+          }
+          if (bg.length > 0) {
+            if (cssProps.length > 0)
+              [cssProps appendString:@" "];
+            [cssProps appendFormat:@"background-color: %@;", bg];
+          }
+          if (data.fontSize != nil) {
+            if (cssProps.length > 0)
+              [cssProps appendString:@" "];
+            [cssProps
+                appendFormat:@"font-size: %gpx;", [data.fontSize doubleValue]];
+          }
+          if (data.fontFamily.length > 0) {
+            if (cssProps.length > 0)
+              [cssProps appendString:@" "];
+            if ([data.fontFamily rangeOfString:@" "].location != NSNotFound ||
+                [data.fontFamily rangeOfString:@","].location != NSNotFound) {
+              // font family contains spaces or commas, wrap in single quotes
+              [cssProps appendFormat:@"font-family: '%@';", data.fontFamily];
+            } else {
+              [cssProps appendFormat:@"font-family: %@;", data.fontFamily];
+            }
+          }
+          if (cssProps.length > 0) {
+            NSString *escapedStyle =
+                [NSString stringByEscapingHtmlAttribute:cssProps];
+            return
+                [NSString stringWithFormat:@"span style=\"%@\"", escapedStyle];
+          }
+        }
+      }
+      return @"span";
+    } else {
+      return @"span";
+    }
   }
   return @"";
 }
@@ -1455,8 +1576,137 @@
   return @"";
 }
 
++ (NSString *)firstInFontFamilyString:(NSString *)value {
+  unichar quote = 0;
+  for (NSUInteger i = 0; i < value.length; i++) {
+    unichar c = [value characterAtIndex:i];
+    if (quote != 0) {
+      if (c == quote)
+        quote = 0;
+    } else if (c == '\'' || c == '"') {
+      quote = c;
+    } else if (c == ',') {
+      return [value substringToIndex:i];
+    }
+  }
+  return value;
+}
+
++ (CustomStyleData *_Nullable)parseCustomStyleDataFromSpanParams:
+    (NSString *)params {
+  static NSRegularExpression *styleAttrRegex;
+  static NSRegularExpression *fgRegex;
+  static NSRegularExpression *bgRegex;
+  static NSRegularExpression *fontSizeRegex;
+  static NSRegularExpression *fontFamilyRegex;
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{
+    styleAttrRegex = [NSRegularExpression
+        regularExpressionWithPattern:
+            @"style\\s*=\\s*[\"']((?<=\")[^\"]*(?=\")|(?<=')[^']*(?='))[\"']"
+                             options:NSRegularExpressionCaseInsensitive
+                               error:nil];
+    // Captures everything after "color:" until a semicolon or end of string
+    fgRegex = [NSRegularExpression
+        regularExpressionWithPattern:@"(?:^|;)\\s*color\\s*:\\s*([^;]+)"
+                             options:NSRegularExpressionCaseInsensitive
+                               error:nil];
+
+    // Captures everything after "background-color:" until a semicolon or end of
+    // string
+    bgRegex = [NSRegularExpression
+        regularExpressionWithPattern:@"background-color\\s*:\\s*([^;]+)"
+                             options:NSRegularExpressionCaseInsensitive
+                               error:nil];
+
+    fontSizeRegex = [NSRegularExpression
+        regularExpressionWithPattern:
+            @"font-size\\s*:\\s*([0-9.]+)(?:\\s*px)?(?=\\s*;|\\s*$)"
+                             options:NSRegularExpressionCaseInsensitive
+                               error:nil];
+
+    fontFamilyRegex = [NSRegularExpression
+        regularExpressionWithPattern:@"font-family\\s*:\\s*([^;]+)"
+                             options:NSRegularExpressionCaseInsensitive
+                               error:nil];
+  });
+
+  NSTextCheckingResult *attrMatch =
+      [styleAttrRegex firstMatchInString:params
+                                 options:0
+                                   range:NSMakeRange(0, params.length)];
+  if (!attrMatch)
+    return nil;
+
+  NSString *css = [params substringWithRange:[attrMatch rangeAtIndex:1]];
+  // decode entities escaped by the serializers
+  css = [NSString stringByUnescapingHtmlAttribute:css];
+  CustomStyleData *data = [[CustomStyleData alloc] init];
+
+  NSTextCheckingResult *fgMatch =
+      [fgRegex firstMatchInString:css
+                          options:0
+                            range:NSMakeRange(0, css.length)];
+  if (fgMatch) {
+    data.foregroundColor = [UIColor
+        colorFromCSSString:[css substringWithRange:[fgMatch rangeAtIndex:1]]];
+  }
+
+  NSTextCheckingResult *bgMatch =
+      [bgRegex firstMatchInString:css
+                          options:0
+                            range:NSMakeRange(0, css.length)];
+  if (bgMatch) {
+    data.backgroundColor = [UIColor
+        colorFromCSSString:[css substringWithRange:[bgMatch rangeAtIndex:1]]];
+  }
+
+  NSTextCheckingResult *fontSizeMatch =
+      [fontSizeRegex firstMatchInString:css
+                                options:0
+                                  range:NSMakeRange(0, css.length)];
+  if (fontSizeMatch) {
+    NSString *fontSizeString =
+        [css substringWithRange:[fontSizeMatch rangeAtIndex:1]];
+    double parsedFontSize = [fontSizeString doubleValue];
+    if (parsedFontSize > 0) {
+      data.fontSize = @(parsedFontSize);
+    }
+  }
+
+  NSTextCheckingResult *fontFamilyMatch =
+      [fontFamilyRegex firstMatchInString:css
+                                  options:0
+                                    range:NSMakeRange(0, css.length)];
+  if (fontFamilyMatch) {
+    NSString *fontFamilyString = [[css
+        substringWithRange:[fontFamilyMatch rangeAtIndex:1]]
+        stringByTrimmingCharactersInSet:[NSCharacterSet
+                                            whitespaceAndNewlineCharacterSet]];
+
+    // If font family contains a comma, use the first part e.g. "Nunito,
+    // sans-serif" -> "Nunito"
+    fontFamilyString = [[self firstInFontFamilyString:fontFamilyString]
+        stringByTrimmingCharactersInSet:[NSCharacterSet
+                                            whitespaceAndNewlineCharacterSet]];
+    if (fontFamilyString.length >= 2 &&
+        (([fontFamilyString hasPrefix:@"'"] &&
+          [fontFamilyString hasSuffix:@"'"]) ||
+         ([fontFamilyString hasPrefix:@"\""] &&
+          [fontFamilyString hasSuffix:@"\""]))) {
+      fontFamilyString = [fontFamilyString
+          substringWithRange:NSMakeRange(1, fontFamilyString.length - 2)];
+    }
+    if (fontFamilyString.length > 0) {
+      data.fontFamily = fontFamilyString;
+    }
+  }
+
+  return data.isEmpty ? nil : data;
+}
+
 + (void)checkForAlignments:(NSArray *)tagData
-                 plainText:(NSString *)plainText
+                 plainText:(NSMutableString *)plainText
            foundAlignments:(NSMutableArray<AlignmentEntry *> *)foundAlignments
        precedingImageCount:(NSInteger)precedingImageCount {
   if (tagData == nil) {
@@ -1473,6 +1723,12 @@
     // Calculate range relative to plainText
     NSInteger actualStart = startLoc + precedingImageCount;
     NSInteger length = plainText.length - startLoc;
+
+    // Empty aligned paragraphs have no characters to attach alignment to.
+    if (length == 0) {
+      [plainText appendString:@"\u200B"];
+      length = 1;
+    }
 
     if (length > 0) {
       AlignmentEntry *entry = [[AlignmentEntry alloc] init];

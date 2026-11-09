@@ -9,6 +9,7 @@ import com.facebook.react.uimanager.ViewManagerDelegate
 import com.facebook.react.viewmanagers.EnrichedTextViewManagerDelegate
 import com.facebook.react.viewmanagers.EnrichedTextViewManagerInterface
 import com.facebook.yoga.YogaMeasureMode
+import com.swmansion.enriched.text.events.OnImagePressEvent
 import com.swmansion.enriched.text.events.OnLinkPressEvent
 import com.swmansion.enriched.text.events.OnMentionPressEvent
 
@@ -29,6 +30,7 @@ class EnrichedTextViewManager :
     val map = mutableMapOf<String, Any>()
     map.put(OnLinkPressEvent.EVENT_NAME, mapOf("registrationName" to OnLinkPressEvent.EVENT_NAME))
     map.put(OnMentionPressEvent.EVENT_NAME, mapOf("registrationName" to OnMentionPressEvent.EVENT_NAME))
+    map.put(OnImagePressEvent.EVENT_NAME, mapOf("registrationName" to OnImagePressEvent.EVENT_NAME))
     return map
   }
 
@@ -51,6 +53,13 @@ class EnrichedTextViewManager :
     value: Float,
   ) {
     view?.setFontSize(value)
+  }
+
+  override fun setLineHeight(
+    view: EnrichedTextView?,
+    value: Float,
+  ) {
+    view?.setLineHeight(value)
   }
 
   override fun setFontFamily(

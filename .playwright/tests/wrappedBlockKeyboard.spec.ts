@@ -7,6 +7,7 @@ import {
   setEditorHtml,
 } from '../helpers/visual-regression';
 import { toolbarButton } from '../helpers/toolbar';
+import { waitForCursorAtLineStart } from '../helpers/selection';
 
 function countOpeningTag(html: string, tagName: string): number {
   const re = new RegExp(`<${tagName}(?:\\s[^>]*)?>`, 'gi');
@@ -71,11 +72,11 @@ for (const { label, tag, wrapperSelector, toolbarTestId } of WRAPPED_BLOCKS) {
       );
 
       const secondP = paragraphsInWrapper.nth(1);
-      await secondP.click();
-      await editor.press('End');
-      for (let i = 0; i < 'second'.length; i++) {
-        await editor.press('ArrowLeft', { delay: 60 });
-      }
+      // Click at the left edge so ProseMirror's own (possibly late) click
+      // handling also leaves the caret at line start.
+      await secondP.click({ position: { x: 1, y: 5 } });
+      await editor.press('Home');
+      await waitForCursorAtLineStart(page);
 
       await editor.press('Backspace', { delay: 60 });
 

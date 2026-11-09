@@ -3,7 +3,10 @@ import type { Node } from '@tiptap/pm/model';
 import { Fragment } from '@tiptap/pm/model';
 import { TextSelection } from '@tiptap/pm/state';
 
-import { nativePosToTiptapPos, tiptapPosToNativePos } from '../positionMapping';
+import {
+  nativePosToTiptapPos,
+  tiptapPosToNativePos,
+} from '../nativeMappers/positionMapping';
 import { withPreservedAlignment } from './formatRules';
 
 /**

@@ -1,29 +1,83 @@
-import { memo, useMemo, useRef, type CSSProperties } from 'react';
+import {
+  memo,
+  useCallback,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from 'react';
 import type { EnrichedTextProps } from '../types';
 import './EnrichedText.css';
 import { enrichedTextStyleToCSSProperties } from './styleConversion/enrichedTextStyleToCSSProperties';
+import { mergeWithDefaultEnrichedTextHtmlStyle } from './styleConversion/htmlStyleToCSSVariables';
+import { enrichedTextHtmlStyleToCSSVariables } from './styleConversion/htmlStyleToCSSVariables';
 import {
-  htmlStyleToCSSVariables,
-  mergeWithDefaultEnrichedTextHtmlStyle,
-} from './styleConversion/htmlStyleToCSSVariables';
-import { ENRICHED_TEXT_CLASSNAME } from './constants/classNames';
-import { enrichedInputThemingToCSSProperties } from './styleConversion/enrichedThemingToCSSProperties';
+  ENRICHED_TEXT_CLASSNAME,
+  LINK_PRESSABLE_CLASSNAME,
+} from './constants/classNames';
+import { enrichedTextThemingToCSSProperties } from './styleConversion/enrichedThemingToCSSProperties';
 import { buildMentionRulesCSS } from './styleConversion/buildMentionRulesCSS';
 import { sanitizeHtml } from './sanitization/htmlSanitizer';
 import { prepareHtmlForWeb } from './normalization/prepareHtmlForWeb';
 import { INLINE_IMAGE_CSS_VARIABLES } from './styleConversion/inlineImageCSSVariables';
-import { useImageErrorFallback } from './useImageErrorFallback';
-import { usePressInteractions } from './usePressInteractions';
+import { useImageErrorFallback } from './htmlExtensions/useImageErrorFallback';
+import { usePressInteractions } from './htmlExtensions/usePressInteractions';
+import { useEllipsizeMode } from './ellipsizeMode/useEllipsizeMode';
+import { adaptWebToNativeEvent } from './nativeMappers/adaptWebToNativeEvent';
+import { useStableRef } from './utils/useStableRef';
+import { assertBrowserEnvironment } from './utils/assertBrowserEnvironment';
+import { useOrderedListMarkerWidth } from './htmlExtensions/useOrderedListMarkerWidth';
+import { enrichedStyleToCSSVariables } from './styleConversion/enrichedStyleToCSSVariables';
+import { useBaseFontFamily } from './utils/useBaseFontFamily';
 
 export const EnrichedText = memo(
-  ({ children, htmlStyle, style, selectionColor }: EnrichedTextProps) => {
+  ({
+    ref,
+    children,
+    htmlStyle,
+    style,
+    selectionColor,
+    ellipsizeMode = 'tail',
+    numberOfLines = 0,
+    selectable = false,
+    useHtmlNormalizer = true,
+    sanitizationConfig,
+    onFocus,
+    onBlur,
+    onLinkPress,
+    onMentionPress,
+    onImagePress,
+  }: EnrichedTextProps) => {
+    assertBrowserEnvironment('EnrichedText');
+
     const containerRef = useRef<HTMLDivElement>(null);
 
-    const sanitizedHtml = useMemo(() => sanitizeHtml(children), [children]);
+    useImperativeHandle(ref, () => ({
+      measureInWindow: () => {},
+      measure: () => {},
+      measureLayout: () => {},
+      setNativeProps: () => {},
+      focus: () => {
+        containerRef.current?.focus();
+      },
+      blur: () => {
+        containerRef.current?.blur();
+      },
+    }));
+
+    const sanitizedHtml = useMemo(
+      () => sanitizeHtml(children, sanitizationConfig),
+      [children, sanitizationConfig]
+    );
 
     const finalHtml = useMemo(
-      () => prepareHtmlForWeb(sanitizedHtml),
-      [sanitizedHtml]
+      () => prepareHtmlForWeb(sanitizedHtml, useHtmlNormalizer),
+      [sanitizedHtml, useHtmlNormalizer]
+    );
+
+    const [clampedHtml, setClampedHtml] = useState<string | null>(
+      numberOfLines <= 0 ? finalHtml : null
     );
 
     const resolvedHtmlStyle = useMemo(
@@ -36,22 +90,29 @@ export const EnrichedText = memo(
       [style]
     );
 
+    const getContainerElement = useCallback(() => containerRef.current, []);
+    const baseFontFamily = useBaseFontFamily(
+      getContainerElement,
+      textStyle.fontFamily
+    );
+
     const cssVars = useMemo(
       () => ({
-        ...htmlStyleToCSSVariables(resolvedHtmlStyle),
+        ...enrichedTextHtmlStyleToCSSVariables(resolvedHtmlStyle),
         ...INLINE_IMAGE_CSS_VARIABLES,
+        ...enrichedStyleToCSSVariables({ fontFamily: baseFontFamily }),
       }),
-      [resolvedHtmlStyle]
+      [resolvedHtmlStyle, baseFontFamily]
     );
 
     const themingStyle = useMemo(
-      () => enrichedInputThemingToCSSProperties({ selectionColor }),
-      [selectionColor]
+      () => enrichedTextThemingToCSSProperties({ selectionColor, selectable }),
+      [selectionColor, selectable]
     );
 
     const mentionRulesCSS = useMemo(
-      () => buildMentionRulesCSS(resolvedHtmlStyle),
-      [resolvedHtmlStyle]
+      () => buildMentionRulesCSS(resolvedHtmlStyle, !!onMentionPress),
+      [resolvedHtmlStyle, onMentionPress]
     );
 
     const finalStyle = useMemo(
@@ -64,17 +125,49 @@ export const EnrichedText = memo(
       [textStyle, themingStyle, cssVars]
     );
 
-    usePressInteractions(containerRef);
+    useEllipsizeMode({
+      containerRef,
+      finalHtml,
+      ellipsizeMode,
+      numberOfLines,
+      setClampedHtml,
+      style,
+      htmlStyle,
+    });
+
+    const onLinkPressRef = useStableRef(onLinkPress);
+    const onMentionPressRef = useStableRef(onMentionPress);
+    const onImagePressRef = useStableRef(onImagePress);
+
+    useOrderedListMarkerWidth(containerRef, finalHtml);
+
     useImageErrorFallback(containerRef);
+    usePressInteractions(
+      containerRef,
+      onLinkPressRef,
+      onMentionPressRef,
+      onImagePressRef
+    );
 
     return (
       <>
         {mentionRulesCSS ? <style>{mentionRulesCSS}</style> : null}
         <div
           ref={containerRef}
+          tabIndex={-1}
           style={finalStyle}
-          className={ENRICHED_TEXT_CLASSNAME}
-          dangerouslySetInnerHTML={{ __html: finalHtml }}
+          className={
+            onLinkPress
+              ? `${ENRICHED_TEXT_CLASSNAME} ${LINK_PRESSABLE_CLASSNAME}`
+              : ENRICHED_TEXT_CLASSNAME
+          }
+          onFocus={(event) =>
+            onFocus?.(adaptWebToNativeEvent(event, { target: -1 }))
+          }
+          onBlur={(event) =>
+            onBlur?.(adaptWebToNativeEvent(event, { target: -1 }))
+          }
+          dangerouslySetInnerHTML={{ __html: clampedHtml ?? '' }}
         />
       </>
     );

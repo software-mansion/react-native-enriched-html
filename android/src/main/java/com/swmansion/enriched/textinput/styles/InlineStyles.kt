@@ -18,7 +18,7 @@ class InlineStyles(
   ) {
     val previousSpanStart = (start - 1).coerceAtLeast(0)
     val previousSpanEnd = previousSpanStart + 1
-    val nextSpanStart = (end + 1).coerceAtMost(spannable.length)
+    val nextSpanStart = end.coerceAtMost(spannable.length)
     val nextSpanEnd = (nextSpanStart + 1).coerceAtMost(spannable.length)
     val previousSpans = spannable.getSpans(previousSpanStart, previousSpanEnd, type)
     val nextSpans = spannable.getSpans(nextSpanStart, nextSpanEnd, type)

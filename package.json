@@ -1,6 +1,6 @@
 {
   "name": "react-native-enriched-html",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "HTML-based Rich Text solution for React Native",
   "source": "./src/index.tsx",
   "main": "./lib/module/index.js",
@@ -28,6 +28,7 @@
     "android",
     "ios",
     "cpp",
+    "Package.swift",
     "*.podspec",
     "react-native.config.js",
     "!ios/build",
@@ -44,11 +45,14 @@
   "scripts": {
     "example": "yarn workspace react-native-enriched-example",
     "example-web": "yarn workspace react-native-enriched-web-example",
+    "docs-install": "cd docs && yarn install",
+    "docs-start": "cd docs && yarn start",
     "test": "jest --passWithNoTests",
     "typecheck": "yarn typecheck:lib && yarn typecheck:example && yarn typecheck:example-web",
     "typecheck:lib": "tsc -p tsconfig.build.json",
     "typecheck:example": "tsc -p apps/example/tsconfig.json",
     "typecheck:example-web": "tsc -p apps/example-web/tsconfig.app.json",
+    "typecheck:docs": "cd docs && yarn typecheck",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "lint:android": "cd apps/example/android && ./gradlew lintVerify",
     "lint:android:fix": "cd apps/example/android && ./gradlew lintFormat",
@@ -67,7 +71,8 @@
     "test:e2e:android": ".maestro/scripts/run-tests.sh --platform android",
     "test:e2e:ios": ".maestro/scripts/run-tests.sh --platform ios",
     "test:e2e:web": ".playwright/scripts/run-tests.sh",
-    "test:e2e": "bash -c '.maestro/scripts/run-tests-all.sh \"$@\" && .playwright/scripts/run-tests.sh \"$@\"' _"
+    "test:e2e": "bash -c '.maestro/scripts/run-tests-all.sh \"$@\" && .playwright/scripts/run-tests.sh \"$@\"' _",
+    "create-release-apps": "bash scripts/create-release-apps.sh"
   },
   "keywords": [
     "react-native",
@@ -83,31 +88,31 @@
   "bugs": {
     "url": "https://github.com/software-mansion/react-native-enriched-html/issues"
   },
-  "homepage": "https://github.com/software-mansion/react-native-enriched-html#readme",
+  "homepage": "https://enriched.swmansion.com/html",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
   "dependencies": {
-    "@tiptap/core": "3.27.1",
-    "@tiptap/extension-blockquote": "3.27.1",
-    "@tiptap/extension-bold": "3.27.1",
-    "@tiptap/extension-code": "3.27.1",
-    "@tiptap/extension-document": "3.27.1",
-    "@tiptap/extension-heading": "3.27.1",
-    "@tiptap/extension-history": "3.27.1",
-    "@tiptap/extension-image": "3.27.1",
-    "@tiptap/extension-italic": "3.27.1",
-    "@tiptap/extension-link": "3.27.1",
-    "@tiptap/extension-list": "3.27.1",
-    "@tiptap/extension-paragraph": "3.27.1",
-    "@tiptap/extension-strike": "3.27.1",
-    "@tiptap/extension-text": "3.27.1",
-    "@tiptap/extension-text-align": "3.27.1",
-    "@tiptap/extension-underline": "3.27.1",
-    "@tiptap/extensions": "3.27.1",
-    "@tiptap/pm": "3.27.1",
-    "@tiptap/react": "3.27.1",
-    "dompurify": "3.4.11"
+    "@tiptap/core": "3.31.3",
+    "@tiptap/extension-blockquote": "3.31.3",
+    "@tiptap/extension-bold": "3.31.3",
+    "@tiptap/extension-code": "3.31.3",
+    "@tiptap/extension-document": "3.31.3",
+    "@tiptap/extension-heading": "3.31.3",
+    "@tiptap/extension-history": "3.31.3",
+    "@tiptap/extension-image": "3.31.3",
+    "@tiptap/extension-italic": "3.31.3",
+    "@tiptap/extension-link": "3.31.3",
+    "@tiptap/extension-list": "3.31.3",
+    "@tiptap/extension-paragraph": "3.31.3",
+    "@tiptap/extension-strike": "3.31.3",
+    "@tiptap/extension-text": "3.31.3",
+    "@tiptap/extension-text-align": "3.31.3",
+    "@tiptap/extension-underline": "3.31.3",
+    "@tiptap/extensions": "3.31.3",
+    "@tiptap/pm": "3.31.3",
+    "@tiptap/react": "3.31.3",
+    "dompurify": "3.4.17"
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^19.6.0",
@@ -116,13 +121,14 @@
     "@eslint/js": "^9.22.0",
     "@evilmartians/lefthook": "^1.5.0",
     "@playwright/test": "1.58.2",
-    "@react-native-community/cli": "20.0.0",
-    "@react-native/eslint-config": "^0.81.0",
+    "@react-native-community/cli": "20.2.0",
+    "@react-native/eslint-config": "^0.88.0",
+    "@react-native/jest-preset": "^0.88.0",
     "@release-it/conventional-changelog": "^9.0.2",
     "@types/jest": "^29.5.5",
-    "@types/react": "^19.1.0",
-    "@types/react-dom": "^19.1.0",
-    "clang-format": "^1.8.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "clang-format-node": "^4.0.3",
     "commitlint": "^19.6.1",
     "del-cli": "^5.1.0",
     "eslint": "^9.22.0",
@@ -132,31 +138,31 @@
     "jest-environment-jsdom": "^29.7.0",
     "playwright": "1.58.2",
     "prettier": "^3.0.3",
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
-    "react-native": "0.81.0",
-    "react-native-builder-bob": "^0.40.18",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "react-native": "0.88.0",
+    "react-native-builder-bob": "^0.43.0",
     "release-it": "^17.10.0",
     "turbo": "^1.10.7",
-    "typescript": "^5.8.3"
+    "typescript": "^6.0.3"
   },
   "peerDependencies": {
     "react": "*",
-    "react-native": "*"
+    "react-native": ">=0.82.0"
   },
   "workspaces": [
     "apps/example",
     "apps/example-web"
   ],
   "resolutions": {
-    "shell-quote": "1.8.4"
+    "shell-quote": "1.11.0"
   },
   "packageManager": "yarn@4.13.0",
   "jest": {
     "projects": [
       {
         "displayName": "native",
-        "preset": "react-native",
+        "preset": "@react-native/jest-preset",
         "modulePathIgnorePatterns": [
           "<rootDir>/apps/example/node_modules",
           "<rootDir>/lib/"

@@ -91,7 +91,8 @@
       @([CheckboxListStyle getType])
     ],
     @([ImageStyle getType]) :
-        @[ @([LinkStyle getType]), @([MentionStyle getType]) ]
+        @[ @([LinkStyle getType]), @([MentionStyle getType]) ],
+    @([CustomStyle getType]) : @[]
   };
 }
 
@@ -123,23 +124,35 @@
     @([AlignmentStyle getType]) : @[],
     @([BlockQuoteStyle getType]) : @[],
     @([CodeBlockStyle getType]) : @[],
-    @([ImageStyle getType]) : @[ @([InlineCodeStyle getType]) ]
+    @([ImageStyle getType]) : @[ @([InlineCodeStyle getType]) ],
+    @([CustomStyle getType]) : @[]
   };
 }
 
 + (NSDictionary *)stylesDictForHost:(id<EnrichedViewHost>)host
                             isInput:(BOOL)isInput {
   NSArray<Class> *baseClasses = @[
-    [BoldStyle class],        [ItalicStyle class],
-    [UnderlineStyle class],   [StrikethroughStyle class],
-    [InlineCodeStyle class],  [LinkStyle class],
-    [MentionStyle class],     [H1Style class],
-    [H2Style class],          [H3Style class],
-    [H4Style class],          [H5Style class],
-    [H6Style class],          [UnorderedListStyle class],
-    [OrderedListStyle class], [CheckboxListStyle class],
-    [AlignmentStyle class],   [BlockQuoteStyle class],
-    [CodeBlockStyle class],   [ImageStyle class]
+    [BoldStyle class],
+    [ItalicStyle class],
+    [UnderlineStyle class],
+    [StrikethroughStyle class],
+    [InlineCodeStyle class],
+    [LinkStyle class],
+    [MentionStyle class],
+    [H1Style class],
+    [H2Style class],
+    [H3Style class],
+    [H4Style class],
+    [H5Style class],
+    [H6Style class],
+    [CustomStyle class],
+    [UnorderedListStyle class],
+    [OrderedListStyle class],
+    [CheckboxListStyle class],
+    [AlignmentStyle class],
+    [BlockQuoteStyle class],
+    [CodeBlockStyle class],
+    [ImageStyle class]
   ];
 
   NSArray<Class> *viewerClasses = @[
@@ -156,6 +169,7 @@
     [EnrichedTextH4Style class],
     [EnrichedTextH5Style class],
     [EnrichedTextH6Style class],
+    [EnrichedTextCustomStyle class],
     [EnrichedTextUnorderedListStyle class],
     [EnrichedTextOrderedListStyle class],
     [EnrichedTextCheckboxListStyle class],
@@ -229,19 +243,28 @@
                               forHost:(id<EnrichedViewHost>)host {
   NSMutableArray<NSNumber *> *resultArray =
       [[NSMutableArray<NSNumber *> alloc] init];
+
+  // There might be a case where the given `range` doesn't have a conflicting
+  // style, but it is present in typing attributes. In that case, run `detect:`
+  // for good measure, since it considers typing attributes (unlike `any:`).
+  NSRange selectedRange = host.textView.selectedRange;
+  BOOL caretWithinRange = range.length >= 1 && selectedRange.length == 0 &&
+                          selectedRange.location >= range.location &&
+                          selectedRange.location <= NSMaxRange(range);
+
   for (NSNumber *type in types) {
     StyleBase *style = host.stylesDict[type];
 
-    if (range.length >= 1) {
-      if ([style any:range]) {
-        [resultArray addObject:type];
-      }
-    } else {
-      if ([style detect:range]) {
-        [resultArray addObject:type];
-      }
+    BOOL present = range.length >= 1 ? [style any:range] : [style detect:range];
+    if (!present && caretWithinRange) {
+      present = [style detect:selectedRange];
+    }
+
+    if (present) {
+      [resultArray addObject:type];
     }
   }
+
   return resultArray;
 }
 

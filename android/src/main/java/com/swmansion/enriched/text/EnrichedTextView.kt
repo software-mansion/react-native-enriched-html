@@ -30,6 +30,7 @@ import com.swmansion.enriched.common.pixelFromSpOrDp
 import com.swmansion.enriched.text.spans.EnrichedTextImageSpan
 import com.swmansion.enriched.text.spans.interfaces.EnrichedTextClickableSpan
 import com.swmansion.enriched.text.spans.interfaces.EnrichedTextSpan
+import com.swmansion.enriched.textinput.spans.EnrichedLineHeightSpan
 import kotlin.math.ceil
 
 class EnrichedTextView : AppCompatTextView {
@@ -41,17 +42,24 @@ class EnrichedTextView : AppCompatTextView {
   private var fontWeight: Int = ReactConstants.UNSET
   private var fontSize: Float = EnrichedConstants.TEXT_DEFAULT_FONT_SIZE
   private var fontSizeRaw: Float? = null
+  private var lineHeight: Float? = null
   private var htmlStyleMap: ReadableMap? = null
   var allowFontScaling: Boolean = EnrichedConstants.ALLOW_FONT_SCALING_DEFAULT
     set(value) {
       if (field == value) return
       field = value
+      // Invalidate the spannable factory so that it is recreated with the new allowFontScaling value
+      cachedSpannableFactory = null
       fontSizeRaw?.let { setFontSize(it) }
       htmlStyleMap?.let { setHtmlStyle(it) }
+      applyLineSpacing()
     }
 
   private var enrichedStyle: EnrichedTextStyle? = null
-  private val spannableFactory = EnrichedTextSpanFactory()
+
+  private var cachedSpannableFactory: EnrichedTextSpanFactory? = null
+  private val spannableFactory: EnrichedTextSpanFactory
+    get() = cachedSpannableFactory ?: EnrichedTextSpanFactory(context.assets, allowFontScaling).also { cachedSpannableFactory = it }
 
   // We keep the parsedText around so that when an async image finishes loading we can re-call
   // setText with the same instance and force the TextView to rebuild its layout.
@@ -185,6 +193,7 @@ class EnrichedTextView : AppCompatTextView {
       parsedText = null
       this.text = text
     }
+    applyLineSpacing()
   }
 
   private fun parseText(
@@ -303,6 +312,33 @@ class EnrichedTextView : AppCompatTextView {
     val sizeInt = ceil(pixelFromSpOrDp(size, allowFontScaling))
     fontSize = sizeInt
     setTextSize(TypedValue.COMPLEX_UNIT_PX, sizeInt)
+  }
+
+  fun setLineHeight(height: Float) {
+    lineHeight = if (height <= 0f) null else height
+    applyLineSpacing()
+  }
+
+  private fun applyLineSpacing() {
+    val currentText = text ?: return
+    val spannable =
+      currentText as? Spannable ?: SpannableString(currentText)
+    spannable
+      .getSpans(0, spannable.length, EnrichedLineHeightSpan::class.java)
+      .forEach { spannable.removeSpan(it) }
+
+    lineHeight?.let {
+      spannable.setSpan(
+        EnrichedLineHeightSpan(it, allowFontScaling),
+        0,
+        spannable.length,
+        Spannable.SPAN_INCLUSIVE_INCLUSIVE,
+      )
+    }
+
+    if (spannable !== currentText) {
+      setText(spannable, BufferType.NORMAL)
+    }
   }
 
   fun setFontFamily(family: String?) {

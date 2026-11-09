@@ -7,7 +7,7 @@ export const ENRICHED_TEXT_INPUT_DEFAULT_PROPS = {
   autoCapitalize: 'sentences',
   scrollEnabled: true,
   androidExperimentalSynchronousEvents: false,
-  useHtmlNormalizer: false,
+  useHtmlNormalizer: true,
   allowFontScaling: true,
   textShortcuts: [
     { trigger: '- ', style: 'unordered_list' },

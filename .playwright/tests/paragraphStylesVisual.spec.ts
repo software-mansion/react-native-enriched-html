@@ -134,4 +134,24 @@ test.describe('paragraph styles visual', () => {
       'paragraph-styles-visual-checkbox-list-wrapped.png'
     );
   });
+
+  test('ordered list adds a necessary margin to fit larger marker values', async ({
+    page,
+  }) => {
+    const htmlBefore = `<html><ol>${'<li>*</li>'.repeat(9)}</ol></html>`;
+    await setEditorHtml(page, htmlBefore);
+
+    const editor = editorLocator(page);
+
+    await expect(editor).toHaveScreenshot(
+      'paragraph-styles-visual-ordered-list-extended-margin-before.png'
+    );
+
+    const htmlAfter = `<html><ol>${'<li>*</li>'.repeat(10)}</ol></html>`;
+    await setEditorHtml(page, htmlAfter);
+
+    await expect(editor).toHaveScreenshot(
+      'paragraph-styles-visual-ordered-list-extended-margin-after.png'
+    );
+  });
 });

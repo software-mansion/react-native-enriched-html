@@ -1,11 +1,11 @@
 import {
-  type Component,
+  useCallback,
   useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
+  type ComponentRef,
 } from 'react';
-import { useCallback } from 'react';
 import EnrichedTextInputNativeComponent, {
   Commands,
   type NativeProps,
@@ -14,13 +14,15 @@ import EnrichedTextInputNativeComponent, {
   type OnMentionDetectedInternal,
   type OnRequestHtmlResultEvent,
 } from '../spec/EnrichedTextInputNativeComponent';
-import type {
-  HostInstance,
-  MeasureInWindowOnSuccessCallback,
-  MeasureLayoutOnSuccessCallback,
-  MeasureOnSuccessCallback,
-  NativeMethods,
-  NativeSyntheticEvent,
+import {
+  processColor,
+  type ColorValue,
+  type HostComponent,
+  type HostInstance,
+  type MeasureInWindowOnSuccessCallback,
+  type MeasureLayoutOnSuccessCallback,
+  type MeasureOnSuccessCallback,
+  type NativeSyntheticEvent,
 } from 'react-native';
 import { normalizeHtmlStyle } from '../utils/normalizeHtmlStyle';
 import { toNativeRegexConfig } from '../utils/regexParser';
@@ -39,7 +41,20 @@ const warnMentionIndicators = (indicator: string) => {
   );
 };
 
-type ComponentType = (Component<NativeProps, {}, any> & NativeMethods) | null;
+const getSafeColorInt = (
+  color: ColorValue | null | undefined
+): number | null => {
+  if (color == null) return null;
+
+  const processed = processColor(color);
+  if (typeof processed === 'number') {
+    return processed;
+  }
+
+  return null;
+};
+
+type ComponentType = ComponentRef<HostComponent<NativeProps>>;
 
 type HtmlRequest = {
   resolve: (html: string) => void;
@@ -48,7 +63,7 @@ type HtmlRequest = {
 
 export const EnrichedTextInput = ({
   ref,
-  autoFocus,
+  autoFocus = false,
   editable = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.editable,
   mentionIndicators = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.mentionIndicators.slice(),
   defaultValue,
@@ -58,6 +73,8 @@ export const EnrichedTextInput = ({
   selectionColor,
   style,
   autoCapitalize = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.autoCapitalize,
+  autoCorrect = true,
+  spellCheck,
   htmlStyle = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.htmlStyle,
   linkRegex: _linkRegex,
   onFocus,
@@ -277,6 +294,32 @@ export const EnrichedTextInput = ({
     ) => {
       Commands.setTextAlignment(nullthrows(nativeRef.current), alignment);
     },
+    setStyle: (customStyle: {
+      foregroundColor?: ColorValue | null;
+      backgroundColor?: ColorValue | null;
+      fontSize?: number | null;
+      fontFamily?: string | null;
+    }) => {
+      const payload: {
+        foregroundColor?: number | null;
+        backgroundColor?: number | null;
+        fontSize?: number | null;
+        fontFamily?: string | null;
+      } = {};
+      if (customStyle.foregroundColor !== undefined) {
+        payload.foregroundColor = getSafeColorInt(customStyle.foregroundColor);
+      }
+      if (customStyle.backgroundColor !== undefined) {
+        payload.backgroundColor = getSafeColorInt(customStyle.backgroundColor);
+      }
+      if (customStyle.fontSize !== undefined) {
+        payload.fontSize = customStyle.fontSize;
+      }
+      if (customStyle.fontFamily !== undefined) {
+        payload.fontFamily = customStyle.fontFamily;
+      }
+      Commands.setStyle(nullthrows(nativeRef.current), JSON.stringify(payload));
+    },
   }));
 
   const handleMentionEvent = (e: NativeSyntheticEvent<OnMentionEvent>) => {
@@ -340,6 +383,8 @@ export const EnrichedTextInput = ({
       selectionColor={selectionColor}
       style={style}
       autoCapitalize={autoCapitalize}
+      autoCorrect={autoCorrect}
+      spellCheck={spellCheck ?? autoCorrect}
       htmlStyle={normalizedHtmlStyle}
       linkRegex={linkRegex}
       onInputFocus={onFocus}

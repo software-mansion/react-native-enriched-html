@@ -1,7 +1,7 @@
 #pragma once
-#import "LinkRegexConfig.h"
-#import "MentionStyleProps.h"
-#import "TextDecorationLineEnum.h"
+#import "interfaces/LinkRegexConfig.h"
+#import "interfaces/MentionStyleProps.h"
+#import "interfaces/TextDecorationLineEnum.h"
 #import <UIKit/UIKit.h>
 
 @interface EnrichedConfig : NSObject <NSCopying>
@@ -89,6 +89,7 @@
 - (CGFloat)codeBlockBorderRadius;
 - (void)setCodeBlockBorderRadius:(CGFloat)newValue;
 - (void)invalidateFonts;
+- (CGFloat)scaledFontSizeForValue:(CGFloat)fontSize;
 - (NSNumber *)scaledPrimaryFontSize;
 - (BOOL)allowFontScaling;
 - (void)setAllowFontScaling:(BOOL)newValue;

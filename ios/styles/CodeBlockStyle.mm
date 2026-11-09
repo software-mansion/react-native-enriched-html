@@ -1,6 +1,6 @@
 #import "EnrichedTextInputView.h"
-#import "FontExtension.h"
-#import "StyleHeaders.h"
+#import "extensions/FontExtension.h"
+#import "interfaces/StyleHeaders.h"
 
 @implementation CodeBlockStyle
 
@@ -44,6 +44,24 @@
       addAttribute:NSForegroundColorAttributeName
              value:[self.host.config codeBlockFgColor]
              range:range];
+}
+
+- (BOOL)appliesStylingToTyping {
+  return YES;
+}
+
+- (void)applyStylingToTypingAttrs:(NSMutableDictionary *)attributes {
+  UIFont *currentFont =
+      attributes[NSFontAttributeName] ?: [self.host.config primaryFont];
+  UIFont *monoFont = [[[self.host.config monospacedFont]
+      withFontTraits:currentFont] setSize:currentFont.pointSize];
+  if (monoFont != nil) {
+    attributes[NSFontAttributeName] = monoFont;
+  }
+  UIColor *fgColor = [self.host.config codeBlockFgColor];
+  if (fgColor != nil) {
+    attributes[NSForegroundColorAttributeName] = fgColor;
+  }
 }
 
 @end

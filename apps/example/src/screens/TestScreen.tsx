@@ -7,7 +7,9 @@ import { LinkModal } from '../components/LinkModal';
 import { MentionPopup } from '../components/MentionPopup';
 import { ImageModal } from '../components/ImageModal';
 import { ValueModal } from '../components/ValueModal';
+import { HtmlSection } from '../components/HtmlSection';
 import { useEditorState } from '../hooks/useEditorState';
+import { useKeyboardHeight } from '../hooks/useKeyboardHeight';
 import {
   LINK_REGEX,
   htmlStyle,
@@ -25,12 +27,16 @@ export function TestScreen({
 }: TestScreenProps) {
   const editor = useEditorState();
   const [sizeMode, setSizeMode] = useState<'base' | 'max'>('base');
+  const keyboardHeight = useKeyboardHeight();
 
   return (
     <View style={styles.container}>
       <ScrollView
         style={styles.scrollContainer}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: styles.scrollContent.padding + keyboardHeight },
+        ]}
         testID="full-screen"
       >
         <View style={styles.buttonStack}>
@@ -96,7 +102,6 @@ export function TestScreen({
               ANDROID_EXPERIMENTAL_SYNCHRONOUS_EVENTS
             }
             onPasteImages={(e) => editor.handlePasteImagesEvent(e.nativeEvent)}
-            useHtmlNormalizer
             testID="editor-input"
           />
           <Toolbar
@@ -107,6 +112,7 @@ export function TestScreen({
             layout="grid"
           />
         </View>
+        <HtmlSection currentHtml={editor.currentHtml} />
         <View style={styles.buttonRow}>
           <Button
             title="Set Value"
