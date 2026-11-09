@@ -192,6 +192,15 @@ class ListStyles(
     }
 
     if (!isBackspace && isNewLine && isPreviousParagraphList(s, start, config.clazz)) {
+      // Enter in an empty list item ends the list instead of adding another empty item
+      val (previousStart, previousEnd) = s.getParagraphBounds(start - 1)
+      if (s.substring(previousStart, previousEnd) == EnrichedConstants.ZWS_STRING) {
+        s.delete(start - 1, start)
+        removeSpansForRange(s, previousStart, previousEnd, config.clazz)
+        view.selection?.validateStyles()
+        return
+      }
+
       // Check if the span from the previous line "leaked" into this one
       if (spans.isNotEmpty()) {
         val existingSpan = spans[0]
