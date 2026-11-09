@@ -106,18 +106,43 @@ static void const *kInputKey = &kInputKey;
                            effectiveRange:nullptr];
     [bgColor setFill];
 
-    NSRange glyphRange = [self glyphRangeForCharacterRange:range
-                                      actualCharacterRange:nullptr];
-    // one rect per line in case the mention wraps
     NSMutableArray<NSValue *> *lineRects = [[NSMutableArray alloc] init];
-    [self enumerateEnclosingRectsForGlyphRange:glyphRange
-                      withinSelectedGlyphRange:NSMakeRange(NSNotFound, 0)
-                               inTextContainer:host.textView.textContainer
-                                    usingBlock:^(CGRect rect, BOOL *stop) {
-                                      [lineRects
-                                          addObject:[NSValue
-                                                        valueWithCGRect:rect]];
-                                    }];
+    NSArray *nonNewlineRanges = [RangeUtils getNonNewlineRangesIn:host.textView
+                                                            range:range];
+    for (NSValue *subRangeValue in nonNewlineRanges) {
+      NSRange glyphRange =
+          [self glyphRangeForCharacterRange:[subRangeValue rangeValue]
+                       actualCharacterRange:nullptr];
+      [self
+          enumerateLineFragmentsForGlyphRange:glyphRange
+                                   usingBlock:^(CGRect rect, CGRect usedRect,
+                                                NSTextContainer *container,
+                                                NSRange lineGlyphRange,
+                                                BOOL *stop) {
+                                     NSRange lineRange = NSIntersectionRange(
+                                         lineGlyphRange, glyphRange);
+                                     // trailing whitespace at a soft wrap
+                                     // would get a background with nothing
+                                     // after it, so trim it off
+                                     if (NSMaxRange(lineRange) <
+                                         NSMaxRange(glyphRange)) {
+                                       lineRange = [self
+                                           trimTrailingWhitespaceFromGlyphRange:
+                                               lineRange
+                                                                    textStorage:
+                                                                        textStorage];
+                                     }
+                                     if (lineRange.length == 0) {
+                                       return;
+                                     }
+                                     CGRect lineRect = [self
+                                         boundingRectForGlyphRange:lineRange
+                                                   inTextContainer:container];
+                                     [lineRects
+                                         addObject:[NSValue valueWithCGRect:
+                                                                lineRect]];
+                                   }];
+    }
 
     // only the mention's start and end get rounded, so a wrapped mention
     // still has 4 rounded corners in total
@@ -472,6 +497,24 @@ static void const *kInputKey = &kInputKey;
   }
 
   return [NSString stringWithFormat:@"%ld.", (long)(itemNumber)];
+}
+
+// Drops whitespace glyphs from the end of a glyph range, used so a mention
+// background that wraps doesn't extend past its last visible character.
+- (NSRange)trimTrailingWhitespaceFromGlyphRange:(NSRange)glyphRange
+                                    textStorage:(NSTextStorage *)textStorage {
+  NSCharacterSet *whitespace = [NSCharacterSet whitespaceCharacterSet];
+  while (glyphRange.length > 0) {
+    NSUInteger charIndex =
+        [self characterIndexForGlyphAtIndex:NSMaxRange(glyphRange) - 1];
+    if (charIndex >= textStorage.length ||
+        ![whitespace characterIsMember:[textStorage.string
+                                           characterAtIndex:charIndex]]) {
+      break;
+    }
+    glyphRange.length--;
+  }
+  return glyphRange;
 }
 
 // Returns a usedRect adjusted to cover only the text portion of the line.
