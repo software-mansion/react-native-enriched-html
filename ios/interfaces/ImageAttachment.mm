@@ -1,5 +1,6 @@
 #import "ImageAttachment.h"
 #import "extensions/ImageExtension.h"
+#import "utils/AttachmentLayoutUtils.h"
 
 // NSTextStorage frequently recreates NSTextAttachment objects during attribute
 // invalidation (e.g. on every keystroke). Without this cache each recreation
@@ -48,6 +49,10 @@ static NSCache<NSString *, UIImage *> *ImageAttachmentCache(void) {
                              glyphPosition:(CGPoint)position
                             characterIndex:(NSUInteger)charIndex {
   CGRect baseBounds = self.bounds;
+
+  baseBounds.size =
+      [AttachmentLayoutUtils clampedSize:baseBounds.size
+                              toMaxWidth:textContainer.size.width];
 
   if (!textContainer.layoutManager.textStorage ||
       charIndex >= textContainer.layoutManager.textStorage.length) {
