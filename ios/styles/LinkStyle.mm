@@ -422,10 +422,7 @@ static NSString *const AutomaticLinkAttributeName = @"EnrichedAutomaticLink";
   if ([manualLinkMinValue isEqualToLinkData:manualLinkMaxValue]) {
     NSRange newRange =
         NSMakeRange(manualLinkMinIdx, manualLinkMaxIdx - manualLinkMinIdx + 1);
-    LinkData *updatedData = [manualLinkMinValue copy];
-    updatedData.text =
-        [self.host.textView.textStorage.string substringWithRange:newRange];
-    [self applyLinkMetaWithData:updatedData range:newRange];
+    [self applyLinkMetaWithData:manualLinkMinValue range:newRange];
     [self.host.attributesManager addDirtyRange:newRange];
   }
 }

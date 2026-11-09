@@ -1060,6 +1060,18 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
               getFullLinkRangeAt:textView.selectedRange.location];
         }
 
+        // Stored link text is only refreshed for automatic links (which are
+        // single words). Manual links keep the text they were created with: it
+        // must stay identical along the whole link so that
+        // longestEffectiveRange finds its full extent, while edits are handled
+        // per word. So always read the current text from the detected range.
+        if (candidateLinkData != nullptr && candidateLinkRange.length > 0 &&
+            NSMaxRange(candidateLinkRange) <= textView.textStorage.length) {
+          candidateLinkData = [candidateLinkData copy];
+          candidateLinkData.text = [textView.textStorage.string
+              substringWithRange:candidateLinkRange];
+        }
+
         if (wasActive == NO) {
           // we changed selection from non-link to a link
           detectedLinkData = candidateLinkData;
