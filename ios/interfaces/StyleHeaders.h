@@ -45,11 +45,8 @@
                             config:(EnrichedConfig *)config;
 @end
 
-// holds the mention's background color, drawn by the layout manager instead of
-// NSBackgroundColorAttributeName so the corners can be rounded
-extern NSString *const MentionBackgroundAttributeName;
-
 @interface MentionStyle : StyleBase
++ (NSString *)getBackgroundAttributeName;
 - (void)addMention:(NSString *)indicator
               text:(NSString *)text
         attributes:(NSString *)attributes;

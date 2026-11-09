@@ -90,9 +90,10 @@ static void const *kInputKey = &kInputKey;
 
   for (NSValue *rangeValue in ranges) {
     NSRange range = [rangeValue rangeValue];
-    UIColor *bgColor = [textStorage attribute:MentionBackgroundAttributeName
-                                      atIndex:range.location
-                               effectiveRange:nullptr];
+    UIColor *bgColor =
+        [textStorage attribute:[MentionStyle getBackgroundAttributeName]
+                       atIndex:range.location
+                effectiveRange:nullptr];
     if (bgColor == nullptr || CGColorGetAlpha(bgColor.CGColor) == 0) {
       continue;
     }

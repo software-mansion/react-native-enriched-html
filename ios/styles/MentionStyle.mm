@@ -8,7 +8,10 @@
 
 // custom NSAttributedStringKey to differentiate from links
 static NSString *const MentionAttributeName = @"EnrichedMention";
-NSString *const MentionBackgroundAttributeName = @"EnrichedMentionBackground";
+// holds the mention's background color, drawn by the layout manager instead of
+// NSBackgroundColorAttributeName so the corners can be rounded
+static NSString *const MentionBackgroundAttributeName =
+    @"EnrichedMentionBackground";
 
 @implementation MentionStyle {
   NSValue *_activeMentionRange;
@@ -16,6 +19,10 @@ NSString *const MentionBackgroundAttributeName = @"EnrichedMentionBackground";
   BOOL _blockMentionEditing;
   NSString *_lastEmittedMentionIndicator;
   NSString *_lastEmittedMentionText;
+}
+
++ (NSString *)getBackgroundAttributeName {
+  return MentionBackgroundAttributeName;
 }
 
 + (StyleType)getType {
