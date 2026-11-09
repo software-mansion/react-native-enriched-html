@@ -22,7 +22,8 @@ class EnrichedSelection(
   var start: Int = 0
   var end: Int = 0
 
-  private var previousLinkDetectedEvent: MutableMap<String, String> = mutableMapOf("text" to "", "url" to "")
+  private var previousLinkDetectedEvent: MutableMap<String, String> =
+    mutableMapOf("text" to "", "url" to "", "start" to "", "end" to "")
   private var previousMentionDetectedEvent: MutableMap<String, String> = mutableMapOf("text" to "", "payload" to "")
 
   fun onSelection(
@@ -311,6 +312,15 @@ class EnrichedSelection(
     )
   }
 
+  private fun isSelectionOutdated(): Boolean {
+    val actualStart = minOf(view.selectionStart, view.selectionEnd)
+    val actualEnd = maxOf(view.selectionStart, view.selectionEnd)
+    if (actualStart < 0) return false
+
+    val (currentStart, currentEnd) = getInlineSelection()
+    return actualStart != currentStart || actualEnd != currentEnd
+  }
+
   private fun wasMentionPreviouslyDetected(): Boolean {
     val previousText = previousMentionDetectedEvent["text"] ?: ""
     val previousIndicator = previousMentionDetectedEvent["indicator"] ?: ""
@@ -329,17 +339,31 @@ class EnrichedSelection(
     start: Int,
     end: Int,
   ) {
+    // While text is being changed, styles get validated before onSelection receives the new cursor position and before manual links are split on newlines.
+    // A link event emitted then would be stale; onSelection validates again once the selection is updated.
+    if (isSelectionOutdated()) return
+
     val text = spannable.substring(start, end).replace(EnrichedConstants.ZWS_STRING, "")
     val url = span?.getUrl() ?: ""
 
-    // Prevents emitting unnecessary events
-    if (text == previousLinkDetectedEvent["text"] && url == previousLinkDetectedEvent["url"]) return
-
-    previousLinkDetectedEvent.put("text", text)
-    previousLinkDetectedEvent.put("url", url)
-
     val visibleStart = start - spannable.zwsCountBefore(start)
     val visibleEnd = end - spannable.zwsCountBefore(end)
+    val visibleStartString = visibleStart.toString()
+    val visibleEndString = visibleEnd.toString()
+
+    // Prevents emitting unnecessary events
+    if (text == previousLinkDetectedEvent["text"] &&
+      url == previousLinkDetectedEvent["url"] &&
+      visibleStartString == previousLinkDetectedEvent["start"] &&
+      visibleEndString == previousLinkDetectedEvent["end"]
+    ) {
+      return
+    }
+
+    previousLinkDetectedEvent["text"] = text
+    previousLinkDetectedEvent["url"] = url
+    previousLinkDetectedEvent["start"] = visibleStartString
+    previousLinkDetectedEvent["end"] = visibleEndString
 
     val context = view.context as ReactContext
     val surfaceId = UIManagerHelper.getSurfaceId(context)
