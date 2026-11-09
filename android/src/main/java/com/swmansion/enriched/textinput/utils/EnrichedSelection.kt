@@ -259,6 +259,15 @@ class EnrichedSelection(
     )
   }
 
+  private fun isSelectionOutdated(): Boolean {
+    val actualStart = minOf(view.selectionStart, view.selectionEnd)
+    val actualEnd = maxOf(view.selectionStart, view.selectionEnd)
+    if (actualStart < 0) return false
+
+    val (currentStart, currentEnd) = getInlineSelection()
+    return actualStart != currentStart || actualEnd != currentEnd
+  }
+
   private fun wasMentionPreviouslyDetected(): Boolean {
     val previousText = previousMentionDetectedEvent["text"] ?: ""
     val previousIndicator = previousMentionDetectedEvent["indicator"] ?: ""
@@ -277,6 +286,10 @@ class EnrichedSelection(
     start: Int,
     end: Int,
   ) {
+    // While text is being changed, styles get validated before onSelection receives the new cursor position and before manual links are split on newlines.
+    // A link event emitted then would be stale; onSelection validates again once the selection is updated.
+    if (isSelectionOutdated()) return
+
     val text = spannable.substring(start, end).replace(EnrichedConstants.ZWS_STRING, "")
     val url = span?.getUrl() ?: ""
 
