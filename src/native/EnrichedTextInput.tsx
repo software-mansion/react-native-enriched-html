@@ -2,6 +2,7 @@ import {
   useCallback,
   useEffect,
   useImperativeHandle,
+  useLayoutEffect,
   useMemo,
   useRef,
   type ComponentRef,
@@ -28,9 +29,12 @@ import { normalizeHtmlStyle } from '../utils/normalizeHtmlStyle';
 import { toNativeRegexConfig } from '../utils/regexParser';
 import { nullthrows } from '../utils/nullthrows';
 import { ENRICHED_TEXT_INPUT_DEFAULT_PROPS } from '../utils/EnrichedTextInputDefaultProps';
+import { TextInputState } from '../utils/textInputState';
 import type {
+  BlurEvent,
   ContextMenuItem,
   EnrichedTextInputProps,
+  FocusEvent,
   OnLinkDetected,
   OnMentionDetected,
 } from '../types';
@@ -159,6 +163,43 @@ export const EnrichedTextInput = ({
       pendingRequests.clear();
     };
   }, []);
+
+  /**
+   * Mirrors the built-in TextInput's TextInputState integration so scroll
+   * containers' keyboardShouldPersistTaps logic and Keyboard.dismiss treat
+   * this input like a native TextInput. See utils/textInputState.ts for the
+   * full rationale. The unmount cleanup blurs through blurTextInput so both
+   * the registry entry and the native focus are released, matching the
+   * TextInput unmount path.
+   */
+  useLayoutEffect(() => {
+    const instance = nativeRef.current;
+    if (instance == null) return;
+
+    TextInputState.registerInput(instance);
+    return () => {
+      if (TextInputState.currentlyFocusedInput() === instance) {
+        TextInputState.blurTextInput(instance);
+      }
+      TextInputState.unregisterInput(instance);
+    };
+  }, []);
+
+  const handleFocus = useCallback(
+    (e: FocusEvent) => {
+      TextInputState.focusInput(nativeRef.current);
+      onFocus?.(e);
+    },
+    [onFocus]
+  );
+
+  const handleBlur = useCallback(
+    (e: BlurEvent) => {
+      TextInputState.blurInput(nativeRef.current);
+      onBlur?.(e);
+    },
+    [onBlur]
+  );
 
   const normalizedHtmlStyle = useMemo(
     () => normalizeHtmlStyle(htmlStyle, mentionIndicators),
@@ -387,8 +428,8 @@ export const EnrichedTextInput = ({
       spellCheck={spellCheck ?? autoCorrect}
       htmlStyle={normalizedHtmlStyle}
       linkRegex={linkRegex}
-      onInputFocus={onFocus}
-      onInputBlur={onBlur}
+      onInputFocus={handleFocus}
+      onInputBlur={handleBlur}
       onChangeText={onChangeText}
       onChangeHtml={onChangeHtml}
       isOnChangeHtmlSet={onChangeHtml !== undefined}
