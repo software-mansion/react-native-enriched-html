@@ -8,6 +8,7 @@
 
 // custom NSAttributedStringKey to differentiate from links
 static NSString *const MentionAttributeName = @"EnrichedMention";
+NSString *const MentionBackgroundAttributeName = @"EnrichedMentionBackground";
 
 @implementation MentionStyle {
   NSValue *_activeMentionRange;

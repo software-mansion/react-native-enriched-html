@@ -2,8 +2,6 @@
 #import "extensions/StringExtension.h"
 #import <React/RCTConversions.h>
 
-NSString *const MentionBackgroundAttributeName = @"EnrichedMentionBackground";
-
 @implementation MentionStyleProps
 
 + (MentionStyleProps *)getSingleMentionStylePropsFromFollyDynamic:
