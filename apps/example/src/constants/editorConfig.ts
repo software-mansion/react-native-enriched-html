@@ -113,7 +113,7 @@ export const htmlStyle = {
       color: 'green',
       backgroundColor: 'lightgreen',
       textDecorationLine: 'none',
-      borderRadius: 20,
+      borderRadius: 0,
     },
   },
   ol: {
