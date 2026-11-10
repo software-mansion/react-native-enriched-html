@@ -11,4 +11,14 @@
 + (BOOL)handleBackspaceInRange:(NSRange)range
                replacementText:(NSString *)text
                           host:(id<EnrichedViewHost>)host;
++ (NSString *)stringByRemovingZeroWidthSpaces:(NSString *)text;
++ (NSUInteger)visibleIndexFromActualIndex:(NSUInteger)actualIndex
+                                   inText:(NSString *)text;
++ (NSRange)visibleRangeFromActualRange:(NSRange)actualRange
+                                inText:(NSString *)text;
++ (NSUInteger)actualIndexFromVisibleIndex:(NSInteger)visibleIndex
+                                   inText:(NSString *)text;
++ (NSRange)actualRangeFromVisibleStart:(NSInteger)visibleStart
+                                   end:(NSInteger)visibleEnd
+                                inText:(NSString *)text;
 @end
