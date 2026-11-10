@@ -300,6 +300,7 @@ class EnrichedTextInputView :
     val currentText = text
     if (currentLayout != null && currentText != null) {
       canvas.save()
+      MentionBackgroundDrawer.clipToTextBounds(canvas, this, currentLayout)
       canvas.translate(totalPaddingLeft.toFloat(), totalPaddingTop.toFloat())
       MentionBackgroundDrawer.draw(canvas, currentLayout, currentText, htmlStyle)
       canvas.restore()

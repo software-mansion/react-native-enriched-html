@@ -100,6 +100,7 @@ class EnrichedTextView : AppCompatTextView {
     val style = enrichedStyle
     if (currentLayout != null && spanned != null && style != null) {
       canvas.save()
+      MentionBackgroundDrawer.clipToTextBounds(canvas, this, currentLayout)
       canvas.translate(totalPaddingLeft.toFloat(), totalPaddingTop.toFloat())
       MentionBackgroundDrawer.draw(canvas, currentLayout, spanned, style) { span, mentionStyle ->
         val isPressed = (span as? EnrichedTextClickableSpan)?.isPressed == true

@@ -7,6 +7,7 @@ import android.graphics.Path
 import android.graphics.RectF
 import android.text.Layout
 import android.text.Spanned
+import android.widget.TextView
 import com.swmansion.enriched.common.spans.EnrichedMentionSpan
 
 // Mention backgrounds are drawn by the view instead of the span, because spans only get whole-line
@@ -17,15 +18,35 @@ object MentionBackgroundDrawer {
   private val rect = RectF()
   private val radii = FloatArray(8)
 
+  fun clipToTextBounds(
+          canvas: Canvas,
+          view: TextView,
+          layout: Layout,
+  ) {
+    val scrollX = view.scrollX
+    val scrollY = view.scrollY
+    val verticalSpace = view.height - view.compoundPaddingTop - view.compoundPaddingBottom
+    val maxScrollY = layout.height - verticalSpace
+
+    val clipLeft = (view.compoundPaddingLeft + scrollX).toFloat()
+    val clipTop = if (scrollY == 0) 0f else (view.extendedPaddingTop + scrollY).toFloat()
+    val clipRight = (view.width - view.compoundPaddingRight + scrollX).toFloat()
+    val clipBottom =
+            (view.height + scrollY - if (scrollY == maxScrollY) 0 else view.extendedPaddingBottom)
+                    .toFloat()
+
+    canvas.clipRect(clipLeft, clipTop, clipRight, clipBottom)
+  }
+
   // Must be called with the canvas translated to the layout origin, before the text is drawn.
   fun draw(
-    canvas: Canvas,
-    layout: Layout,
-    text: Spanned,
-    style: EnrichedStyle,
-    backgroundColorFor: (EnrichedMentionSpan, MentionStyle) -> Int = { _, mentionStyle ->
-      mentionStyle.backgroundColor
-    }, // lambda to handle press state bg color for enrichedText
+          canvas: Canvas,
+          layout: Layout,
+          text: Spanned,
+          style: EnrichedStyle,
+          backgroundColorFor: (EnrichedMentionSpan, MentionStyle) -> Int = { _, mentionStyle ->
+            mentionStyle.backgroundColor
+          }, // lambda to handle press state bg color for enrichedText
   ) {
     val spans = text.getSpans(0, text.length, EnrichedMentionSpan::class.java)
     for (span in spans) {
@@ -42,11 +63,11 @@ object MentionBackgroundDrawer {
   }
 
   private fun drawSpanBackground(
-    canvas: Canvas,
-    layout: Layout,
-    start: Int,
-    end: Int,
-    radius: Float,
+          canvas: Canvas,
+          layout: Layout,
+          start: Int,
+          end: Int,
+          radius: Float,
   ) {
     val firstLine = layout.getLineForOffset(start)
     val lastLine = layout.getLineForOffset(end - 1)
@@ -56,19 +77,19 @@ object MentionBackgroundDrawer {
       val isLast = line == lastLine
 
       val segmentStart =
-        if (isFirst) layout.getPrimaryHorizontal(start) else layout.getLineLeft(line)
+              if (isFirst) layout.getPrimaryHorizontal(start) else layout.getLineLeft(line)
       val segmentEnd =
-        if (isLast) {
-          layout.getPrimaryHorizontal(end)
-        } else {
-          layout.getLineRight(line)
-        }
+              if (isLast) {
+                layout.getPrimaryHorizontal(end)
+              } else {
+                layout.getLineRight(line)
+              }
 
       rect.set(
-        segmentStart,
-        layout.getLineTop(line).toFloat(),
-        segmentEnd,
-        layout.getLineBottom(line).toFloat(),
+              segmentStart,
+              layout.getLineTop(line).toFloat(),
+              segmentEnd,
+              layout.getLineBottom(line).toFloat(),
       )
 
       // Only round the outer ends of a wrapped mention.
