@@ -4,6 +4,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
+import android.graphics.Rect
 import android.graphics.RectF
 import android.text.Layout
 import android.text.Spanned
@@ -17,6 +18,7 @@ object MentionBackgroundDrawer {
   private val path = Path()
   private val rect = RectF()
   private val radii = FloatArray(8)
+  private val clipBounds = Rect()
 
   fun clipToTextBounds(
           canvas: Canvas,
@@ -38,7 +40,8 @@ object MentionBackgroundDrawer {
     canvas.clipRect(clipLeft, clipTop, clipRight, clipBottom)
   }
 
-  // Must be called with the canvas translated to the layout origin, before the text is drawn.
+  // Must be called with the canvas translated to the layout origin and clipped to the visible text
+  // area before the text is drawn. Only lines inside the clip are drawn.
   fun draw(
           canvas: Canvas,
           layout: Layout,
@@ -48,7 +51,14 @@ object MentionBackgroundDrawer {
             mentionStyle.backgroundColor
           }, // lambda to handle press state bg color for enrichedText
   ) {
-    val spans = text.getSpans(0, text.length, EnrichedMentionSpan::class.java)
+    if (!canvas.getClipBounds(clipBounds)) return
+
+    val firstVisibleLine = layout.getLineForVertical(clipBounds.top)
+    val lastVisibleLine = layout.getLineForVertical(clipBounds.bottom)
+    val visibleStart = layout.getLineStart(firstVisibleLine)
+    val visibleEnd = layout.getLineEnd(lastVisibleLine)
+
+    val spans = text.getSpans(visibleStart, visibleEnd, EnrichedMentionSpan::class.java)
     for (span in spans) {
       val mentionStyle = style.mentionsStyle[span.getIndicator()] ?: continue
       val color = backgroundColorFor(span, mentionStyle)
@@ -58,7 +68,15 @@ object MentionBackgroundDrawer {
       val end = text.getSpanEnd(span)
 
       paint.color = color
-      drawSpanBackground(canvas, layout, start, end, mentionStyle.borderRadius)
+      drawSpanBackground(
+              canvas,
+              layout,
+              start,
+              end,
+              mentionStyle.borderRadius,
+              firstVisibleLine,
+              lastVisibleLine,
+      )
     }
   }
 
@@ -68,11 +86,13 @@ object MentionBackgroundDrawer {
           start: Int,
           end: Int,
           radius: Float,
+          firstVisibleLine: Int,
+          lastVisibleLine: Int,
   ) {
     val firstLine = layout.getLineForOffset(start)
     val lastLine = layout.getLineForOffset(end - 1)
 
-    for (line in firstLine..lastLine) {
+    for (line in maxOf(firstLine, firstVisibleLine)..minOf(lastLine, lastVisibleLine)) {
       val isFirst = line == firstLine
       val isLast = line == lastLine
 
