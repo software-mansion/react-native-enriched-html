@@ -5,6 +5,7 @@
 #import "utils/OccurenceUtils.h"
 #import "utils/TextInsertionUtils.h"
 #import "utils/WordsUtils.h"
+#import "utils/ZeroWidthSpaceUtils.h"
 #import <React/UIView+React.h>
 
 static NSString *const ManualLinkAttributeName = @"EnrichedManualLink";
@@ -163,6 +164,8 @@ static NSString *const AutomaticLinkAttributeName = @"EnrichedAutomaticLink";
     withSelection:(BOOL)withSelection {
   NSString *currentText =
       [self.host.textView.textStorage.string substringWithRange:range];
+  NSString *currentVisibleText =
+      [ZeroWidthSpaceUtils stringByRemovingZeroWidthSpaces:currentText];
 
   NSString *key =
       linkData.isManual ? ManualLinkAttributeName : AutomaticLinkAttributeName;
@@ -178,7 +181,7 @@ static NSString *const AutomaticLinkAttributeName = @"EnrichedAutomaticLink";
                               host:self.host
                      withSelection:withSelection];
     dirtyRange = NSMakeRange(range.location, linkData.text.length);
-  } else if ([currentText isEqualToString:linkData.text]) {
+  } else if ([currentVisibleText isEqualToString:linkData.text]) {
     [self applyLinkMetaWithData:linkData range:range];
     dirtyRange = range;
     // TextInsertionUtils take care of the selection but here we have to
@@ -186,8 +189,7 @@ static NSString *const AutomaticLinkAttributeName = @"EnrichedAutomaticLink";
     // don't need the selection fix
     if (linkData.isManual && withSelection) {
       [self.host.textView reactFocus];
-      self.host.textView.selectedRange =
-          NSMakeRange(range.location + linkData.text.length, 0);
+      self.host.textView.selectedRange = NSMakeRange(NSMaxRange(range), 0);
     }
   } else {
     // replace text with link
