@@ -9,7 +9,7 @@ export function TestScroll() {
     <div data-testid="test-scroll-root">
       <div data-testid="scroll-editor">
         <EnrichedTextInput
-          style={{ height: 150 }}
+          style={styles.editor}
           defaultValue={LONG_HTML}
           onScroll={(e) => {
             setOffset(e.nativeEvent.contentOffset.y);
@@ -20,3 +20,9 @@ export function TestScroll() {
     </div>
   );
 }
+
+const styles = {
+  editor: {
+    height: 150,
+  },
+};
