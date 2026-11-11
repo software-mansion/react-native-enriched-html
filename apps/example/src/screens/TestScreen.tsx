@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, ScrollView, Text } from 'react-native';
 import { EnrichedTextInput } from 'react-native-enriched-html';
 import { Button } from '../components/Button';
@@ -29,8 +29,13 @@ export function TestScreen({
 }: TestScreenProps) {
   const editor = useEditorState();
   const [sizeMode, setSizeMode] = useState<'base' | 'max'>('base');
+  // The displayed offset is committed to state only once scrolling settles,
+  // so the screen doesn't re-render on every scroll event.
   const [scrollOffset, setScrollOffset] = useState(0);
+  const scrollSettleTimeout = useRef<ReturnType<typeof setTimeout>>(undefined);
   const keyboardHeight = useKeyboardHeight();
+
+  useEffect(() => () => clearTimeout(scrollSettleTimeout.current), []);
 
   return (
     <View style={styles.container}>
@@ -97,7 +102,12 @@ export function TestScreen({
             onScroll={(e) => {
               editor.handleScroll(e.nativeEvent);
               if (showScrollOffset) {
-                setScrollOffset(e.nativeEvent.contentOffset.y);
+                const offsetY = e.nativeEvent.contentOffset.y;
+                clearTimeout(scrollSettleTimeout.current);
+                scrollSettleTimeout.current = setTimeout(
+                  () => setScrollOffset(offsetY),
+                  100
+                );
               }
             }}
             onChangeSelection={(e) =>
