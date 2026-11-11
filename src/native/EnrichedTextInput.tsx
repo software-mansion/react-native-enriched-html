@@ -395,6 +395,7 @@ export const EnrichedTextInput = ({
       onInputScroll={onScroll}
       isOnChangeHtmlSet={onChangeHtml !== undefined}
       isOnChangeTextSet={onChangeText !== undefined}
+      isOnScrollSet={onScroll !== undefined}
       onChangeState={onChangeState}
       onLinkDetected={handleLinkDetected}
       onMentionDetected={handleMentionDetected}

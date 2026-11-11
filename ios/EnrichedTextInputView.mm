@@ -57,6 +57,7 @@ using namespace facebook::react;
   UIColor *_placeholderColor;
   BOOL _emitFocusBlur;
   BOOL _emitTextChange;
+  BOOL _emitScroll;
   CGPoint _lastEmittedContentOffset;
   NSMutableDictionary<NSValue *, UIImageView *> *_attachmentViews;
   NSArray<NSDictionary *> *_contextMenuItems;
@@ -142,6 +143,7 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   preserveTypingAttributesOnNextEmptyCheck = NO;
   _emitFocusBlur = YES;
   _emitTextChange = NO;
+  _emitScroll = NO;
   dotReplacementRange = nullptr;
 
   defaultTypingAttributes =
@@ -852,6 +854,9 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   // isOnChangeTextSet
   _emitTextChange = newViewProps.isOnChangeTextSet;
 
+  // isOnScrollSet
+  _emitScroll = newViewProps.isOnScrollSet;
+
   // contextMenuItems
   bool contextMenuChanged = newViewProps.contextMenuItems.size() !=
                             oldViewProps.contextMenuItems.size();
@@ -1529,6 +1534,9 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   }
 }
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+  if (!_emitScroll) {
+    return;
+  }
   if (CGPointEqualToPoint(scrollView.contentOffset,
                           _lastEmittedContentOffset)) {
     return;

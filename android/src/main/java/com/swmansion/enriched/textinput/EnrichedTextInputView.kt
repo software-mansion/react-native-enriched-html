@@ -131,6 +131,7 @@ class EnrichedTextInputView :
 
   var shouldEmitHtml: Boolean = false
   var shouldEmitOnChangeText: Boolean = false
+  var shouldEmitOnScroll: Boolean = false
   var experimentalSynchronousEvents: Boolean = false
   var useHtmlNormalizer: Boolean = false
 
@@ -334,6 +335,7 @@ class EnrichedTextInputView :
     oldVert: Int,
   ) {
     super.onScrollChanged(horiz, vert, oldHoriz, oldVert)
+    if (!shouldEmitOnScroll) return
     if (horiz == oldHoriz && vert == oldVert) return
 
     val reactContext = context as? ReactContext ?: return

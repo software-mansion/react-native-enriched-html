@@ -297,6 +297,13 @@ class EnrichedTextInputViewManager :
     view?.shouldEmitOnChangeText = value
   }
 
+  override fun setIsOnScrollSet(
+    view: EnrichedTextInputView?,
+    value: Boolean,
+  ) {
+    view?.shouldEmitOnScroll = value
+  }
+
   override fun setAutoCapitalize(
     view: EnrichedTextInputView?,
     flag: String?,
