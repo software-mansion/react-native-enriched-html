@@ -519,6 +519,27 @@ interface OnSubmitEditing {
 | -------------------------------------------------------- | ----------------- |
 | `(event: NativeSyntheticEvent<OnSubmitEditing>) => void` | Android, iOS, Web |
 
+### `onScroll` {#onscroll}
+
+Called when the input's content is scrolled, either by the user or
+programmatically.
+
+```ts
+interface OnScrollEvent {
+  contentOffset: {
+    x: number;
+    y: number;
+  };
+}
+```
+
+- `contentOffset` is the current scroll position of the input's content, in
+  points
+
+| Type                                                   | Platforms         |
+| ------------------------------------------------------ | ----------------- |
+| `(event: NativeSyntheticEvent<OnScrollEvent>) => void` | Android, iOS, Web |
+
 ### `onPasteImages` {#onpasteimages}
 
 Called when the user pastes one or more images or GIFs into the input. See

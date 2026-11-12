@@ -11,6 +11,7 @@ export type {
   OnMentionDetected,
   OnChangeSelectionEvent,
   OnKeyPressEvent,
+  OnScrollEvent,
   OnPasteImagesEvent,
   OnSubmitEditing,
   HtmlStyle,
