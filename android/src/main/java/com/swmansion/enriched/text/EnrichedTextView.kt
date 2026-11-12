@@ -67,6 +67,14 @@ class EnrichedTextView : AppCompatTextView {
 
   var useHtmlNormalizer = false
 
+  var ignoredStylesMask = 0
+    set(value) {
+      if (field == value) return
+      field = value
+      // re-parse the current text with the new set of styles
+      valueDirty = true
+    }
+
   constructor(context: Context) : super(context) {
     prepareComponent()
   }
@@ -227,7 +235,7 @@ class EnrichedTextView : AppCompatTextView {
     text: String,
     style: EnrichedTextStyle,
   ): CharSequence? {
-    val normalized = GumboNormalizer.normalizeHtml(text) ?: return null
+    val normalized = GumboNormalizer.normalizeHtml(text, ignoredStylesMask) ?: return null
 
     return try {
       val parsed: Spanned = EnrichedParser.fromHtml(normalized, style, spannableFactory)

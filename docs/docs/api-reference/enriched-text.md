@@ -31,6 +31,7 @@ interface EnrichedTextProps extends ViewProps {
   style?: TextStyle;
   htmlStyle?: EnrichedTextHtmlStyle;
   useHtmlNormalizer?: boolean;
+  ignoredStyles?: EnrichedStyleName[];
   sanitizationConfig?: SanitizationConfig;
   ellipsizeMode?: 'head' | 'middle' | 'tail' | 'clip';
   numberOfLines?: number;
@@ -94,6 +95,46 @@ tag subset that the enriched parser understands. See
 | Type      | Default | Platforms         |
 | --------- | ------- | ----------------- |
 | `boolean` | `true`  | Android, iOS, Web |
+
+### `ignoredStyles` {#ignoredstyles}
+
+Styles to leave out when external HTML passed as `children` is normalized - that
+is, any HTML that doesn't come from
+[`EnrichedTextInput`](/api-reference/enriched-text-input).
+The text itself is always kept:
+
+- inline styles, links, mentions and custom styles (colors, font sizes and font
+  families) are removed,
+- headings and list items become plain paragraphs, and code blocks and block
+  quotes are unwrapped into paragraphs,
+- images are dropped,
+- text alignment falls back to the default one.
+
+By default no style is ignored. Changing `ignoredStyles` re-parses the current
+`children`, so styles you remove from the list are rendered again.
+
+```tsx
+// render headings as plain paragraphs
+<EnrichedText ignoredStyles={['h1', 'h2', 'h3', 'h4', 'h5', 'h6']}>
+  {html}
+</EnrichedText>
+```
+
+See [`EnrichedStyleName`](/api-reference/enriched-text-input#ignoredstyles) for
+the available style names.
+
+| Type                  | Default | Platforms         |
+| --------------------- | ------- | ----------------- |
+| `EnrichedStyleName[]` | `[]`    | Android, iOS, Web |
+
+:::note
+
+`ignoredStyles` only works when the HTML normalizer is in use
+([`useHtmlNormalizer`](#usehtmlnormalizer) is `true`, the default). With the
+normalizer disabled, the prop has no effect. HTML produced by
+`EnrichedTextInput` (wrapped in `<html>` tags) is never filtered.
+
+:::
 
 ### `sanitizationConfig` {#sanitizationconfig}
 

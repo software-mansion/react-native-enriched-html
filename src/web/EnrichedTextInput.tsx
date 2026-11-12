@@ -34,6 +34,7 @@ import {
   normalizeHtmlFromTiptap,
 } from './normalization/tiptapHtmlNormalizer';
 import { ENRICHED_TEXT_INPUT_DEFAULT_PROPS } from '../utils/EnrichedTextInputDefaultProps';
+import { getIgnoredStylesMask } from '../utils/ignoredStyles';
 import { enrichedInputStyleToCSSProperties } from './styleConversion/enrichedInputStyleToCSSProperties';
 import { enrichedInputThemingToCSSProperties } from './styleConversion/enrichedThemingToCSSProperties';
 import { buildMentionRulesCSS } from './styleConversion/buildMentionRulesCSS';
@@ -127,17 +128,21 @@ export const EnrichedTextInput = ({
   linkRegex,
   htmlStyle,
   useHtmlNormalizer = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.useHtmlNormalizer,
+  ignoredStyles = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.ignoredStyles,
   sanitizationConfig,
   textShortcuts = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.textShortcuts,
 }: EnrichedTextInputProps) => {
   assertBrowserEnvironment('EnrichedTextInput');
+
+  const ignoredStylesMask = getIgnoredStylesMask(ignoredStyles);
 
   const tiptapContent =
     defaultValue != null
       ? prepareHtmlForTiptap(
           defaultValue,
           useHtmlNormalizer,
-          sanitizationConfig
+          sanitizationConfig,
+          ignoredStylesMask
         )
       : defaultValue;
 
@@ -164,6 +169,7 @@ export const EnrichedTextInput = ({
   const onLinkPressRef = useStableRef(onLinkPress);
   const useHtmlNormalizerRef = useStableRef(useHtmlNormalizer);
   const sanitizationConfigRef = useStableRef(sanitizationConfig);
+  const ignoredStylesMaskRef = useStableRef(ignoredStylesMask);
   const mentionCallbacksRef = useStableRef(mentionCallbacks);
   const textShortcutsRef = useStableRef(textShortcuts);
 
@@ -309,7 +315,8 @@ export const EnrichedTextInput = ({
           return prepareHtmlForTiptap(
             html,
             useHtmlNormalizerRef.current,
-            sanitizationConfigRef.current
+            sanitizationConfigRef.current,
+            ignoredStylesMaskRef.current
           );
         },
       },
@@ -363,7 +370,8 @@ export const EnrichedTextInput = ({
             prepareHtmlForTiptap(
               value,
               useHtmlNormalizerRef.current,
-              sanitizationConfigRef.current
+              sanitizationConfigRef.current,
+              ignoredStylesMaskRef.current
             )
           )
         ),
@@ -452,7 +460,13 @@ export const EnrichedTextInput = ({
         );
       },
     }),
-    [editor, mentionIndicatorsRef, useHtmlNormalizerRef, sanitizationConfigRef]
+    [
+      editor,
+      mentionIndicatorsRef,
+      useHtmlNormalizerRef,
+      sanitizationConfigRef,
+      ignoredStylesMaskRef,
+    ]
   );
 
   const editorStyle: CSSProperties = useMemo(

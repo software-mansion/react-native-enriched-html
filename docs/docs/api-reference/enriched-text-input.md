@@ -72,6 +72,7 @@ interface EnrichedTextInputProps extends Omit<ViewProps, 'children'> {
   textShortcuts?: TextShortcut[];
   androidExperimentalSynchronousEvents?: boolean;
   useHtmlNormalizer?: boolean;
+  ignoredStyles?: EnrichedStyleName[];
   allowFontScaling?: boolean;
 }
 ```
@@ -204,6 +205,79 @@ Customizes the appearance of HTML elements inside the editor. See
 | Type        | Default                                            | Platforms         |
 | ----------- | -------------------------------------------------- | ----------------- |
 | `HtmlStyle` | default values from [`HtmlStyle`](#htmlstyle-type) | Android, iOS, Web |
+
+### `ignoredStyles` {#ignoredstyles}
+
+Styles to leave out when external HTML is normalized - for example rich text
+pasted from Google Docs, Word, or web pages, or HTML passed to `defaultValue` or
+`setValue` that doesn't come from the editor.
+The text itself is always kept:
+
+- inline styles, links, mentions and custom styles (colors, font sizes and font
+  families) are removed,
+- headings and list items become plain paragraphs, and code blocks and block
+  quotes are unwrapped into paragraphs,
+- images are dropped,
+- text alignment falls back to the default one.
+
+By default no style is ignored. Changing `ignoredStyles` only affects HTML parsed
+afterwards - the input's current content is kept as it is.
+
+```tsx
+// keep the formatting of pasted content, but drop its colors, fonts and images
+<EnrichedTextInput ignoredStyles={['customStyle', 'image']} />
+```
+
+```ts
+type EnrichedStyleName =
+  | 'bold'
+  | 'italic'
+  | 'underline'
+  | 'strikeThrough'
+  | 'inlineCode'
+  | 'h1'
+  | 'h2'
+  | 'h3'
+  | 'h4'
+  | 'h5'
+  | 'h6'
+  | 'codeBlock'
+  | 'blockQuote'
+  | 'orderedList'
+  | 'unorderedList'
+  | 'link'
+  | 'image'
+  | 'mention'
+  | 'checkboxList'
+  | 'alignment'
+  | 'customStyle';
+```
+
+| Type                  | Default | Platforms         |
+| --------------------- | ------- | ----------------- |
+| `EnrichedStyleName[]` | `[]`    | Android, iOS, Web |
+
+:::note
+
+`ignoredStyles` only works when the HTML normalizer is in use
+([`useHtmlNormalizer`](#usehtmlnormalizer) is `true`, the default). With the
+normalizer disabled, the prop has no effect.
+
+:::
+
+:::info
+
+HTML produced by the editor itself (wrapped in `<html>` tags, like the output
+of [`getHTML`](#gethtml) and [`onChangeHtml`](#onchangehtml)) is never
+filtered, so saved content keeps all of its styles. On Android and iOS this
+also covers content copied and pasted within the editor. On web, content copied
+from the editor is treated as external HTML when it's pasted back.
+
+`ignoredStyles` only affects parsing. Styles can still be applied with the
+editor's methods (e.g. [`toggleBold`](#togglebold)), text shortcuts and
+automatic link detection.
+
+:::
 
 ### `mentionIndicators` {#mentionindicators}
 

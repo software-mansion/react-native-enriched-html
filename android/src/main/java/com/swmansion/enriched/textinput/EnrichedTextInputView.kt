@@ -132,6 +132,9 @@ class EnrichedTextInputView :
   var experimentalSynchronousEvents: Boolean = false
   var useHtmlNormalizer: Boolean = false
 
+  // Only affects HTML parsed from now on, the current content is kept as it is
+  var ignoredStylesMask: Int = 0
+
   // Pair: (trigger, style)
   var textShortcuts: List<Pair<String, String>> = emptyList()
 
@@ -440,7 +443,7 @@ class EnrichedTextInputView :
 
   private fun normalizeHtmlIfNeeded(text: CharSequence): CharSequence {
     if (!useHtmlNormalizer) return text
-    val normalized = GumboNormalizer.normalizeHtml(text.toString()) ?: return text
+    val normalized = GumboNormalizer.normalizeHtml(text.toString(), ignoredStylesMask) ?: return text
 
     return try {
       val parsed = EnrichedParser.fromHtml(normalized, htmlStyle, spannableFactory, linkRegex)

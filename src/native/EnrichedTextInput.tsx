@@ -28,6 +28,7 @@ import { normalizeHtmlStyle } from '../utils/normalizeHtmlStyle';
 import { toNativeRegexConfig } from '../utils/regexParser';
 import { nullthrows } from '../utils/nullthrows';
 import { ENRICHED_TEXT_INPUT_DEFAULT_PROPS } from '../utils/EnrichedTextInputDefaultProps';
+import { getIgnoredStylesMask } from '../utils/ignoredStyles';
 import type {
   ContextMenuItem,
   EnrichedTextInputProps,
@@ -97,6 +98,7 @@ export const EnrichedTextInput = ({
   textShortcuts = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.textShortcuts,
   androidExperimentalSynchronousEvents = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.androidExperimentalSynchronousEvents,
   useHtmlNormalizer = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.useHtmlNormalizer,
+  ignoredStyles = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.ignoredStyles,
   scrollEnabled = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.scrollEnabled,
   allowFontScaling = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.allowFontScaling,
   ...rest
@@ -411,6 +413,7 @@ export const EnrichedTextInput = ({
         androidExperimentalSynchronousEvents
       }
       useHtmlNormalizer={useHtmlNormalizer}
+      ignoredStylesMask={getIgnoredStylesMask(ignoredStyles)}
       scrollEnabled={scrollEnabled}
       allowFontScaling={allowFontScaling}
       {...rest}
