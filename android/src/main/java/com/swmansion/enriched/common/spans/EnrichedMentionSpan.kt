@@ -23,7 +23,6 @@ open class EnrichedMentionSpan(
 
     val mentionsStyle = enrichedStyle.mentionsStyle[indicator] ?: return
     textPaint.color = mentionsStyle.color
-    textPaint.bgColor = mentionsStyle.backgroundColor
     textPaint.isUnderlineText = mentionsStyle.underline
   }
 

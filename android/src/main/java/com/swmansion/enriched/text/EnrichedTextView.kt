@@ -3,6 +3,7 @@ package com.swmansion.enriched.text
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.text.LineBreaker
 import android.os.Build
@@ -25,6 +26,7 @@ import com.facebook.react.views.text.ReactTypefaceUtils.parseFontWeight
 import com.swmansion.enriched.common.EnrichedConstants
 import com.swmansion.enriched.common.EnrichedSpanFlags
 import com.swmansion.enriched.common.GumboNormalizer
+import com.swmansion.enriched.common.MentionBackgroundDrawer
 import com.swmansion.enriched.common.parser.EnrichedParser
 import com.swmansion.enriched.common.pixelFromSpOrDp
 import com.swmansion.enriched.text.spans.EnrichedTextImageSpan
@@ -90,6 +92,28 @@ class EnrichedTextView : AppCompatTextView {
 
     setPadding(0, 0, 0, 0)
     setFontSize(EnrichedConstants.TEXT_DEFAULT_FONT_SIZE)
+  }
+
+  override fun onDraw(canvas: Canvas) {
+    val currentLayout = layout
+    val spanned = text as? Spanned
+    val style = enrichedStyle
+    if (currentLayout != null && spanned != null && style != null) {
+      canvas.save()
+      MentionBackgroundDrawer.clipToTextBounds(canvas, this, currentLayout)
+      canvas.translate(totalPaddingLeft.toFloat(), totalPaddingTop.toFloat())
+      MentionBackgroundDrawer.draw(canvas, currentLayout, spanned, style) { span, mentionStyle ->
+        val isPressed = (span as? EnrichedTextClickableSpan)?.isPressed == true
+        if (isPressed && mentionStyle.pressBackgroundColor != null) {
+          mentionStyle.pressBackgroundColor
+        } else {
+          mentionStyle.backgroundColor
+        }
+      }
+      canvas.restore()
+    }
+
+    super.onDraw(canvas)
   }
 
   override fun onTouchEvent(event: MotionEvent): Boolean {
