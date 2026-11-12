@@ -107,7 +107,8 @@ The text itself is always kept:
   families) are removed,
 - headings and list items become plain paragraphs, and code blocks and block
   quotes are unwrapped into paragraphs,
-- images are dropped.
+- images are dropped,
+- text alignment falls back to the default one.
 
 By default no style is ignored. Changing `ignoredStyles` re-parses the current
 `children`, so styles you remove from the list are rendered again.
