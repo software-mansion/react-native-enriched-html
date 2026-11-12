@@ -144,6 +144,13 @@ class EnrichedTextViewManager :
     view?.useHtmlNormalizer = value
   }
 
+  override fun setIgnoredStylesMask(
+    view: EnrichedTextView?,
+    value: Int,
+  ) {
+    view?.ignoredStylesMask = value
+  }
+
   override fun onAfterUpdateTransaction(view: EnrichedTextView) {
     view.afterUpdateTransaction()
   }

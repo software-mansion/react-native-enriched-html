@@ -331,6 +331,13 @@ class EnrichedTextInputViewManager :
     view?.useHtmlNormalizer = value
   }
 
+  override fun setIgnoredStylesMask(
+    view: EnrichedTextInputView?,
+    value: Int,
+  ) {
+    view?.ignoredStylesMask = value
+  }
+
   override fun setTextShortcuts(
     view: EnrichedTextInputView?,
     value: ReadableArray?,
