@@ -1227,6 +1227,7 @@ interface MentionStyleProperties {
   color?: ColorValue;
   backgroundColor?: ColorValue;
   textDecorationLine?: 'underline' | 'none';
+  borderRadius?: number;
 }
 ```
 
@@ -1282,6 +1283,9 @@ should be a record with indicators as keys and configs as values.
   [color](https://reactnative.dev/docs/colors) value, defaults to `yellow`
 - `textDecorationLine` - whether mentions are underlined; `'underline'` or
   `'none'`, defaults to `'underline'`
+- `borderRadius` - corner radius of the mention background; defaults to `0`.
+  When a mention wraps onto multiple lines, only its outer corners (at the
+  start of the first line and the end of the last line) are rounded
 
 :::tip
 
@@ -1793,6 +1797,7 @@ interface EnrichedTextMentionStyleProperties {
   color?: ColorValue;
   backgroundColor?: ColorValue;
   textDecorationLine?: 'underline' | 'none';
+  borderRadius?: number;
   pressColor?: ColorValue;
   pressBackgroundColor?: ColorValue;
 }
@@ -2031,17 +2036,17 @@ to their React Native `TextStyle` counterparts. Some are platform-limited
 `htmlStyle` maps each supported element to a small config object. Anything you
 omit falls back to the built-in default. The available keys are:
 
-| Key          | Styles         | Notable options                                             |
-| ------------ | -------------- | ----------------------------------------------------------- |
-| `h1`–`h6`    | Headings       | `fontSize`, `bold`                                          |
-| `blockquote` | Blockquote     | `borderColor`, `borderWidth`, `gapWidth`, `color`           |
-| `codeblock`  | Code block     | `color`, `backgroundColor`, `borderRadius`                  |
-| `code`       | Inline code    | `color`, `backgroundColor`                                  |
-| `a`          | Links          | `color`, `textDecorationLine`                               |
-| `mention`    | Mentions       | `color`, `backgroundColor`, `textDecorationLine`            |
-| `ol`         | Ordered list   | `markerColor`, `markerFontWeight`, `marginLeft`, `gapWidth` |
-| `ul`         | Unordered list | `bulletColor`, `bulletSize`, `marginLeft`, `gapWidth`       |
-| `ulCheckbox` | Checkbox list  | `boxColor`, `boxSize`, `marginLeft`, `gapWidth`             |
+| Key          | Styles         | Notable options                                                  |
+| ------------ | -------------- | ---------------------------------------------------------------- |
+| `h1`–`h6`    | Headings       | `fontSize`, `bold`                                               |
+| `blockquote` | Blockquote     | `borderColor`, `borderWidth`, `gapWidth`, `color`                |
+| `codeblock`  | Code block     | `color`, `backgroundColor`, `borderRadius`                       |
+| `code`       | Inline code    | `color`, `backgroundColor`                                       |
+| `a`          | Links          | `color`, `textDecorationLine`                                    |
+| `mention`    | Mentions       | `color`, `backgroundColor`, `textDecorationLine`, `borderRadius` |
+| `ol`         | Ordered list   | `markerColor`, `markerFontWeight`, `marginLeft`, `gapWidth`      |
+| `ul`         | Unordered list | `bulletColor`, `bulletSize`, `marginLeft`, `gapWidth`            |
+| `ulCheckbox` | Checkbox list  | `boxColor`, `boxSize`, `marginLeft`, `gapWidth`                  |
 
 The full list of properties, defaults, and platform notes lives in the
 [`EnrichedTextInput`](/api-reference/enriched-text-input#htmlstyle) reference.
