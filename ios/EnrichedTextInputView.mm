@@ -695,6 +695,12 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
     useHtmlNormalizer = newViewProps.useHtmlNormalizer;
   }
 
+  // ignoredStylesMask (ignoredStyles prop) - only affects HTML parsed from now
+  // on, the current content is kept as it is
+  if (newViewProps.ignoredStylesMask != oldViewProps.ignoredStylesMask) {
+    ignoredStylesMask = (uint32_t)newViewProps.ignoredStylesMask;
+  }
+
   // textShortcuts
   bool textShortcutsChanged =
       newViewProps.textShortcuts.size() != oldViewProps.textShortcuts.size();

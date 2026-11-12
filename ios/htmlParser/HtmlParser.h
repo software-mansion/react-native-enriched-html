@@ -6,7 +6,8 @@
 
 @interface HtmlParser : NSObject
 + (NSString *_Nullable)initiallyProcessHtml:(NSString *_Nonnull)html
-                          useHtmlNormalizer:(BOOL)useHtmlNormalizer;
+                          useHtmlNormalizer:(BOOL)useHtmlNormalizer
+                              ignoredStyles:(uint32_t)ignoredStyles;
 + (NSArray *_Nonnull)getTextAndStylesFromHtml:(NSString *_Nonnull)fixedHtml
                                        config:(EnrichedConfig *_Nullable)config;
 + (NSString *_Nonnull)parseToHtmlFromRange:(NSRange)range

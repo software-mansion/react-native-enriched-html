@@ -36,6 +36,8 @@ NS_ASSUME_NONNULL_BEGIN
 @public
   BOOL useHtmlNormalizer;
 @public
+  uint32_t ignoredStylesMask;
+@public
   NSValue *dotReplacementRange;
 @public
   NSArray<NSDictionary *> *textShortcuts;
