@@ -630,6 +630,8 @@ Class<RCTComponentViewProtocol> EnrichedTextViewCls(void) {
   if (_content.length == 0) {
     [textView.textStorage
         setAttributedString:[[NSAttributedString alloc] initWithString:@""]];
+    // drop image overlays left over from the previous content
+    [self layoutAttachments];
     return;
   }
   [_textParser replaceWholeFromHtml:_content];
@@ -638,9 +640,11 @@ Class<RCTComponentViewProtocol> EnrichedTextViewCls(void) {
 
 // MARK: - Measuring and state
 
-- (CGSize)measureSize:(CGFloat)maxWidth {
+// Returns an immutable copy of the content prepared for measuring, see
+// +measureSnapshot:maxWidth:maximumNumberOfLines:lineBreakMode:.
+- (NSAttributedString *)measurementSnapshot {
   if (textView.textStorage.length == 0) {
-    return CGSizeMake(maxWidth, 0);
+    return [[NSAttributedString alloc] init];
   }
 
   NSMutableAttributedString *currentStr = [[NSMutableAttributedString alloc]
@@ -670,18 +674,28 @@ Class<RCTComponentViewProtocol> EnrichedTextViewCls(void) {
     }
   }
 
+  return [currentStr copy];
+}
+
++ (CGSize)measureSnapshot:(NSAttributedString *)snapshot
+                 maxWidth:(CGFloat)maxWidth
+     maximumNumberOfLines:(NSUInteger)maximumNumberOfLines
+            lineBreakMode:(NSLineBreakMode)lineBreakMode {
+  if (snapshot.length == 0) {
+    return CGSizeMake(maxWidth, 0);
+  }
+
   // Use TextKit measurement so height respects:
   // - maximumNumberOfLines / lineBreakMode
   // - varying line heights (e.g. headings)
   NSTextStorage *measurementStorage =
-      [[NSTextStorage alloc] initWithAttributedString:currentStr];
+      [[NSTextStorage alloc] initWithAttributedString:snapshot];
   NSLayoutManager *measurementLayoutManager = [[NSLayoutManager alloc] init];
   NSTextContainer *measurementContainer =
       [[NSTextContainer alloc] initWithSize:CGSizeMake(maxWidth, CGFLOAT_MAX)];
   measurementContainer.lineFragmentPadding = 0;
-  measurementContainer.maximumNumberOfLines =
-      textView.textContainer.maximumNumberOfLines;
-  measurementContainer.lineBreakMode = textView.textContainer.lineBreakMode;
+  measurementContainer.maximumNumberOfLines = maximumNumberOfLines;
+  measurementContainer.lineBreakMode = lineBreakMode;
   [measurementLayoutManager addTextContainer:measurementContainer];
   [measurementStorage addLayoutManager:measurementLayoutManager];
   [measurementLayoutManager ensureLayoutForTextContainer:measurementContainer];
@@ -691,6 +705,14 @@ Class<RCTComponentViewProtocol> EnrichedTextViewCls(void) {
   CGFloat measuredHeight = ceil(usedRect.size.height);
 
   return CGSizeMake(maxWidth, measuredHeight);
+}
+
+- (CGSize)measureSize:(CGFloat)maxWidth {
+  return [EnrichedTextView
+           measureSnapshot:[self measurementSnapshot]
+                  maxWidth:maxWidth
+      maximumNumberOfLines:textView.textContainer.maximumNumberOfLines
+             lineBreakMode:textView.textContainer.lineBreakMode];
 }
 
 - (void)updateState:(State::Shared const &)state
@@ -708,8 +730,12 @@ Class<RCTComponentViewProtocol> EnrichedTextViewCls(void) {
   if (_state == nullptr) {
     return;
   }
-  auto selfRef = wrapManagedObjectWeakly(self);
-  _state->updateState(EnrichedTextViewState(selfRef));
+  // Hand the shadow node an immutable snapshot of the content, so that
+  // measureContent never has to touch this view or the main thread.
+  _state->updateState(
+      EnrichedTextViewState(wrapManagedObject([self measurementSnapshot]),
+                            (int)textView.textContainer.maximumNumberOfLines,
+                            (int)textView.textContainer.lineBreakMode));
 }
 
 /**

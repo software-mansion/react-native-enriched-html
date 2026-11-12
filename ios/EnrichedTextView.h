@@ -26,6 +26,10 @@ NS_ASSUME_NONNULL_BEGIN
   BOOL useHtmlNormalizer;
 }
 - (CGSize)measureSize:(CGFloat)maxWidth;
++ (CGSize)measureSnapshot:(NSAttributedString *)snapshot
+                 maxWidth:(CGFloat)maxWidth
+     maximumNumberOfLines:(NSUInteger)maximumNumberOfLines
+            lineBreakMode:(NSLineBreakMode)lineBreakMode;
 - (void)emitOnLinkPressEvent:(NSString *)url;
 - (void)emitOnMentionPressEvent:(MentionParams *)mention;
 - (void)emitOnImagePressEvent:(MediaAttachment *)attachment;
