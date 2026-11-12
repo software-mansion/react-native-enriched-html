@@ -292,102 +292,44 @@ export interface OnChangeHtmlEvent {
   value: string;
 }
 
-export interface OnChangeStateEvent {
-  bold: {
-    isActive: boolean;
-    isConflicting: boolean;
-    isBlocking: boolean;
-  };
-  italic: {
-    isActive: boolean;
-    isConflicting: boolean;
-    isBlocking: boolean;
-  };
-  underline: {
-    isActive: boolean;
-    isConflicting: boolean;
-    isBlocking: boolean;
-  };
-  strikeThrough: {
-    isActive: boolean;
-    isConflicting: boolean;
-    isBlocking: boolean;
-  };
-  inlineCode: {
-    isActive: boolean;
-    isConflicting: boolean;
-    isBlocking: boolean;
-  };
-  h1: {
-    isActive: boolean;
-    isConflicting: boolean;
-    isBlocking: boolean;
-  };
-  h2: {
-    isActive: boolean;
-    isConflicting: boolean;
-    isBlocking: boolean;
-  };
-  h3: {
-    isActive: boolean;
-    isConflicting: boolean;
-    isBlocking: boolean;
-  };
-  h4: {
-    isActive: boolean;
-    isConflicting: boolean;
-    isBlocking: boolean;
-  };
-  h5: {
-    isActive: boolean;
-    isConflicting: boolean;
-    isBlocking: boolean;
-  };
-  h6: {
-    isActive: boolean;
-    isConflicting: boolean;
-    isBlocking: boolean;
-  };
-  codeBlock: {
-    isActive: boolean;
-    isConflicting: boolean;
-    isBlocking: boolean;
-  };
-  blockQuote: {
-    isActive: boolean;
-    isConflicting: boolean;
-    isBlocking: boolean;
-  };
-  orderedList: {
-    isActive: boolean;
-    isConflicting: boolean;
-    isBlocking: boolean;
-  };
-  unorderedList: {
-    isActive: boolean;
-    isConflicting: boolean;
-    isBlocking: boolean;
-  };
-  link: {
-    isActive: boolean;
-    isConflicting: boolean;
-    isBlocking: boolean;
-  };
-  image: {
-    isActive: boolean;
-    isConflicting: boolean;
-    isBlocking: boolean;
-  };
-  mention: {
-    isActive: boolean;
-    isConflicting: boolean;
-    isBlocking: boolean;
-  };
-  checkboxList: {
-    isActive: boolean;
-    isConflicting: boolean;
-    isBlocking: boolean;
-  };
+/**
+ * Name of a style. These are the keys of `OnChangeStateEvent`, and the values
+ * accepted by the `ignoredStyles` prop.
+ */
+export type EnrichedStyleName =
+  | 'bold'
+  | 'italic'
+  | 'underline'
+  | 'strikeThrough'
+  | 'inlineCode'
+  | 'h1'
+  | 'h2'
+  | 'h3'
+  | 'h4'
+  | 'h5'
+  | 'h6'
+  | 'codeBlock'
+  | 'blockQuote'
+  | 'orderedList'
+  | 'unorderedList'
+  | 'link'
+  | 'image'
+  | 'mention'
+  | 'checkboxList'
+  | 'alignment'
+  | 'customStyle';
+
+/** State of a style within the current selection. */
+export interface StyleState {
+  isActive: boolean;
+  isConflicting: boolean;
+  isBlocking: boolean;
+}
+
+export interface OnChangeStateEvent extends Record<
+  Exclude<EnrichedStyleName, 'alignment' | 'customStyle'>,
+  StyleState
+> {
   alignment: string;
   customStyle: {
     foregroundColor: string;
@@ -840,6 +782,21 @@ export interface EnrichedTextInputProps extends Omit<ViewProps, 'children'> {
   useHtmlNormalizer?: boolean;
 
   /**
+   * Styles that are left out when external HTML (e.g. pasted content, or HTML
+   * passed to `defaultValue` / `setValue` that wasn't produced by the editor)
+   * is normalized: inline styles are removed, block styles (headings, lists,
+   * quotes, code blocks) become plain paragraphs and images are dropped. The
+   * text itself is always kept.
+   *
+   * Defaults to `[]` - every style is parsed.
+   *
+   * Only applies when `useHtmlNormalizer` is enabled. HTML produced by the
+   * editor itself (e.g. from `onChangeHtml`, or copied within the editor)
+   * is never filtered.
+   */
+  ignoredStyles?: EnrichedStyleName[];
+
+  /**
    * Web-only configuration for the HTML sanitization step.
    *
    * @platform web
@@ -898,6 +855,19 @@ export interface EnrichedTextProps extends ViewProps {
    * before being rendered. Enabled by default.
    */
   useHtmlNormalizer?: boolean;
+
+  /**
+   * Styles that are left out when external HTML (HTML that wasn't produced by
+   * `EnrichedTextInput`) is normalized: inline styles are removed, block
+   * styles (headings, lists, quotes, code blocks) become plain paragraphs and
+   * images are dropped. The text itself is always kept.
+   *
+   * Defaults to `[]` - every style is parsed.
+   *
+   * Only applies when `useHtmlNormalizer` is enabled. HTML produced by
+   * `EnrichedTextInput` is never filtered.
+   */
+  ignoredStyles?: EnrichedStyleName[];
 
   /**
    * Web-only configuration for the HTML sanitization step.

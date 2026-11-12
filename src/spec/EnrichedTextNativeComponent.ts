@@ -86,6 +86,8 @@ export interface NativeProps extends ViewProps {
   text: string;
   htmlStyle?: EnrichedTextHtmlStyleInternal;
   useHtmlNormalizer: boolean;
+  // Styles the HTML normalizer leaves out
+  ignoredStylesMask: CodegenTypes.Int32;
   allowFontScaling?: boolean;
 
   // ReactNative TextProps
