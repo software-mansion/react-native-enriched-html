@@ -109,7 +109,8 @@ The text itself is always kept:
   quotes are unwrapped into paragraphs,
 - images are dropped.
 
-By default no style is ignored.
+By default no style is ignored. Changing `ignoredStyles` re-parses the current
+`children`, so styles you remove from the list are rendered again.
 
 ```tsx
 // render headings as plain paragraphs

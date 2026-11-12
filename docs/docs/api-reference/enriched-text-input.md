@@ -219,7 +219,8 @@ The text itself is always kept:
   quotes are unwrapped into paragraphs,
 - images are dropped.
 
-By default no style is ignored.
+By default no style is ignored. Changing `ignoredStyles` only affects HTML parsed
+afterwards - the input's current content is kept as it is.
 
 ```tsx
 // keep the formatting of pasted content, but drop its colors, fonts and images
