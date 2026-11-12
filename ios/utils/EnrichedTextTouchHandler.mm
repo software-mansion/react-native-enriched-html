@@ -6,6 +6,7 @@
 #import "interfaces/MentionParams.h"
 #import "interfaces/MentionStyleProps.h"
 #import "interfaces/StyleBase.h"
+#import "interfaces/StyleHeaders.h"
 
 @implementation EnrichedTextTouchHandler {
   NSRange _activeRange;
@@ -121,7 +122,7 @@
       newAttrs[NSStrikethroughColorAttributeName] = color;
     }
     if (bgColor) {
-      newAttrs[NSBackgroundColorAttributeName] =
+      newAttrs[[MentionStyle getBackgroundAttributeName]] =
           [bgColor colorWithResolvedAlpha];
     }
 

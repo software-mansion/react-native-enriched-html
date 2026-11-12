@@ -1244,6 +1244,7 @@ interface MentionStyleProperties {
   color?: ColorValue;
   backgroundColor?: ColorValue;
   textDecorationLine?: 'underline' | 'none';
+  borderRadius?: number;
 }
 ```
 
@@ -1299,6 +1300,9 @@ should be a record with indicators as keys and configs as values.
   [color](https://reactnative.dev/docs/colors) value, defaults to `yellow`
 - `textDecorationLine` - whether mentions are underlined; `'underline'` or
   `'none'`, defaults to `'underline'`
+- `borderRadius` - corner radius of the mention background; defaults to `0`.
+  When a mention wraps onto multiple lines, only its outer corners (at the
+  start of the first line and the end of the last line) are rounded
 
 :::tip
 

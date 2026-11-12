@@ -614,7 +614,7 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
     bool newSingleProps = NO;
 
     for (const auto &obj : newMentionStyle.items()) {
-      if (obj.second.isInt() || obj.second.isString()) {
+      if (obj.second.isNumber() || obj.second.isString()) {
         // we are in just a single MentionStyleProps object
         newSingleProps = YES;
         break;
