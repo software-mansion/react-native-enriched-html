@@ -837,3 +837,142 @@ TEST(GumboParserTest, NestedSpans) {
             "<blockquote><p><span style=\"color: red\">A</span><span "
             "style=\"color: blue\">B</span></p></blockquote>");
 }
+
+TEST(GumboParserTest, IgnoredInlineStylesAreUnwrapped) {
+  EXPECT_EQ(
+      GumboParser::normalizeHtml("<p><b>a</b><i>b</i></p>", IGNORED_STYLE_BOLD),
+      "<p>a<i>b</i></p>");
+  // styles mapped from other tags or from CSS are filtered too
+  EXPECT_EQ(
+      GumboParser::normalizeHtml("<strong>x</strong> <em>y</em>",
+                                 IGNORED_STYLE_BOLD | IGNORED_STYLE_ITALIC),
+      "x y");
+  EXPECT_EQ(
+      GumboParser::normalizeHtml("<span style=\"font-weight: bold\">x</span>",
+                                 IGNORED_STYLE_BOLD),
+      "x");
+  EXPECT_EQ(GumboParser::normalizeHtml("<u>a</u><s>b</s><code>c</code>",
+                                       IGNORED_STYLE_UNDERLINE |
+                                           IGNORED_STYLE_STRIKETHROUGH |
+                                           IGNORED_STYLE_INLINE_CODE),
+            "abc");
+  EXPECT_EQ(
+      GumboParser::normalizeHtml(
+          "<a href=\"https://x.com?a=1&amp;b=2\">link</a>", IGNORED_STYLE_LINK),
+      "link");
+  EXPECT_EQ(
+      GumboParser::normalizeHtml("<mention text=\"@John\" indicator=\"@\" "
+                                 "data-id=\"1\">@John</mention>",
+                                 IGNORED_STYLE_MENTION),
+      "@John");
+}
+
+TEST(GumboParserTest, IgnoredCustomStyle) {
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<span style=\"color: red; font-size: 20px\">x</span>",
+                IGNORED_STYLE_CUSTOM_STYLE),
+            "x");
+  // other styles from the same span are kept, and the other way around
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<span style=\"color: red; font-weight: bold\">x</span>",
+                IGNORED_STYLE_CUSTOM_STYLE),
+            "<b>x</b>");
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<span style=\"color: red; font-weight: bold\">x</span>",
+                IGNORED_STYLE_BOLD),
+            "<span style=\"color: red\">x</span>");
+  // Google Docs puts fonts and colors on every span
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<b id=\"docs-internal-guid-1234567890\"><p dir=\"ltr\"><span "
+                "style=\"font-size:11pt;font-family:Arial;color:#000000;font-"
+                "weight:700\">Bold</span><span style=\"font-size:11pt;font-"
+                "family:Arial;color:#000000\"> text</span></p></b>",
+                IGNORED_STYLE_CUSTOM_STYLE),
+            "<p><b>Bold</b> text</p>");
+}
+
+TEST(GumboParserTest, IgnoredBlockStylesBecomeParagraphs) {
+  EXPECT_EQ(
+      GumboParser::normalizeHtml("<h1>x</h1><h2>y</h2>", IGNORED_STYLE_H1),
+      "<p>x</p><h2>y</h2>");
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<h3 style=\"text-align: center\">x</h3>", IGNORED_STYLE_H3),
+            "<p style=\"text-align: center\">x</p>");
+  EXPECT_EQ(GumboParser::normalizeHtml("<h1></h1>", IGNORED_STYLE_H1), "<br>");
+  EXPECT_EQ(
+      GumboParser::normalizeHtml("<pre>x</pre>", IGNORED_STYLE_CODE_BLOCK),
+      "<p>x</p>");
+  EXPECT_EQ(
+      GumboParser::normalizeHtml("<codeblock><p>a</p><p>b</p></codeblock>",
+                                 IGNORED_STYLE_CODE_BLOCK),
+      "<p>a</p><p>b</p>");
+  EXPECT_EQ(GumboParser::normalizeHtml("<blockquote>x</blockquote>",
+                                       IGNORED_STYLE_BLOCK_QUOTE),
+            "<p>x</p>");
+}
+
+TEST(GumboParserTest, IgnoredListsBecomeParagraphs) {
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<ul><li>a</li><li></li><li><b>c</b></li></ul>",
+                IGNORED_STYLE_UNORDERED_LIST),
+            "<p>a</p><br><p><b>c</b></p>");
+  // list alignment moves to the paragraphs
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<ol style=\"text-align: right\"><li>a</li></ol>",
+                IGNORED_STYLE_ORDERED_LIST),
+            "<p style=\"text-align: right\">a</p>");
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<ul data-type=\"checkbox\"><li checked>a</li><li>b</li></ul>",
+                IGNORED_STYLE_CHECKBOX_LIST),
+            "<p>a</p><p>b</p>");
+  // unordered and checkbox lists are independent
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<ul data-type=\"checkbox\"><li checked>a</li><li>b</li></ul>",
+                IGNORED_STYLE_UNORDERED_LIST),
+            "<ul data-type=\"checkbox\"><li checked>a</li><li>b</li></ul>");
+  EXPECT_EQ(GumboParser::normalizeHtml("<ul><li>a</li></ul>",
+                                       IGNORED_STYLE_CHECKBOX_LIST),
+            "<ul><li>a</li></ul>");
+}
+
+TEST(GumboParserTest, IgnoredImagesAndAlignment) {
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<p>a<img src=\"x.png\" width=\"10\" height=\"20\" />b</p>",
+                IGNORED_STYLE_IMAGE),
+            "<p>ab</p>");
+  EXPECT_EQ(GumboParser::normalizeHtml("<ul><li><img src=\"x\" /></li></ul>",
+                                       IGNORED_STYLE_UNORDERED_LIST |
+                                           IGNORED_STYLE_IMAGE),
+            "<br>");
+  EXPECT_EQ(GumboParser::normalizeHtml("<p style=\"text-align: center\">x</p>",
+                                       IGNORED_STYLE_ALIGNMENT),
+            "<p>x</p>");
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<ul style=\"text-align: center\"><li>x</li></ul>",
+                IGNORED_STYLE_ALIGNMENT),
+            "<ul><li>x</li></ul>");
+  EXPECT_EQ(
+      GumboParser::normalizeHtml("<h3 style=\"text-align: center\">x</h3>",
+                                 IGNORED_STYLE_H3 | IGNORED_STYLE_ALIGNMENT),
+      "<p>x</p>");
+}
+
+TEST(GumboParserTest, IgnoredStylesKeepContent) {
+  // other tags, attributes, escaping and whitespace are untouched
+  EXPECT_EQ(GumboParser::normalizeHtml(
+                "<p>a<img src=\"x.png\" width=\"10\" height=\"20\" />b</p>",
+                IGNORED_STYLE_BOLD),
+            "<p>a<img src=\"x.png\" width=\"10\" height=\"20\" />b</p>");
+  EXPECT_EQ(GumboParser::normalizeHtml("<p>a &lt;b&gt; &amp; c</p>",
+                                       IGNORED_STYLE_BOLD),
+            "<p>a &lt;b&gt; &amp; c</p>");
+  EXPECT_EQ(
+      GumboParser::normalizeHtml("<span> lead</span>", IGNORED_STYLE_BOLD),
+      " lead");
+  EXPECT_EQ(
+      GumboParser::normalizeHtml("<p>a</p><br><p>b</p>", IGNORED_STYLE_BOLD),
+      "<p>a</p><br><p>b</p>");
+  // every style ignored leaves plain text
+  EXPECT_EQ(GumboParser::normalizeHtml("hello <b>world</b>", 0xFFFFFFFF),
+            "hello world");
+}

@@ -25,6 +25,8 @@
 #pragma GCC diagnostic pop
 #endif
 
+#include "IgnoredStyles.h"
+
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
@@ -1223,10 +1225,220 @@ static GumboNode *find_body(GumboNode *root) {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Ignored styles filtering (`ignoredStyles` prop)                  */
+/* ------------------------------------------------------------------ */
+
+/* Runs as a second pass over the normalizer's own output, so it only has to
+ * understand the canonical tag subset. An ignored inline style, blockquote
+ * or codeblock is unwrapped (its content stays), an ignored heading or list
+ * item becomes a plain paragraph and an ignored image is dropped. */
+
+static void append_escaped_text(buffer_t *out, const char *text) {
+  for (const char *c = text; *c; c++) {
+    switch (*c) {
+    case '<':
+      buffer_append_str(out, "&lt;");
+      break;
+    case '>':
+      buffer_append_str(out, "&gt;");
+      break;
+    case '&':
+      buffer_append_str(out, "&amp;");
+      break;
+    default:
+      buffer_append(out, c, 1);
+      break;
+    }
+  }
+}
+
+static uint32_t style_flag_for_tag(const char *tag, GumboElement *el) {
+  if (strcmp(tag, "b") == 0)
+    return IGNORED_STYLE_BOLD;
+  if (strcmp(tag, "i") == 0)
+    return IGNORED_STYLE_ITALIC;
+  if (strcmp(tag, "u") == 0)
+    return IGNORED_STYLE_UNDERLINE;
+  if (strcmp(tag, "s") == 0)
+    return IGNORED_STYLE_STRIKETHROUGH;
+  if (strcmp(tag, "code") == 0)
+    return IGNORED_STYLE_INLINE_CODE;
+  if (strcmp(tag, "a") == 0)
+    return IGNORED_STYLE_LINK;
+  if (strcmp(tag, "mention") == 0)
+    return IGNORED_STYLE_MENTION;
+  if (strcmp(tag, "span") == 0)
+    return IGNORED_STYLE_CUSTOM_STYLE;
+  if (strcmp(tag, "img") == 0)
+    return IGNORED_STYLE_IMAGE;
+  if (strcmp(tag, "h1") == 0)
+    return IGNORED_STYLE_H1;
+  if (strcmp(tag, "h2") == 0)
+    return IGNORED_STYLE_H2;
+  if (strcmp(tag, "h3") == 0)
+    return IGNORED_STYLE_H3;
+  if (strcmp(tag, "h4") == 0)
+    return IGNORED_STYLE_H4;
+  if (strcmp(tag, "h5") == 0)
+    return IGNORED_STYLE_H5;
+  if (strcmp(tag, "h6") == 0)
+    return IGNORED_STYLE_H6;
+  if (strcmp(tag, "codeblock") == 0)
+    return IGNORED_STYLE_CODE_BLOCK;
+  if (strcmp(tag, "blockquote") == 0)
+    return IGNORED_STYLE_BLOCK_QUOTE;
+  if (strcmp(tag, "ol") == 0)
+    return IGNORED_STYLE_ORDERED_LIST;
+  if (strcmp(tag, "ul") == 0)
+    return is_checkbox_list(el) ? IGNORED_STYLE_CHECKBOX_LIST
+                                : IGNORED_STYLE_UNORDERED_LIST;
+  return 0;
+}
+
+static void filter_node(GumboNode *node, buffer_t *out, uint32_t ignored);
+
+static void filter_children(GumboNode *node, buffer_t *out, uint32_t ignored) {
+  if (!is_element(node))
+    return;
+  GumboVector *children = &node->v.element.children;
+  for (unsigned int i = 0; i < children->length; i++)
+    filter_node(children->data[i], out, ignored);
+}
+
+static void filter_emit_attributes(GumboElement *el, const char *tag,
+                                   buffer_t *out, uint32_t ignored) {
+  for (unsigned int i = 0; i < el->attributes.length; i++) {
+    GumboAttribute *attr = (GumboAttribute *)el->attributes.data[i];
+    // on alignable tags, `style` only ever holds text-align
+    if ((ignored & IGNORED_STYLE_ALIGNMENT) &&
+        strcmp(attr->name, "style") == 0 && is_alignable_tag(tag))
+      continue;
+    buffer_append_str(out, " ");
+    buffer_append_str(out, attr->name);
+    if (strcmp(attr->name, "checked") == 0)
+      continue;
+    buffer_append_str(out, "=\"");
+    append_escaped_attr_value(out, attr->value, strlen(attr->value));
+    buffer_append_str(out, "\"");
+  }
+}
+
+/* Emits the node's content as a plain paragraph that keeps the text-align of
+ * align_el (the node itself, or the list a list item belongs to). */
+static void filter_emit_paragraph(GumboNode *node, GumboElement *align_el,
+                                  buffer_t *out, uint32_t ignored) {
+  buffer_t inner = buffer_create(64);
+  filter_children(node, &inner, ignored);
+  if (inner.len == 0) {
+    buffer_append_str(out, "<br>");
+  } else {
+    buffer_append_str(out, "<p");
+    if (!(ignored & IGNORED_STYLE_ALIGNMENT))
+      emit_alignment(align_el, "p", out);
+    buffer_append_str(out, ">");
+    buffer_append(out, inner.data, inner.len);
+    buffer_append_str(out, "</p>");
+  }
+  free(inner.data);
+}
+
+static void filter_node(GumboNode *node, buffer_t *out, uint32_t ignored) {
+  if (!node)
+    return;
+  if (is_text(node)) {
+    append_escaped_text(out, node->v.text.text);
+    return;
+  }
+  if (!is_element(node))
+    return;
+
+  GumboElement *el = &node->v.element;
+  char tag[64];
+  if (!get_tag_name(node, tag, sizeof(tag))) {
+    filter_children(node, out, ignored);
+    return;
+  }
+
+  uint32_t style = style_flag_for_tag(tag, el);
+  if (style & ignored) {
+    if (style == IGNORED_STYLE_IMAGE)
+      return;
+
+    if (style & IGNORED_STYLE_HEADINGS) {
+      filter_emit_paragraph(node, el, out, ignored);
+      return;
+    }
+
+    if (strcmp(tag, "ul") == 0 || strcmp(tag, "ol") == 0) {
+      GumboVector *items = &el->children;
+      for (unsigned int i = 0; i < items->length; i++) {
+        char item_tag[64];
+        GumboNode *item = items->data[i];
+        if (get_tag_name(item, item_tag, sizeof(item_tag)) &&
+            strcmp(item_tag, "li") == 0) {
+          filter_emit_paragraph(item, el, out, ignored);
+        } else {
+          filter_node(item, out, ignored);
+        }
+      }
+      return;
+    }
+
+    // inline styles, blockquotes and codeblocks (whose content is already
+    // made of paragraphs) are unwrapped
+    filter_children(node, out, ignored);
+    return;
+  }
+
+  buffer_append_str(out, "<");
+  buffer_append_str(out, tag);
+  filter_emit_attributes(el, tag, out, ignored);
+  if (strcmp(tag, "br") == 0) {
+    buffer_append_str(out, ">");
+    return;
+  }
+  if (strcmp(tag, "img") == 0) {
+    buffer_append_str(out, " />");
+    return;
+  }
+  buffer_append_str(out, ">");
+  filter_children(node, out, ignored);
+  buffer_append_str(out, "</");
+  buffer_append_str(out, tag);
+  buffer_append_str(out, ">");
+}
+
+static char *filter_ignored_styles(const char *normalized, uint32_t ignored) {
+  // An explicit <body> keeps leading whitespace, which the HTML5 parser
+  // would otherwise drop before the body starts.
+  buffer_t source = buffer_create(strlen(normalized) + 7);
+  buffer_append_str(&source, "<body>");
+  buffer_append_str(&source, normalized);
+
+  GumboOutput *output =
+      gumbo_parse_with_options(&kGumboDefaultOptions, source.data, source.len);
+  if (!output) {
+    free(source.data);
+    return NULL;
+  }
+
+  GumboNode *body = find_body(output->root);
+  if (!body)
+    body = output->root;
+
+  buffer_t buf = buffer_create(source.len);
+  filter_children(body, &buf, ignored);
+
+  gumbo_destroy_output(&kGumboDefaultOptions, output);
+  free(source.data);
+  return buffer_finish(&buf);
+}
+
+/* ------------------------------------------------------------------ */
 /*  Public API                                                         */
 /* ------------------------------------------------------------------ */
 
-char *normalize_html(const char *html, size_t len) {
+char *normalize_html(const char *html, size_t len, uint32_t ignored_styles) {
   if (!html || len == 0)
     return NULL;
 
@@ -1243,7 +1455,14 @@ char *normalize_html(const char *html, size_t len) {
   walk_children(body, &buf, NULL);
 
   gumbo_destroy_output(&kGumboDefaultOptions, output);
-  return buffer_finish(&buf);
+  char *normalized = buffer_finish(&buf);
+
+  if (!normalized || ignored_styles == 0)
+    return normalized;
+
+  char *filtered = filter_ignored_styles(normalized, ignored_styles);
+  free(normalized);
+  return filtered;
 }
 
 void free_normalized_html(char *result) { free(result); }
