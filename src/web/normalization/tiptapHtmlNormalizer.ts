@@ -5,16 +5,19 @@ import {
   checkboxHtmlFromTiptap,
 } from './checkboxHtmlNormalizer';
 import { normalizeColorToHex } from './colorNormalizer';
-import { normalizeHtml } from './htmlNormalizer';
+import { isEnrichedHtml, normalizeHtml } from './htmlNormalizer';
 
 export function prepareHtmlForTiptap(
   html: string,
   useHtmlNormalizer: boolean | undefined,
-  sanitizationConfig?: SanitizationConfig
+  sanitizationConfig?: SanitizationConfig,
+  ignoredStylesMask = 0
 ): string {
+  // the editor's own HTML is never filtered, like on native
+  const mask = isEnrichedHtml(html) ? 0 : ignoredStylesMask;
   html = sanitizeHtml(html, sanitizationConfig);
   if (useHtmlNormalizer) {
-    html = normalizeHtml(html);
+    html = normalizeHtml(html, mask);
   }
   html = checkboxHtmlForTiptap(html);
   html = html.replace(/<br\s*\/?>/gi, '<p></p>');

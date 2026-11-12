@@ -3,10 +3,11 @@ import { withBaseFontFamilyFallback } from '../styleConversion/enrichedStyleToCS
 
 export function prepareHtmlForWeb(
   html: string,
-  useHtmlNormalizer: boolean | undefined
+  useHtmlNormalizer: boolean | undefined,
+  ignoredStylesMask = 0
 ): string {
   if (useHtmlNormalizer) {
-    html = normalizeHtml(html);
+    html = normalizeHtml(html, ignoredStylesMask);
   }
 
   const parser = new DOMParser();
