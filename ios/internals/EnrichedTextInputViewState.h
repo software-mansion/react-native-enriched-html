@@ -6,17 +6,17 @@ namespace facebook::react {
 class EnrichedTextInputViewState {
 public:
   EnrichedTextInputViewState()
-      : forceHeightRecalculationCounter_(0), componentViewRef_(nullptr) {}
-  EnrichedTextInputViewState(int counter, std::shared_ptr<void> ref) {
+      : forceHeightRecalculationCounter_(0), measurementSnapshot_(nullptr) {}
+  EnrichedTextInputViewState(int counter, std::shared_ptr<void> snapshot) {
     forceHeightRecalculationCounter_ = counter;
-    componentViewRef_ = ref;
+    measurementSnapshot_ = snapshot;
   }
   int getForceHeightRecalculationCounter() const;
-  std::shared_ptr<void> getComponentViewRef() const;
+  std::shared_ptr<void> getMeasurementSnapshot() const;
 
 private:
   int forceHeightRecalculationCounter_{};
-  std::shared_ptr<void> componentViewRef_{};
+  std::shared_ptr<void> measurementSnapshot_{};
 };
 
 } // namespace facebook::react

@@ -941,7 +941,9 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
 
 // MARK: - Measuring and states
 
-- (CGSize)measureSize:(CGFloat)maxWidth {
+// Returns an immutable copy of the content prepared for measuring, see
+// +measureSnapshot:maxWidth:.
+- (NSAttributedString *)measurementSnapshot {
   // copy the the whole attributed string
   NSMutableAttributedString *currentStr = [[NSMutableAttributedString alloc]
       initWithAttributedString:textView.textStorage];
@@ -979,13 +981,23 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
     }
   }
 
+  return [currentStr copy];
+}
+
++ (CGSize)measureSnapshot:(NSAttributedString *)snapshot
+                 maxWidth:(CGFloat)maxWidth {
   CGRect boundingBox =
-      [currentStr boundingRectWithSize:CGSizeMake(maxWidth, CGFLOAT_MAX)
-                               options:NSStringDrawingUsesLineFragmentOrigin |
-                                       NSStringDrawingUsesFontLeading
-                               context:nullptr];
+      [snapshot boundingRectWithSize:CGSizeMake(maxWidth, CGFLOAT_MAX)
+                             options:NSStringDrawingUsesLineFragmentOrigin |
+                                     NSStringDrawingUsesFontLeading
+                             context:nullptr];
 
   return CGSizeMake(maxWidth, ceil(boundingBox.size.height));
+}
+
+- (CGSize)measureSize:(CGFloat)maxWidth {
+  return [EnrichedTextInputView measureSnapshot:[self measurementSnapshot]
+                                       maxWidth:maxWidth];
 }
 
 // make sure the newest state is kept in _state property
@@ -1007,9 +1019,11 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
     return;
   }
   _componentViewHeightUpdateCounter++;
-  auto selfRef = wrapManagedObjectWeakly(self);
-  _state->updateState(
-      EnrichedTextInputViewState(_componentViewHeightUpdateCounter, selfRef));
+  // Hand the shadow node an immutable snapshot of the content, so that
+  // measureContent never has to touch this view or the main thread.
+  _state->updateState(EnrichedTextInputViewState(
+      _componentViewHeightUpdateCounter,
+      wrapManagedObject([self measurementSnapshot])));
 }
 
 // MARK: - Active styles
