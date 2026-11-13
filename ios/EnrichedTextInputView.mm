@@ -730,6 +730,13 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
     [config setLinkRegexConfig:newRegexConfig];
   }
 
+  // must be set before the default value, which already checks the mentions
+  if (newViewProps.removeInvalidMentionContent !=
+      oldViewProps.removeInvalidMentionContent) {
+    [config setRemoveInvalidMentionContent:newViewProps
+                                               .removeInvalidMentionContent];
+  }
+
   // default value - must be set before placeholder to make sure it correctly
   // shows on first mount
   if (newViewProps.defaultValue != oldViewProps.defaultValue) {

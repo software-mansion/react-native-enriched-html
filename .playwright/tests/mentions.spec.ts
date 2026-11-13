@@ -22,6 +22,7 @@ const sel = {
   setChannelButton: '[data-testid="mention-set-channel-button"]',
   startUserButton: '[data-testid="mention-start-user-button"]',
   startChannelButton: '[data-testid="mention-start-channel-button"]',
+  removeInvalidToggle: '[data-testid="mention-remove-invalid-toggle"]',
 } as const;
 
 async function gotoMentionTest(page: Page): Promise<void> {
@@ -311,5 +312,74 @@ test("inserting a mention between text doesn't produce a double space", async ({
     .poll(async () => await htmlOutput(page).textContent())
     .toEqual(
       '<html><p>example <mention text="Jane" indicator="@" id="1">Jane</mention> test</p></html>'
+    );
+});
+
+// Inserts "Jane" plus the space setMention adds, then moves the caret
+// `steps` characters left from the end: 1 is right after the mention,
+// 3 is between "Ja" and "ne"
+async function insertMentionAndMoveLeft(
+  page: Page,
+  steps: number
+): Promise<void> {
+  const editor = mentionEditor(page);
+  await editor.click();
+  await editor.pressSequentially('@', { delay: 80 });
+  await page.locator(sel.setUserButton).click();
+  await expect
+    .poll(async () =>
+      (await htmlOutput(page).textContent())?.includes('<mention')
+    )
+    .toBe(true);
+  await editor.press('End');
+  for (let i = 0; i < steps; i++) {
+    await editor.press('ArrowLeft');
+  }
+}
+
+test('typing inside a mention keeps its text by default', async ({ page }) => {
+  await gotoMentionTest(page);
+  await insertMentionAndMoveLeft(page, 3);
+  await mentionEditor(page).press('x');
+  await expect
+    .poll(async () => await htmlOutput(page).textContent())
+    .toEqual('<html><p>Jaxne </p></html>');
+});
+
+test('removeInvalidMentionContent: typing inside a mention removes it', async ({
+  page,
+}) => {
+  await gotoMentionTest(page);
+  await page.locator(sel.removeInvalidToggle).click();
+  await insertMentionAndMoveLeft(page, 3);
+  await mentionEditor(page).press('x');
+  await expect
+    .poll(async () => await htmlOutput(page).textContent())
+    .toEqual('<html><p> </p></html>');
+});
+
+test('removeInvalidMentionContent: backspace inside a mention removes it', async ({
+  page,
+}) => {
+  await gotoMentionTest(page);
+  await page.locator(sel.removeInvalidToggle).click();
+  await insertMentionAndMoveLeft(page, 3);
+  await mentionEditor(page).press('Backspace');
+  await expect
+    .poll(async () => await htmlOutput(page).textContent())
+    .toEqual('<html><p> </p></html>');
+});
+
+test('removeInvalidMentionContent: typing right after a mention keeps it', async ({
+  page,
+}) => {
+  await gotoMentionTest(page);
+  await page.locator(sel.removeInvalidToggle).click();
+  await insertMentionAndMoveLeft(page, 1);
+  await mentionEditor(page).press('x');
+  await expect
+    .poll(async () => await htmlOutput(page).textContent())
+    .toEqual(
+      '<html><p><mention text="Jane" indicator="@" id="1">Jane</mention>x </p></html>'
     );
 });

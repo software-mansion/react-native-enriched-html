@@ -14,6 +14,7 @@
   BOOL _monospacedFontNeedsRecreation;
   BOOL _allowFontScaling;
   NSSet<NSNumber *> *_mentionIndicators;
+  BOOL _removeInvalidMentionContent;
   CGFloat _h1FontSize;
   BOOL _h1Bold;
   CGFloat _h2FontSize;
@@ -83,6 +84,7 @@
   copy->_monospacedFont = [_monospacedFont copy];
   copy->_allowFontScaling = _allowFontScaling;
   copy->_mentionIndicators = [_mentionIndicators copy];
+  copy->_removeInvalidMentionContent = _removeInvalidMentionContent;
   copy->_h1FontSize = _h1FontSize;
   copy->_h1Bold = _h1Bold;
   copy->_h2FontSize = _h2FontSize;
@@ -228,6 +230,14 @@
 
 - (void)setMentionIndicators:(NSSet<NSNumber *> *)newValue {
   _mentionIndicators = newValue;
+}
+
+- (BOOL)removeInvalidMentionContent {
+  return _removeInvalidMentionContent;
+}
+
+- (void)setRemoveInvalidMentionContent:(BOOL)newValue {
+  _removeInvalidMentionContent = newValue;
 }
 
 - (CGFloat)h1FontSize {

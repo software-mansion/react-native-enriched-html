@@ -23,6 +23,8 @@
 - (UIFont *)monospacedFont;
 - (NSSet<NSNumber *> *)mentionIndicators;
 - (void)setMentionIndicators:(NSSet<NSNumber *> *)newValue;
+- (BOOL)removeInvalidMentionContent;
+- (void)setRemoveInvalidMentionContent:(BOOL)newValue;
 - (CGFloat)h1FontSize;
 - (void)setH1FontSize:(CGFloat)newValue;
 - (BOOL)h1Bold;
