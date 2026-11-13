@@ -12,7 +12,7 @@ appId: swmansion.enriched.example
       VALUE: >
         <html>
           <ul>
-            <li><img src="https://picsum.photos/id/1/200/200" width="80" height="80"/></li>
+            <li><img src="https://raw.githubusercontent.com/software-mansion/react-native-enriched-html/main/.maestro/assets/sample_image.jpg" width="80" height="80"/></li>
             <li>A</li>
             <li>B</li>
           </ul>
