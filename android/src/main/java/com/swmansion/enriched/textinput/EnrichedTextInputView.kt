@@ -100,8 +100,8 @@ class EnrichedTextInputView :
   var isDuringTransaction: Boolean = false
   var isRemovingMany: Boolean = false
 
-  // True between sending a height recalculation (state update) and the new state being mounted
   var isWaitingForHeightUpdate: Boolean = false
+  private var didCapScrollWhileWaiting = false
   var scrollEnabled: Boolean = true
   var allowFontScaling: Boolean = EnrichedConstants.ALLOW_FONT_SCALING_DEFAULT
     set(value) {
@@ -190,11 +190,19 @@ class EnrichedTextInputView :
     // Android's internal cursor tracker gets confused by ALIGN_CENTER + LeadingMarginSpan
     // and attempts to scroll the text horizontally.
     // We lock the horizontal scroll to 0 to prevent the view from shifting.
-    // Height updates are async, so new text is laid out before the view grows to fit it.
-    // Until then, cap the scroll at what it will be after the resize (0 if all text fits),
-    // so EditText doesn't jump to the new line and back.
+    // Height updates are async, so new text is laid out before the view grows. Cap the scroll at its
+    // post-resize value, otherwise EditText jumps to the new line and back.
     val targetY = if (isWaitingForHeightUpdate) y.coerceAtMost(getMaxScrollAfterHeightUpdate()) else y
+    if (targetY < y) didCapScrollWhileWaiting = true
     super.scrollTo(0, targetY)
+  }
+
+  fun onHeightUpdateMounted() {
+    isWaitingForHeightUpdate = false
+    if (!didCapScrollWhileWaiting) return
+    didCapScrollWhileWaiting = false
+    // The predicted height can be wrong (e.g. when it comes from flex)
+    post { forceScrollToSelection() }
   }
 
   private fun getMaxScrollAfterHeightUpdate(): Int {
@@ -1140,8 +1148,6 @@ class EnrichedTextInputView :
     }
   }
 
-  // EditText reserves a locale-preferred minimum line height on API 35+ (enabled by default for apps targeting SDK 35+).
-  // It keeps empty lines as tall as lines with text, so MeasurementStore has to apply it as well.
   fun usesLocalePreferredLineHeight(): Boolean =
     Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM && isLocalePreferredLineHeightForMinimumUsed
 

@@ -58,8 +58,7 @@ class EnrichedTextInputViewManager :
     stateWrapper: StateWrapper?,
   ): Any? {
     view.stateWrapper = stateWrapper
-    // New state is mounted in the same batch as the resulting layout (height) update
-    view.isWaitingForHeightUpdate = false
+    view.onHeightUpdateMounted()
     return super.updateState(view, props, stateWrapper)
   }
 

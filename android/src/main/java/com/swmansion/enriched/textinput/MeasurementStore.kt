@@ -42,8 +42,7 @@ object MeasurementStore {
 
   private val data = ConcurrentHashMap<Int, MeasurementParams>()
 
-  // Max height (in px) the text can take before the input stops growing, as given by Yoga (e.g. from maxHeight).
-  // Missing when the input doesn't grow with its content (e.g. fixed height).
+  // In px, as given by Yoga's measure (e.g. from maxHeight)
   private val maxTextHeights = ConcurrentHashMap<Int, Float>()
 
   fun store(
@@ -106,7 +105,7 @@ object MeasurementStore {
       builder.setUseLineSpacingFromFallbacks(true)
     }
 
-    // Mirrors EditText's locale-preferred minimum line height, otherwise empty lines are measured shorter than they are drawn
+    // EditText (targetSdk 35+) keeps empty lines as tall as lines with text, otherwise they're measured shorter than drawn
     if (useLocalePreferredLineHeight && Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
       val minimumFontMetrics = Paint.FontMetrics()
       paint.getFontMetricsForLocale(minimumFontMetrics)
