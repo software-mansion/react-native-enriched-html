@@ -1,100 +1,40 @@
 package com.swmansion.enriched.common
 
-import android.content.res.Resources
-import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.ColorFilter
-import android.graphics.ImageDecoder
 import android.graphics.PixelFormat
-import android.graphics.drawable.AnimatedImageDrawable
 import android.graphics.drawable.Drawable
-import android.os.Build
-import android.os.Handler
-import android.os.Looper
-import android.util.Log
 import androidx.core.graphics.drawable.toDrawable
 import com.swmansion.enriched.R
-import java.net.URL
-import java.nio.ByteBuffer
-import java.util.concurrent.Executors
 
+/**
+ * A drawable that starts out transparent and swaps in the image at [url] once
+ * [EnrichedImageLoader] delivers it, or a "broken image" placeholder when loading fails.
+ */
 class AsyncDrawable(
-  private val url: String,
+  url: String,
+  targetWidthPx: Int,
+  targetHeightPx: Int,
 ) : Drawable() {
   private var internalDrawable: Drawable = Color.TRANSPARENT.toDrawable()
-  private val mainHandler = Handler(Looper.getMainLooper())
-  private val executor = Executors.newSingleThreadExecutor()
+
   var isLoaded = false
+    private set
+
+  var onLoaded: (() -> Unit)? = null
 
   init {
     internalDrawable.bounds = bounds
-
-    load()
+    EnrichedImageLoader.load(url, targetWidthPx, targetHeightPx) { onImageLoaded(it) }
   }
 
-  private fun load() {
-    executor.execute {
-      try {
-        isLoaded = false
-        val inputStream = URL(url).openStream()
-        val bytes = inputStream.readBytes()
-        val d = prepareDrawable(bytes)
-
-        // Switch to Main Thread to update UI
-        mainHandler.post {
-          if (d != null) {
-            d.bounds = bounds
-            internalDrawable = d
-          } else {
-            loadPlaceholderImage()
-          }
-        }
-      } catch (e: Exception) {
-        Log.e("AsyncDrawable", "Failed to load: $url", e)
-
-        loadPlaceholderImage()
-      } finally {
-        isLoaded = true
-        onLoaded?.invoke()
-      }
-    }
-  }
-
-  private fun prepareDrawable(bytes: ByteArray): Drawable? {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-      try {
-        val buffer = ByteBuffer.wrap(bytes)
-        val source = ImageDecoder.createSource(buffer)
-
-        val drawable =
-          ImageDecoder.decodeDrawable(source) { decoder, _, _ ->
-            decoder.setTargetSize(bounds.width(), bounds.height())
-          }
-
-        if (drawable is AnimatedImageDrawable) {
-          drawable.setBounds(0, 0, drawable.intrinsicWidth, drawable.intrinsicHeight)
-          drawable.repeatCount = AnimatedImageDrawable.REPEAT_INFINITE
-          drawable.start()
-        }
-
-        return drawable
-      } catch (e: Exception) {
-        Log.w("AsyncDrawable", "ImageDecoder failed, falling back to Bitmap", e)
-      }
-    }
-
-    // Fallback to bitmap if ImageDecoder fails
-    return try {
-      val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-      bitmap?.toDrawable(Resources.getSystem())
-    } catch (_: Exception) {
-      null
-    }
-  }
-
-  private fun loadPlaceholderImage() {
-    internalDrawable = ResourceManager.getDrawableResource(R.drawable.broken_image)
+  // Invoked on the main thread by the loader.
+  private fun onImageLoaded(drawable: Drawable?) {
+    internalDrawable = drawable ?: ResourceManager.getDrawableResource(R.drawable.broken_image)
+    internalDrawable.bounds = bounds
+    isLoaded = true
+    onLoaded?.invoke()
   }
 
   override fun draw(canvas: Canvas) {
@@ -121,6 +61,4 @@ class AsyncDrawable(
     super.setBounds(left, top, right, bottom)
     internalDrawable.setBounds(left, top, right, bottom)
   }
-
-  var onLoaded: (() -> Unit)? = null
 }

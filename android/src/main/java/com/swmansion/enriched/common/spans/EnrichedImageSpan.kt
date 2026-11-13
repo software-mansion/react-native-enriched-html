@@ -136,9 +136,12 @@ open class EnrichedImageSpan :
       height: Int,
     ): Drawable? {
       var cleanPath = src
+      val density = Resources.getSystem().displayMetrics.density
+      val targetWidthPx = (width * density).toInt()
+      val targetHeightPx = (height * density).toInt()
 
       if (cleanPath.startsWith("http://") || cleanPath.startsWith("https://")) {
-        return AsyncDrawable(cleanPath)
+        return AsyncDrawable(cleanPath, targetWidthPx, targetHeightPx)
       }
 
       if (cleanPath.startsWith("file://")) {
@@ -160,10 +163,6 @@ open class EnrichedImageSpan :
       return try {
         val file = File(cleanPath)
         val source = ImageDecoder.createSource(file)
-
-        val density = Resources.getSystem().displayMetrics.density
-        val targetWidthPx = (width * density).toInt()
-        val targetHeightPx = (height * density).toInt()
 
         val drawable =
           ImageDecoder.decodeDrawable(source) { decoder, info, source ->
