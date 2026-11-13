@@ -308,16 +308,16 @@ public class EnrichedParser {
         }
         if (style[j] instanceof EnrichedLinkSpan) {
           out.append("<a href=\"");
-          out.append(((EnrichedLinkSpan) style[j]).getUrl());
+          out.append(escapeAttribute(((EnrichedLinkSpan) style[j]).getUrl()));
           out.append("\">");
         }
         if (style[j] instanceof EnrichedMentionSpan) {
           out.append("<mention text=\"");
-          out.append(((EnrichedMentionSpan) style[j]).getText());
+          out.append(escapeAttribute(((EnrichedMentionSpan) style[j]).getText()));
           out.append("\"");
 
           out.append(" indicator=\"");
-          out.append(((EnrichedMentionSpan) style[j]).getIndicator());
+          out.append(escapeAttribute(((EnrichedMentionSpan) style[j]).getIndicator()));
           out.append("\"");
 
           Map<String, String> attributes = ((EnrichedMentionSpan) style[j]).getAttributes();
@@ -325,7 +325,7 @@ public class EnrichedParser {
             out.append(" ");
             out.append(entry.getKey());
             out.append("=\"");
-            out.append(entry.getValue());
+            out.append(escapeAttribute(entry.getValue()));
             out.append("\"");
           }
 
@@ -333,7 +333,7 @@ public class EnrichedParser {
         }
         if (style[j] instanceof EnrichedImageSpan) {
           out.append("<img src=\"");
-          out.append(((EnrichedImageSpan) style[j]).getSource());
+          out.append(escapeAttribute(((EnrichedImageSpan) style[j]).getSource()));
           out.append("\"");
 
           out.append(" width=\"");
@@ -381,13 +381,7 @@ public class EnrichedParser {
               }
             }
             out.append("<span style=\"")
-                .append(
-                    cssProps
-                        .toString()
-                        .replace("&", "&amp;")
-                        .replace("<", "&lt;")
-                        .replace(">", "&gt;")
-                        .replace("\"", "&quot;"))
+                .append(escapeAttribute(cssProps.toString()))
                 .append("\">");
           } else {
             out.append("<span>");
@@ -457,6 +451,16 @@ public class EnrichedParser {
         out.append(c);
       }
     }
+  }
+
+  /** Escapes a value so it can be safely placed inside a double-quoted HTML attribute. */
+  private static String escapeAttribute(String value) {
+    if (value == null) return null;
+    return value
+        .replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace("\"", "&quot;");
   }
 
   private static String formatCssFontSizeValue(float fontSize) {
