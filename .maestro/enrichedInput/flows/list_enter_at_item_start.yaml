@@ -1,0 +1,30 @@
+appId: swmansion.enriched.example
+---
+# Issue #810 - Enter at the start of a populated list item splits it instead of ending the list
+# Android only: every Android list item starts with a ZWS, which made it look like an empty item.
+# The caret is moved with D-pad keys, which Maestro supports only on Android.
+- launchApp
+
+- tapOn:
+    id: "toggle-screen-button"
+
+- tapOn:
+    id: "editor-input"
+
+- tapOn:
+    id: "toolbar-ordered-list"
+
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - inputText: "Item"
+      - pressKey: Remote Dpad Left
+      - pressKey: Remote Dpad Left
+      - pressKey: Remote Dpad Left
+      - pressKey: Remote Dpad Left
+      - pressKey: Enter
+      - runFlow:
+          file: "../subflows/capture_or_assert_screenshot.yaml"
+          env:
+            SCREENSHOT_NAME: "list_enter_at_item_start"

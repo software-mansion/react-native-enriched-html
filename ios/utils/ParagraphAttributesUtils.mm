@@ -283,6 +283,66 @@
   input->textView.typingAttributes = resetAttrs;
 }
 
+// Pressing Enter in an empty list item (unordered, ordered or checkbox) ends
+// the list instead of adding yet another empty item.
++ (BOOL)handleNewlineInEmptyListItem:(NSRange)range
+                     replacementText:(NSString *)text
+                               input:(id)input {
+  EnrichedTextInputView *typedInput = (EnrichedTextInputView *)input;
+  if (typedInput == nullptr) {
+    return NO;
+  }
+
+  // Don't intervene during IME composition.
+  if (typedInput->textView.markedTextRange != nullptr) {
+    return NO;
+  }
+
+  // A single newline character only.
+  if (text.length != 1 || ![[NSCharacterSet newlineCharacterSet]
+                              characterIsMember:[text characterAtIndex:0]]) {
+    return NO;
+  }
+
+  NSString *string = typedInput->textView.textStorage.string;
+  NSRange paragraphRange = [string paragraphRangeForRange:range];
+
+  // Content of the paragraph without its trailing newline.
+  NSUInteger contentLength = paragraphRange.length;
+  if (contentLength > 0 &&
+      [[NSCharacterSet newlineCharacterSet]
+          characterIsMember:[string
+                                characterAtIndex:NSMaxRange(paragraphRange) -
+                                                 1]]) {
+    contentLength -= 1;
+  }
+
+  // An empty list item consists of exactly one zero-width space.
+  if (contentLength != 1 ||
+      [string characterAtIndex:paragraphRange.location] != 0x200B) {
+    return NO;
+  }
+  // We want the caret before or after the ZWS, or have the ZWS itself selected
+  // - a selection that also covers the trailing newline isn't handled here.
+  if (NSMaxRange(range) > paragraphRange.location + 1) {
+    return NO;
+  }
+
+  NSArray<NSNumber *> *listTypes = @[
+    @([UnorderedListStyle getType]), @([OrderedListStyle getType]),
+    @([CheckboxListStyle getType])
+  ];
+  for (NSNumber *type in listTypes) {
+    StyleBase *style = typedInput->stylesDict[type];
+    if (style != nullptr && [style detect:paragraphRange]) {
+      [style remove:paragraphRange withDirtyRange:YES];
+      return YES;
+    }
+  }
+
+  return NO;
+}
+
 + (BOOL)isParagraphEmpty:(NSRange)range inString:(NSString *)string {
   if (range.length == 0)
     return YES;

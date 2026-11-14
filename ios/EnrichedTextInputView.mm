@@ -2104,6 +2104,11 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
       [ZeroWidthSpaceUtils handleBackspaceInRange:range
                                   replacementText:text
                                              host:self] ||
+      // Enter in an empty list item ends the list. Has to run before the
+      // checkbox newline handling.
+      [ParagraphAttributesUtils handleNewlineInEmptyListItem:range
+                                             replacementText:text
+                                                       input:self] ||
       [cbLStyle handleNewlinesInRange:range replacementText:text] ||
       [h1Style handleNewlinesInRange:range replacementText:text] ||
       [h2Style handleNewlinesInRange:range replacementText:text] ||
