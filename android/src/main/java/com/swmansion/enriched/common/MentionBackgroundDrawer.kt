@@ -20,6 +20,12 @@ object MentionBackgroundDrawer {
   private val radii = FloatArray(8)
   private val clipBounds = Rect()
 
+  fun ensureLayout(view: TextView): Layout? {
+    view.layout?.let { return it }
+    view.onPreDraw()
+    return view.layout
+  }
+
   fun clipToTextBounds(
     canvas: Canvas,
     view: TextView,
