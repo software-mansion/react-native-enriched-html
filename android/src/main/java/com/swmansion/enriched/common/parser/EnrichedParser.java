@@ -380,9 +380,7 @@ public class EnrichedParser {
                 cssProps.append("font-family: ").append(fontFamily).append(";");
               }
             }
-            out.append("<span style=\"")
-                .append(escapeAttribute(cssProps.toString()))
-                .append("\">");
+            out.append("<span style=\"").append(escapeAttribute(cssProps.toString())).append("\">");
           } else {
             out.append("<span>");
           }
