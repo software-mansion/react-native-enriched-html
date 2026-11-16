@@ -57,6 +57,12 @@ HTML can be messy. Whether users paste rich text from applications like Google D
 
 To handle this, both components provide a `useHtmlNormalizer` prop that normalizes incoming HTML. The normalizer cleans and restructures the input into the predictable format the library relies on (e.g., it maps `<strong>` to `<b>`, unwraps `<div>` containers into `<p>` tags, and strips unsupported tags). The `useHtmlNormalizer` prop defaults to `true`.
 
+While normalizing, you can also leave out chosen styles with the
+`ignoredStyles` prop - for example to keep the formatting of pasted content, but
+drop its colors and fonts. See `ignoredStyles` in
+[`EnrichedTextInput`](/api-reference/enriched-text-input#ignoredstyles) and
+[`EnrichedText`](/api-reference/enriched-text#ignoredstyles).
+
 All supported and canonical tags are listed in [Supported tags](/fundamentals/html-format-and-supported-tags).
 
 ## Two components, one HTML format

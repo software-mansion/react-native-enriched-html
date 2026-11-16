@@ -228,7 +228,8 @@
 
 - (NSString *_Nullable)initiallyProcessHtml:(NSString *_Nonnull)html {
   return [HtmlParser initiallyProcessHtml:html
-                        useHtmlNormalizer:_input->useHtmlNormalizer];
+                        useHtmlNormalizer:_input->useHtmlNormalizer
+                            ignoredStyles:_input->ignoredStylesMask];
 }
 
 @end

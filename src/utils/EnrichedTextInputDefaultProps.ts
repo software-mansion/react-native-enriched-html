@@ -1,4 +1,4 @@
-import type { TextShortcut } from '../types';
+import type { EnrichedStyleName, TextShortcut } from '../types';
 
 export const ENRICHED_TEXT_INPUT_DEFAULT_PROPS = {
   mentionIndicators: ['@'],
@@ -8,6 +8,7 @@ export const ENRICHED_TEXT_INPUT_DEFAULT_PROPS = {
   scrollEnabled: true,
   androidExperimentalSynchronousEvents: false,
   useHtmlNormalizer: true,
+  ignoredStyles: [] as EnrichedStyleName[],
   allowFontScaling: true,
   textShortcuts: [
     { trigger: '- ', style: 'unordered_list' },

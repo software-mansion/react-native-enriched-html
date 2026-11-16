@@ -22,7 +22,8 @@
   @try {
     NSString *normalized =
         [HtmlParser initiallyProcessHtml:html
-                       useHtmlNormalizer:_view->useHtmlNormalizer];
+                       useHtmlNormalizer:_view->useHtmlNormalizer
+                           ignoredStyles:_view->ignoredStylesMask];
     if (normalized == nil) {
       [_view->textView.textStorage
           setAttributedString:[[NSAttributedString alloc]

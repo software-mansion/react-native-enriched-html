@@ -141,11 +141,13 @@
  * canonical tag subset using the Gumbo-based C++ normalizer.
  *
  * Converts: strong → b, em → i, span style="font-weight:bold" → b,
- * strips unknown tags while preserving text
+ * strips unknown tags while preserving text. Styles in ignoredStyles are left
+ * out.
  */
-+ (NSString *_Nullable)normalizeExternalHtml:(NSString *_Nonnull)html {
++ (NSString *_Nullable)normalizeExternalHtml:(NSString *_Nonnull)html
+                               ignoredStyles:(uint32_t)ignoredStyles {
   std::string result =
-      GumboParser::normalizeHtml(std::string([html UTF8String]));
+      GumboParser::normalizeHtml(std::string([html UTF8String]), ignoredStyles);
   if (result.empty())
     return nil;
   return [NSString stringWithUTF8String:result.c_str()];
@@ -211,7 +213,8 @@
 }
 
 + (NSString *_Nullable)initiallyProcessHtml:(NSString *_Nonnull)html
-                          useHtmlNormalizer:(BOOL)useHtmlNormalizer {
+                          useHtmlNormalizer:(BOOL)useHtmlNormalizer
+                              ignoredStyles:(uint32_t)ignoredStyles {
   NSString *htmlWithoutSpaces = [self stripExtraWhiteSpacesAndNewlines:html];
   NSString *fixedHtml = nullptr;
 
@@ -239,7 +242,8 @@
       // External HTML (from Google Docs, Word, web pages, etc.)
       // Run through the Gumbo-based normalizer to convert arbitrary HTML
       // into our canonical tag subset.
-      NSString *normalized = [self normalizeExternalHtml:html];
+      NSString *normalized = [self normalizeExternalHtml:html
+                                           ignoredStyles:ignoredStyles];
       if (normalized != nil) {
         fixedHtml = normalized;
       }

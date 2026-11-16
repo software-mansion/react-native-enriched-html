@@ -7,6 +7,8 @@ export type {
   OnChangeTextEvent,
   OnChangeHtmlEvent,
   OnChangeStateEvent,
+  EnrichedStyleName,
+  StyleState,
   OnLinkDetected,
   OnMentionDetected,
   OnChangeSelectionEvent,

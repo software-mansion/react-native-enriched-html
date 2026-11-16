@@ -21,6 +21,7 @@ import EnrichedTextNativeComponent, {
 } from '../spec/EnrichedTextNativeComponent';
 import { nullthrows } from '../utils/nullthrows';
 import { normalizeEnrichedTextHtmlStyle } from '../utils/normalizeHtmlStyle';
+import { getIgnoredStylesMask } from '../utils/ignoredStyles';
 import type { EnrichedTextProps } from '../types';
 
 type ComponentType = ComponentRef<HostComponent<NativeProps>>;
@@ -31,6 +32,7 @@ export const EnrichedText = ({
   style,
   htmlStyle: _htmlStyle = {},
   useHtmlNormalizer = true,
+  ignoredStyles = [],
   ellipsizeMode = 'tail',
   numberOfLines = 0,
   selectable = false,
@@ -113,6 +115,7 @@ export const EnrichedText = ({
       style={style}
       htmlStyle={htmlStyle}
       useHtmlNormalizer={useHtmlNormalizer}
+      ignoredStylesMask={getIgnoredStylesMask(ignoredStyles)}
       ellipsizeMode={ellipsizeMode}
       numberOfLines={numberOfLines}
       selectable={selectable}

@@ -24,6 +24,8 @@ NS_ASSUME_NONNULL_BEGIN
   NSMutableDictionary<NSAttributedStringKey, id> *defaultTypingAttributes;
 @public
   BOOL useHtmlNormalizer;
+@public
+  uint32_t ignoredStylesMask;
 }
 - (CGSize)measureSize:(CGFloat)maxWidth;
 + (CGSize)measureSnapshot:(NSAttributedString *)snapshot

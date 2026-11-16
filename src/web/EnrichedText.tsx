@@ -20,6 +20,8 @@ import { enrichedTextThemingToCSSProperties } from './styleConversion/enrichedTh
 import { buildMentionRulesCSS } from './styleConversion/buildMentionRulesCSS';
 import { sanitizeHtml } from './sanitization/htmlSanitizer';
 import { prepareHtmlForWeb } from './normalization/prepareHtmlForWeb';
+import { isEnrichedHtml } from './normalization/htmlNormalizer';
+import { getIgnoredStylesMask } from '../utils/ignoredStyles';
 import { INLINE_IMAGE_CSS_VARIABLES } from './styleConversion/inlineImageCSSVariables';
 import { useImageErrorFallback } from './htmlExtensions/useImageErrorFallback';
 import { usePressInteractions } from './htmlExtensions/usePressInteractions';
@@ -42,6 +44,7 @@ export const EnrichedText = memo(
     numberOfLines = 0,
     selectable = false,
     useHtmlNormalizer = true,
+    ignoredStyles = [],
     sanitizationConfig,
     onFocus,
     onBlur,
@@ -71,9 +74,15 @@ export const EnrichedText = memo(
       [children, sanitizationConfig]
     );
 
+    // checked before sanitization, which drops the <html> wrapper
+    const ignoredStylesMask = isEnrichedHtml(children)
+      ? 0
+      : getIgnoredStylesMask(ignoredStyles);
+
     const finalHtml = useMemo(
-      () => prepareHtmlForWeb(sanitizedHtml, useHtmlNormalizer),
-      [sanitizedHtml, useHtmlNormalizer]
+      () =>
+        prepareHtmlForWeb(sanitizedHtml, useHtmlNormalizer, ignoredStylesMask),
+      [sanitizedHtml, useHtmlNormalizer, ignoredStylesMask]
     );
 
     const [clampedHtml, setClampedHtml] = useState<string | null>(

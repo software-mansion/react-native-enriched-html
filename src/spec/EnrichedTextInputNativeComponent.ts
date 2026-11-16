@@ -423,6 +423,8 @@ export interface NativeProps extends ViewProps {
   // Experimental
   androidExperimentalSynchronousEvents: boolean;
   useHtmlNormalizer: boolean;
+  // Styles the HTML normalizer leaves out
+  ignoredStylesMask: CodegenTypes.Int32;
 }
 
 type ComponentType = HostComponent<NativeProps>;

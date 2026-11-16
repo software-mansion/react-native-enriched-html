@@ -590,6 +590,13 @@ Class<RCTComponentViewProtocol> EnrichedTextViewCls(void) {
     useHtmlNormalizer = newViewProps.useHtmlNormalizer;
   }
 
+  // ignoredStylesMask (ignoredStyles prop)
+  if (newViewProps.ignoredStylesMask != oldViewProps.ignoredStylesMask) {
+    ignoredStylesMask = (uint32_t)newViewProps.ignoredStylesMask;
+    // re-parse the current content with the new set of styles
+    textChanged = YES;
+  }
+
   // allowFontScaling
   if (newViewProps.allowFontScaling != oldViewProps.allowFontScaling) {
     [newConfig setAllowFontScaling:newViewProps.allowFontScaling];

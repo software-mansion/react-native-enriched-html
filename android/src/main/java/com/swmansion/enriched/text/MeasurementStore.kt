@@ -116,7 +116,7 @@ object MeasurementStore {
     }
 
     try {
-      val textToParse = if (isInternalHtml) text else GumboNormalizer.normalizeHtml(text)
+      val textToParse = if (isInternalHtml) text else GumboNormalizer.normalizeHtml(text, ignoredStylesMaskFromProps(props))
       val style = props?.getMap("htmlStyle") ?: return text
       val allowFontScaling = allowFontScalingFromProps(props)
       val enrichedStyle = EnrichedTextStyle.fromReadableMap(context as ReactContext, fontSize, style, allowFontScaling)
@@ -135,6 +135,13 @@ object MeasurementStore {
       return false
     }
     return props.getBoolean("useHtmlNormalizer")
+  }
+
+  private fun ignoredStylesMaskFromProps(props: ReadableMap?): Int {
+    if (props == null || !props.hasKey("ignoredStylesMask") || props.isNull("ignoredStylesMask")) {
+      return 0
+    }
+    return props.getInt("ignoredStylesMask")
   }
 
   private fun lineHeightFromProps(props: ReadableMap?): Float {

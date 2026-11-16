@@ -3,6 +3,9 @@
  * Mirrors the native GumboNormalizer (cpp/parser/GumboNormalizer.c)
  */
 
+import type { EnrichedStyleName } from '../../types';
+import { isStyleIgnored } from '../../utils/ignoredStyles';
+
 type CssStyles = {
   bold: boolean;
   italic: boolean;
@@ -824,11 +827,157 @@ function walkNode(
   out.buf += `</${outName}>`;
 }
 
-export function normalizeHtml(html: string): string {
+// --- Ignored styles filtering (`ignoredStyles` prop) ---
+
+// Runs as a second pass over the normalizer's own output, so it only has to
+// understand the canonical tag subset. An ignored inline style, blockquote
+// or codeblock is unwrapped (its content stays), an ignored heading or list
+// item becomes a plain paragraph and an ignored image is dropped.
+
+const HEADING_TAGS = new Set(['h1', 'h2', 'h3', 'h4', 'h5', 'h6']);
+
+function styleForTag(tag: string, el: Element): EnrichedStyleName | null {
+  switch (tag) {
+    case 'b':
+      return 'bold';
+    case 'i':
+      return 'italic';
+    case 'u':
+      return 'underline';
+    case 's':
+      return 'strikeThrough';
+    case 'code':
+      return 'inlineCode';
+    case 'a':
+      return 'link';
+    case 'mention':
+      return 'mention';
+    case 'span':
+      return 'customStyle';
+    case 'img':
+      return 'image';
+    case 'h1':
+    case 'h2':
+    case 'h3':
+    case 'h4':
+    case 'h5':
+    case 'h6':
+      return tag;
+    case 'codeblock':
+      return 'codeBlock';
+    case 'blockquote':
+      return 'blockQuote';
+    case 'ol':
+      return 'orderedList';
+    case 'ul':
+      return isCheckboxList(el) ? 'checkboxList' : 'unorderedList';
+    default:
+      return null;
+  }
+}
+
+function filterChildren(node: Node, ignored: number): string {
+  let out = '';
+  for (const child of Array.from(node.childNodes)) {
+    out += filterNode(child, ignored);
+  }
+  return out;
+}
+
+function filterAttributes(el: Element, tag: string, ignored: number) {
+  let out = '';
+  for (const attr of Array.from(el.attributes)) {
+    // on alignable tags, `style` only ever holds text-align
+    if (
+      attr.name === 'style' &&
+      ALIGN_TAGS.has(tag) &&
+      isStyleIgnored(ignored, 'alignment')
+    ) {
+      continue;
+    }
+    out +=
+      attr.name === 'checked'
+        ? ' checked'
+        : ` ${attr.name}="${escapeText(attr.value)}"`;
+  }
+  return out;
+}
+
+// Emits the node's content as a plain paragraph that keeps the text-align of
+// alignEl (the node itself, or the list a list item belongs to).
+function filterParagraph(
+  node: Element,
+  alignEl: Element,
+  ignored: number
+): string {
+  const inner = filterChildren(node, ignored);
+  if (inner === '') return '<br>';
+  const align = isStyleIgnored(ignored, 'alignment')
+    ? ''
+    : emitAlignment(alignEl, 'p');
+  return `<p${align}>${inner}</p>`;
+}
+
+function filterNode(node: Node, ignored: number): string {
+  if (isText(node)) return escapeText(node.textContent ?? '');
+  if (!isElement(node)) return '';
+
+  const tag = node.tagName.toLowerCase();
+  const style = styleForTag(tag, node);
+
+  if (style && isStyleIgnored(ignored, style)) {
+    if (style === 'image') return '';
+
+    if (HEADING_TAGS.has(tag)) return filterParagraph(node, node, ignored);
+
+    if (tag === 'ul' || tag === 'ol') {
+      let out = '';
+      for (const item of Array.from(node.childNodes)) {
+        out +=
+          isElement(item) && item.tagName.toLowerCase() === 'li'
+            ? filterParagraph(item, node, ignored)
+            : filterNode(item, ignored);
+      }
+      return out;
+    }
+
+    // inline styles, blockquotes and codeblocks (whose content is already
+    // made of paragraphs) are unwrapped
+    return filterChildren(node, ignored);
+  }
+
+  const attrs = filterAttributes(node, tag, ignored);
+  if (tag === 'br') return `<br${attrs}>`;
+  if (tag === 'img') return `<img${attrs} />`;
+  return `<${tag}${attrs}>${filterChildren(node, ignored)}</${tag}>`;
+}
+
+function filterIgnoredStyles(html: string, ignored: number): string {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(`<body>${html}</body>`, 'text/html');
+  return filterChildren(doc.body, ignored);
+}
+
+/**
+ * True for HTML produced by the editor itself (wrapped in <html></html>),
+ * the same check the native parsers use to skip the normalizer.
+ */
+export function isEnrichedHtml(html: string): boolean {
+  const trimmed = html.trim();
+  return trimmed.startsWith('<html>') && trimmed.endsWith('</html>');
+}
+
+/**
+ * @param ignoredStylesMask styles left out of the output (see
+ * src/utils/ignoredStyles.ts), 0 keeps every style
+ */
+export function normalizeHtml(html: string, ignoredStylesMask = 0): string {
   const parser = new DOMParser();
   const doc = parser.parseFromString(`<body>${html}</body>`, 'text/html');
   const body = doc.body;
   const out = { buf: '' };
   walkChildren(body, out, null);
-  return out.buf;
+
+  if (ignoredStylesMask === 0) return out.buf;
+  return filterIgnoredStyles(out.buf, ignoredStylesMask);
 }
