@@ -48,6 +48,7 @@
 
 ## Cleanup
 
-- `stop-all-simulator-servers` with `devices: [...]` naming only the devices you used.
-- Leave Metro running if it was running before you started; otherwise ask the user whether to
-  stop it.
+- Leave simulator servers running — the next task reuses them. Stop them
+  (`stop-all-simulator-servers` with `devices: [...]` naming only the devices you used) only if
+  the user asks to clean up or ends the session.
+- Never stop a Metro the user started unless they ask.
