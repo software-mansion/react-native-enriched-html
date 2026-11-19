@@ -283,6 +283,49 @@ is one of the most valuable ways to contribute.
 
 :::
 
+## AI coding agents
+
+The repository ships shared configuration for AI coding agents (Claude Code,
+Codex, Cursor). It wires up [Argent](https://github.com/software-mansion/argent),
+which lets agents drive the iOS simulator, Android emulator and web example
+app, and a review skill that checks a change's code, feature parity between
+iOS, Android and web, and tests it on devices.
+
+| What                | Where                                                                                                         |
+| ------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Argent MCP server   | `.mcp.json` (Claude Code), `.codex/config.toml` (Codex), `.cursor/mcp.json` (Cursor)                          |
+| Argent rules        | `.claude/rules/`, `.cursor/rules/`, `developer_instructions` in `.codex/config.toml`                          |
+| Skills              | `.agents/skills/` (symlinked into `.claude/skills/`), versions pinned in `skills-lock.json`                   |
+| Review instructions | `.agents/skills/review-changes/`, condensed for GitHub Copilot PR review in `.github/copilot-instructions.md` |
+
+To use it:
+
+1. Install Argent once on your machine (the configs call the `argent` command):
+
+   ```sh
+   npm i -g @swmansion/argent
+   ```
+
+2. Approve the project's `argent` MCP server when your agent asks:
+   - **Claude Code** prompts on the first start in the repository.
+   - **Codex** reads `.codex/config.toml` only for trusted projects, so mark
+     the repository as trusted.
+   - **Cursor** lists it under _Settings → MCP_; enable it there.
+
+3. Ask the agent to review your change, or invoke the skill directly:
+   `/review-changes` in Claude Code, `$review-changes` in Codex. It accepts
+   `uncommitted` (default), `branch <name>`, `pr <number>` or `<base>..<head>`,
+   plus `--platform ios|android|web` to limit device testing.
+
+Run `argent update` to refresh the Argent rules and skills; commit the result.
+
+:::info
+
+When you change the review rules in `.agents/skills/review-changes/`, update
+`.github/copilot-instructions.md` too.
+
+:::
+
 ## Commit message convention
 
 We follow the
