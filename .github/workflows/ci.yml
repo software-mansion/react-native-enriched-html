@@ -72,6 +72,12 @@ jobs:
       - name: Run clang-format (C/C++ check)
         run: yarn lint-clang
 
+      - name: Install JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
       - name: Run android lint (Kotlin/Java/Groovy check)
         run: yarn lint:android
 
