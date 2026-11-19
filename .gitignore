@@ -97,3 +97,7 @@ nitrogen/
 
 # Claude skills
 .claude/skills/*-internal.md
+# Argent skills are installed per machine (`argent init -y`), not committed
+.agents/skills/argent-*/
+.claude/skills/argent-*
+skills-lock.json

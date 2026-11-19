@@ -291,19 +291,22 @@ which lets agents drive the iOS simulator, Android emulator and web example
 app, and a review skill that checks a change's code, feature parity between
 iOS, Android and web, and tests it on devices.
 
-| What                | Where                                                                                                         |
-| ------------------- | ------------------------------------------------------------------------------------------------------------- |
-| Argent MCP server   | `.mcp.json` (Claude Code), `.codex/config.toml` (Codex), `.cursor/mcp.json` (Cursor)                          |
-| Argent rules        | `.claude/rules/`, `.cursor/rules/`, `developer_instructions` in `.codex/config.toml`                          |
-| Skills              | `.agents/skills/` (symlinked into `.claude/skills/`), versions pinned in `skills-lock.json`                   |
-| Review instructions | `.agents/skills/review-changes/`, condensed for GitHub Copilot PR review in `.github/copilot-instructions.md` |
+| What              | Where                                                                                                                                            |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Argent MCP server | `.mcp.json` (Claude Code), `.codex/config.toml` (Codex), `.cursor/mcp.json` (Cursor)                                                             |
+| Argent rules      | `.claude/rules/`, `.cursor/rules/`, `developer_instructions` in `.codex/config.toml`                                                             |
+| Argent skills     | not committed: installed on your machine by `argent init` (see below)                                                                            |
+| Review skill      | `.agents/skills/review-changes/` (symlinked into `.claude/skills/`), condensed for GitHub Copilot PR review in `.github/copilot-instructions.md` |
 
 To use it:
 
-1. Install Argent once on your machine (the configs call the `argent` command):
+1. Install Argent and its skills once on your machine. The configs call the
+   `argent` command, and the skills are installed globally (`~/.agents/skills`,
+   `~/.claude/skills`), so they work in every project:
 
    ```sh
    npm i -g @swmansion/argent
+   argent init -y
    ```
 
 2. Approve the project's `argent` MCP server when your agent asks:
@@ -317,7 +320,8 @@ To use it:
    `uncommitted` (default), `branch <name>`, `pr <number>` or `<base>..<head>`,
    plus `--platform ios|android|web` to limit device testing.
 
-Run `argent update` to refresh the Argent rules and skills; commit the result.
+Run `argent update` to update Argent and your skills. If it changes the
+committed MCP configs or rules, include that in a separate `chore` commit.
 
 :::info
 
