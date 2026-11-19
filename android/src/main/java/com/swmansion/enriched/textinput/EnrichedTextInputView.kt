@@ -976,23 +976,27 @@ class EnrichedTextInputView :
   }
 
   fun verifyAndToggleStyle(name: String) {
-    val isValid = verifyStyle(name)
-    if (!isValid) return
+    batchEvents {
+      val isValid = verifyStyle(name)
+      if (!isValid) return@batchEvents
 
-    val (rangeStart, rangeEnd) = getTargetRange(name)
+      val (rangeStart, rangeEnd) = getTargetRange(name)
 
-    runAsATransaction {
-      toggleStyle(name)
+      runAsATransaction {
+        toggleStyle(name)
+      }
+
+      parametrizedStyles?.onStyleToggled(name, rangeStart, rangeEnd)
     }
-
-    parametrizedStyles?.onStyleToggled(name, rangeStart, rangeEnd)
   }
 
   fun toggleCheckboxListItem(checked: Boolean) {
-    val isValid = verifyStyle(EnrichedSpans.CHECKBOX_LIST)
-    if (!isValid) return
+    batchEvents {
+      val isValid = verifyStyle(EnrichedSpans.CHECKBOX_LIST)
+      if (!isValid) return@batchEvents
 
-    listStyles?.toggleCheckboxListStyle(checked)
+      listStyles?.toggleCheckboxListStyle(checked)
+    }
   }
 
   fun addLink(
@@ -1001,10 +1005,12 @@ class EnrichedTextInputView :
     text: String,
     url: String,
   ) {
-    val isValid = verifyStyle(EnrichedSpans.LINK)
-    if (!isValid) return
+    batchEvents {
+      val isValid = verifyStyle(EnrichedSpans.LINK)
+      if (!isValid) return@batchEvents
 
-    parametrizedStyles?.setLinkSpan(getActualIndex(start), getActualIndex(end), text, url)
+      parametrizedStyles?.setLinkSpan(getActualIndex(start), getActualIndex(end), text, url)
+    }
   }
 
   fun removeLink(
@@ -1019,18 +1025,22 @@ class EnrichedTextInputView :
     width: Float,
     height: Float,
   ) {
-    val isValid = verifyStyle(EnrichedSpans.IMAGE)
-    if (!isValid) return
+    batchEvents {
+      val isValid = verifyStyle(EnrichedSpans.IMAGE)
+      if (!isValid) return@batchEvents
 
-    parametrizedStyles?.setImageSpan(src, width, height)
-    layoutManager.invalidateLayout()
+      parametrizedStyles?.setImageSpan(src, width, height)
+      layoutManager.invalidateLayout()
+    }
   }
 
   fun startMention(indicator: String) {
-    val isValid = verifyStyle(EnrichedSpans.MENTION)
-    if (!isValid) return
+    batchEvents {
+      val isValid = verifyStyle(EnrichedSpans.MENTION)
+      if (!isValid) return@batchEvents
 
-    parametrizedStyles?.startMention(indicator)
+      parametrizedStyles?.startMention(indicator)
+    }
   }
 
   fun addMention(
@@ -1038,10 +1048,12 @@ class EnrichedTextInputView :
     text: String,
     attributes: Map<String, String>,
   ) {
-    val isValid = verifyStyle(EnrichedSpans.MENTION)
-    if (!isValid) return
+    batchEvents {
+      val isValid = verifyStyle(EnrichedSpans.MENTION)
+      if (!isValid) return@batchEvents
 
-    parametrizedStyles?.setMentionSpan(text, indicator, attributes)
+      parametrizedStyles?.setMentionSpan(text, indicator, attributes)
+    }
   }
 
   fun setTextAlignment(alignment: String) {
@@ -1052,13 +1064,15 @@ class EnrichedTextInputView :
   }
 
   fun setStyle(styleJSON: String) {
-    val isValid = verifyStyle(EnrichedSpans.CUSTOM_STYLE)
-    if (!isValid) return
+    batchEvents {
+      val isValid = verifyStyle(EnrichedSpans.CUSTOM_STYLE)
+      if (!isValid) return@batchEvents
 
-    runAsATransaction {
-      customStyles?.setStyle(styleJSON)
+      runAsATransaction {
+        customStyles?.setStyle(styleJSON)
+      }
+      layoutManager.invalidateLayout()
     }
-    layoutManager.invalidateLayout()
   }
 
   fun requestHTML(requestId: Int) {
