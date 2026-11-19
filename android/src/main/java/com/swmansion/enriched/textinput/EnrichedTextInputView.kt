@@ -405,38 +405,40 @@ class EnrichedTextInputView :
   }
 
   fun handleTextPaste(item: ClipData.Item) {
-    val currentText = text as Spannable
-    val start = selectionStart.coerceAtLeast(0)
-    val end = selectionEnd.coerceAtLeast(0)
-    val lengthBefore = currentText.length
+    batchEvents {
+      val currentText = text as Spannable
+      val start = selectionStart.coerceAtLeast(0)
+      val end = selectionEnd.coerceAtLeast(0)
+      val lengthBefore = currentText.length
 
-    val pastedSpannable: Spannable =
-      when {
-        item.htmlText != null -> {
-          val parsed = parseText(item.htmlText)
-          (parsed as? Spannable) ?: return
+      val pastedSpannable: Spannable =
+        when {
+          item.htmlText != null -> {
+            val parsed = parseText(item.htmlText)
+            (parsed as? Spannable) ?: return@batchEvents
+          }
+
+          item.text != null -> {
+            SpannableString(item.text.toString())
+          }
+
+          else -> {
+            return@batchEvents
+          }
         }
 
-        item.text != null -> {
-          SpannableString(item.text.toString())
-        }
+      val finalText = currentText.mergeSpannables(start, end, pastedSpannable, htmlStyle)
+      setValue(finalText, false)
 
-        else -> {
-          return
-        }
-      }
+      // replacement-safe: oldLength - removed + inserted
+      val insertedLength = finalText.length - (lengthBefore - (end - start))
+      val pasteEnd = (start + insertedLength).coerceIn(0, finalText.length)
+      setSelection(pasteEnd)
 
-    val finalText = currentText.mergeSpannables(start, end, pastedSpannable, htmlStyle)
-    setValue(finalText, false)
-
-    // replacement-safe: oldLength - removed + inserted
-    val insertedLength = finalText.length - (lengthBefore - (end - start))
-    val pasteEnd = (start + insertedLength).coerceIn(0, finalText.length)
-    setSelection(pasteEnd)
-
-    // Update links and mentions in the newly pasted range
-    val editable = text as? Editable ?: return
-    parametrizedStyles?.afterTextChanged(editable, start.coerceAtMost(pasteEnd), pasteEnd)
+      // Update links and mentions in the newly pasted range
+      val editable = text as? Editable ?: return@batchEvents
+      parametrizedStyles?.afterTextChanged(editable, start.coerceAtMost(pasteEnd), pasteEnd)
+    }
   }
 
   fun requestFocusProgrammatically() {
