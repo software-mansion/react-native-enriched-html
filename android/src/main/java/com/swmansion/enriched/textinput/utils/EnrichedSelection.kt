@@ -87,32 +87,40 @@ class EnrichedSelection(
   fun validateStyles() {
     val state = view.spanState ?: return
 
-    // We don't validate inline styles when removing many characters at once
-    // We don't want to remove styles on auto-correction
-    // If user removes many characters at once, we want to keep the styles config
-    if (!view.isRemovingMany) {
-      for ((style, config) in EnrichedSpans.inlineSpans) {
-        state.setStart(style, getInlineStyleStart(config.clazz))
+    view.batchEvents {
+      // We don't validate inline styles when removing many characters at once
+      // We don't want to remove styles on auto-correction
+      // If user removes many characters at once, we want to keep the styles config
+      if (!view.isRemovingMany) {
+        for ((style, config) in EnrichedSpans.inlineSpans) {
+          state.setStart(style, getInlineStyleStart(config.clazz))
+        }
+        validateCustomStyles()
+      } else {
+        view.isRemovingMany = false
       }
-      validateCustomStyles()
-    } else {
-      view.isRemovingMany = false
-    }
 
-    for ((style, config) in EnrichedSpans.paragraphSpans) {
-      state.setStart(style, getParagraphStyleStart(config.clazz))
-    }
+      for ((style, config) in EnrichedSpans.paragraphSpans) {
+        state.setStart(style, getParagraphStyleStart(config.clazz))
+      }
 
-    for ((style, config) in EnrichedSpans.listSpans) {
-      state.setStart(style, getListStyleStart(config.clazz))
+      for ((style, config) in EnrichedSpans.listSpans) {
+        state.setStart(style, getListStyleStart(config.clazz))
+      }
+
+      validateParametrizedStyles()
+
+      val currentAlignment = view.alignmentStyles?.getCurrentAlignment() ?: "auto"
+      state.setAlignment(currentAlignment)
     }
+  }
+
+  fun validateParametrizedStyles() {
+    val state = view.spanState ?: return
 
     for ((style, config) in EnrichedSpans.parametrizedStyles) {
       state.setStart(style, getParametrizedStyleStart(config.clazz))
     }
-
-    val currentAlignment = view.alignmentStyles?.getCurrentAlignment() ?: "auto"
-    state.setAlignment(currentAlignment)
   }
 
   fun getInlineSelection(): Pair<Int, Int> {
@@ -312,15 +320,6 @@ class EnrichedSelection(
     )
   }
 
-  private fun isSelectionOutdated(): Boolean {
-    val actualStart = minOf(view.selectionStart, view.selectionEnd)
-    val actualEnd = maxOf(view.selectionStart, view.selectionEnd)
-    if (actualStart < 0) return false
-
-    val (currentStart, currentEnd) = getInlineSelection()
-    return actualStart != currentStart || actualEnd != currentEnd
-  }
-
   private fun wasMentionPreviouslyDetected(): Boolean {
     val previousText = previousMentionDetectedEvent["text"] ?: ""
     val previousIndicator = previousMentionDetectedEvent["indicator"] ?: ""
@@ -339,9 +338,7 @@ class EnrichedSelection(
     start: Int,
     end: Int,
   ) {
-    // While text is being changed, styles get validated before onSelection receives the new cursor position and before manual links are split on newlines.
-    // A link event emitted then would be stale; onSelection validates again once the selection is updated.
-    if (isSelectionOutdated()) return
+    if (view.isBatchingEvents) return
 
     val text = spannable.substring(start, end).replace(EnrichedConstants.ZWS_STRING, "")
     val url = span?.getUrl() ?: ""
@@ -387,6 +384,8 @@ class EnrichedSelection(
     start: Int,
     end: Int,
   ) {
+    if (view.isBatchingEvents) return
+
     val text = spannable.substring(start, end)
     val attributes = span?.getAttributes() ?: emptyMap()
     val indicator = span?.getIndicator() ?: ""

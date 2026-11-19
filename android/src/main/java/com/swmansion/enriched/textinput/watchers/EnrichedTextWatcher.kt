@@ -18,6 +18,8 @@ class EnrichedTextWatcher(
   private var startCursorPosition: Int = 0
   private var previousTextLength: Int = 0
 
+  private var hasPendingChangeText: Boolean = false
+
   private var deletedText: String = ""
   private var anchorAlignmentToRestore: String? = null
 
@@ -66,11 +68,15 @@ class EnrichedTextWatcher(
 
   override fun afterTextChanged(s: Editable?) {
     if (s == null) return
-    emitEvents(s)
 
-    if (view.isDuringTransaction) return
-    applyStyles(s)
-    view.layoutManager.invalidateLayout()
+    view.batchEvents {
+      hasPendingChangeText = true
+      view.spanWatcher?.emitEvent(s, null)
+
+      if (view.isDuringTransaction) return@batchEvents
+      applyStyles(s)
+      view.layoutManager.invalidateLayout()
+    }
   }
 
   private fun applyStyles(s: Editable) {
@@ -81,6 +87,13 @@ class EnrichedTextWatcher(
     view.alignmentStyles?.afterTextChanged(s, endCursorPosition, deletedText, anchorAlignmentToRestore)
     view.shortcutsHandler?.afterTextChanged(s, endCursorPosition, previousTextLength)
     view.parametrizedStyles?.afterTextChanged(s, startCursorPosition, endCursorPosition)
+  }
+
+  fun emitPendingEvent(editable: Editable) {
+    if (!hasPendingChangeText) return
+
+    hasPendingChangeText = false
+    emitChangeText(editable)
   }
 
   private fun emitChangeText(editable: Editable) {
@@ -98,10 +111,5 @@ class EnrichedTextWatcher(
         view.experimentalSynchronousEvents,
       ),
     )
-  }
-
-  private fun emitEvents(s: Editable) {
-    emitChangeText(s)
-    view.spanWatcher?.emitEvent(s, null)
   }
 }

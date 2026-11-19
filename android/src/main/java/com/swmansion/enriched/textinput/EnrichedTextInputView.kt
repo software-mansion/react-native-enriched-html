@@ -95,6 +95,9 @@ class EnrichedTextInputView :
   val customStyles: CustomStyles? = CustomStyles(this)
   var isDuringTransaction: Boolean = false
   var isRemovingMany: Boolean = false
+  private var eventsBatchDepth: Int = 0
+  val isBatchingEvents: Boolean
+    get() = eventsBatchDepth > 0
   var scrollEnabled: Boolean = true
   var allowFontScaling: Boolean = EnrichedConstants.ALLOW_FONT_SCALING_DEFAULT
     set(value) {
@@ -125,6 +128,7 @@ class EnrichedTextInputView :
 
   var linkRegex: Pattern? = Patterns.WEB_URL
   var spanWatcher: EnrichedSpanWatcher? = null
+  var textWatcher: EnrichedTextWatcher? = null
   var layoutManager: EnrichedTextInputViewLayoutManager = EnrichedTextInputViewLayoutManager(this)
 
   var shouldEmitHtml: Boolean = false
@@ -239,8 +243,11 @@ class EnrichedTextInputView :
     val spanWatcher = EnrichedSpanWatcher(this)
     this.spanWatcher = spanWatcher
 
-    setEditableFactory(EnrichedEditableFactory(spanWatcher))
-    addTextChangedListener(EnrichedTextWatcher(this))
+    setEditableFactory(EnrichedEditableFactory(this, spanWatcher))
+
+    val textWatcher = EnrichedTextWatcher(this)
+    this.textWatcher = textWatcher
+    addTextChangedListener(textWatcher)
 
     // Handle checkbox list item clicks
     this.setCheckboxClickListener()
@@ -1072,12 +1079,36 @@ class EnrichedTextInputView :
   // Eg. removing conflicting styles -> changing text -> applying spans
   // In such scenario we want to prevent from handling side effects (eg. onTextChanged)
   fun runAsATransaction(block: () -> Unit) {
+    batchEvents {
+      try {
+        isDuringTransaction = true
+        block()
+      } finally {
+        isDuringTransaction = false
+      }
+    }
+  }
+
+  // Events are emitted once all changes are done, so they never carry intermediate state
+  fun batchEvents(block: () -> Unit) {
+    eventsBatchDepth++
     try {
-      isDuringTransaction = true
       block()
     } finally {
-      isDuringTransaction = false
+      eventsBatchDepth--
     }
+
+    if (eventsBatchDepth == 0) emitBatchedEvents()
+  }
+
+  private fun emitBatchedEvents() {
+    val spannable = text ?: return
+
+    textWatcher?.emitPendingEvent(spannable)
+    // Spans could have changed after the last validation, so links and mentions are detected again
+    selection?.validateParametrizedStyles()
+    spanState?.emitStateChangeEvent()
+    spanWatcher?.emitPendingEvent(spannable)
   }
 
   private fun forceScrollToSelection() {
