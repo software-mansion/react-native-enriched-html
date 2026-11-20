@@ -56,6 +56,13 @@ if [ -f "$AVD_CONFIG" ]; then
   grep -q "^hw.mainKeys=" "$AVD_CONFIG" || echo "hw.mainKeys=yes" >> "$AVD_CONFIG"
 fi
 
+wait_for_boot() {
+  echo "Waiting for emulator to finish booting..."
+  until adb -s "$SERIAL" shell getprop sys.boot_completed 2>/dev/null | grep -q "^1$"; do
+    sleep 2
+  done
+}
+
 disable_keyboard_features() {
   adb -s "$SERIAL" shell pm disable-user --user 0 com.google.android.inputmethod.latin > /dev/null
   adb -s "$SERIAL" shell settings put secure spell_checker_enabled 0
@@ -78,6 +85,7 @@ if pgrep -f "emulator.*${AVD_NAME}" > /dev/null 2>&1; then
     exit 1
   fi
   echo "Emulator already running: $AVD_NAME ($SERIAL)"
+  wait_for_boot
   disable_keyboard_features
   echo "DEVICE_ID=$SERIAL"
   exit 0
@@ -92,11 +100,7 @@ if ! timeout 120 adb -s "$SERIAL" wait-for-device; then
   exit 1
 fi
 
-echo "Waiting for emulator to finish booting..."
-until adb -s "$SERIAL" shell getprop sys.boot_completed 2>/dev/null | grep -q "^1$"; do
-  sleep 2
-done
-
+wait_for_boot
 disable_keyboard_features
 
 echo "Emulator ready: $AVD_NAME ($SERIAL)"
