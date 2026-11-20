@@ -235,32 +235,32 @@
                                                        withString:@""];
       fixedHtml = [fixedHtml stringByReplacingOccurrencesOfString:@"</html>"
                                                        withString:@""];
+
+      // Additionally, try getting the content from between body tags if there
+      // are some:
+
+      // Firstly make sure there are no newlines between them.
+      fixedHtml = [fixedHtml stringByReplacingOccurrencesOfString:@"<body>\n"
+                                                       withString:@"<body>"];
+      fixedHtml = [fixedHtml stringByReplacingOccurrencesOfString:@"\n</body>"
+                                                       withString:@"</body>"];
+      // Then, if there actually are body tags, use the content between them.
+      NSRange openingBodyRange = [htmlWithoutSpaces rangeOfString:@"<body>"];
+      NSRange closingBodyRange = [htmlWithoutSpaces rangeOfString:@"</body>"];
+      if (openingBodyRange.length != 0 && closingBodyRange.length != 0) {
+        NSInteger newStart = openingBodyRange.location + 6;
+        NSInteger newEnd = closingBodyRange.location - 1;
+        fixedHtml = [htmlWithoutSpaces
+            substringWithRange:NSMakeRange(newStart, newEnd - newStart + 1)];
+      }
     } else if (useHtmlNormalizer) {
       // External HTML (from Google Docs, Word, web pages, etc.)
       // Run through the Gumbo-based normalizer to convert arbitrary HTML
-      // into our canonical tag subset.
+      // into our canonical tag subset. Gumbo already extracts the <body>.
       NSString *normalized = [self normalizeExternalHtml:html];
       if (normalized != nil) {
         fixedHtml = normalized;
       }
-    }
-
-    // Additionally, try getting the content from between body tags if there are
-    // some:
-
-    // Firstly make sure there are no newlines between them.
-    fixedHtml = [fixedHtml stringByReplacingOccurrencesOfString:@"<body>\n"
-                                                     withString:@"<body>"];
-    fixedHtml = [fixedHtml stringByReplacingOccurrencesOfString:@"\n</body>"
-                                                     withString:@"</body>"];
-    // Then, if there actually are body tags, use the content between them.
-    NSRange openingBodyRange = [htmlWithoutSpaces rangeOfString:@"<body>"];
-    NSRange closingBodyRange = [htmlWithoutSpaces rangeOfString:@"</body>"];
-    if (openingBodyRange.length != 0 && closingBodyRange.length != 0) {
-      NSInteger newStart = openingBodyRange.location + 6;
-      NSInteger newEnd = closingBodyRange.location - 1;
-      fixedHtml = [htmlWithoutSpaces
-          substringWithRange:NSMakeRange(newStart, newEnd - newStart + 1)];
     }
   }
 
