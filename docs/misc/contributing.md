@@ -265,6 +265,51 @@ When you change the public API or behaviour, please update the documentation in
 the same pull request whenever possible. Keeping the docs in sync with the code
 is one of the most valuable ways to contribute.
 
+> ## AI coding agents
+>
+> The repository ships shared configuration for AI coding agents (Claude Code,
+> Codex, Cursor). It wires up [Argent](https://github.com/software-mansion/argent),
+> which lets agents drive the iOS simulator, Android emulator and web example
+> app, and a review skill that checks a change's code, feature parity between
+> iOS, Android and web, and tests it on devices.
+>
+> | What              | Where                                                                                                                                            |
+> | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+> | Argent MCP server | `.mcp.json` (Claude Code), `.codex/config.toml` (Codex), `.cursor/mcp.json` (Cursor)                                                             |
+> | Argent rules      | `.claude/rules/`, `.cursor/rules/`, `developer_instructions` in `.codex/config.toml`                                                             |
+> | Argent skills     | not committed: installed on your machine by `argent init` (see below)                                                                            |
+> | Review skill      | `.agents/skills/review-changes/` (symlinked into `.claude/skills/`), condensed for GitHub Copilot PR review in `.github/copilot-instructions.md` |
+>
+> To use it:
+>
+> 1. Install Argent, then run `argent init -y` from the repo root. It installs
+>    the skills into the repo, where they're gitignored:
+>
+>    ```sh
+>    npm i -g @swmansion/argent
+>    argent init -y
+>    ```
+>
+> 2. Approve the project's `argent` MCP server when your agent asks:
+>    * **Claude Code** prompts on the first start in the repository.
+>    * **Codex** reads `.codex/config.toml` only for trusted projects, so mark
+>      the repository as trusted.
+>    * **Cursor** lists it under *Settings → MCP*; enable it there.
+>
+> 3. Ask the agent to review your change, or invoke the skill directly:
+>    `/review-changes` in Claude Code, `$review-changes` in Codex. It accepts
+>    `uncommitted` (default), `branch <name>`, `pr <number>` or `<base>..<head>`,
+>    plus `--platform ios|android|web` to limit device testing.
+>
+> Run `argent update` to update Argent and your skills. If it changes the
+> committed MCP configs or rules, include that in a separate `chore` commit.
+> Argent writes the Cursor rule as `.cursor/rules/argent.md`, which Cursor
+> ignores and git ignores too; copy any changes into the committed
+> `.cursor/rules/argent.mdc`.info
+
+When you change the review rules in `.agents/skills/review-changes/`, update
+`.github/copilot-instructions.md` too.
+
 > ## Commit message convention
 >
 > We follow the
