@@ -58,6 +58,7 @@ class EnrichedTextInputViewManager :
     stateWrapper: StateWrapper?,
   ): Any? {
     view.stateWrapper = stateWrapper
+    view.onHeightUpdateMounted()
     return super.updateState(view, props, stateWrapper)
   }
 

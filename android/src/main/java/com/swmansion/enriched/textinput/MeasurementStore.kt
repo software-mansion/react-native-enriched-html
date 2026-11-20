@@ -1,6 +1,7 @@
 package com.swmansion.enriched.textinput
 
 import android.content.Context
+import android.graphics.Paint
 import android.graphics.Typeface
 import android.graphics.text.LineBreaker
 import android.os.Build
@@ -28,6 +29,7 @@ object MeasurementStore {
   data class PaintParams(
     val typeface: Typeface,
     val fontSize: Float,
+    val useLocalePreferredLineHeight: Boolean,
   )
 
   data class MeasurementParams(
@@ -40,17 +42,21 @@ object MeasurementStore {
 
   private val data = ConcurrentHashMap<Int, MeasurementParams>()
 
+  // In px, as given by Yoga's measure (e.g. from maxHeight)
+  private val maxTextHeights = ConcurrentHashMap<Int, Float>()
+
   fun store(
     id: Int,
     spannable: Spannable?,
     paint: TextPaint,
+    useLocalePreferredLineHeight: Boolean,
   ): Boolean {
     val cachedWidth = data[id]?.cachedWidth ?: 0f
     val cachedSize = data[id]?.cachedSize ?: 0L
     val initialized = data[id]?.initialized ?: true
 
-    val size = measure(cachedWidth, spannable, paint)
-    val paintParams = PaintParams(paint.typeface, paint.textSize)
+    val size = measure(cachedWidth, spannable, paint, useLocalePreferredLineHeight)
+    val paintParams = PaintParams(paint.typeface, paint.textSize, useLocalePreferredLineHeight)
 
     data[id] = MeasurementParams(initialized, cachedWidth, size, spannable, paintParams)
     return cachedSize != size
@@ -58,7 +64,10 @@ object MeasurementStore {
 
   fun release(id: Int) {
     data.remove(id)
+    maxTextHeights.remove(id)
   }
+
+  fun getMaxTextHeight(id: Int): Float? = maxTextHeights[id]
 
   private fun measure(
     maxWidth: Float,
@@ -71,13 +80,14 @@ object MeasurementStore {
         textSize = paintParams.fontSize
       }
 
-    return measure(maxWidth, spannable, paint)
+    return measure(maxWidth, spannable, paint, paintParams.useLocalePreferredLineHeight)
   }
 
   private fun measure(
     maxWidth: Float,
     spannable: CharSequence?,
     paint: TextPaint,
+    useLocalePreferredLineHeight: Boolean,
   ): Long {
     val text = spannable ?: ""
     val textLength = text.length
@@ -93,6 +103,13 @@ object MeasurementStore {
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
       builder.setUseLineSpacingFromFallbacks(true)
+    }
+
+    // EditText (targetSdk 35+) keeps empty lines as tall as lines with text, otherwise they're measured shorter than drawn
+    if (useLocalePreferredLineHeight && Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+      val minimumFontMetrics = Paint.FontMetrics()
+      paint.getFontMetricsForLocale(minimumFontMetrics)
+      builder.setMinimumFontMetrics(minimumFontMetrics)
     }
 
     val staticLayout = builder.build()
@@ -175,7 +192,7 @@ object MeasurementStore {
       }
 
     val typeface = applyStyles(defaultView.typeface, fontStyle, fontWeight, fontFamily, context.assets)
-    val paintParams = PaintParams(typeface, fontSize)
+    val paintParams = PaintParams(typeface, fontSize, defaultView.usesLocalePreferredLineHeight())
     val size = measure(width, text, paintParams)
 
     if (id != null) {
@@ -208,7 +225,7 @@ object MeasurementStore {
         textSize = value.paintParams.fontSize
       }
 
-    val size = measure(width, value.spannable, paint)
+    val size = measure(width, value.spannable, paint, value.paintParams.useLocalePreferredLineHeight)
     data[id] = MeasurementParams(true, width, size, value.spannable, value.paintParams)
     return size
   }
@@ -222,6 +239,15 @@ object MeasurementStore {
     props: ReadableMap?,
   ): Long {
     val size = getMeasureById(context, id, width, props)
+
+    if (id != null) {
+      when (heightMode) {
+        YogaMeasureMode.AT_MOST -> maxTextHeights[id] = height
+        YogaMeasureMode.UNDEFINED -> maxTextHeights[id] = Float.POSITIVE_INFINITY
+        else -> maxTextHeights.remove(id)
+      }
+    }
+
     if (heightMode !== YogaMeasureMode.AT_MOST) {
       return size
     }

@@ -13,12 +13,13 @@ class EnrichedTextInputViewLayoutManager(
     val text = view.text
     val paint = view.paint
 
-    val needUpdate = MeasurementStore.store(view.id, text, paint)
+    val needUpdate = MeasurementStore.store(view.id, text, paint, view.usesLocalePreferredLineHeight())
     if (!needUpdate) return
 
     forceHeightRecalculationCounter++
     val state = Arguments.createMap()
     state.putInt("forceHeightRecalculationCounter", forceHeightRecalculationCounter)
+    view.isWaitingForHeightUpdate = true
     stateWrapper.updateState(state)
   }
 
