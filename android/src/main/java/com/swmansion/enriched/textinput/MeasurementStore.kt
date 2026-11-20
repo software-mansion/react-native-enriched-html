@@ -17,6 +17,7 @@ import com.facebook.react.views.text.ReactTypefaceUtils.parseFontWeight
 import com.facebook.yoga.YogaMeasureMode
 import com.facebook.yoga.YogaMeasureOutput
 import com.swmansion.enriched.common.allowFontScalingFromProps
+import com.swmansion.enriched.common.isInternalHtml
 import com.swmansion.enriched.common.parser.EnrichedParser
 import com.swmansion.enriched.common.pixelFromSpOrDp
 import com.swmansion.enriched.textinput.spans.EnrichedLineHeightSpan
@@ -111,7 +112,7 @@ object MeasurementStore {
     // If there is no default value, assume text is one line, "I" is a good approximation of height
     if (defaultValue == null) return "I"
 
-    val isHtml = defaultValue.startsWith("<html>") && defaultValue.endsWith("</html>")
+    val isHtml = isInternalHtml(defaultValue)
     if (!isHtml) return defaultValue
 
     try {

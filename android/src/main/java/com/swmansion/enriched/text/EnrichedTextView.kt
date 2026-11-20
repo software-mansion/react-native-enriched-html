@@ -27,6 +27,7 @@ import com.swmansion.enriched.common.EnrichedConstants
 import com.swmansion.enriched.common.EnrichedSpanFlags
 import com.swmansion.enriched.common.GumboNormalizer
 import com.swmansion.enriched.common.MentionBackgroundDrawer
+import com.swmansion.enriched.common.isInternalHtml
 import com.swmansion.enriched.common.parser.EnrichedParser
 import com.swmansion.enriched.common.pixelFromSpOrDp
 import com.swmansion.enriched.text.spans.EnrichedTextImageSpan
@@ -224,9 +225,7 @@ class EnrichedTextView : AppCompatTextView {
     text: String,
     style: EnrichedTextStyle,
   ): CharSequence? {
-    val isInternalHtml = text.startsWith("<html>") && text.endsWith("</html>")
-
-    if (isInternalHtml) {
+    if (isInternalHtml(text)) {
       try {
         val parsed = EnrichedParser.fromHtml(text, style, spannableFactory)
         return parsed.trimEnd('\n')
