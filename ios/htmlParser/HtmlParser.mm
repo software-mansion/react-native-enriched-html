@@ -144,8 +144,10 @@
  * strips unknown tags while preserving text
  */
 + (NSString *_Nullable)normalizeExternalHtml:(NSString *_Nonnull)html {
-  std::string result =
-      GumboParser::normalizeHtml(std::string([html UTF8String]));
+  const char *utf8 = [html UTF8String];
+  if (utf8 == NULL)
+    return nil;
+  std::string result = GumboParser::normalizeHtml(std::string(utf8));
   if (result.empty())
     return nil;
   return [NSString stringWithUTF8String:result.c_str()];
