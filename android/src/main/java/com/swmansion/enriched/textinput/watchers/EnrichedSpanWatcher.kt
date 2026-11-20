@@ -19,6 +19,7 @@ class EnrichedSpanWatcher(
   private val view: EnrichedTextInputView,
 ) : SpanWatcher {
   private var previousHtml: String? = null
+  private var hasPendingHtml: Boolean = false
 
   override fun onSpanAdded(
     text: Spannable,
@@ -80,6 +81,10 @@ class EnrichedSpanWatcher(
     }
   }
 
+  fun emitPendingEvent(s: Spannable) {
+    if (hasPendingHtml) emitEvent(s, null)
+  }
+
   fun emitEvent(
     s: Spannable,
     what: Any?,
@@ -90,6 +95,12 @@ class EnrichedSpanWatcher(
     // Emit event only if we change one of ours spans
     if (what != null && what !is EnrichedInputSpan) return
 
+    if (view.isBatchingEvents) {
+      hasPendingHtml = true
+      return
+    }
+
+    hasPendingHtml = false
     val html = EnrichedParser.toHtml(s)
     if (html == previousHtml) return
 

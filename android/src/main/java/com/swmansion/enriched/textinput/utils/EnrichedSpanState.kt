@@ -273,7 +273,9 @@ class EnrichedSpanState(
     return payload
   }
 
-  private fun emitStateChangeEvent() {
+  fun emitStateChangeEvent() {
+    if (view.isBatchingEvents) return
+
     val context = view.context as ReactContext
     val surfaceId = UIManagerHelper.getSurfaceId(context)
     val dispatcher = UIManagerHelper.getEventDispatcherForReactTag(context, view.id)

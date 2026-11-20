@@ -95,6 +95,9 @@ class EnrichedTextInputView :
   val customStyles: CustomStyles? = CustomStyles(this)
   var isDuringTransaction: Boolean = false
   var isRemovingMany: Boolean = false
+  private var eventsBatchDepth: Int = 0
+  val isBatchingEvents: Boolean
+    get() = eventsBatchDepth > 0
   var scrollEnabled: Boolean = true
   var allowFontScaling: Boolean = EnrichedConstants.ALLOW_FONT_SCALING_DEFAULT
     set(value) {
@@ -125,6 +128,7 @@ class EnrichedTextInputView :
 
   var linkRegex: Pattern? = Patterns.WEB_URL
   var spanWatcher: EnrichedSpanWatcher? = null
+  var textWatcher: EnrichedTextWatcher? = null
   var layoutManager: EnrichedTextInputViewLayoutManager = EnrichedTextInputViewLayoutManager(this)
 
   var shouldEmitHtml: Boolean = false
@@ -239,8 +243,11 @@ class EnrichedTextInputView :
     val spanWatcher = EnrichedSpanWatcher(this)
     this.spanWatcher = spanWatcher
 
-    setEditableFactory(EnrichedEditableFactory(spanWatcher))
-    addTextChangedListener(EnrichedTextWatcher(this))
+    setEditableFactory(EnrichedEditableFactory(this, spanWatcher))
+
+    val textWatcher = EnrichedTextWatcher(this)
+    this.textWatcher = textWatcher
+    addTextChangedListener(textWatcher)
 
     // Handle checkbox list item clicks
     this.setCheckboxClickListener()
@@ -398,38 +405,40 @@ class EnrichedTextInputView :
   }
 
   fun handleTextPaste(item: ClipData.Item) {
-    val currentText = text as Spannable
-    val start = selectionStart.coerceAtLeast(0)
-    val end = selectionEnd.coerceAtLeast(0)
-    val lengthBefore = currentText.length
+    batchEvents {
+      val currentText = text as Spannable
+      val start = selectionStart.coerceAtLeast(0)
+      val end = selectionEnd.coerceAtLeast(0)
+      val lengthBefore = currentText.length
 
-    val pastedSpannable: Spannable =
-      when {
-        item.htmlText != null -> {
-          val parsed = parseText(item.htmlText)
-          (parsed as? Spannable) ?: return
+      val pastedSpannable: Spannable =
+        when {
+          item.htmlText != null -> {
+            val parsed = parseText(item.htmlText)
+            (parsed as? Spannable) ?: return@batchEvents
+          }
+
+          item.text != null -> {
+            SpannableString(item.text.toString())
+          }
+
+          else -> {
+            return@batchEvents
+          }
         }
 
-        item.text != null -> {
-          SpannableString(item.text.toString())
-        }
+      val finalText = currentText.mergeSpannables(start, end, pastedSpannable, htmlStyle)
+      setValue(finalText, false)
 
-        else -> {
-          return
-        }
-      }
+      // replacement-safe: oldLength - removed + inserted
+      val insertedLength = finalText.length - (lengthBefore - (end - start))
+      val pasteEnd = (start + insertedLength).coerceIn(0, finalText.length)
+      setSelection(pasteEnd)
 
-    val finalText = currentText.mergeSpannables(start, end, pastedSpannable, htmlStyle)
-    setValue(finalText, false)
-
-    // replacement-safe: oldLength - removed + inserted
-    val insertedLength = finalText.length - (lengthBefore - (end - start))
-    val pasteEnd = (start + insertedLength).coerceIn(0, finalText.length)
-    setSelection(pasteEnd)
-
-    // Update links and mentions in the newly pasted range
-    val editable = text as? Editable ?: return
-    parametrizedStyles?.afterTextChanged(editable, start.coerceAtMost(pasteEnd), pasteEnd)
+      // Update links and mentions in the newly pasted range
+      val editable = text as? Editable ?: return@batchEvents
+      parametrizedStyles?.afterTextChanged(editable, start.coerceAtMost(pasteEnd), pasteEnd)
+    }
   }
 
   fun requestFocusProgrammatically() {
@@ -969,23 +978,27 @@ class EnrichedTextInputView :
   }
 
   fun verifyAndToggleStyle(name: String) {
-    val isValid = verifyStyle(name)
-    if (!isValid) return
+    batchEvents {
+      val isValid = verifyStyle(name)
+      if (!isValid) return@batchEvents
 
-    val (rangeStart, rangeEnd) = getTargetRange(name)
+      val (rangeStart, rangeEnd) = getTargetRange(name)
 
-    runAsATransaction {
-      toggleStyle(name)
+      runAsATransaction {
+        toggleStyle(name)
+      }
+
+      parametrizedStyles?.onStyleToggled(name, rangeStart, rangeEnd)
     }
-
-    parametrizedStyles?.onStyleToggled(name, rangeStart, rangeEnd)
   }
 
   fun toggleCheckboxListItem(checked: Boolean) {
-    val isValid = verifyStyle(EnrichedSpans.CHECKBOX_LIST)
-    if (!isValid) return
+    batchEvents {
+      val isValid = verifyStyle(EnrichedSpans.CHECKBOX_LIST)
+      if (!isValid) return@batchEvents
 
-    listStyles?.toggleCheckboxListStyle(checked)
+      listStyles?.toggleCheckboxListStyle(checked)
+    }
   }
 
   fun addLink(
@@ -994,10 +1007,12 @@ class EnrichedTextInputView :
     text: String,
     url: String,
   ) {
-    val isValid = verifyStyle(EnrichedSpans.LINK)
-    if (!isValid) return
+    batchEvents {
+      val isValid = verifyStyle(EnrichedSpans.LINK)
+      if (!isValid) return@batchEvents
 
-    parametrizedStyles?.setLinkSpan(getActualIndex(start), getActualIndex(end), text, url)
+      parametrizedStyles?.setLinkSpan(getActualIndex(start), getActualIndex(end), text, url)
+    }
   }
 
   fun removeLink(
@@ -1012,18 +1027,22 @@ class EnrichedTextInputView :
     width: Float,
     height: Float,
   ) {
-    val isValid = verifyStyle(EnrichedSpans.IMAGE)
-    if (!isValid) return
+    batchEvents {
+      val isValid = verifyStyle(EnrichedSpans.IMAGE)
+      if (!isValid) return@batchEvents
 
-    parametrizedStyles?.setImageSpan(src, width, height)
-    layoutManager.invalidateLayout()
+      parametrizedStyles?.setImageSpan(src, width, height)
+      layoutManager.invalidateLayout()
+    }
   }
 
   fun startMention(indicator: String) {
-    val isValid = verifyStyle(EnrichedSpans.MENTION)
-    if (!isValid) return
+    batchEvents {
+      val isValid = verifyStyle(EnrichedSpans.MENTION)
+      if (!isValid) return@batchEvents
 
-    parametrizedStyles?.startMention(indicator)
+      parametrizedStyles?.startMention(indicator)
+    }
   }
 
   fun addMention(
@@ -1031,10 +1050,12 @@ class EnrichedTextInputView :
     text: String,
     attributes: Map<String, String>,
   ) {
-    val isValid = verifyStyle(EnrichedSpans.MENTION)
-    if (!isValid) return
+    batchEvents {
+      val isValid = verifyStyle(EnrichedSpans.MENTION)
+      if (!isValid) return@batchEvents
 
-    parametrizedStyles?.setMentionSpan(text, indicator, attributes)
+      parametrizedStyles?.setMentionSpan(text, indicator, attributes)
+    }
   }
 
   fun setTextAlignment(alignment: String) {
@@ -1045,13 +1066,15 @@ class EnrichedTextInputView :
   }
 
   fun setStyle(styleJSON: String) {
-    val isValid = verifyStyle(EnrichedSpans.CUSTOM_STYLE)
-    if (!isValid) return
+    batchEvents {
+      val isValid = verifyStyle(EnrichedSpans.CUSTOM_STYLE)
+      if (!isValid) return@batchEvents
 
-    runAsATransaction {
-      customStyles?.setStyle(styleJSON)
+      runAsATransaction {
+        customStyles?.setStyle(styleJSON)
+      }
+      layoutManager.invalidateLayout()
     }
-    layoutManager.invalidateLayout()
   }
 
   fun requestHTML(requestId: Int) {
@@ -1072,12 +1095,36 @@ class EnrichedTextInputView :
   // Eg. removing conflicting styles -> changing text -> applying spans
   // In such scenario we want to prevent from handling side effects (eg. onTextChanged)
   fun runAsATransaction(block: () -> Unit) {
+    batchEvents {
+      try {
+        isDuringTransaction = true
+        block()
+      } finally {
+        isDuringTransaction = false
+      }
+    }
+  }
+
+  // Events are emitted once all changes are done, so they never carry intermediate state
+  fun batchEvents(block: () -> Unit) {
+    eventsBatchDepth++
     try {
-      isDuringTransaction = true
       block()
     } finally {
-      isDuringTransaction = false
+      eventsBatchDepth--
     }
+
+    if (eventsBatchDepth == 0) emitBatchedEvents()
+  }
+
+  private fun emitBatchedEvents() {
+    val spannable = text ?: return
+
+    textWatcher?.emitPendingEvent(spannable)
+    // Spans could have changed after the last validation, so links and mentions are detected again
+    selection?.validateParametrizedStyles()
+    spanState?.emitStateChangeEvent()
+    spanWatcher?.emitPendingEvent(spannable)
   }
 
   private fun forceScrollToSelection() {
