@@ -65,7 +65,14 @@ public class EnrichedParser {
    * b) not loaded until absolutely necessary.
    */
   private static class HtmlParser {
-    private static final HTMLSchema schema = new HTMLSchema();
+    // HTMLSchema isn't thread-safe and fromHtml runs on both the UI and layout threads.
+    private static final ThreadLocal<HTMLSchema> schema =
+        new ThreadLocal<HTMLSchema>() {
+          @Override
+          protected HTMLSchema initialValue() {
+            return new HTMLSchema();
+          }
+        };
   }
 
   public static <T> Spanned fromHtml(String source, T style, EnrichedSpanFactory<T> spanFactory) {
@@ -76,7 +83,7 @@ public class EnrichedParser {
       String source, T style, EnrichedSpanFactory<T> spanFactory, Pattern linkRegex) {
     Parser parser = new Parser();
     try {
-      parser.setProperty(Parser.schemaProperty, HtmlParser.schema);
+      parser.setProperty(Parser.schemaProperty, HtmlParser.schema.get());
     } catch (SAXNotRecognizedException | SAXNotSupportedException e) {
       // Should not happen.
       throw new RuntimeException(e);
@@ -476,11 +483,11 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
   private final XMLReader mReader;
   private final SpannableStringBuilder mSpannableStringBuilder;
   private final Pattern mLinkRegex;
-  private static Integer currentOrderedListItemIndex = 0;
-  private static Boolean isInOrderedList = false;
-  private static Boolean isInCheckboxList = false;
-  private static Boolean isEmptyTag = false;
-  private static String currentListAlignmentCssValue = null;
+  private int currentOrderedListItemIndex = 0;
+  private boolean isInOrderedList = false;
+  private boolean isInCheckboxList = false;
+  private boolean isEmptyTag = false;
+  private String currentListAlignmentCssValue = null;
 
   private static final Pattern CSS_ALIGNMENT_PATTERN =
       Pattern.compile("text-align\\s*:\\s*(left|center|right)", Pattern.CASE_INSENSITIVE);
@@ -742,7 +749,7 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
     start(text, new Newline(1));
   }
 
-  private static <T> void endBlockElement(Editable text, EnrichedSpanFactory<T> spanFactory) {
+  private <T> void endBlockElement(Editable text, EnrichedSpanFactory<T> spanFactory) {
     Newline n = getLast(text, Newline.class);
     if (n != null) {
       appendNewlines(text, n.mNumNewlines);
@@ -776,7 +783,7 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
     }
   }
 
-  private static <T> void endLi(Editable text, T style, EnrichedSpanFactory<T> spanFactory) {
+  private <T> void endLi(Editable text, T style, EnrichedSpanFactory<T> spanFactory) {
     endBlockElement(text, spanFactory);
 
     List l = getLast(text, List.class);
@@ -798,8 +805,7 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
     start(text, new Blockquote());
   }
 
-  private static <T> void endBlockquote(
-      Editable text, T style, EnrichedSpanFactory<T> spanFactory) {
+  private <T> void endBlockquote(Editable text, T style, EnrichedSpanFactory<T> spanFactory) {
     endBlockElement(text, spanFactory);
     Blockquote last = getLast(text, Blockquote.class);
     setParagraphSpanFromMark(text, last, spanFactory.createBlockQuoteSpan(style));
@@ -810,7 +816,7 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
     start(text, new CodeBlock());
   }
 
-  private static <T> void endCodeBlock(Editable text, T style, EnrichedSpanFactory<T> spanFactory) {
+  private <T> void endCodeBlock(Editable text, T style, EnrichedSpanFactory<T> spanFactory) {
     endBlockElement(text, spanFactory);
     CodeBlock last = getLast(text, CodeBlock.class);
     setParagraphSpanFromMark(text, last, spanFactory.createCodeBlockSpan(style));
@@ -843,7 +849,7 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
     }
   }
 
-  private static <T> void endHeading(
+  private <T> void endHeading(
       Editable text, T style, EnrichedSpanFactory<T> spanFactory, int level) {
     endBlockElement(text, spanFactory);
 
@@ -901,7 +907,7 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
     }
   }
 
-  private static void setParagraphSpanFromMark(Editable text, Object mark, Object... spans) {
+  private void setParagraphSpanFromMark(Editable text, Object mark, Object... spans) {
     int where = text.getSpanStart(mark);
     text.removeSpan(mark);
     int len = text.length();
