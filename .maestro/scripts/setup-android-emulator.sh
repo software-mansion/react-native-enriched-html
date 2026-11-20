@@ -15,17 +15,23 @@ AVD_NAME="Pixel9-API${API_LEVEL}-Enriched"
 PORT=5570
 SERIAL="emulator-${PORT}"
 
-if [ -z "$ANDROID_HOME" ]; then
+if [ -z "${ANDROID_HOME:-}" ]; then
   echo "Error: ANDROID_HOME is not set. Set it to your Android SDK directory."
   exit 1
 fi
 
-for tool in sdkmanager avdmanager emulator adb; do
+for tool in sdkmanager avdmanager adb; do
   if ! command -v "$tool" &>/dev/null; then
     echo "Error: '$tool' not found. Ensure Android SDK tools are installed and in PATH."
     exit 1
   fi
 done
+
+EMULATOR="$ANDROID_HOME/emulator/emulator"
+if [ ! -x "$EMULATOR" ]; then
+  echo "Error: emulator not found at '$EMULATOR'. Install the Android Emulator package via sdkmanager."
+  exit 1
+fi
 
 yes | sdkmanager --licenses > /dev/null 2>&1 || true
 
@@ -92,7 +98,7 @@ if pgrep -f "emulator.*${AVD_NAME}" > /dev/null 2>&1; then
 fi
 
 echo "Starting emulator '$AVD_NAME'..."
-emulator "@${AVD_NAME}" -port "$PORT" > /dev/null 2>&1 &
+"$EMULATOR" "@${AVD_NAME}" -port "$PORT" > /dev/null 2>&1 &
 
 echo "Waiting for emulator ($SERIAL) to connect to ADB..."
 if ! timeout 120 adb -s "$SERIAL" wait-for-device; then
