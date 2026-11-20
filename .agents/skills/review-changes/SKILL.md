@@ -34,8 +34,8 @@ Four stages, in order. Each has a reference file — read it when you reach that
 
 - **Read-only.** Don't edit source files; no `git add/commit/checkout/stash/reset/switch/push`, no
   posting to GitHub unless the user asks. Build output, Metro and installing the example app are
-  fine; if a step (e.g. `pod install`) changes a tracked file, mention it in the report. If
-  testing a branch/PR needs a checkout and the working tree is dirty, stop and ask.
+  fine; if a step (e.g. `pod install`) changes a tracked file, mention it in the report.
+  `git fetch` is fine. Never switch revisions yourself (see step 0).
 - **Evidence over claims.** Commit messages, PR bodies and earlier agent reports describe intent;
   verify them against the diff and the device.
 - **Parity is part of correctness.** An undocumented divergence between iOS, Android and web is a
@@ -44,12 +44,21 @@ Four stages, in order. Each has a reference file — read it when you reach that
 
 ## 0. Resolve the target
 
-| Argument | Diff |
-| --- | --- |
-| empty / `uncommitted` | `git diff HEAD` + untracked files from `git status`; if the tree is clean, current branch vs `main` |
-| `branch <name>` | `git diff main...<name>` (must be checked out to test on device) |
-| `pr <number>` | `gh pr view <n>` + `gh pr diff <n>`; the PR body is the stated intent |
-| `<base>..<head>` | `git diff <base>...<head>` |
+Run `git fetch origin` first and compare against `origin/main`, never local `main`: a stale local
+`main` pulls unrelated commits into the diff.
+
+| Argument | Diff | Revision to validate |
+| --- | --- | --- |
+| empty / `uncommitted` | `git diff HEAD` + untracked files from `git status`; if the tree is clean, `git diff origin/main...HEAD` | the working tree |
+| `branch <name>` | `git diff origin/main...<name>` | `git rev-parse <name>` |
+| `pr <number>` | `gh pr view <n>` + `gh pr diff <n>`; the PR body is the stated intent | `gh pr view <n> --json headRefOid` |
+| `<base>..<head>` | `git diff <base>...<head>` | `git rev-parse <head>` |
+
+Stages 1 and 3 work from the diff. Stages 2 and 4 run on whatever is checked out, so for every
+target except `uncommitted`, before stage 2 confirm that `git rev-parse HEAD` equals the revision
+to validate and `git status --porcelain` is empty. If not, stop and ask the user to check out that
+revision in a clean tree; don't switch revisions yourself. If they decline, report stages 2 and 4
+as "not run: checkout is not at <revision>"; the verdict can't be `APPROVE`.
 
 `--platform` limits **device testing** only; code review and parity always cover every platform.
 

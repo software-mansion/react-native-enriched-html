@@ -300,9 +300,7 @@ iOS, Android and web, and tests it on devices.
 
 To use it:
 
-1. Install Argent and its skills once on your machine. The configs call the
-   `argent` command, and the skills are installed globally (`~/.agents/skills`,
-   `~/.claude/skills`), so they work in every project:
+1. Install Argent and its skills in the repo root. They are installed into the repo and git ignored by default:
 
    ```sh
    npm i -g @swmansion/argent
@@ -322,6 +320,9 @@ To use it:
 
 Run `argent update` to update Argent and your skills. If it changes the
 committed MCP configs or rules, include that in a separate `chore` commit.
+Argent writes the Cursor rule as `.cursor/rules/argent.md`, which Cursor
+ignores and git ignores too; copy any changes into the committed
+`.cursor/rules/argent.mdc`.
 
 :::info
 

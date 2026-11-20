@@ -101,3 +101,5 @@ nitrogen/
 .agents/skills/argent-*/
 .claude/skills/argent-*
 skills-lock.json
+# Argent writes its Cursor rule as `argent.md`, which Cursor ignores; the committed copy is `argent.mdc`
+.cursor/rules/argent.md
