@@ -300,7 +300,8 @@ iOS, Android and web, and tests it on devices.
 
 To use it:
 
-1. Install Argent and its skills in the repo root. They are installed into the repo and git ignored by default:
+1. Install Argent, then run `argent init -y` from the repo root. It installs
+   the skills into the repo, where they're gitignored:
 
    ```sh
    npm i -g @swmansion/argent
