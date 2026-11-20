@@ -423,7 +423,10 @@ class EnrichedTextInputView :
       when {
         item.htmlText != null -> {
           val parsed = parseText(item.htmlText)
-          (parsed as? Spannable) ?: return
+          // Not parsed (e.g. external HTML with the normalizer off): fall back to the plain text item
+          (parsed as? Spannable)
+            ?: item.text?.let { SpannableString(it.toString()) }
+            ?: return
         }
 
         item.text != null -> {
