@@ -52,6 +52,8 @@ export function useEditorState() {
   const [stylesState, setStylesState] = useState<StylesState>(DEFAULT_STYLES);
   const [currentLink, setCurrentLink] =
     useState<CurrentLinkState>(DEFAULT_LINK_STATE);
+  // All link events in one line for e2e tests.
+  const [linkEvents, setLinkEvents] = useState('');
 
   const userMention = useUserMention();
   const channelMention = useChannelMention();
@@ -166,6 +168,9 @@ export function useEditorState() {
   const handleLinkDetected = (state: CurrentLinkState) => {
     console.log(state);
     setCurrentLink(state);
+
+    const entry = `${state.text}[${state.start},${state.end}]`;
+    setLinkEvents((events) => (events ? `${events} | ${entry}` : entry));
   };
 
   const handleSelectionChangeEvent = (sel: OnChangeSelectionEvent) => {
@@ -247,6 +252,7 @@ export function useEditorState() {
     currentHtml,
     selection,
     currentLink,
+    linkEvents,
     insideCurrentLink,
     isLinkModalOpen,
     isImageModalOpen,

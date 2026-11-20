@@ -1,0 +1,86 @@
+appId: swmansion.enriched.example
+---
+# PR #869 - fix(android): events batching
+# Link events must carry final values, never stale ones from the middle of an edit
+- launchApp
+
+- tapOn:
+    id: "toggle-screen-button"
+
+- tapOn:
+    id: "editor-input"
+
+- runFlow:
+    file: "../subflows/insert_link.yaml"
+    env:
+      LINK_TEXT: "foo supercalifragilistic baz"
+      LINK_URL: "https://swmansion.com"
+
+- extendedWaitUntil:
+    notVisible:
+      id: "link-modal-submit-button"
+    timeout: 10000
+
+# Leave a collapsed caret inside the link ("foo | baz"), then press Enter, which splits the link in two
+- doubleTapOn:
+    id: "editor-input"
+    point: "50%, 50%"
+
+- pressKey: Backspace
+
+- pressKey: Enter
+
+- tapOn:
+    id: "blur-button"
+
+- tapOn:
+    id: "toggle-html-button"
+
+- assertVisible:
+    id: "link-events-output"
+    text: "(?s).*\\|  baz\\[\\d+,\\d+\\].*"
+
+# The link from before the split (still containing the newline) must not be reported
+- assertNotVisible:
+    id: "link-events-output"
+    text: "(?s).*foo\\s*\\n\\s*baz\\[0,\\d+\\].*"
+
+# Toggling a code block off restores the link, toggling it on removes it again
+- tapOn:
+    id: "clear-button"
+
+- tapOn:
+    id: "focus-button"
+
+- tapOn:
+    id: "toolbar-code-block"
+
+- inputText: "Hello swmansion.com"
+
+- tapOn:
+    id: "toolbar-code-block"
+
+- tapOn:
+    id: "blur-button"
+
+- assertVisible:
+    id: "link-events-output"
+    text: "(?s).*swmansion\\.com\\[\\d+,\\d+\\].*"
+
+# Android only: iOS doesn't treat a caret at the link's end as inside it, so it sends no clear event here
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - tapOn:
+          id: "focus-button"
+
+      - tapOn:
+          id: "toolbar-code-block"
+
+      - tapOn:
+          id: "blur-button"
+
+      - assertVisible:
+          id: "link-events-output"
+          text: "(?s).*swmansion\\.com\\[\\d+,\\d+\\] \\| \\[0,0\\].*"

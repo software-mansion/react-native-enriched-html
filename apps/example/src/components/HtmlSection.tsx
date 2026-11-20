@@ -4,9 +4,10 @@ import { StyleSheet, TextInput } from 'react-native';
 
 interface HtmlSectionProps {
   currentHtml: string;
+  linkEvents?: string;
 }
 
-export const HtmlSection = ({ currentHtml }: HtmlSectionProps) => {
+export const HtmlSection = ({ currentHtml, linkEvents }: HtmlSectionProps) => {
   const [showHtml, setShowHtml] = useState(false);
 
   return (
@@ -24,6 +25,15 @@ export const HtmlSection = ({ currentHtml }: HtmlSectionProps) => {
           style={styles.htmlText}
           value={currentHtml}
           testID="html-output"
+        />
+      )}
+      {showHtml && linkEvents !== undefined && (
+        <TextInput
+          multiline
+          editable={false}
+          style={styles.htmlText}
+          value={linkEvents}
+          testID="link-events-output"
         />
       )}
     </>

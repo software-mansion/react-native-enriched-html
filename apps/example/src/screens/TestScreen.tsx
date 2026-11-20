@@ -112,7 +112,10 @@ export function TestScreen({
             layout="grid"
           />
         </View>
-        <HtmlSection currentHtml={editor.currentHtml} />
+        <HtmlSection
+          currentHtml={editor.currentHtml}
+          linkEvents={editor.linkEvents}
+        />
         <View style={styles.buttonRow}>
           <Button
             title="Set Value"
