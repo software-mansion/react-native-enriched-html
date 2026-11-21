@@ -70,6 +70,14 @@ space, and a second space ends it. That makes `@John Doe` a valid mention.
 
 :::
 
+## Editing an inserted mention
+
+When the text of an inserted mention changes - a character typed inside it, a
+part of it deleted, an autocorrect replacement - the text stays and is no
+longer a mention. Set
+[`removeInvalidMentionContent`](/api-reference/enriched-text-input#removeinvalidmentioncontent)
+to remove the whole mention instead.
+
 ## Driving mentions with events
 
 This example is deliberately bare-bones - one hard-coded user behind a button.

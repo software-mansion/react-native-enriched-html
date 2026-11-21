@@ -290,6 +290,9 @@ static NSString *const MentionBackgroundAttributeName =
 
   // set of ranges to have their mentions removed - aren't valid anymore
   NSMutableSet<NSValue *> *rangesToRemove = [[NSMutableSet alloc] init];
+  // ranges whose text gets deleted, with removeInvalidMentionContent
+  NSMutableArray<NSValue *> *rangesToDelete = [[NSMutableArray alloc] init];
+  MentionParams *lastDeletedParams = nullptr;
 
   for (NSInteger i = 0; i < mentions.count; i++) {
     StylePair *mention = mentions[i];
@@ -304,7 +307,10 @@ static NSString *const MentionBackgroundAttributeName =
       if (prevRange.location + prevRange.length == currentRange.location) {
         [rangesToRemove addObject:[NSValue valueWithRange:prevRange]];
         [rangesToRemove addObject:[NSValue valueWithRange:currentRange]];
-        continue;
+        // with removeInvalidMentionContent an edited one still has to go
+        if (![self.host.config removeInvalidMentionContent]) {
+          continue;
+        }
       }
     }
 
@@ -312,12 +318,41 @@ static NSString *const MentionBackgroundAttributeName =
     NSString *existingText =
         [self.host.textView.textStorage.string substringWithRange:currentRange];
     if (![existingText isEqualToString:currentText]) {
-      [rangesToRemove addObject:[NSValue valueWithRange:currentRange]];
+      if ([self.host.config removeInvalidMentionContent]) {
+        // text typed inside a mention doesn't get the attribute, so the
+        // mention becomes two runs with the same params; union them so the
+        // typed text goes too
+        if (lastDeletedParams == mention.styleValue) {
+          NSRange lastRange = [rangesToDelete.lastObject rangeValue];
+          rangesToDelete[rangesToDelete.count - 1] =
+              [NSValue valueWithRange:NSUnionRange(lastRange, currentRange)];
+        } else {
+          [rangesToDelete addObject:[NSValue valueWithRange:currentRange]];
+        }
+        lastDeletedParams = mention.styleValue;
+      } else {
+        [rangesToRemove addObject:[NSValue valueWithRange:currentRange]];
+      }
     }
   }
 
   for (NSValue *value in rangesToRemove) {
     [self remove:[value rangeValue] withDirtyRange:YES];
+  }
+
+  // mentions are in ascending order, deleting from the end keeps the
+  // earlier ranges valid; the selection is set without focusing the input,
+  // as this also runs when the value is set from JS
+  for (NSValue *value in rangesToDelete.reverseObjectEnumerator) {
+    [TextInsertionUtils replaceText:@""
+                                 at:[value rangeValue]
+               additionalAttributes:nullptr
+                               host:self.host
+                      withSelection:NO];
+  }
+  if (rangesToDelete.count > 0) {
+    self.host.textView.selectedRange =
+        NSMakeRange([rangesToDelete.firstObject rangeValue].location, 0);
   }
 }
 

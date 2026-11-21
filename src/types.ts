@@ -672,6 +672,13 @@ export interface EnrichedTextInputProps extends Omit<ViewProps, 'children'> {
   mentionIndicators?: string[];
 
   /**
+   * If `true`, any change to the text of an inserted mention (typing inside it,
+   * deleting part of it, autocorrect) removes the whole mention. If `false`, the
+   * changed text stays and is no longer a mention. Defaults to `false`.
+   */
+  removeInvalidMentionContent?: boolean;
+
+  /**
    * Initial content rendered when the component mounts.
    * Use `ref.setValue()` to update the content imperatively.
    */
