@@ -1,0 +1,34 @@
+appId: swmansion.enriched.example
+---
+# Regression test: mention attribute names that contain a hyphen (e.g. the
+# `data-*` names recommended in the docs) must survive HTML parsing. iOS used
+# to match attribute names with `\w+`, so `data-id` was read back as `id`.
+- launchApp
+
+- tapOn:
+    id: 'toggle-screen-button'
+
+- runFlow:
+    file: '../subflows/set_editor_value.yaml'
+    env:
+      VALUE: '<html><p><mention text="@John Doe" indicator="@" data-id="1" data-profile-url="https://example.com/john">@John Doe</mention></p></html>'
+
+- tapOn:
+    id: 'toggle-html-button'
+
+- assertVisible:
+    id: 'html-output'
+    text: '.*data-id="1".*'
+
+- assertVisible:
+    id: 'html-output'
+    text: '.*data-profile-url="https://example.com/john".*'
+
+# the truncated names must not come back instead
+- assertNotVisible:
+    id: 'html-output'
+    text: '.* id="1".*'
+
+- assertNotVisible:
+    id: 'html-output'
+    text: '.* url="https://example.com/john".*'
