@@ -1,0 +1,35 @@
+appId: swmansion.enriched.example
+---
+# Regression test: editing the content of a mention strips the mention, also
+# when the mention text does not start with its indicator. Android used to look
+# for edited mentions only in words that start with an indicator, so such a
+# mention kept its tag and attributes around text that no longer matched.
+- launchApp
+
+- tapOn:
+    id: 'toggle-screen-button'
+
+- runFlow:
+    file: '../subflows/set_editor_value.yaml'
+    env:
+      VALUE: '<html><p><mention text="John Doe" indicator="@" data-id="1">John Doe</mention></p></html>'
+
+- tapOn:
+    id: 'editor-input'
+
+- eraseText: 1
+
+# hide the keyboard so the HTML output is on screen
+- tapOn:
+    id: 'blur-button'
+
+- tapOn:
+    id: 'toggle-html-button'
+
+- assertVisible:
+    id: 'html-output'
+    text: '.*John Do.*'
+
+- assertNotVisible:
+    id: 'html-output'
+    text: '.*<mention.*'
