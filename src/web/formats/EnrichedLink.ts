@@ -69,7 +69,7 @@ export const EnrichedLink = Link.extend<
       ...parent,
       openOnClick: false,
       autolink: false,
-      linkOnPaste: false,
+      applyLinkOnPaste: false,
       HTMLAttributes: {
         ...parent.HTMLAttributes,
         target: null,
@@ -140,14 +140,14 @@ export function setLink(
   end: number,
   text: string,
   url: string
-) {
+): boolean {
   const { state } = editor;
   const doc = state.doc;
   const from = nativePosToTiptapPos(doc, start);
   const to = nativePosToTiptapPos(doc, end);
 
   if (isRangeLinkBlocked(editor, from, to)) {
-    return;
+    return false;
   }
 
   if (text.length === 0 && from !== to) {
@@ -155,13 +155,13 @@ export function setLink(
   }
 
   if (text.length === 0 || url.length === 0) {
-    return;
+    return false;
   }
 
   const linkType = state.schema.marks.link;
-  if (!linkType) return;
+  if (!linkType) return false;
   const linkMark = linkType.create({ href: url });
-  editor
+  return editor
     .chain()
     .focus()
     .command(({ tr, state: s }) => {
