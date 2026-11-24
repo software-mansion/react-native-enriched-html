@@ -2,6 +2,7 @@ import type { TextShortcut } from '../types';
 
 export const ENRICHED_TEXT_INPUT_DEFAULT_PROPS = {
   mentionIndicators: ['@'],
+  removeInvalidMentionContent: false,
   editable: true,
   htmlStyle: {},
   autoCapitalize: 'sentences',

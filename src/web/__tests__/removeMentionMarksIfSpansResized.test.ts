@@ -93,6 +93,101 @@ describe('removeMentionMarksIfSpansResized', () => {
     expect(fix).toBeNull();
   });
 
+  test('leaves text that replaced a whole mention alone', () => {
+    // select "i @Jane a" and type "Z"
+    const { doc } = run((state) => state.tr.insertText('Z', 2, 11), true);
+
+    expect(doc.textContent).toBe('HZnd @John ');
+    expect(mentionTexts(doc)).toEqual(['@John']);
+  });
+
+  test('keeps text typed over exactly a mention, without the mark', () => {
+    // select "@Jane" and type "Z"
+    const { doc } = run((state) => state.tr.insertText('Z', 4, 9), true);
+
+    expect(doc.textContent).toBe('Hi Z and @John ');
+    expect(mentionTexts(doc)).toEqual(['@John']);
+  });
+
+  test('keeps a mention set again with the same content', () => {
+    const { doc } = run(
+      (state) =>
+        state.tr.replaceWith(0, state.doc.content.size, state.doc.content),
+      true
+    );
+
+    expect(mentionTexts(doc)).toEqual(['@Jane', '@John']);
+  });
+
+  test('leaves text that replaced the whole document alone', () => {
+    // select all and type "x"
+    const { doc } = run(
+      (state) => state.tr.insertText('x', 1, state.doc.content.size - 1),
+      true
+    );
+
+    expect(doc.textContent).toBe('x');
+  });
+
+  test('keeps new content set over the old mentions as is', () => {
+    const newContent = schema.node('doc', null, [
+      schema.node('paragraph', null, [schema.text('New text')]),
+    ]).content;
+    const { doc } = run(
+      (state) => state.tr.replaceWith(0, state.doc.content.size, newContent),
+      true
+    );
+
+    expect(doc.textContent).toBe('New text');
+  });
+
+  test('removes a mention set with text that does not match it', () => {
+    const newContent = schema.node('doc', null, [
+      schema.node('paragraph', null, [
+        schema.text('Hi '),
+        schema.text('@Jake', [schema.marks.mention!.create({ text: '@Jane' })]),
+        schema.text(' and '),
+        mention('@John'),
+      ]),
+    ]).content;
+    const set = (state: EditorState) =>
+      state.tr.replaceWith(0, state.doc.content.size, newContent);
+
+    expect(run(set, true).doc.textContent).toBe('Hi  and @John');
+    expect(run(set, false).fix).toBeNull();
+  });
+
+  test('keeps a mention split into two text nodes with equal marks', () => {
+    const newContent = schema.node('doc', null, [
+      schema.node('paragraph', null, [
+        schema.text('@Ja', [schema.marks.mention!.create({ text: '@Jane' })]),
+        schema.text('ne', [schema.marks.mention!.create({ text: '@Jane' })]),
+      ]),
+    ]).content;
+    const { fix } = run(
+      (state) => state.tr.replaceWith(0, state.doc.content.size, newContent),
+      true
+    );
+
+    expect(fix).toBeNull();
+  });
+
+  test('keeps a mention whose spaces were collapsed by the HTML parser', () => {
+    const newContent = schema.node('doc', null, [
+      schema.node('paragraph', null, [
+        schema.text('@John Doe', [
+          schema.marks.mention!.create({ text: '@John  Doe' }),
+        ]),
+      ]),
+    ]).content;
+    const { fix } = run(
+      (state) => state.tr.replaceWith(0, state.doc.content.size, newContent),
+      true
+    );
+
+    expect(fix).toBeNull();
+  });
+
   test('removes two changed mentions in one edit', () => {
     const { doc } = run((state) => state.tr.delete(8, 16), true);
 

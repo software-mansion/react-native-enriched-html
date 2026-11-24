@@ -383,3 +383,69 @@ test('removeInvalidMentionContent: typing right after a mention keeps it', async
       '<html><p><mention text="Jane" indicator="@" id="1">Jane</mention>x </p></html>'
     );
 });
+
+test('removeInvalidMentionContent: replacing everything keeps only the new text', async ({
+  page,
+}) => {
+  await gotoMentionTest(page);
+  await page.locator(sel.removeInvalidToggle).click();
+  const editor = mentionEditor(page);
+  await editor.click();
+  await editor.pressSequentially('Hi @', { delay: 80 });
+  await page.locator(sel.setUserButton).click();
+  await editor.press('End');
+  await editor.pressSequentially('and more', { delay: 40 });
+  await editor.press('ControlOrMeta+a');
+  await editor.press('x');
+  await expect
+    .poll(async () => await htmlOutput(page).textContent())
+    .toEqual('<html><p>x</p></html>');
+});
+
+test('removeInvalidMentionContent: replacing a selection around a mention keeps only the new text', async ({
+  page,
+}) => {
+  await gotoMentionTest(page);
+  await page.locator(sel.removeInvalidToggle).click();
+  const editor = mentionEditor(page);
+  await editor.click();
+  await editor.pressSequentially('Hi @', { delay: 80 });
+  await page.locator(sel.setUserButton).click();
+  await editor.press('End');
+  await editor.pressSequentially('end', { delay: 40 });
+  // "Hi Jane end": select "i Jane e"
+  await editor.press('Home');
+  await editor.press('ArrowRight');
+  for (let i = 0; i < 8; i++) {
+    await editor.press('Shift+ArrowRight');
+  }
+  await editor.press('Z');
+  await expect
+    .poll(async () => await htmlOutput(page).textContent())
+    .toEqual('<html><p>HZnd</p></html>');
+});
+
+test('removeInvalidMentionContent: replacing exactly a mention keeps the new text', async ({
+  page,
+}) => {
+  await gotoMentionTest(page);
+  await page.locator(sel.removeInvalidToggle).click();
+  const editor = mentionEditor(page);
+  await editor.click();
+  await editor.pressSequentially('Hi @', { delay: 80 });
+  await page.locator(sel.setUserButton).click();
+  await editor.press('End');
+  await editor.pressSequentially('end', { delay: 40 });
+  // "Hi Jane end": select "Jane"
+  await editor.press('Home');
+  for (let i = 0; i < 3; i++) {
+    await editor.press('ArrowRight');
+  }
+  for (let i = 0; i < 4; i++) {
+    await editor.press('Shift+ArrowRight');
+  }
+  await editor.press('Z');
+  await expect
+    .poll(async () => await htmlOutput(page).textContent())
+    .toEqual('<html><p>Hi Z end</p></html>');
+});

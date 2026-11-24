@@ -1790,6 +1790,15 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
     return;
   }
 
+  MentionStyle *mentionStyleClass =
+      (MentionStyle *)stylesDict[@([MentionStyle getType])];
+
+  // mentions removal - before the zero width spaces, so a paragraph emptied by
+  // removing a mention's text gets its zero width space back
+  if (mentionStyleClass != nullptr) {
+    [mentionStyleClass handleExistingMentions];
+  }
+
   // zero width space adding or removal
   [ZeroWidthSpaceUtils handleZeroWidthSpacesInHost:self];
 
@@ -1804,11 +1813,8 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   }
   preserveTypingAttributesOnNextEmptyCheck = NO;
 
-  // mentions management: removal and editing
-  MentionStyle *mentionStyleClass =
-      (MentionStyle *)stylesDict[@([MentionStyle getType])];
+  // mentions management: editing
   if (mentionStyleClass != nullptr) {
-    [mentionStyleClass handleExistingMentions];
     [mentionStyleClass manageMentionEditing];
   }
 

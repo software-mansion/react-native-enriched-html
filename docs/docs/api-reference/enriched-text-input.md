@@ -577,10 +577,12 @@ A React ref that lets you call any [ref methods](#ref-methods) on the input.
 
 ### `removeInvalidMentionContent` {#removeinvalidmentioncontent}
 
-If `true`, any change to the text of an inserted mention (typing inside it,
-deleting part of it, autocorrect) removes the whole mention. If `false`, the
-changed text stays and is no longer a mention. See
-[Mentions](/rich-text-formatting/mentions#editing-an-inserted-mention).
+If `true`, any change to the text of an existing mention (typing inside it,
+deleting part of it, autocorrect) removes both mention styling and the text content. If `false`, the
+changed text stays and only the styling is removed. With `true`, a mention from
+`defaultValue`, `setValue` or pasted HTML whose text doesn't match its `text`
+attribute is removed as well. See
+[Mentions](/rich-text-formatting/mentions#modifying-an-existing-mention).
 
 | Type      | Default | Platforms         |
 | --------- | ------- | ----------------- |

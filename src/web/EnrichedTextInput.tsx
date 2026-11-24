@@ -106,7 +106,7 @@ export const EnrichedTextInput = ({
   autoCapitalize = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.autoCapitalize,
   scrollEnabled = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.scrollEnabled,
   mentionIndicators = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.mentionIndicators.slice(),
-  removeInvalidMentionContent = false,
+  removeInvalidMentionContent = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.removeInvalidMentionContent,
   onFocus,
   style,
   onBlur,

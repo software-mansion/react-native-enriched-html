@@ -96,21 +96,37 @@ class ParametrizedStyles(
   ) {
     afterTextChangedLinks(startCursorPosition, endCursorPosition)
     // the deletion re-runs this watcher on the final text with fresh positions
-    if (removeInvalidMentionContent && removeInvalidMentions(s)) return
+    if (removeInvalidMentionContent && removeInvalidMentions(s, startCursorPosition, endCursorPosition)) return
     detectActiveMention(s, startCursorPosition)
   }
 
-  private fun removeInvalidMentions(s: Editable): Boolean {
+  // insertedStart and insertedEnd is the text the edit inserted, if any
+  fun removeInvalidMentions(
+    s: Editable,
+    insertedStart: Int = -1,
+    insertedEnd: Int = -1,
+  ): Boolean {
     var removed = false
     for (span in s.getSpans(0, s.length, EnrichedInputMentionSpan::class.java)) {
       val start = s.getSpanStart(span)
       val end = s.getSpanEnd(span)
       // the nested watcher pass may have removed it already
       if (start == -1) continue
-      if (s.subSequence(start, end).toString() == span.getText()) continue
+      // a mention at the start of a paragraph style can cover the paragraph's
+      // zero width space, which isn't part of its text
+      val currentText = s.subSequence(start, end).toString().replace(EnrichedConstants.ZWS_STRING, "")
+      if (currentText == span.getText()) continue
 
       s.removeSpan(span)
-      s.delete(start, end)
+      // replacing exactly the mention's text leaves the span over the new
+      // text; the mention is already gone, so the new text stays
+      if (start >= insertedStart && end <= insertedEnd) continue
+
+      // keep the paragraph's zero width space, or the paragraph style would be
+      // removed with it
+      var deleteStart = start
+      while (deleteStart < end && s[deleteStart] == EnrichedConstants.ZWS) deleteStart++
+      s.delete(deleteStart, end)
       removed = true
     }
     return removed

@@ -66,7 +66,7 @@ export const EnrichedTextInput = ({
   autoFocus = false,
   editable = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.editable,
   mentionIndicators = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.mentionIndicators.slice(),
-  removeInvalidMentionContent = false,
+  removeInvalidMentionContent = ENRICHED_TEXT_INPUT_DEFAULT_PROPS.removeInvalidMentionContent,
   defaultValue,
   placeholder,
   placeholderTextColor,

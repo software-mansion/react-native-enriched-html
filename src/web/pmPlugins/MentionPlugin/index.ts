@@ -26,13 +26,17 @@ export const MentionPlugin = Extension.create<MentionPluginOptions>({
     };
   },
   addProseMirrorPlugins() {
+    const options = this.options;
     return [
       new Plugin<TriggerState>({
         key: mentionPluginKey,
         props: {
           transformPasted(slice: Slice): Slice {
             return new Slice(
-              stripPartialMentionMarks(slice.content),
+              stripPartialMentionMarks(
+                slice.content,
+                options.getRemoveInvalidMentionContent()
+              ),
               slice.openStart,
               slice.openEnd
             );
@@ -44,7 +48,7 @@ export const MentionPlugin = Extension.create<MentionPluginOptions>({
             transactions,
             oldState,
             newState,
-            this.options.getRemoveInvalidMentionContent()
+            options.getRemoveInvalidMentionContent()
           ),
       }),
     ];
