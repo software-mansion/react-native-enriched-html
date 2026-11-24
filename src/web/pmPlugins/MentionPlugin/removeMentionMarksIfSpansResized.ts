@@ -31,8 +31,7 @@ export function removeMentionMarksIfSpansResized(
       newTo = t.mapping.map(newTo, -1);
     }
 
-    // the edit replaced the whole mention, so nothing of it is left; deleting
-    // an inverted range would insert a copy of the replaced text instead
+    // the edit replaced the whole mention, so nothing of it is left
     if (
       newFrom >= newTo ||
       (removeContent && wholeRangeReplaced(transactions, from, to))

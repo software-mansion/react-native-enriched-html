@@ -373,10 +373,11 @@ static NSString *const MentionBackgroundAttributeName =
         return location1 < location2 ? NSOrderedDescending : NSOrderedSame;
       }];
 
-  // deleting through the text storage doesn't move the caret, so remap the
-  // selection by hand, as ZeroWidthSpaceUtils does
+  // deleting through the text storage doesn't move the caret, so we calculate
+  // where it lands: left by the deleted text before it, or at the start of a
+  // deleted range it was inside
   NSRange preDeleteSelection = self.host.textView.selectedRange;
-  NSUInteger (^remap)(NSUInteger) = ^NSUInteger(NSUInteger position) {
+  NSUInteger (^remapSelection)(NSUInteger) = ^NSUInteger(NSUInteger position) {
     NSUInteger offset = 0;
     for (NSValue *value in rangesToDelete) {
       NSRange range = [value rangeValue];
@@ -399,8 +400,8 @@ static NSString *const MentionBackgroundAttributeName =
 
   // setValue and defaultValue move the caret to the end right after anyway
   if ([self.host.textView isFirstResponder]) {
-    NSUInteger location = remap(preDeleteSelection.location);
-    NSUInteger end = remap(NSMaxRange(preDeleteSelection));
+    NSUInteger location = remapSelection(preDeleteSelection.location);
+    NSUInteger end = remapSelection(NSMaxRange(preDeleteSelection));
     self.host.textView.selectedRange = NSMakeRange(location, end - location);
   }
 }
