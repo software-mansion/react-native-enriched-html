@@ -28,6 +28,7 @@ import com.swmansion.enriched.textinput.events.OnMentionDetectedEvent
 import com.swmansion.enriched.textinput.events.OnMentionEvent
 import com.swmansion.enriched.textinput.events.OnPasteImagesEvent
 import com.swmansion.enriched.textinput.events.OnRequestHtmlResultEvent
+import com.swmansion.enriched.textinput.events.OnRequestRangeRectsResultEvent
 import com.swmansion.enriched.textinput.events.OnSubmitEditingEvent
 import com.swmansion.enriched.textinput.spans.EnrichedSpans
 import com.swmansion.enriched.textinput.styles.HtmlStyle
@@ -72,6 +73,7 @@ class EnrichedTextInputViewManager :
     map.put(OnMentionEvent.EVENT_NAME, mapOf("registrationName" to OnMentionEvent.EVENT_NAME))
     map.put(OnChangeSelectionEvent.EVENT_NAME, mapOf("registrationName" to OnChangeSelectionEvent.EVENT_NAME))
     map.put(OnRequestHtmlResultEvent.EVENT_NAME, mapOf("registrationName" to OnRequestHtmlResultEvent.EVENT_NAME))
+    map.put(OnRequestRangeRectsResultEvent.EVENT_NAME, mapOf("registrationName" to OnRequestRangeRectsResultEvent.EVENT_NAME))
     map.put(OnInputKeyPressEvent.EVENT_NAME, mapOf("registrationName" to OnInputKeyPressEvent.EVENT_NAME))
     map.put(OnPasteImagesEvent.EVENT_NAME, mapOf("registrationName" to OnPasteImagesEvent.EVENT_NAME))
     map.put(OnContextMenuItemPressEvent.EVENT_NAME, mapOf("registrationName" to OnContextMenuItemPressEvent.EVENT_NAME))
@@ -486,6 +488,14 @@ class EnrichedTextInputViewManager :
     requestId: Int,
   ) {
     view?.requestHTML(requestId)
+  }
+
+  override fun requestRangeRects(
+    view: EnrichedTextInputView?,
+    requestId: Int,
+    ranges: ReadableArray?,
+  ) {
+    view?.requestRangeRects(requestId, ranges)
   }
 
   override fun setTextAlignment(
