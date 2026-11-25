@@ -34,6 +34,7 @@ import com.facebook.react.bridge.ReactContext
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.common.ReactConstants
+import com.facebook.react.uimanager.PixelUtil
 import com.facebook.react.uimanager.StateWrapper
 import com.facebook.react.uimanager.UIManagerHelper
 import com.facebook.react.views.text.ReactTypefaceUtils.applyStyles
@@ -49,6 +50,7 @@ import com.swmansion.enriched.textinput.events.MentionHandler
 import com.swmansion.enriched.textinput.events.OnContextMenuItemPressEvent
 import com.swmansion.enriched.textinput.events.OnInputBlurEvent
 import com.swmansion.enriched.textinput.events.OnInputFocusEvent
+import com.swmansion.enriched.textinput.events.OnInputScrollEvent
 import com.swmansion.enriched.textinput.events.OnRequestHtmlResultEvent
 import com.swmansion.enriched.textinput.events.OnSubmitEditingEvent
 import com.swmansion.enriched.textinput.spans.EnrichedInputH1Span
@@ -131,6 +133,7 @@ class EnrichedTextInputView :
 
   var shouldEmitHtml: Boolean = false
   var shouldEmitOnChangeText: Boolean = false
+  var shouldEmitOnScroll: Boolean = false
   var experimentalSynchronousEvents: Boolean = false
   var useHtmlNormalizer: Boolean = false
 
@@ -340,6 +343,34 @@ class EnrichedTextInputView :
   override fun canScrollVertically(direction: Int): Boolean = scrollEnabled
 
   override fun canScrollHorizontally(direction: Int): Boolean = scrollEnabled
+
+  override fun onScrollChanged(
+    horiz: Int,
+    vert: Int,
+    oldHoriz: Int,
+    oldVert: Int,
+  ) {
+    super.onScrollChanged(horiz, vert, oldHoriz, oldVert)
+    if (!shouldEmitOnScroll) return
+    if (horiz == oldHoriz && vert == oldVert) return
+
+    val reactContext = context as? ReactContext ?: return
+    val surfaceId = UIManagerHelper.getSurfaceId(reactContext)
+    val dispatcher = UIManagerHelper.getEventDispatcher(reactContext)
+
+    val dipHorizontal = PixelUtil.toDIPFromPixel(horiz.toFloat())
+    val dipVertical = PixelUtil.toDIPFromPixel(vert.toFloat())
+
+    dispatcher?.dispatchEvent(
+      OnInputScrollEvent(
+        surfaceId,
+        id,
+        dipHorizontal,
+        dipVertical,
+        experimentalSynchronousEvents,
+      ),
+    )
+  }
 
   override fun onSelectionChanged(
     selStart: Int,

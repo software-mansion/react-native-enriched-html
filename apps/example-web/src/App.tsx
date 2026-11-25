@@ -15,6 +15,7 @@ import {
   type OnChangeMentionEvent,
   type OnMentionDetected,
   type OnLinkPressEvent,
+  type OnScrollEvent,
 } from 'react-native-enriched-html';
 import { WEB_DEFAULT_HTML_STYLE } from './defaultHtmlStyle';
 import type { NativeSyntheticEvent } from 'react-native';
@@ -252,6 +253,10 @@ function App() {
       });
   };
 
+  const handleScroll = (e: NativeSyntheticEvent<OnScrollEvent>) => {
+    console.log('[EnrichedTextInput] onScroll event', e.nativeEvent);
+  };
+
   return (
     <div className="container">
       <h1 className="app-title">Enriched Text Input</h1>
@@ -271,6 +276,7 @@ function App() {
           scrollEnabled
           autoCapitalize="sentences"
           style={enrichedInputStyle}
+          onScroll={handleScroll}
           onFocus={handleFocus}
           onBlur={handleBlur}
           onKeyPress={handleKeyPress}
