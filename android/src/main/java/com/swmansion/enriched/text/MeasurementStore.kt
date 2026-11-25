@@ -21,6 +21,7 @@ import com.facebook.yoga.YogaMeasureOutput
 import com.swmansion.enriched.common.EnrichedConstants
 import com.swmansion.enriched.common.GumboNormalizer
 import com.swmansion.enriched.common.allowFontScalingFromProps
+import com.swmansion.enriched.common.isInternalHtml
 import com.swmansion.enriched.common.parser.EnrichedParser
 import com.swmansion.enriched.common.pixelFromSpOrDp
 import com.swmansion.enriched.textinput.spans.EnrichedLineHeightSpan
@@ -108,15 +109,15 @@ object MeasurementStore {
     props: ReadableMap?,
   ): CharSequence {
     val text = props?.getString("text") ?: ""
-    val isInternalHtml = text.startsWith("<html>") && text.endsWith("</html>")
+    val isInternal = isInternalHtml(text)
     val useHtmlNormalizer = useHtmlNormalizerFromProps(props)
 
-    if (!isInternalHtml && !useHtmlNormalizer) {
+    if (!isInternal && !useHtmlNormalizer) {
       return text
     }
 
     try {
-      val textToParse = if (isInternalHtml) text else GumboNormalizer.normalizeHtml(text)
+      val textToParse = if (isInternal) text else GumboNormalizer.normalizeHtml(text)
       val style = props?.getMap("htmlStyle") ?: return text
       val allowFontScaling = allowFontScalingFromProps(props)
       val enrichedStyle = EnrichedTextStyle.fromReadableMap(context as ReactContext, fontSize, style, allowFontScaling)

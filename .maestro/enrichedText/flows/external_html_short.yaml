@@ -1,0 +1,20 @@
+appId: swmansion.enriched.example
+---
+# Issue #811 - fix(iOS): external HTML shorter than 13 characters wasn't parsed
+- launchApp
+
+- tapOn:
+    id: 'toggle-screen-button'
+
+- tapOn:
+    id: 'toggle-enriched-text-screen-button'
+
+- runFlow:
+    file: '../subflows/set_enriched_text_value.yaml'
+    env:
+      VALUE: '<b>hi</b>'
+
+- runFlow:
+    file: '../subflows/capture_or_assert_screenshot.yaml'
+    env:
+      SCREENSHOT_NAME: 'external_html_short'

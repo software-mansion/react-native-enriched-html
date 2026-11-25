@@ -44,6 +44,7 @@ import com.swmansion.enriched.common.EnrichedConstants
 import com.swmansion.enriched.common.EnrichedSpanFlags
 import com.swmansion.enriched.common.GumboNormalizer
 import com.swmansion.enriched.common.MentionBackgroundDrawer
+import com.swmansion.enriched.common.isInternalHtml
 import com.swmansion.enriched.common.parser.EnrichedParser
 import com.swmansion.enriched.common.pixelFromSpOrDp
 import com.swmansion.enriched.textinput.events.MentionHandler
@@ -475,7 +476,10 @@ class EnrichedTextInputView :
       when {
         item.htmlText != null -> {
           val parsed = parseText(item.htmlText)
-          (parsed as? Spannable) ?: return
+          // Not parsed (e.g. external HTML with the normalizer off): fall back to the plain text item
+          (parsed as? Spannable)
+            ?: item.text?.let { SpannableString(it.toString()) }
+            ?: return
         }
 
         item.text != null -> {
@@ -520,9 +524,7 @@ class EnrichedTextInputView :
   }
 
   private fun parseText(text: CharSequence): CharSequence {
-    val isInternalHtml = text.startsWith("<html>") && text.endsWith("</html>")
-
-    if (isInternalHtml) {
+    if (isInternalHtml(text)) {
       try {
         val parsed = EnrichedParser.fromHtml(text.toString(), htmlStyle, spannableFactory, linkRegex)
         return parsed.trimEnd('\n')
