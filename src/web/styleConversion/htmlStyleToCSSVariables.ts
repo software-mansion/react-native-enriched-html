@@ -117,6 +117,8 @@ export const ET_MENTION_CSS_VARS = {
     `--et-mention-${indicatorToMentionCssKey(indicator)}-background-color`,
   textDecorationLine: (indicator: string) =>
     `--et-mention-${indicatorToMentionCssKey(indicator)}-text-decoration-line`,
+  borderRadius: (indicator: string) =>
+    `--et-mention-${indicatorToMentionCssKey(indicator)}-border-radius`,
 } as const;
 
 function setColorVar(
@@ -235,6 +237,13 @@ function applyMentionVars(
     if (mentionStyle.textDecorationLine != null) {
       vars[ET_MENTION_CSS_VARS.textDecorationLine(indicator)] =
         mentionStyle.textDecorationLine;
+    }
+    if (mentionStyle.borderRadius != null) {
+      setPxVar(
+        vars,
+        ET_MENTION_CSS_VARS.borderRadius(indicator),
+        mentionStyle.borderRadius
+      );
     }
   }
 }

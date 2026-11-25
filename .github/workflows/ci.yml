@@ -72,8 +72,19 @@ jobs:
       - name: Run clang-format (C/C++ check)
         run: yarn lint-clang
 
+      - name: Install JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
       - name: Run android lint (Kotlin/Java/Groovy check)
         run: yarn lint:android
+
+      - name: Check generated CSS color maps are up to date
+        run: |
+          yarn generate:colors
+          git diff --exit-code -- ios/extensions/CSSNamedColors.generated.h android/src/main/java/com/swmansion/enriched/common/parser/CSSNamedColors.kt
 
   test:
     runs-on: ubuntu-latest

@@ -20,6 +20,7 @@ config.resolver = {
   blockList: [
     ...[].concat(config.resolver?.blockList || []),
     /.*\/\.maestro\/.*/,
+    /.*\/\.argent\/.*/,
   ],
 };
 

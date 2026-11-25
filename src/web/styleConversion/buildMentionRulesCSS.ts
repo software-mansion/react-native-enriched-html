@@ -58,6 +58,7 @@ ${textSelector} {
   color: var(${ET_MENTION_CSS_VARS.color(indicator)}, var(${ET_MENTION_CSS_VARS.color(MENTION_STYLE_DEFAULT_KEY)}));
   background-color: var(${ET_MENTION_CSS_VARS.backgroundColor(indicator)}, var(${ET_MENTION_CSS_VARS.backgroundColor(MENTION_STYLE_DEFAULT_KEY)}));
   text-decoration-line: var(${ET_MENTION_CSS_VARS.textDecorationLine(indicator)}, var(${ET_MENTION_CSS_VARS.textDecorationLine(MENTION_STYLE_DEFAULT_KEY)}));
+  border-radius: var(${ET_MENTION_CSS_VARS.borderRadius(indicator)}, var(${ET_MENTION_CSS_VARS.borderRadius(MENTION_STYLE_DEFAULT_KEY)}));
   transition: none;
 }`.trim()
     );
