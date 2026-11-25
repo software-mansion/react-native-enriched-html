@@ -65,7 +65,14 @@ public class EnrichedParser {
    * b) not loaded until absolutely necessary.
    */
   private static class HtmlParser {
-    private static final HTMLSchema schema = new HTMLSchema();
+    // HTMLSchema isn't thread-safe and fromHtml runs on both the UI and layout threads.
+    private static final ThreadLocal<HTMLSchema> schema =
+        new ThreadLocal<HTMLSchema>() {
+          @Override
+          protected HTMLSchema initialValue() {
+            return new HTMLSchema();
+          }
+        };
   }
 
   public static <T> Spanned fromHtml(String source, T style, EnrichedSpanFactory<T> spanFactory) {
@@ -76,7 +83,7 @@ public class EnrichedParser {
       String source, T style, EnrichedSpanFactory<T> spanFactory, Pattern linkRegex) {
     Parser parser = new Parser();
     try {
-      parser.setProperty(Parser.schemaProperty, HtmlParser.schema);
+      parser.setProperty(Parser.schemaProperty, HtmlParser.schema.get());
     } catch (SAXNotRecognizedException | SAXNotSupportedException e) {
       // Should not happen.
       throw new RuntimeException(e);
@@ -308,16 +315,16 @@ public class EnrichedParser {
         }
         if (style[j] instanceof EnrichedLinkSpan) {
           out.append("<a href=\"");
-          out.append(((EnrichedLinkSpan) style[j]).getUrl());
+          out.append(escapeAttribute(((EnrichedLinkSpan) style[j]).getUrl()));
           out.append("\">");
         }
         if (style[j] instanceof EnrichedMentionSpan) {
           out.append("<mention text=\"");
-          out.append(((EnrichedMentionSpan) style[j]).getText());
+          out.append(escapeAttribute(((EnrichedMentionSpan) style[j]).getText()));
           out.append("\"");
 
           out.append(" indicator=\"");
-          out.append(((EnrichedMentionSpan) style[j]).getIndicator());
+          out.append(escapeAttribute(((EnrichedMentionSpan) style[j]).getIndicator()));
           out.append("\"");
 
           Map<String, String> attributes = ((EnrichedMentionSpan) style[j]).getAttributes();
@@ -325,7 +332,7 @@ public class EnrichedParser {
             out.append(" ");
             out.append(entry.getKey());
             out.append("=\"");
-            out.append(entry.getValue());
+            out.append(escapeAttribute(entry.getValue()));
             out.append("\"");
           }
 
@@ -333,7 +340,7 @@ public class EnrichedParser {
         }
         if (style[j] instanceof EnrichedImageSpan) {
           out.append("<img src=\"");
-          out.append(((EnrichedImageSpan) style[j]).getSource());
+          out.append(escapeAttribute(((EnrichedImageSpan) style[j]).getSource()));
           out.append("\"");
 
           out.append(" width=\"");
@@ -380,15 +387,7 @@ public class EnrichedParser {
                 cssProps.append("font-family: ").append(fontFamily).append(";");
               }
             }
-            out.append("<span style=\"")
-                .append(
-                    cssProps
-                        .toString()
-                        .replace("&", "&amp;")
-                        .replace("<", "&lt;")
-                        .replace(">", "&gt;")
-                        .replace("\"", "&quot;"))
-                .append("\">");
+            out.append("<span style=\"").append(escapeAttribute(cssProps.toString())).append("\">");
           } else {
             out.append("<span>");
           }
@@ -459,6 +458,16 @@ public class EnrichedParser {
     }
   }
 
+  /** Escapes a value so it can be safely placed inside a double-quoted HTML attribute. */
+  private static String escapeAttribute(String value) {
+    if (value == null) return null;
+    return value
+        .replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace("\"", "&quot;");
+  }
+
   private static String formatCssFontSizeValue(float fontSize) {
     if (fontSize == Math.rint(fontSize) && !Float.isInfinite(fontSize)) {
       return String.valueOf((int) fontSize);
@@ -474,11 +483,11 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
   private final XMLReader mReader;
   private final SpannableStringBuilder mSpannableStringBuilder;
   private final Pattern mLinkRegex;
-  private static Integer currentOrderedListItemIndex = 0;
-  private static Boolean isInOrderedList = false;
-  private static Boolean isInCheckboxList = false;
-  private static Boolean isEmptyTag = false;
-  private static String currentListAlignmentCssValue = null;
+  private int currentOrderedListItemIndex = 0;
+  private boolean isInOrderedList = false;
+  private boolean isInCheckboxList = false;
+  private boolean isEmptyTag = false;
+  private String currentListAlignmentCssValue = null;
 
   private static final Pattern CSS_ALIGNMENT_PATTERN =
       Pattern.compile("text-align\\s*:\\s*(left|center|right)", Pattern.CASE_INSENSITIVE);
@@ -740,7 +749,7 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
     start(text, new Newline(1));
   }
 
-  private static <T> void endBlockElement(Editable text, EnrichedSpanFactory<T> spanFactory) {
+  private <T> void endBlockElement(Editable text, EnrichedSpanFactory<T> spanFactory) {
     Newline n = getLast(text, Newline.class);
     if (n != null) {
       appendNewlines(text, n.mNumNewlines);
@@ -774,7 +783,7 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
     }
   }
 
-  private static <T> void endLi(Editable text, T style, EnrichedSpanFactory<T> spanFactory) {
+  private <T> void endLi(Editable text, T style, EnrichedSpanFactory<T> spanFactory) {
     endBlockElement(text, spanFactory);
 
     List l = getLast(text, List.class);
@@ -796,8 +805,7 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
     start(text, new Blockquote());
   }
 
-  private static <T> void endBlockquote(
-      Editable text, T style, EnrichedSpanFactory<T> spanFactory) {
+  private <T> void endBlockquote(Editable text, T style, EnrichedSpanFactory<T> spanFactory) {
     endBlockElement(text, spanFactory);
     Blockquote last = getLast(text, Blockquote.class);
     setParagraphSpanFromMark(text, last, spanFactory.createBlockQuoteSpan(style));
@@ -808,7 +816,7 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
     start(text, new CodeBlock());
   }
 
-  private static <T> void endCodeBlock(Editable text, T style, EnrichedSpanFactory<T> spanFactory) {
+  private <T> void endCodeBlock(Editable text, T style, EnrichedSpanFactory<T> spanFactory) {
     endBlockElement(text, spanFactory);
     CodeBlock last = getLast(text, CodeBlock.class);
     setParagraphSpanFromMark(text, last, spanFactory.createCodeBlockSpan(style));
@@ -841,7 +849,7 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
     }
   }
 
-  private static <T> void endHeading(
+  private <T> void endHeading(
       Editable text, T style, EnrichedSpanFactory<T> spanFactory, int level) {
     endBlockElement(text, spanFactory);
 
@@ -899,7 +907,7 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
     }
   }
 
-  private static void setParagraphSpanFromMark(Editable text, Object mark, Object... spans) {
+  private void setParagraphSpanFromMark(Editable text, Object mark, Object... spans) {
     int where = text.getSpanStart(mark);
     text.removeSpan(mark);
     int len = text.length();

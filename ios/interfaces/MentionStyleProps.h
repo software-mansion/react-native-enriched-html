@@ -8,6 +8,7 @@
 @property UIColor *color;
 @property UIColor *backgroundColor;
 @property TextDecorationLineEnum decorationLine;
+@property CGFloat borderRadius;
 + (NSDictionary *)getSinglePropsFromFollyDynamic:(folly::dynamic)folly;
 + (NSDictionary *)getComplexPropsFromFollyDynamic:(folly::dynamic)folly;
 

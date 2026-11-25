@@ -34,6 +34,12 @@
     nativeProps.decorationLine = DecorationUnderline;
   }
 
+  if (folly["borderRadius"].isNumber()) {
+    nativeProps.borderRadius = folly["borderRadius"].asDouble();
+  } else {
+    nativeProps.borderRadius = 0;
+  }
+
   // text only
   if (folly["pressColor"].isNumber()) {
     facebook::react::SharedColor pressColor = facebook::react::SharedColor(

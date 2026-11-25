@@ -10,6 +10,7 @@ import {
   type OnKeyPressEvent,
   type OnPasteImagesEvent,
   type OnSubmitEditing,
+  type OnScrollEvent,
 } from 'react-native-enriched-html';
 import { useRef, useState } from 'react';
 import { type MentionItem } from '../components/MentionPopup';
@@ -44,7 +45,11 @@ export function useEditorState() {
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [isValueModalOpen, setIsValueModalOpen] = useState(false);
   const [currentHtml, setCurrentHtml] = useState('');
-  const [selection, setSelection] = useState<Selection>();
+  const [selection, setSelection] = useState<Selection>({
+    start: 0,
+    end: 0,
+    text: '',
+  });
   const [stylesState, setStylesState] = useState<StylesState>(DEFAULT_STYLES);
   const [currentLink, setCurrentLink] =
     useState<CurrentLinkState>(DEFAULT_LINK_STATE);
@@ -159,6 +164,10 @@ export function useEditorState() {
     console.log('Key pressed:', e.key);
   };
 
+  const handleScroll = (e: OnScrollEvent) => {
+    console.log('Scroll event:', e.contentOffset);
+  };
+
   const handleLinkDetected = (state: CurrentLinkState) => {
     console.log(state);
     setCurrentLink(state);
@@ -267,6 +276,7 @@ export function useEditorState() {
     handleSelectionChangeEvent,
     handleKeyPress,
     handleFocusEvent,
+    handleScroll,
     handleBlurEvent,
     handlePasteImagesEvent,
     handleStartMention,

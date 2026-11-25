@@ -49,6 +49,7 @@ export const DEFAULT_HTML_STYLE: Required<HtmlStyle> = {
     color: 'blue',
     backgroundColor: 'yellow',
     textDecorationLine: 'underline',
+    borderRadius: 0,
   },
   ol: {
     gapWidth: 16,
