@@ -120,7 +120,7 @@ data class EnrichedTextStyle(
         codeBlockRadius = parseFloat(codeblock, "borderRadius", allowFontScaling),
         inlineCodeColor = parseColor(context, inlineCode, "color"),
         inlineCodeBackgroundColor = parseColorWithOpacity(context, inlineCode, "backgroundColor"),
-        mentionsStyle = parseMentionsStyle(context, mentions),
+        mentionsStyle = parseMentionsStyle(context, mentions, allowFontScaling),
         allowFontScaling = allowFontScaling,
       )
     }
@@ -183,6 +183,7 @@ data class EnrichedTextStyle(
     private fun parseMentionsStyle(
       context: ReactContext,
       map: ReadableMap?,
+      allowFontScaling: Boolean,
     ): Map<String, MentionStyle> {
       val result = mutableMapOf<String, MentionStyle>()
       val iterator = map?.keySetIterator() ?: return result
@@ -195,6 +196,7 @@ data class EnrichedTextStyle(
             color = parseColor(context, value, "color"),
             backgroundColor = parseColorWithOpacity(context, value, "backgroundColor"),
             underline = parseIsUnderline(value),
+            borderRadius = parseFloat(value, "borderRadius", allowFontScaling),
             pressColor = parseColor(context, value, "pressColor"),
             pressBackgroundColor = parseColorWithOpacity(context, value, "pressBackgroundColor"),
           )

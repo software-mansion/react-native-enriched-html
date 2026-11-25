@@ -260,6 +260,7 @@ interface EnrichedTextMentionStyleProperties {
   color?: ColorValue;
   backgroundColor?: ColorValue;
   textDecorationLine?: 'underline' | 'none';
+  borderRadius?: number;
   pressColor?: ColorValue;
   pressBackgroundColor?: ColorValue;
 }

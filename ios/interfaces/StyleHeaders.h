@@ -46,6 +46,7 @@
 @end
 
 @interface MentionStyle : StyleBase
++ (NSString *)getBackgroundAttributeName;
 - (void)addMention:(NSString *)indicator
               text:(NSString *)text
         attributes:(NSString *)attributes;

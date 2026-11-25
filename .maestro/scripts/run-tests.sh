@@ -85,10 +85,60 @@ set_font_scale() {
   fi
 }
 
+METRO_PORT=8081
+METRO_PID=""
+
+metro_running() {
+  curl -s --max-time 2 "http://localhost:$METRO_PORT/status" 2>/dev/null | grep -q "packager-status:running"
+}
+
+# Kills a process together with all of its descendants
+# (the subshell -> yarn -> node chain that runs Metro).
+kill_tree() {
+  local child
+  for child in $(pgrep -P "$1" 2>/dev/null); do
+    kill_tree "$child"
+  done
+  kill "$1" 2>/dev/null || true
+}
+
 # Guarantees the font scale is restored on any exit.
 # Without this, the accessibility tests below would leave the device
-# in a scaled-up state.
-trap 'set_font_scale default' EXIT
+# in a scaled-up state. Also stops Metro if this script started it.
+cleanup() {
+  set_font_scale default
+  if [ -n "$METRO_PID" ]; then
+    echo "=== Stopping Metro ==="
+    kill_tree "$METRO_PID"
+  fi
+}
+trap cleanup EXIT
+
+# The example app is a debug build, so it needs Metro to load its JS bundle.
+# Reuse a running instance (e.g. one started by hand), otherwise start our own.
+# Starting it before the build also stops the RN CLI from opening its own
+# Metro in a separate terminal window.
+if metro_running; then
+  echo "=== Metro already running on port $METRO_PORT, reusing it ==="
+else
+  METRO_LOG="$(mktemp "${TMPDIR:-/tmp}/metro.XXXXXX")"
+  echo "=== Starting Metro (logs: $METRO_LOG) ==="
+  (cd "$REPO_ROOT" && yarn example start) < /dev/null > "$METRO_LOG" 2>&1 &
+  METRO_PID=$!
+  for _ in $(seq 1 60); do
+    metro_running && break
+    if ! kill -0 "$METRO_PID" 2>/dev/null; then
+      echo "Error: Metro exited during startup. See $METRO_LOG" >&2
+      METRO_PID=""
+      exit 1
+    fi
+    sleep 1
+  done
+  if ! metro_running; then
+    echo "Error: Metro did not start within 60s. See $METRO_LOG" >&2
+    exit 1
+  fi
+fi
 
 if [ -n "$REBUILD" ] || ! app_installed; then
   [ -n "$REBUILD" ] && echo "=== rebuild requested, building and installing ==="

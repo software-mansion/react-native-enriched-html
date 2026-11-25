@@ -35,15 +35,7 @@ class EnrichedTextMentionSpan(
         mentionsStyle.color
       }
 
-    val bgColor =
-      if (isPressed && mentionsStyle.pressBackgroundColor != null) {
-        mentionsStyle.pressBackgroundColor
-      } else {
-        mentionsStyle.backgroundColor
-      }
-
     textPaint.color = color
-    textPaint.bgColor = bgColor
   }
 
   override fun onClick(view: View) {

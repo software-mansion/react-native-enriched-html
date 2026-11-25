@@ -1,0 +1,261 @@
+developer_instructions = "# --- argent rules (managed by argent init — do not edit) ---\nArgent - general rules:\n\n- do not derive tap coordinates from screenshot pixels; use inspection tools that give coordinates\n- use the platform the user named; otherwise prefer a device `list-devices` shows already running, and don't default to iOS; in a single-platform project boot that platform.\n- if tap fails twice, stop retrying and re-run a discovery tool\n- Prefer mcp-tool calls over raw commands like `xcrun` or `adb`; use them as fallback.\n- Interaction tools return screenshot and element tree automatically; an identical earlier tree is named by its tree id, not repeated.\n- prefer `launch-app` or `open-url` than tapping icons on home screen.\n- If a task can require a saved e2e test, load `argent-create-e2e` (`argent-qa-e2e` for acceptance tests) before the first launch or in-app action; recording is not retroactive.\n- Load the matching `argent-*` skill before React Native build/debug, profiling, a physical phone, a Mac app or a TV.\n- Do not stop simulator servers when a task finishes: the next task reuses them. Call `stop-all-simulator-servers` when the user asks to clean up or ends the session, or when a skill tells you to recycle a device's services, with devices this session used. One tool-server is shared by every other agent, so unscoped call tears down their devices too. Never stop a Metro the user started unless they ask.\n- Use the `await-ui-element` tool to block until the UI settles instead of polling using screenshot.\n- The `argent` CLI manages the toolkit: `argent --help` lists commands, `argent --version` shows the installed version.\n\n<availability_check>\nRun this check once per session. Do not re-probe before later calls.\nConfirm argent is available:\n\n1. Are `mcp__argent__*` tools in your tool list? If none, argent is not available.\n2. If unsure, run `command -v argent`. Non-zero exit = the CLI is not on PATH.\n\nIf argent IS available, ignore the rest of this block and follow this rule normally.\n\nIf argent is ABSENT, treat it as an expected state, not an error to retry. Do not call `mcp__argent__*` tools, do not run `argent` commands, do not attempt any argent workflow.\nTell the user once, and ask if you should continue without argent:\n\n> Argent isn't installed in this environment. To enable the mobile/Chromium tooling this repo is configured for, run `npx @swmansion/argent@latest init -y` (or `npm i -g @swmansion/argent@latest && argent init -y`).\n\n</availability_check>\n# --- end argent rules ---"
+
+[mcp_servers.argent]
+command = "argent"
+args = [ "mcp" ]
+
+[mcp_servers.argent.tools.list-devices]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.boot-device]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.launch-app]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.restart-app]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.terminate-app]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.reinstall-app]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.settings-permissions]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.open-url]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.screenshot]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.screenshot-diff]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.screen-recording-start]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.screen-recording-stop]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.gesture-tap]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.chromium-tabs]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.chromium-cookies]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.chromium-storage]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.gesture-swipe]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.gesture-scroll]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.gesture-drag]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.gesture-custom]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.gesture-pinch]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.gesture-rotate]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.button]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.keyboard]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.paste]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.file-panel]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.menu-bar]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.rotate]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.shake]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.fold]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.tv-remote]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.run-sequence]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.debugger-connect]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.debugger-status]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.debugger-evaluate]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.debugger-reload-metro]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.debugger-component-tree]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.debugger-inspect-element]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.debugger-log-registry]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.view-network-logs]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.view-network-request-details]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.describe]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.ui-tree]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.foreground-app]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.fill]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.await-ui-element]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.await-screen-idle]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.react-profiler-start]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.react-profiler-stop]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.react-profiler-status]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.react-profiler-analyze]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.react-profiler-component-source]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.react-profiler-cpu-summary]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.react-profiler-renders]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.react-profiler-fiber-tree]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.native-profiler-start]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.native-profiler-stop]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.native-profiler-analyze]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.profiler-cpu-query]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.profiler-commit-query]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.profiler-stack-query]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.profiler-combined-report]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.profiler-load]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.gather-workspace-data]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.native-devtools-status]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.native-network-logs]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.native-find-views]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.native-full-hierarchy]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.native-describe-screen]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.native-view-at-point]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.native-user-interactable-view-at-point]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.stop-simulator-server]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.stop-all-simulator-servers]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.stop-metro]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.e2e-start-recording]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.e2e-add-step]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.e2e-add-echo]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.e2e-add-script]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.e2e-finish-recording]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.e2e-read-prerequisite]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.e2e-execute]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.update-argent]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.dismiss-update]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.propose_variant]
+approval_mode = "approve"
+
+[mcp_servers.argent.tools.await_user_selection]
+approval_mode = "approve"
+
