@@ -156,7 +156,10 @@
     "apps/example-web"
   ],
   "resolutions": {
-    "shell-quote": "1.11.0"
+    "shell-quote": "1.11.0",
+    "lodash@npm:4.17.21": "4.18.1",
+    "tmp@npm:^0.0.33": "^0.2.7",
+    "basic-ftp@npm:^5.0.2": "^6.2.6"
   },
   "packageManager": "yarn@4.13.0",
   "jest": {

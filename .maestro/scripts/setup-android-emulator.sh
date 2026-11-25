@@ -15,17 +15,23 @@ AVD_NAME="Pixel9-API${API_LEVEL}-Enriched"
 PORT=5570
 SERIAL="emulator-${PORT}"
 
-if [ -z "$ANDROID_HOME" ]; then
+if [ -z "${ANDROID_HOME:-}" ]; then
   echo "Error: ANDROID_HOME is not set. Set it to your Android SDK directory."
   exit 1
 fi
 
-for tool in sdkmanager avdmanager emulator adb; do
+for tool in sdkmanager avdmanager adb; do
   if ! command -v "$tool" &>/dev/null; then
     echo "Error: '$tool' not found. Ensure Android SDK tools are installed and in PATH."
     exit 1
   fi
 done
+
+EMULATOR="$ANDROID_HOME/emulator/emulator"
+if [ ! -x "$EMULATOR" ]; then
+  echo "Error: emulator not found at '$EMULATOR'. Install the Android Emulator package via sdkmanager."
+  exit 1
+fi
 
 yes | sdkmanager --licenses > /dev/null 2>&1 || true
 
@@ -56,14 +62,43 @@ if [ -f "$AVD_CONFIG" ]; then
   grep -q "^hw.mainKeys=" "$AVD_CONFIG" || echo "hw.mainKeys=yes" >> "$AVD_CONFIG"
 fi
 
+wait_for_boot() {
+  echo "Waiting for emulator to finish booting..."
+  until adb -s "$SERIAL" shell getprop sys.boot_completed 2>/dev/null | grep -q "^1$"; do
+    sleep 2
+  done
+}
+
+disable_keyboard_features() {
+  adb -s "$SERIAL" shell pm disable-user --user 0 com.google.android.inputmethod.latin > /dev/null
+  adb -s "$SERIAL" shell settings put secure spell_checker_enabled 0
+}
+
+find_running_serial() {
+  for serial in $(adb devices | awk '$1 ~ /^emulator-/ && $2 == "device" {print $1}'); do
+    if [ "$(adb -s "$serial" emu avd name 2>/dev/null | head -n 1 | tr -d '\r')" = "$AVD_NAME" ]; then
+      echo "$serial"
+      return 0
+    fi
+  done
+  return 0
+}
+
 if pgrep -f "emulator.*${AVD_NAME}" > /dev/null 2>&1; then
+  SERIAL=$(find_running_serial)
+  if [ -z "$SERIAL" ]; then
+    echo "Error: Emulator '$AVD_NAME' is running but isn't connected to ADB yet. Wait for it to boot and retry."
+    exit 1
+  fi
   echo "Emulator already running: $AVD_NAME ($SERIAL)"
+  wait_for_boot
+  disable_keyboard_features
   echo "DEVICE_ID=$SERIAL"
   exit 0
 fi
 
 echo "Starting emulator '$AVD_NAME'..."
-emulator "@${AVD_NAME}" -port "$PORT" > /dev/null 2>&1 &
+"$EMULATOR" "@${AVD_NAME}" -port "$PORT" > /dev/null 2>&1 &
 
 echo "Waiting for emulator ($SERIAL) to connect to ADB..."
 if ! timeout 120 adb -s "$SERIAL" wait-for-device; then
@@ -71,13 +106,8 @@ if ! timeout 120 adb -s "$SERIAL" wait-for-device; then
   exit 1
 fi
 
-echo "Waiting for emulator to finish booting..."
-until adb -s "$SERIAL" shell getprop sys.boot_completed 2>/dev/null | grep -q "^1$"; do
-  sleep 2
-done
-
-adb -s "$SERIAL" shell pm disable-user --user 0 com.google.android.inputmethod.latin
-adb -s "$SERIAL" shell settings put secure spell_checker_enabled 0
+wait_for_boot
+disable_keyboard_features
 
 echo "Emulator ready: $AVD_NAME ($SERIAL)"
 echo "DEVICE_ID=$SERIAL"
