@@ -29,9 +29,21 @@ class SceneDelegate: RCTDefaultReactNativeFactoryDelegate, UIWindowSceneDelegate
     reactNativeFactory?.devMenuConfiguration = devMenuConfiguration
     #endif
 
+    // Forwards Maestro launch arguments to the JS app as initial props.
+    // Maestro passes them as plain `key value` process arguments (no leading `-`),
+    // so they don't end up in UserDefaults.
+    let arguments = ProcessInfo.processInfo.arguments
+    let showScrollOffset = zip(arguments, arguments.dropFirst()).contains {
+      $0 == "showScrollOffset" && $1 == "true"
+    }
+    let initialProperties: [AnyHashable: Any] = [
+      "showScrollOffset": showScrollOffset
+    ]
+
     reactNativeFactory?.startReactNative(
       withModuleName: "EnrichedTextInputExample",
       in: window,
+      initialProperties: initialProperties,
       connectionOptions: connectionOptions
     )
 

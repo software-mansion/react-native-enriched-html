@@ -34,6 +34,7 @@ import com.facebook.react.bridge.ReactContext
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.common.ReactConstants
+import com.facebook.react.uimanager.PixelUtil
 import com.facebook.react.uimanager.StateWrapper
 import com.facebook.react.uimanager.UIManagerHelper
 import com.facebook.react.views.text.ReactTypefaceUtils.applyStyles
@@ -50,6 +51,7 @@ import com.swmansion.enriched.textinput.events.MentionHandler
 import com.swmansion.enriched.textinput.events.OnContextMenuItemPressEvent
 import com.swmansion.enriched.textinput.events.OnInputBlurEvent
 import com.swmansion.enriched.textinput.events.OnInputFocusEvent
+import com.swmansion.enriched.textinput.events.OnInputScrollEvent
 import com.swmansion.enriched.textinput.events.OnRequestHtmlResultEvent
 import com.swmansion.enriched.textinput.events.OnSubmitEditingEvent
 import com.swmansion.enriched.textinput.spans.EnrichedInputH1Span
@@ -98,6 +100,9 @@ class EnrichedTextInputView :
   val customStyles: CustomStyles? = CustomStyles(this)
   var isDuringTransaction: Boolean = false
   var isRemovingMany: Boolean = false
+
+  var isWaitingForHeightUpdate: Boolean = false
+  private var didCapScrollWhileWaiting = false
   var scrollEnabled: Boolean = true
   var allowFontScaling: Boolean = EnrichedConstants.ALLOW_FONT_SCALING_DEFAULT
     set(value) {
@@ -132,6 +137,7 @@ class EnrichedTextInputView :
 
   var shouldEmitHtml: Boolean = false
   var shouldEmitOnChangeText: Boolean = false
+  var shouldEmitOnScroll: Boolean = false
   var experimentalSynchronousEvents: Boolean = false
   var useHtmlNormalizer: Boolean = false
 
@@ -185,7 +191,25 @@ class EnrichedTextInputView :
     // Android's internal cursor tracker gets confused by ALIGN_CENTER + LeadingMarginSpan
     // and attempts to scroll the text horizontally.
     // We lock the horizontal scroll to 0 to prevent the view from shifting.
-    super.scrollTo(0, y)
+    // Height updates are async, so new text is laid out before the view grows. Cap the scroll at its
+    // post-resize value, otherwise EditText jumps to the new line and back.
+    val targetY = if (isWaitingForHeightUpdate) y.coerceAtMost(getMaxScrollAfterHeightUpdate()) else y
+    if (targetY < y) didCapScrollWhileWaiting = true
+    super.scrollTo(0, targetY)
+  }
+
+  fun onHeightUpdateMounted() {
+    isWaitingForHeightUpdate = false
+    if (!didCapScrollWhileWaiting) return
+    didCapScrollWhileWaiting = false
+    // The predicted height can be wrong (e.g. when it comes from flex)
+    post { forceScrollToSelection() }
+  }
+
+  private fun getMaxScrollAfterHeightUpdate(): Int {
+    val maxTextHeight = MeasurementStore.getMaxTextHeight(id) ?: return Int.MAX_VALUE
+    val textHeight = layout?.height ?: return Int.MAX_VALUE
+    return (textHeight - maxTextHeight).toInt().coerceAtLeast(0)
   }
 
   override fun onCreateInputConnection(outAttrs: EditorInfo): InputConnection? {
@@ -341,6 +365,34 @@ class EnrichedTextInputView :
   override fun canScrollVertically(direction: Int): Boolean = scrollEnabled
 
   override fun canScrollHorizontally(direction: Int): Boolean = scrollEnabled
+
+  override fun onScrollChanged(
+    horiz: Int,
+    vert: Int,
+    oldHoriz: Int,
+    oldVert: Int,
+  ) {
+    super.onScrollChanged(horiz, vert, oldHoriz, oldVert)
+    if (!shouldEmitOnScroll) return
+    if (horiz == oldHoriz && vert == oldVert) return
+
+    val reactContext = context as? ReactContext ?: return
+    val surfaceId = UIManagerHelper.getSurfaceId(reactContext)
+    val dispatcher = UIManagerHelper.getEventDispatcher(reactContext)
+
+    val dipHorizontal = PixelUtil.toDIPFromPixel(horiz.toFloat())
+    val dipVertical = PixelUtil.toDIPFromPixel(vert.toFloat())
+
+    dispatcher?.dispatchEvent(
+      OnInputScrollEvent(
+        surfaceId,
+        id,
+        dipHorizontal,
+        dipVertical,
+        experimentalSynchronousEvents,
+      ),
+    )
+  }
 
   override fun onSelectionChanged(
     selStart: Int,
@@ -1097,6 +1149,9 @@ class EnrichedTextInputView :
       isDuringTransaction = false
     }
   }
+
+  fun usesLocalePreferredLineHeight(): Boolean =
+    Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM && isLocalePreferredLineHeightForMinimumUsed
 
   private fun forceScrollToSelection() {
     val textLayout = layout ?: return

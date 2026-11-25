@@ -1,10 +1,5 @@
 import { type FC, type ReactNode } from 'react';
-import {
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  StyleSheet,
-} from 'react-native';
+import { KeyboardAvoidingView, Modal, StyleSheet } from 'react-native';
 
 interface ModalShellProps {
   isOpen: boolean;
@@ -21,7 +16,7 @@ export const ModalShell: FC<ModalShellProps> = ({
     <Modal visible={isOpen} animationType="slide" transparent>
       <KeyboardAvoidingView
         style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior="padding"
         enabled={avoidKeyboard}
       >
         {children}

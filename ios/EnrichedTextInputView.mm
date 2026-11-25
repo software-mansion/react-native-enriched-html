@@ -57,6 +57,8 @@ using namespace facebook::react;
   UIColor *_placeholderColor;
   BOOL _emitFocusBlur;
   BOOL _emitTextChange;
+  BOOL _emitScroll;
+  CGPoint _lastEmittedContentOffset;
   NSMutableDictionary<NSValue *, UIImageView *> *_attachmentViews;
   NSArray<NSDictionary *> *_contextMenuItems;
   NSString *_submitBehavior;
@@ -141,6 +143,7 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   preserveTypingAttributesOnNextEmptyCheck = NO;
   _emitFocusBlur = YES;
   _emitTextChange = NO;
+  _emitScroll = NO;
   dotReplacementRange = nullptr;
 
   defaultTypingAttributes =
@@ -851,6 +854,9 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   // isOnChangeTextSet
   _emitTextChange = newViewProps.isOnChangeTextSet;
 
+  // isOnScrollSet
+  _emitScroll = newViewProps.isOnScrollSet;
+
   // contextMenuItems
   bool contextMenuChanged = newViewProps.contextMenuItems.size() !=
                             oldViewProps.contextMenuItems.size();
@@ -1088,6 +1094,18 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
               [linkStyleClass getLinkDataAt:textView.selectedRange.location];
           candidateLinkRange = [linkStyleClass
               getFullLinkRangeAt:textView.selectedRange.location];
+        }
+
+        // Stored link text is only refreshed for automatic links (which are
+        // single words). Manual links keep the text they were created with: it
+        // must stay identical along the whole link so that
+        // longestEffectiveRange finds its full extent, while edits are handled
+        // per word. So always read the current text from the detected range.
+        if (candidateLinkData != nullptr && candidateLinkRange.length > 0 &&
+            NSMaxRange(candidateLinkRange) <= textView.textStorage.length) {
+          candidateLinkData = [candidateLinkData copy];
+          candidateLinkData.text = [textView.textStorage.string
+              substringWithRange:candidateLinkRange];
         }
 
         if (wasActive == NO) {
@@ -1391,43 +1409,17 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
 }
 
 - (void)setCustomSelection:(NSInteger)visibleStart end:(NSInteger)visibleEnd {
-  NSString *text = textView.textStorage.string;
-
-  NSUInteger actualStart = [self getActualIndex:visibleStart text:text];
-  NSUInteger actualEnd = [self getActualIndex:visibleEnd text:text];
-
-  textView.selectedRange = NSMakeRange(actualStart, actualEnd - actualStart);
-}
-
-// Helper: Walks through the string skipping ZWSPs to find the Nth visible
-// character
-- (NSUInteger)getActualIndex:(NSInteger)visibleIndex text:(NSString *)text {
-  NSUInteger currentVisibleCount = 0;
-  NSUInteger actualIndex = 0;
-
-  while (actualIndex < text.length) {
-    if (currentVisibleCount == visibleIndex) {
-      return actualIndex;
-    }
-
-    // If the current char is not a hidden space, it counts towards our visible
-    // index.
-    if ([text characterAtIndex:actualIndex] != 0x200B) {
-      currentVisibleCount++;
-    }
-
-    actualIndex++;
-  }
-
-  return actualIndex;
+  textView.selectedRange = [ZeroWidthSpaceUtils
+      actualRangeFromVisibleStart:visibleStart
+                              end:visibleEnd
+                           inText:textView.textStorage.string];
 }
 
 - (void)emitOnSubmitEdittingEvent {
   auto emitter = [self getEventEmitter];
   if (emitter != nullptr) {
-    NSString *stringToBeEmitted = [[textView.textStorage.string
-        stringByReplacingOccurrencesOfString:@"\u200B"
-                                  withString:@""] copy];
+    NSString *stringToBeEmitted = [ZeroWidthSpaceUtils
+        stringByRemovingZeroWidthSpaces:textView.textStorage.string];
 
     emitter->onSubmitEditing({
         .text = [stringToBeEmitted toCppString],
@@ -1442,11 +1434,16 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
     _recentlyActiveLinkData = linkData;
     _recentlyActiveLinkRange = range;
 
+    NSString *text = textView.textStorage.string;
+    NSRange visibleRange =
+        [ZeroWidthSpaceUtils visibleRangeFromActualRange:range inText:text];
+
     emitter->onLinkDetected({
-        .text = [linkData.text toCppString],
+        .text = [[ZeroWidthSpaceUtils
+            stringByRemovingZeroWidthSpaces:linkData.text] toCppString],
         .url = [linkData.url toCppString],
-        .start = static_cast<int>(range.location),
-        .end = static_cast<int>(range.location + range.length),
+        .start = static_cast<int>(visibleRange.location),
+        .end = static_cast<int>(NSMaxRange(visibleRange)),
     });
   }
 }
@@ -1539,6 +1536,24 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   auto emitter = [self getEventEmitter];
   if (emitter != nullptr) {
     emitter->onInputKeyPress({.key = [key toCppString]});
+  }
+}
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+  if (!_emitScroll) {
+    return;
+  }
+  if (CGPointEqualToPoint(scrollView.contentOffset,
+                          _lastEmittedContentOffset)) {
+    return;
+  }
+  _lastEmittedContentOffset = scrollView.contentOffset;
+
+  auto emitter = [self getEventEmitter];
+  if (emitter != nullptr) {
+    emitter->onInputScroll({.contentOffset = {
+                                .x = scrollView.contentOffset.x,
+                                .y = scrollView.contentOffset.y,
+                            }});
   }
 }
 
@@ -1643,8 +1658,11 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
     return;
   }
 
-  // translate the output start-end notation to range
-  NSRange linkRange = NSMakeRange(start, end - start);
+  // translate the visible start-end notation to the actual range
+  NSRange linkRange = [ZeroWidthSpaceUtils
+      actualRangeFromVisibleStart:start
+                              end:end
+                           inText:textView.textStorage.string];
   if ([StyleUtils handleStyleBlocksAndConflicts:[LinkStyle getType]
                                           range:linkRange
                                         forHost:self]) {
@@ -1663,17 +1681,19 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
     return;
   }
 
-  NSInteger textLength = (NSInteger)textView.textStorage.length;
   if (start < 0) {
     start = 0;
   }
-  if (end > textLength) {
-    end = textLength;
+  if (end < 0) {
+    end = 0;
   }
 
-  NSInteger rangeStart = MIN(start, end);
-  NSInteger rangeLength = MAX(start, end) - rangeStart;
-  NSRange linkRange = NSMakeRange(rangeStart, rangeLength);
+  // translate the visible start-end notation to the actual range
+  // (indices past the end of the text are clamped by the conversion)
+  NSRange linkRange = [ZeroWidthSpaceUtils
+      actualRangeFromVisibleStart:start
+                              end:end
+                           inText:textView.textStorage.string];
 
   [linkStyleClass remove:linkRange withDirtyRange:YES];
   [self anyTextMayHaveBeenModified];
@@ -1759,8 +1779,11 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   [attributesManager
       manageTypingAttributesWithOnlySelection:onlySelectionChanged];
 
-  // always update active styles
-  [self tryUpdatingActiveStyles];
+  // When text changed, anyTextMayHaveBeenModified runs tryUpdatingActiveStyles
+  if ([_recentInputString isEqualToString:currentString]) {
+    // update active styles
+    [self tryUpdatingActiveStyles];
+  }
 }
 
 - (void)handleWordModificationBasedChanges:(NSString *)word
@@ -1847,9 +1870,8 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
       // emit onChangeText event
       if (_emitTextChange) {
         // emit string without zero width spaces
-        NSString *stringToBeEmitted = [[textView.textStorage.string
-            stringByReplacingOccurrencesOfString:@"\u200B"
-                                      withString:@""] copy];
+        NSString *stringToBeEmitted = [ZeroWidthSpaceUtils
+            stringByRemovingZeroWidthSpaces:textView.textStorage.string];
 
         emitter->onChangeText({.value = [stringToBeEmitted toCppString]});
       }
@@ -1979,9 +2001,13 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
     NSRange selectedRange = textView.selectedRange;
     NSString *selectedText = @"";
     if (selectedRange.length > 0) {
-      selectedText =
-          [textView.textStorage.string substringWithRange:selectedRange];
+      selectedText = [ZeroWidthSpaceUtils
+          stringByRemovingZeroWidthSpaces:
+              [textView.textStorage.string substringWithRange:selectedRange]];
     }
+    NSRange visibleSelectedRange = [ZeroWidthSpaceUtils
+        visibleRangeFromActualRange:selectedRange
+                             inText:textView.textStorage.string];
 
     AlignmentStyle *alignmentStyle = stylesDict[@([AlignmentStyle getType])];
     NSString *currentAlignment = [alignmentStyle getStyleState];
@@ -1993,9 +2019,8 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
     emitter->onContextMenuItemPress(
         {.itemText = [itemText toCppString],
          .selectedText = [selectedText toCppString],
-         .selectionStart = static_cast<int>(selectedRange.location),
-         .selectionEnd =
-             static_cast<int>(selectedRange.location + selectedRange.length),
+         .selectionStart = static_cast<int>(visibleSelectedRange.location),
+         .selectionEnd = static_cast<int>(NSMaxRange(visibleSelectedRange)),
          .styleState = {
              .bold = GET_STYLE_STATE([BoldStyle getType]),
              .italic = GET_STYLE_STATE([ItalicStyle getType]),
@@ -2151,9 +2176,13 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
 
 - (void)textViewDidChangeSelection:(UITextView *)textView {
   // emit the event
-  NSString *textAtSelection =
-      [[[NSMutableString alloc] initWithString:textView.textStorage.string]
-          substringWithRange:textView.selectedRange];
+  NSString *text = textView.textStorage.string;
+  NSString *textAtSelection = [ZeroWidthSpaceUtils
+      stringByRemovingZeroWidthSpaces:
+          [text substringWithRange:textView.selectedRange]];
+  NSRange visibleRange =
+      [ZeroWidthSpaceUtils visibleRangeFromActualRange:textView.selectedRange
+                                                inText:text];
 
   auto emitter = [self getEventEmitter];
   if (emitter != nullptr) {
@@ -2161,9 +2190,8 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
     // here, start is the location, but end is the first index BEHIND the end.
     // So a 0 length range will have equal start and end
     emitter->onChangeSelection(
-        {.start = static_cast<int>(textView.selectedRange.location),
-         .end = static_cast<int>(textView.selectedRange.location +
-                                 textView.selectedRange.length),
+        {.start = static_cast<int>(visibleRange.location),
+         .end = static_cast<int>(NSMaxRange(visibleRange)),
          .text = [textAtSelection toCppString]});
   }
 
