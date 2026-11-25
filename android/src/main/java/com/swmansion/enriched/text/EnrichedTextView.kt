@@ -95,7 +95,7 @@ class EnrichedTextView : AppCompatTextView {
   }
 
   override fun onDraw(canvas: Canvas) {
-    val currentLayout = layout
+    val currentLayout = MentionBackgroundDrawer.ensureLayout(this)
     val spanned = text as? Spanned
     val style = enrichedStyle
     if (currentLayout != null && spanned != null && style != null) {

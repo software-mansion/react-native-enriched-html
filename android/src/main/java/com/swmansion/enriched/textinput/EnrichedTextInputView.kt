@@ -320,7 +320,7 @@ class EnrichedTextInputView :
   }
 
   override fun onDraw(canvas: Canvas) {
-    val currentLayout = layout
+    val currentLayout = MentionBackgroundDrawer.ensureLayout(this)
     val currentText = text
     if (currentLayout != null && currentText != null) {
       canvas.save()
