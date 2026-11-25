@@ -38,12 +38,11 @@ object MeasurementStore {
     val cachedSize: Long,
     val spannable: CharSequence?,
     val paintParams: PaintParams,
+    // In px, as given by Yoga's measure
+    val maxTextHeight: Float? = null,
   )
 
   private val data = ConcurrentHashMap<Int, MeasurementParams>()
-
-  // In px, as given by Yoga's measure (e.g. from maxHeight)
-  private val maxTextHeights = ConcurrentHashMap<Int, Float>()
 
   fun store(
     id: Int,
@@ -54,20 +53,20 @@ object MeasurementStore {
     val cachedWidth = data[id]?.cachedWidth ?: 0f
     val cachedSize = data[id]?.cachedSize ?: 0L
     val initialized = data[id]?.initialized ?: true
+    val maxTextHeight = data[id]?.maxTextHeight
 
     val size = measure(cachedWidth, spannable, paint, useLocalePreferredLineHeight)
     val paintParams = PaintParams(paint.typeface, paint.textSize, useLocalePreferredLineHeight)
 
-    data[id] = MeasurementParams(initialized, cachedWidth, size, spannable, paintParams)
+    data[id] = MeasurementParams(initialized, cachedWidth, size, spannable, paintParams, maxTextHeight)
     return cachedSize != size
   }
 
   fun release(id: Int) {
     data.remove(id)
-    maxTextHeights.remove(id)
   }
 
-  fun getMaxTextHeight(id: Int): Float? = maxTextHeights[id]
+  fun getMaxTextHeight(id: Int): Float? = data[id]?.maxTextHeight
 
   private fun measure(
     maxWidth: Float,
@@ -241,11 +240,14 @@ object MeasurementStore {
     val size = getMeasureById(context, id, width, props)
 
     if (id != null) {
-      when (heightMode) {
-        YogaMeasureMode.AT_MOST -> maxTextHeights[id] = height
-        YogaMeasureMode.UNDEFINED -> maxTextHeights[id] = Float.POSITIVE_INFINITY
-        else -> maxTextHeights.remove(id)
-      }
+      val maxTextHeight =
+        when (heightMode) {
+          YogaMeasureMode.AT_MOST -> height
+          YogaMeasureMode.UNDEFINED -> Float.POSITIVE_INFINITY
+          else -> null
+        }
+      // Atomic, so a concurrent store() from the UI thread isn't overwritten with stale text measurements
+      data.computeIfPresent(id) { _, params -> params.copy(maxTextHeight = maxTextHeight) }
     }
 
     if (heightMode !== YogaMeasureMode.AT_MOST) {
