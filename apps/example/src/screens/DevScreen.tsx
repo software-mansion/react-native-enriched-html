@@ -23,6 +23,8 @@ interface DevScreenProps {
 export function DevScreen({ onSwitch }: DevScreenProps) {
   const editor = useEditorState();
   const [textNodes, setTextNodes] = useState<Array<string>>([]);
+  const [removeInvalidMentionContent, setRemoveInvalidMentionContent] =
+    useState(false);
 
   const handlePushTextNode = async () => {
     const currentText = await editor.ref.current?.getHTML();
@@ -44,6 +46,7 @@ export function DevScreen({ onSwitch }: DevScreenProps) {
           <EnrichedTextInput
             ref={editor.ref}
             mentionIndicators={['@', '#']}
+            removeInvalidMentionContent={removeInvalidMentionContent}
             style={styles.editorInput}
             htmlStyle={htmlStyle}
             placeholder="Type something here..."
@@ -96,6 +99,11 @@ export function DevScreen({ onSwitch }: DevScreenProps) {
             style={styles.button}
           />
         </View>
+        <Button
+          title={`removeInvalidMentionContent: ${removeInvalidMentionContent ? 'on' : 'off'}`}
+          onPress={() => setRemoveInvalidMentionContent((value) => !value)}
+          style={styles.valueButton}
+        />
         <Button
           title="Test Screen"
           onPress={onSwitch}

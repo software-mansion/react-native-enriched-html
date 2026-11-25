@@ -730,6 +730,13 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
     [config setLinkRegexConfig:newRegexConfig];
   }
 
+  // must be set before the default value, which already checks the mentions
+  if (newViewProps.removeInvalidMentionContent !=
+      oldViewProps.removeInvalidMentionContent) {
+    [config setRemoveInvalidMentionContent:newViewProps
+                                               .removeInvalidMentionContent];
+  }
+
   // default value - must be set before placeholder to make sure it correctly
   // shows on first mount
   if (newViewProps.defaultValue != oldViewProps.defaultValue) {
@@ -1798,6 +1805,15 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
     return;
   }
 
+  MentionStyle *mentionStyleClass =
+      (MentionStyle *)stylesDict[@([MentionStyle getType])];
+
+  // mentions removal - before the zero width spaces, so a paragraph emptied by
+  // removing a mention's text gets its zero width space back
+  if (mentionStyleClass != nullptr) {
+    [mentionStyleClass handleExistingMentions];
+  }
+
   // zero width space adding or removal
   [ZeroWidthSpaceUtils handleZeroWidthSpacesInHost:self];
 
@@ -1812,11 +1828,8 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   }
   preserveTypingAttributesOnNextEmptyCheck = NO;
 
-  // mentions management: removal and editing
-  MentionStyle *mentionStyleClass =
-      (MentionStyle *)stylesDict[@([MentionStyle getType])];
+  // mentions management: editing
   if (mentionStyleClass != nullptr) {
-    [mentionStyleClass handleExistingMentions];
     [mentionStyleClass manageMentionEditing];
   }
 

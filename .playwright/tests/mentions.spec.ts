@@ -22,6 +22,7 @@ const sel = {
   setChannelButton: '[data-testid="mention-set-channel-button"]',
   startUserButton: '[data-testid="mention-start-user-button"]',
   startChannelButton: '[data-testid="mention-start-channel-button"]',
+  removeInvalidToggle: '[data-testid="mention-remove-invalid-toggle"]',
 } as const;
 
 async function gotoMentionTest(page: Page): Promise<void> {
@@ -312,4 +313,139 @@ test("inserting a mention between text doesn't produce a double space", async ({
     .toEqual(
       '<html><p>example <mention text="Jane" indicator="@" id="1">Jane</mention> test</p></html>'
     );
+});
+
+// Inserts "Jane" plus the space setMention adds, then moves the caret
+// `steps` characters left from the end: 1 is right after the mention,
+// 3 is between "Ja" and "ne"
+async function insertMentionAndMoveLeft(
+  page: Page,
+  steps: number
+): Promise<void> {
+  const editor = mentionEditor(page);
+  await editor.click();
+  await editor.pressSequentially('@', { delay: 80 });
+  await page.locator(sel.setUserButton).click();
+  await expect
+    .poll(async () =>
+      (await htmlOutput(page).textContent())?.includes('<mention')
+    )
+    .toBe(true);
+  await editor.press('End');
+  for (let i = 0; i < steps; i++) {
+    await editor.press('ArrowLeft');
+  }
+}
+
+test('typing inside a mention keeps its text by default', async ({ page }) => {
+  await gotoMentionTest(page);
+  await insertMentionAndMoveLeft(page, 3);
+  await mentionEditor(page).press('x');
+  await expect
+    .poll(async () => await htmlOutput(page).textContent())
+    .toEqual('<html><p>Jaxne </p></html>');
+});
+
+test('removeInvalidMentionContent: typing inside a mention removes it', async ({
+  page,
+}) => {
+  await gotoMentionTest(page);
+  await page.locator(sel.removeInvalidToggle).click();
+  await insertMentionAndMoveLeft(page, 3);
+  await mentionEditor(page).press('x');
+  await expect
+    .poll(async () => await htmlOutput(page).textContent())
+    .toEqual('<html><p> </p></html>');
+});
+
+test('removeInvalidMentionContent: backspace inside a mention removes it', async ({
+  page,
+}) => {
+  await gotoMentionTest(page);
+  await page.locator(sel.removeInvalidToggle).click();
+  await insertMentionAndMoveLeft(page, 3);
+  await mentionEditor(page).press('Backspace');
+  await expect
+    .poll(async () => await htmlOutput(page).textContent())
+    .toEqual('<html><p> </p></html>');
+});
+
+test('removeInvalidMentionContent: typing right after a mention keeps it', async ({
+  page,
+}) => {
+  await gotoMentionTest(page);
+  await page.locator(sel.removeInvalidToggle).click();
+  await insertMentionAndMoveLeft(page, 1);
+  await mentionEditor(page).press('x');
+  await expect
+    .poll(async () => await htmlOutput(page).textContent())
+    .toEqual(
+      '<html><p><mention text="Jane" indicator="@" id="1">Jane</mention>x </p></html>'
+    );
+});
+
+test('removeInvalidMentionContent: replacing everything keeps only the new text', async ({
+  page,
+}) => {
+  await gotoMentionTest(page);
+  await page.locator(sel.removeInvalidToggle).click();
+  const editor = mentionEditor(page);
+  await editor.click();
+  await editor.pressSequentially('Hi @', { delay: 80 });
+  await page.locator(sel.setUserButton).click();
+  await editor.press('End');
+  await editor.pressSequentially('and more', { delay: 40 });
+  await editor.press('ControlOrMeta+a');
+  await editor.press('x');
+  await expect
+    .poll(async () => await htmlOutput(page).textContent())
+    .toEqual('<html><p>x</p></html>');
+});
+
+test('removeInvalidMentionContent: replacing a selection around a mention keeps only the new text', async ({
+  page,
+}) => {
+  await gotoMentionTest(page);
+  await page.locator(sel.removeInvalidToggle).click();
+  const editor = mentionEditor(page);
+  await editor.click();
+  await editor.pressSequentially('Hi @', { delay: 80 });
+  await page.locator(sel.setUserButton).click();
+  await editor.press('End');
+  await editor.pressSequentially('end', { delay: 40 });
+  // "Hi Jane end": select "i Jane e"
+  await editor.press('Home');
+  await editor.press('ArrowRight');
+  for (let i = 0; i < 8; i++) {
+    await editor.press('Shift+ArrowRight');
+  }
+  await editor.press('Z');
+  await expect
+    .poll(async () => await htmlOutput(page).textContent())
+    .toEqual('<html><p>HZnd</p></html>');
+});
+
+test('removeInvalidMentionContent: replacing exactly a mention keeps the new text', async ({
+  page,
+}) => {
+  await gotoMentionTest(page);
+  await page.locator(sel.removeInvalidToggle).click();
+  const editor = mentionEditor(page);
+  await editor.click();
+  await editor.pressSequentially('Hi @', { delay: 80 });
+  await page.locator(sel.setUserButton).click();
+  await editor.press('End');
+  await editor.pressSequentially('end', { delay: 40 });
+  // "Hi Jane end": select "Jane"
+  await editor.press('Home');
+  for (let i = 0; i < 3; i++) {
+    await editor.press('ArrowRight');
+  }
+  for (let i = 0; i < 4; i++) {
+    await editor.press('Shift+ArrowRight');
+  }
+  await editor.press('Z');
+  await expect
+    .poll(async () => await htmlOutput(page).textContent())
+    .toEqual('<html><p>Hi Z end</p></html>');
 });

@@ -575,6 +575,19 @@ A React ref that lets you call any [ref methods](#ref-methods) on the input.
 | ---------------------------------------------- | ------- | ----------------- |
 | `RefObject<EnrichedTextInputInstance \| null>` | -       | Android, iOS, Web |
 
+### `removeInvalidMentionContent` {#removeinvalidmentioncontent}
+
+If `true`, any change to the text of an existing mention (typing inside it,
+deleting part of it, autocorrect) removes both mention styling and the text content. If `false`, the
+changed text stays and only the styling is removed. With `true`, a mention from
+`defaultValue`, `setValue` or pasted HTML whose text doesn't match its `text`
+attribute is removed as well. See
+[Mentions](/rich-text-formatting/mentions#modifying-an-existing-mention).
+
+| Type      | Default | Platforms         |
+| --------- | ------- | ----------------- |
+| `boolean` | `false` | Android, iOS, Web |
+
 ### `returnKeyLabel` {#returnkeylabel}
 
 Overrides the return key label with a custom string.

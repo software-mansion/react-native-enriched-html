@@ -290,18 +290,41 @@ static NSString *const MentionBackgroundAttributeName =
 
   // set of ranges to have their mentions removed - aren't valid anymore
   NSMutableSet<NSValue *> *rangesToRemove = [[NSMutableSet alloc] init];
+  // text typed inside a mention doesn't get the attribute, so the mention
+  // splits into two runs with the same params; the text between them is the
+  // insertion
+  NSMutableSet<NSValue *> *insertedRanges = [[NSMutableSet alloc] init];
+  NSString *text = self.host.textView.textStorage.string;
 
   for (NSInteger i = 0; i < mentions.count; i++) {
     StylePair *mention = mentions[i];
     NSRange currentRange = [mention.rangeValue rangeValue];
     NSString *currentText = ((MentionParams *)mention.styleValue).text;
+    BOOL currentValid =
+        [[text substringWithRange:currentRange] isEqualToString:currentText];
+
     // check locations with the previous mention if it exists - if they got
     // merged they need to be removed
     if (i > 0) {
-      NSRange prevRange =
-          [((StylePair *)mentions[i - 1]).rangeValue rangeValue];
+      StylePair *prev = mentions[i - 1];
+      NSRange prevRange = [prev.rangeValue rangeValue];
+      NSUInteger prevEnd = NSMaxRange(prevRange);
+
+      // both halves of a split mention have the wrong text; two separate
+      // mentions sharing the same params (e.g. pasted) are left alone
+      BOOL prevValid = [[text substringWithRange:prevRange]
+          isEqualToString:((MentionParams *)prev.styleValue).text];
+      if (prev.styleValue == mention.styleValue && !prevValid &&
+          !currentValid && prevEnd < currentRange.location) {
+        [insertedRanges
+            addObject:[NSValue
+                          valueWithRange:NSMakeRange(prevEnd,
+                                                     currentRange.location -
+                                                         prevEnd)]];
+      }
+
       // mentions merged - both need to go out
-      if (prevRange.location + prevRange.length == currentRange.location) {
+      if (prevEnd == currentRange.location) {
         [rangesToRemove addObject:[NSValue valueWithRange:prevRange]];
         [rangesToRemove addObject:[NSValue valueWithRange:currentRange]];
         continue;
@@ -309,15 +332,77 @@ static NSString *const MentionBackgroundAttributeName =
     }
 
     // check for text, any modifications to it makes mention invalid
-    NSString *existingText =
-        [self.host.textView.textStorage.string substringWithRange:currentRange];
-    if (![existingText isEqualToString:currentText]) {
+    if (!currentValid) {
       [rangesToRemove addObject:[NSValue valueWithRange:currentRange]];
     }
   }
 
   for (NSValue *value in rangesToRemove) {
     [self remove:[value rangeValue] withDirtyRange:YES];
+  }
+
+  if (![self.host.config removeInvalidMentionContent]) {
+    return;
+  }
+
+  // only mentions whose text changed lose it; merged ones that are still
+  // valid keep their text and only lose the styling above
+  NSMutableSet<NSValue *> *changedRanges = [[NSMutableSet alloc] init];
+  for (StylePair *mention in mentions) {
+    NSRange range = [mention.rangeValue rangeValue];
+    if (![[text substringWithRange:range]
+            isEqualToString:((MentionParams *)mention.styleValue).text]) {
+      [changedRanges addObject:[NSValue valueWithRange:range]];
+    }
+  }
+
+  NSArray<NSValue *> *rangesToDelete =
+      [[changedRanges setByAddingObjectsFromSet:insertedRanges] allObjects];
+  if (rangesToDelete.count == 0) {
+    return;
+  }
+  // descending location, so deleting one doesn't move the ones left to delete
+  rangesToDelete = [rangesToDelete
+      sortedArrayUsingComparator:^NSComparisonResult(NSValue *_Nonnull obj1,
+                                                     NSValue *_Nonnull obj2) {
+        NSUInteger location1 = [obj1 rangeValue].location;
+        NSUInteger location2 = [obj2 rangeValue].location;
+        if (location1 > location2) {
+          return NSOrderedAscending;
+        }
+        return location1 < location2 ? NSOrderedDescending : NSOrderedSame;
+      }];
+
+  // deleting through the text storage doesn't move the caret, so we calculate
+  // where it lands: left by the deleted text before it, or at the start of a
+  // deleted range it was inside
+  NSRange preDeleteSelection = self.host.textView.selectedRange;
+  NSUInteger (^remapSelection)(NSUInteger) = ^NSUInteger(NSUInteger position) {
+    NSUInteger offset = 0;
+    for (NSValue *value in rangesToDelete) {
+      NSRange range = [value rangeValue];
+      if (position >= NSMaxRange(range)) {
+        offset += range.length;
+      } else if (position > range.location) {
+        offset += position - range.location;
+      }
+    }
+    return position - offset;
+  };
+
+  for (NSValue *value in rangesToDelete) {
+    [TextInsertionUtils replaceText:@""
+                                 at:[value rangeValue]
+               additionalAttributes:nullptr
+                               host:self.host
+                      withSelection:NO];
+  }
+
+  // setValue and defaultValue move the caret to the end right after anyway
+  if ([self.host.textView isFirstResponder]) {
+    NSUInteger location = remapSelection(preDeleteSelection.location);
+    NSUInteger end = remapSelection(NSMaxRange(preDeleteSelection));
+    self.host.textView.selectedRange = NSMakeRange(location, end - location);
   }
 }
 

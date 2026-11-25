@@ -177,6 +177,14 @@ class EnrichedTextInputViewManager :
     view?.parametrizedStyles?.mentionIndicators = indicatorsArray
   }
 
+  @ReactProp(name = "removeInvalidMentionContent", defaultBoolean = false)
+  override fun setRemoveInvalidMentionContent(
+    view: EnrichedTextInputView?,
+    removeInvalidMentionContent: Boolean,
+  ) {
+    view?.parametrizedStyles?.removeInvalidMentionContent = removeInvalidMentionContent
+  }
+
   @ReactProp(name = "htmlStyle")
   override fun setHtmlStyle(
     view: EnrichedTextInputView?,

@@ -14,6 +14,7 @@ import android.text.Editable
 import android.text.InputType
 import android.text.Spannable
 import android.text.SpannableString
+import android.text.SpannableStringBuilder
 import android.util.AttributeSet
 import android.util.Log
 import android.util.Patterns
@@ -423,7 +424,13 @@ class EnrichedTextInputView :
       when {
         item.htmlText != null -> {
           val parsed = parseText(item.htmlText)
-          (parsed as? Spannable) ?: return
+          if (parametrizedStyles?.removeInvalidMentionContent == true) {
+            // the watcher below keeps text that replaced a mention, so pasted
+            // mismatched mentions are removed before they are merged in
+            SpannableStringBuilder(parsed).also { parametrizedStyles?.removeInvalidMentions(it) }
+          } else {
+            (parsed as? Spannable) ?: return
+          }
         }
 
         item.text != null -> {
@@ -490,7 +497,12 @@ class EnrichedTextInputView :
     if (value == null) return
 
     runAsATransaction {
-      val newText = if (shouldParseHtml) parseText(value) else value
+      var newText = if (shouldParseHtml) parseText(value) else value
+      // the text watcher doesn't run during the transaction, so mentions whose
+      // text doesn't match them are removed before the text is set
+      if (shouldParseHtml && parametrizedStyles?.removeInvalidMentionContent == true) {
+        newText = SpannableStringBuilder(newText).also { parametrizedStyles?.removeInvalidMentions(it) }
+      }
       setText(newText)
       applyLineSpacing()
 

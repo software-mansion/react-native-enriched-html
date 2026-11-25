@@ -22,23 +22,34 @@ export const MentionPlugin = Extension.create<MentionPluginOptions>({
           'MentionPlugin.configure({ getIndicators }) is required'
         );
       },
+      getRemoveInvalidMentionContent: () => false,
     };
   },
   addProseMirrorPlugins() {
+    const options = this.options;
     return [
       new Plugin<TriggerState>({
         key: mentionPluginKey,
         props: {
           transformPasted(slice: Slice): Slice {
             return new Slice(
-              stripPartialMentionMarks(slice.content),
+              stripPartialMentionMarks(
+                slice.content,
+                options.getRemoveInvalidMentionContent()
+              ),
               slice.openStart,
               slice.openEnd
             );
           },
         },
         state: makeMentionPluginState(this.options.getIndicators),
-        appendTransaction: removeMentionMarksIfSpansResized,
+        appendTransaction: (transactions, oldState, newState) =>
+          removeMentionMarksIfSpansResized(
+            transactions,
+            oldState,
+            newState,
+            options.getRemoveInvalidMentionContent()
+          ),
       }),
     ];
   },
