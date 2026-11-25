@@ -57,13 +57,16 @@ class ParametrizedStyles(
       spannable.removeSpan(span)
     }
 
+    val isTextUnchanged =
+      start != end && spannable.substring(start, end).replace(EnrichedConstants.ZWS_STRING, "") == text
+
     if (start == end) {
       spannable.insert(start, text)
-    } else {
+    } else if (!isTextUnchanged) {
       spannable.replace(start, end, text)
     }
 
-    val spanEnd = start + text.length
+    val spanEnd = if (isTextUnchanged) end else start + text.length
     applyManualLinkSpan(spannable, start, spanEnd, url)
     view.selection?.validateStyles()
     isSettingLinkSpan = false

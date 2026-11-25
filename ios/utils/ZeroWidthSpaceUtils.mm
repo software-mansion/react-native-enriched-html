@@ -306,4 +306,64 @@
                       }];
 }
 
++ (NSString *)stringByRemovingZeroWidthSpaces:(NSString *)text {
+  return [text stringByReplacingOccurrencesOfString:@"\u200B" withString:@""];
+}
+
++ (NSUInteger)visibleIndexFromActualIndex:(NSUInteger)actualIndex
+                                   inText:(NSString *)text {
+  NSUInteger limit = MIN(actualIndex, text.length);
+  NSUInteger zeroWidthSpacesCount = 0;
+  for (NSUInteger i = 0; i < limit; i++) {
+    if ([text characterAtIndex:i] == 0x200B) {
+      zeroWidthSpacesCount++;
+    }
+  }
+  return actualIndex - zeroWidthSpacesCount;
+}
+
++ (NSRange)visibleRangeFromActualRange:(NSRange)actualRange
+                                inText:(NSString *)text {
+  NSUInteger visibleStart =
+      [self visibleIndexFromActualIndex:actualRange.location inText:text];
+  NSUInteger visibleEnd =
+      [self visibleIndexFromActualIndex:NSMaxRange(actualRange) inText:text];
+  return NSMakeRange(visibleStart, visibleEnd - visibleStart);
+}
+
+// Walks through the string skipping zero width spaces to find the Nth visible
+// character. Indices outside of the text map to its end.
++ (NSUInteger)actualIndexFromVisibleIndex:(NSInteger)visibleIndex
+                                   inText:(NSString *)text {
+  NSInteger currentVisibleCount = 0;
+  NSUInteger actualIndex = 0;
+
+  while (actualIndex < text.length) {
+    if (currentVisibleCount == visibleIndex) {
+      return actualIndex;
+    }
+
+    // If the current char is not a hidden space, it counts towards our visible
+    // index.
+    if ([text characterAtIndex:actualIndex] != 0x200B) {
+      currentVisibleCount++;
+    }
+
+    actualIndex++;
+  }
+
+  return actualIndex;
+}
+
++ (NSRange)actualRangeFromVisibleStart:(NSInteger)visibleStart
+                                   end:(NSInteger)visibleEnd
+                                inText:(NSString *)text {
+  NSUInteger actualStart = [self actualIndexFromVisibleIndex:visibleStart
+                                                      inText:text];
+  NSUInteger actualEnd = [self actualIndexFromVisibleIndex:visibleEnd
+                                                    inText:text];
+  NSUInteger rangeStart = MIN(actualStart, actualEnd);
+  return NSMakeRange(rangeStart, MAX(actualStart, actualEnd) - rangeStart);
+}
+
 @end
