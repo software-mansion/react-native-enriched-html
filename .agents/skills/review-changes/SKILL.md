@@ -17,8 +17,8 @@ Usage: `review-changes [uncommitted | branch <name> | pr <number> | <base>..<hea
 (Claude Code: `/review-changes ...`, Codex: `$review-changes ...` or just ask for a review.)
 
 This skill is the source of truth for review rules in this repo.
-`.github/copilot-instructions.md` (GitHub Copilot PR review) is a condensed copy of stages 1
-and 3 — when you change those rules, update it too.
+`.github/copilot-instructions.md` (CodeRabbit PR review, see `.coderabbit.yaml`) is a condensed
+copy of stages 1 and 3 — when you change those rules, update it too.
 
 Four stages, in order. Each has a reference file — read it when you reach that stage.
 
