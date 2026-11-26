@@ -194,8 +194,9 @@ class ListStyles(
     if (!isBackspace && isNewLine && isPreviousParagraphList(s, start, config.clazz)) {
       // Enter in an empty list item ends the list instead of adding another empty item.
       // Populated items also start with a ZWS, so the new paragraph has to be empty too.
+      val isPureInsertion = s.length == previousTextLength + 1
       val (previousStart, previousEnd) = s.getParagraphBounds(start - 1)
-      if (start == end && s.substring(previousStart, previousEnd) == EnrichedConstants.ZWS_STRING) {
+      if (isPureInsertion && start == end && s.substring(previousStart, previousEnd) == EnrichedConstants.ZWS_STRING) {
         s.delete(start - 1, start)
         removeSpansForRange(s, previousStart, previousEnd, config.clazz)
         view.selection?.validateStyles()
