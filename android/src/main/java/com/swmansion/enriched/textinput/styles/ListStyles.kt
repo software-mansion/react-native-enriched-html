@@ -174,6 +174,7 @@ class ListStyles(
   private fun handleAfterTextChanged(
     s: Editable,
     name: String,
+    startCursorPosition: Int,
     endCursorPosition: Int,
     previousTextLength: Int,
   ) {
@@ -181,8 +182,10 @@ class ListStyles(
     val cursorPosition = endCursorPosition.coerceAtMost(s.length)
     val (start, end) = s.getParagraphBounds(cursorPosition)
 
-    val isBackspace = previousTextLength > s.length
     val isNewLine = cursorPosition > 0 && s[cursorPosition - 1] == '\n'
+    // Replacing a selection with a newline shrinks the text too, but it's an Enter, not a backspace.
+    val isNewLineInserted = isNewLine && endCursorPosition > startCursorPosition
+    val isBackspace = previousTextLength > s.length && !isNewLineInserted
     val spans = s.getSpans(start, end, config.clazz)
 
     // Remove spans if cursor is at the start of the paragraph and spans exist
@@ -250,12 +253,13 @@ class ListStyles(
 
   fun afterTextChanged(
     s: Editable,
+    startCursorPosition: Int,
     endCursorPosition: Int,
     previousTextLength: Int,
   ) {
-    handleAfterTextChanged(s, EnrichedSpans.ORDERED_LIST, endCursorPosition, previousTextLength)
-    handleAfterTextChanged(s, EnrichedSpans.UNORDERED_LIST, endCursorPosition, previousTextLength)
-    handleAfterTextChanged(s, EnrichedSpans.CHECKBOX_LIST, endCursorPosition, previousTextLength)
+    handleAfterTextChanged(s, EnrichedSpans.ORDERED_LIST, startCursorPosition, endCursorPosition, previousTextLength)
+    handleAfterTextChanged(s, EnrichedSpans.UNORDERED_LIST, startCursorPosition, endCursorPosition, previousTextLength)
+    handleAfterTextChanged(s, EnrichedSpans.CHECKBOX_LIST, startCursorPosition, endCursorPosition, previousTextLength)
   }
 
   fun getStyleRange(): Pair<Int, Int> = view.selection?.getParagraphSelection() ?: Pair(0, 0)

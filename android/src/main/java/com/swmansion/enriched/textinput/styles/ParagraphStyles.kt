@@ -309,15 +309,21 @@ class ParagraphStyles(
 
   fun afterTextChanged(
     s: Editable,
+    startPosition: Int,
     endPosition: Int,
     previousTextLength: Int,
   ) {
     var endCursorPosition = endPosition
-    val isBackspace = s.length < previousTextLength
     val isNewLine = endCursorPosition == 0 || (endCursorPosition > 0 && s[endCursorPosition - 1] == '\n')
+    val isTextShrunk = s.length < previousTextLength
+    // Replacing a selection with a newline shrinks the text too, but it's an Enter, not a backspace.
+    val isNewLineInserted = endCursorPosition > startPosition && s[endCursorPosition - 1] == '\n'
     val spanState = view.spanState ?: return
 
     for ((style, config) in EnrichedSpans.paragraphSpans) {
+      // Shorter text means backspace, unless a selection was replaced with Enter in a continuous style - quote or code block.
+      // Headings still take the backspace path there - they are not continuous and clear on a new line.
+      val isBackspace = isTextShrunk && !(config.isContinuous && isNewLineInserted)
       val styleStart = spanState.getStart(style)
 
       if (styleStart == null) {
