@@ -53,7 +53,9 @@ for (const {
       await gotoVisualRegression(page);
     });
 
-    test('Enter extends list', async ({ page }) => {
+    test('Enter extends list, Enter on empty item ends it', async ({
+      page,
+    }) => {
       const editor = editorLocator(page);
       const wrapper = page.locator(wrapperSelector);
       const items = wrapper.locator('li');
@@ -64,12 +66,18 @@ for (const {
       await items.first().click();
       await editor.press('End');
 
-      for (let i = 0; i < 3; i++) {
-        await editor.press('Enter', { delay: KEY_ACTION_DELAY });
-      }
+      await editor.press('Enter', { delay: KEY_ACTION_DELAY });
 
       await page.waitForTimeout(SCREENSHOT_STABILIZE_MS);
       await expect(editor).toHaveScreenshot(`list-keyboard-enter-${label}.png`);
+
+      await editor.press('Enter', { delay: KEY_ACTION_DELAY });
+      await page.keyboard.type('Plain');
+
+      await page.waitForTimeout(SCREENSHOT_STABILIZE_MS);
+      await expect(editor).toHaveScreenshot(
+        `list-keyboard-enter-exit-${label}.png`
+      );
     });
 
     test('Enter causes scrolling', async ({ page }) => {
@@ -86,7 +94,7 @@ for (const {
       await items.last().click();
       await page.keyboard.press('Enter', { delay: KEY_ACTION_DELAY });
 
-      await page.keyboard.type('\n\n\n\n\n', { delay: 10 });
+      await page.keyboard.type('d\ne\nf\ng\nh\n', { delay: 10 });
 
       await page.waitForTimeout(SCREENSHOT_STABILIZE_MS);
       await expect(editor).toHaveScreenshot(

@@ -38,7 +38,6 @@ appId: swmansion.enriched.example
 - pressKey: Enter
 - inputText: "Numbered item three"
 - pressKey: Enter
-- pressKey: Enter
 
 - pressKey: Backspace
 

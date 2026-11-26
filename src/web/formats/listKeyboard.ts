@@ -1,16 +1,10 @@
-import { isTextSelection, type Editor, type JSONContent } from '@tiptap/core';
+import { isTextSelection, type Editor } from '@tiptap/core';
 
 import { lineStartBackspace } from './wrappedBlockKeyboard';
 import { withPreservedAlignment } from './formatRules';
 
-function emptyListItemContent(itemName: string): JSONContent {
-  return {
-    type: itemName,
-    content: [{ type: 'paragraph' }],
-  };
-}
-
-// Enter: always extend the list — splitListItem fails on an empty last item (see TipTap splitListItem).
+// Enter: extend the list — splitListItem fails on an empty item (see TipTap splitListItem),
+// in which case the item gets lifted out, ending the list.
 export function listEnter(editor: Editor, itemName: string): boolean {
   if (!editor.isActive(itemName)) {
     return false;
@@ -29,19 +23,9 @@ export function listEnter(editor: Editor, itemName: string): boolean {
     return false;
   }
 
-  // Flat lists only: list item is always the parent block of the paragraph (depth − 1).
-  const itemDepth = $from.depth - 1;
-  if (itemDepth < 1) {
-    return false;
-  }
-  const insertPos = $from.after(itemDepth);
-
-  return editor
-    .chain()
-    .focus()
-    .insertContentAt(insertPos, emptyListItemContent(itemName))
-    .scrollIntoView()
-    .run();
+  return withPreservedAlignment(editor, editor.chain(), (c) =>
+    c.focus().liftListItem(itemName)
+  );
 }
 
 // Backspace: first press at line start lifts the list item; second press (paragraph below list) joins backward.
