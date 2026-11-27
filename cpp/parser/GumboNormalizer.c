@@ -937,6 +937,129 @@ static void walk_children(GumboNode *node, buffer_t *out,
 }
 
 /* ------------------------------------------------------------------ */
+/*  Code block lines                                                   */
+/* ------------------------------------------------------------------ */
+
+#define CODE_LINE_MAX_OPEN_TAGS 32
+
+/** True for a `<br>`, `<br/>` or `<br ...>` tag. */
+static bool is_br_tag(const char *tag, size_t tag_len) {
+  return tag_len >= 4 && strncmp(tag, "<br", 3) == 0 &&
+         (tag[3] == '>' || tag[3] == '/' || tag[3] == ' ');
+}
+
+/** True if normalized inline HTML has a line break: a newline in text or a
+ *  <br>. Newlines inside tags (attribute values) don't count. */
+static bool has_code_line_break(const char *html, size_t len) {
+  size_t i = 0;
+  while (i < len) {
+    if (html[i] == '<') {
+      const char *end = memchr(html + i, '>', len - i);
+      if (!end)
+        return false;
+      size_t tag_len = (size_t)(end - (html + i)) + 1;
+      if (is_br_tag(html + i, tag_len))
+        return true;
+      i += tag_len;
+      continue;
+    }
+    if (html[i] == '\n')
+      return true;
+    i++;
+  }
+  return false;
+}
+
+/** Closes the open inline tags, emits the line as a <p> (or <br> when it has
+ *  no content) and reopens the tags for the next line. */
+static void flush_code_line(buffer_t *line, buffer_t *out, const char *html,
+                            const size_t *open_start, const size_t *open_len,
+                            int depth, bool has_content) {
+  for (int d = depth - 1; d >= 0; d--) {
+    const char *tag = html + open_start[d];
+    size_t name_len = 1;
+    while (name_len < open_len[d] && tag[name_len] != ' ' &&
+           tag[name_len] != '>')
+      name_len++;
+    buffer_append_str(line, "</");
+    buffer_append(line, tag + 1, name_len - 1);
+    buffer_append_str(line, ">");
+  }
+  if (has_content) {
+    buffer_append_str(out, "<p>");
+    buffer_append(out, line->data, line->len);
+    buffer_append_str(out, "</p>");
+  } else {
+    buffer_append_str(out, "<br>");
+  }
+  buffer_clear(line);
+  for (int d = 0; d < depth; d++)
+    buffer_append(line, html + open_start[d], open_len[d]);
+}
+
+/**
+ * Emits normalized inline HTML of a code block (from <pre> or <codeblock>) as
+ * one <p> per line, since line breaks in code are significant. A line break is
+ * a newline in text or a <br>. Inline tags open across a break are closed
+ * before it and reopened after it. An empty line becomes <br>, and a trailing
+ * empty line (`a\n</pre>`) is dropped, as browsers don't render it either.
+ */
+static void emit_code_lines(const char *html, size_t len, buffer_t *out) {
+  if (!has_code_line_break(html, len)) {
+    buffer_append_str(out, "<p>");
+    buffer_append(out, html, len);
+    buffer_append_str(out, "</p>");
+    return;
+  }
+
+  size_t open_start[CODE_LINE_MAX_OPEN_TAGS];
+  size_t open_len[CODE_LINE_MAX_OPEN_TAGS];
+  int depth = 0;
+  buffer_t line = buffer_create(64);
+  bool has_content = false;
+
+  size_t i = 0;
+  while (i < len) {
+    if (html[i] == '<') {
+      const char *end = memchr(html + i, '>', len - i);
+      size_t tag_len = end ? (size_t)(end - (html + i)) + 1 : len - i;
+      const char *tag = html + i;
+      if (is_br_tag(tag, tag_len)) {
+        flush_code_line(&line, out, html, open_start, open_len, depth,
+                        has_content);
+        has_content = false;
+      } else {
+        buffer_append(&line, tag, tag_len);
+        if (tag_len > 1 && tag[1] == '/') {
+          if (depth > 0)
+            depth--;
+        } else if (tag_len > 1 && tag[tag_len - 2] == '/') {
+          has_content = true; /* self-closing, e.g. <img /> */
+        } else if (depth < CODE_LINE_MAX_OPEN_TAGS) {
+          open_start[depth] = i;
+          open_len[depth] = tag_len;
+          depth++;
+        }
+      }
+      i += tag_len;
+      continue;
+    }
+    if (html[i] == '\n') {
+      flush_code_line(&line, out, html, open_start, open_len, depth,
+                      has_content);
+      has_content = false;
+    } else {
+      buffer_append(&line, &html[i], 1);
+      has_content = true;
+    }
+    i++;
+  }
+  if (has_content)
+    flush_code_line(&line, out, html, open_start, open_len, depth, true);
+  free(line.data);
+}
+
+/* ------------------------------------------------------------------ */
 /*  walk_node — process a single DOM node                              */
 /* ------------------------------------------------------------------ */
 
@@ -1177,15 +1300,17 @@ static void walk_node(GumboNode *node, buffer_t *out,
       break;
     }
 
-    /* <codeblock>: wrap inline content in <p> */
+    /* <codeblock>: wrap inline content in a <p> per line */
     if (strcmp(out_name, "codeblock") == 0) {
-      bool wrap = is_purely_inline(node);
       buffer_append_str(out, "<codeblock>");
-      if (wrap)
-        buffer_append_str(out, "<p>");
-      walk_children(node, out, inherited);
-      if (wrap)
-        buffer_append_str(out, "</p>");
+      if (is_purely_inline(node)) {
+        buffer_t code = buffer_create(64);
+        walk_children(node, &code, inherited);
+        emit_code_lines(code.data, code.len, out);
+        free(code.data);
+      } else {
+        walk_children(node, out, inherited);
+      }
       buffer_append_str(out, "</codeblock>");
       break;
     }

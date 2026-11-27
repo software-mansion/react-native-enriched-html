@@ -658,6 +658,84 @@ function walkChildren(
   }
 }
 
+/** `<br>`, `<br/>` or `<br ...>`. */
+const BR_TAG_RE = /^<br[\s/>]/;
+
+/** True if normalized inline HTML has a line break: a newline in text or a
+ *  <br>. Newlines inside tags (attribute values) don't count. */
+function hasCodeLineBreak(html: string): boolean {
+  let i = 0;
+  while (i < html.length) {
+    if (html[i] === '<') {
+      const end = html.indexOf('>', i);
+      if (end === -1) return false;
+      if (BR_TAG_RE.test(html.slice(i, end + 1))) return true;
+      i = end + 1;
+      continue;
+    }
+    if (html[i] === '\n') return true;
+    i++;
+  }
+  return false;
+}
+
+/**
+ * Emits normalized inline HTML of a code block (from <pre> or <codeblock>) as
+ * one <p> per line, since line breaks in code are significant. A line break is
+ * a newline in text or a <br>. Inline tags open across a break are closed
+ * before it and reopened after it. An empty line becomes <br>, and a trailing
+ * empty line (`a\n</pre>`) is dropped, as browsers don't render it either.
+ */
+function emitCodeLines(html: string): string {
+  if (!hasCodeLineBreak(html)) return `<p>${html}</p>`;
+
+  let out = '';
+  const openTags: string[] = [];
+  let line = '';
+  let hasContent = false;
+
+  const flushLine = () => {
+    for (let d = openTags.length - 1; d >= 0; d--) {
+      const name = openTags[d]!.slice(1).split(/[\s>]/, 1)[0];
+      line += `</${name}>`;
+    }
+    out += hasContent ? `<p>${line}</p>` : '<br>';
+    line = openTags.join('');
+    hasContent = false;
+  };
+
+  let i = 0;
+  while (i < html.length) {
+    if (html[i] === '<') {
+      const end = html.indexOf('>', i);
+      const tag = end === -1 ? html.slice(i) : html.slice(i, end + 1);
+      if (BR_TAG_RE.test(tag)) {
+        flushLine();
+      } else {
+        line += tag;
+        if (tag.startsWith('</')) {
+          openTags.pop();
+        } else if (tag.endsWith('/>')) {
+          hasContent = true; // self-closing, e.g. <img />
+        } else {
+          openTags.push(tag);
+        }
+      }
+      i += tag.length;
+      continue;
+    }
+    if (html[i] === '\n') {
+      flushLine();
+    } else {
+      line += html[i];
+      hasContent = true;
+    }
+    i++;
+  }
+  if (hasContent) flushLine();
+  return out;
+}
+
 function walkNode(
   node: Node,
   out: { buf: string },
@@ -805,13 +883,16 @@ function walkNode(
     return;
   }
 
-  // <codeblock>: wrap inline content in <p>
+  // <codeblock>: wrap inline content in a <p> per line
   if (outName === 'codeblock') {
-    const wrap = isPurelyInline(node);
     out.buf += '<codeblock>';
-    if (wrap) out.buf += '<p>';
-    walkChildren(node, out, inherited);
-    if (wrap) out.buf += '</p>';
+    if (isPurelyInline(node)) {
+      const code = { buf: '' };
+      walkChildren(node, code, inherited);
+      out.buf += emitCodeLines(code.buf);
+    } else {
+      walkChildren(node, out, inherited);
+    }
     out.buf += '</codeblock>';
     return;
   }
