@@ -23,7 +23,7 @@
 
 /**
  * Prepares HTML for the parser by stripping extraneous whitespace and newlines
- * from structural tags, while preserving them within text content.
+ * from structural tags, while preserving spaces within text content.
  *
  * APPROACH:
  * This function treats the HTML as having two distinct states:
@@ -32,18 +32,25 @@
  * considered layout artifacts and are REMOVED to prevent the parser from
  * creating unwanted spaces.
  * 2. Content Mode (Depth > 0): We are inside a text-containing tag (like p,
- * b, li). In this mode, all whitespace is PRESERVED exactly as is, ensuring
- * that sentences and inline formatting remain readable.
+ * b, li). In this mode, spaces are PRESERVED exactly as is, ensuring
+ * that sentences and inline formatting remain readable. A newline in text is
+ * not a line break in HTML, so it becomes a space.
+ * Our own HTML never has newlines inside text tags.
  *
  * The function iterates character-by-character, using a depth counter to track
  * nesting levels of the specific tags defined in `textTags`.
+ *
+ * `stripLayout` NO leaves whitespaces outside tags untouched. Used for
+ * normalizer output: the normalizer already drops layout whitespace, and text
+ * it leaves outside text tags is real content that we don't want to strip.
  *
  * IMPORTANT:
  * The `textTags` set acts as a whitelist for "Content Mode". If you add support
  * for a new HTML tag that contains visible text (e.g., h4, h5, h6),
  * you MUST add it to the `textTags` set below.
  */
-+ (NSString *)stripExtraWhiteSpacesAndNewlines:(NSString *)html {
++ (NSString *)stripExtraWhiteSpacesAndNewlines:(NSString *)html
+                                   stripLayout:(BOOL)stripLayout {
   NSSet *textTags =
       [NSSet setWithObjects:@"p", @"h1", @"h2", @"h3", @"h4", @"h5", @"h6",
                             @"li", @"b", @"a", @"s", @"mention", @"code", @"u",
@@ -102,9 +109,9 @@
       }
 
       if (textDepth > 0) {
-        [output appendFormat:@"%C", c];
+        [output appendFormat:@"%C", c == '\n' ? ' ' : c];
       } else {
-        if (![whitespaceAndNewlineSet characterIsMember:c]) {
+        if (!stripLayout || ![whitespaceAndNewlineSet characterIsMember:c]) {
           [output appendFormat:@"%C", c];
         }
       }
@@ -214,7 +221,8 @@
 
 + (NSString *_Nullable)initiallyProcessHtml:(NSString *_Nonnull)html
                           useHtmlNormalizer:(BOOL)useHtmlNormalizer {
-  NSString *htmlWithoutSpaces = [self stripExtraWhiteSpacesAndNewlines:html];
+  NSString *htmlWithoutSpaces = [self stripExtraWhiteSpacesAndNewlines:html
+                                                           stripLayout:YES];
   NSString *fixedHtml = nullptr;
 
   // 13 is the length of "<html></html>". The length guard only applies to the
@@ -260,7 +268,10 @@
     // into our canonical tag subset. Gumbo already extracts the <body>.
     NSString *normalized = [self normalizeExternalHtml:html];
     if (normalized != nil) {
-      fixedHtml = normalized;
+      // Only turn newlines inside text tags into spaces; leave everything else
+      // as the normalizer wrote it.
+      fixedHtml = [self stripExtraWhiteSpacesAndNewlines:normalized
+                                             stripLayout:NO];
     }
   }
 
@@ -621,7 +632,10 @@
         NSArray *entityInfo = htmlEntitiesDict[@(i)];
         if (entityInfo != nullptr) {
           NSString *escaped = entityInfo[0];
-          NSString *unescaped = entityInfo[1];
+          // A newline written as an entity (e.g. &#10;) becomes a space.
+          NSString *unescaped =
+              [entityInfo[1] stringByReplacingOccurrencesOfString:@"\n"
+                                                       withString:@" "];
           [plainText appendString:unescaped];
           // the iterator will forward by 1 itself
           i += escaped.length - 1;

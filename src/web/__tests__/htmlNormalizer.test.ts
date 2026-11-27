@@ -233,6 +233,40 @@ describe('htmlNormalizer', () => {
     });
   });
 
+  describe('CodeBlockLines', () => {
+    test.each([
+      // Each line of code becomes its own <p>
+      ['<pre>a\nb</pre>', '<codeblock><p>a</p><p>b</p></codeblock>'],
+      [
+        '<codeblock>a\nb</codeblock>',
+        '<codeblock><p>a</p><p>b</p></codeblock>',
+      ],
+      ['<pre>a<br>b</pre>', '<codeblock><p>a</p><p>b</p></codeblock>'],
+
+      // Indentation is kept
+      [
+        '<pre>if (x) {\n  y();\n}</pre>',
+        '<codeblock><p>if (x) {</p><p>  y();</p><p>}</p></codeblock>',
+      ],
+
+      // Empty lines become <br>, the first newline after <pre> and a trailing
+      // one are dropped
+      ['<pre>\na\n\nb\n</pre>', '<codeblock><p>a</p><br><p>b</p></codeblock>'],
+
+      // Inline tags spanning a line break are closed and reopened
+      [
+        '<pre><b>a\nb</b>c</pre>',
+        '<codeblock><p><b>a</b></p><p><b>b</b>c</p></codeblock>',
+      ],
+      [
+        '<pre><code>a\nb</code></pre>',
+        '<codeblock><p><code>a</code></p><p><code>b</code></p></codeblock>',
+      ],
+    ])('%j → %s', (input, expected) => {
+      expect(normalizeHtml(input)).toBe(expected);
+    });
+  });
+
   describe('EnrichedTagRemappings', () => {
     test.each([
       // Block elements

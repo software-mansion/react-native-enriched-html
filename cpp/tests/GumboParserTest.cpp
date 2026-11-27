@@ -353,6 +353,32 @@ TEST(GumboParserTest, SpanRemappings) {
       "<span style=\"font-family: &quot;Black &amp; White&quot;\">x</span>");
 }
 
+TEST(GumboParserTest, CodeBlockLines) {
+  // Each line of code becomes its own <p>
+  EXPECT_EQ(GumboParser::normalizeHtml("<pre>a\nb</pre>"),
+            "<codeblock><p>a</p><p>b</p></codeblock>");
+  EXPECT_EQ(GumboParser::normalizeHtml("<codeblock>a\nb</codeblock>"),
+            "<codeblock><p>a</p><p>b</p></codeblock>");
+  EXPECT_EQ(GumboParser::normalizeHtml("<pre>a<br>b</pre>"),
+            "<codeblock><p>a</p><p>b</p></codeblock>");
+
+  // Indentation is kept
+  EXPECT_EQ(GumboParser::normalizeHtml("<pre>if (x) {\n  y();\n}</pre>"),
+            "<codeblock><p>if (x) {</p><p>  y();</p><p>}</p></codeblock>");
+
+  // Empty lines become <br>, the first newline after <pre> and a trailing one
+  // are dropped
+  EXPECT_EQ(GumboParser::normalizeHtml("<pre>\na\n\nb\n</pre>"),
+            "<codeblock><p>a</p><br><p>b</p></codeblock>");
+
+  // Inline tags spanning a line break are closed and reopened
+  EXPECT_EQ(GumboParser::normalizeHtml("<pre><b>a\nb</b>c</pre>"),
+            "<codeblock><p><b>a</b></p><p><b>b</b>c</p></codeblock>");
+  EXPECT_EQ(
+      GumboParser::normalizeHtml("<pre><code>a\nb</code></pre>"),
+      "<codeblock><p><code>a</code></p><p><code>b</code></p></codeblock>");
+}
+
 TEST(GumboParserTest, EnrichedTagRemappings) {
   // Block elements
   EXPECT_EQ(GumboParser::normalizeHtml("<codeblock>x</codeblock>"),
