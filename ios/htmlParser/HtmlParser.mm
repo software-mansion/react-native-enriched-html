@@ -23,7 +23,7 @@
 
 /**
  * Prepares HTML for the parser by stripping extraneous whitespace and newlines
- * from structural tags, while preserving them within text content.
+ * from structural tags, while preserving spaces within text content.
  *
  * APPROACH:
  * This function treats the HTML as having two distinct states:
@@ -32,8 +32,10 @@
  * considered layout artifacts and are REMOVED to prevent the parser from
  * creating unwanted spaces.
  * 2. Content Mode (Depth > 0): We are inside a text-containing tag (like p,
- * b, li). In this mode, all whitespace is PRESERVED exactly as is, ensuring
- * that sentences and inline formatting remain readable.
+ * b, li). In this mode, spaces are PRESERVED exactly as is, ensuring
+ * that sentences and inline formatting remain readable. A newline in text is
+ * not a line break in HTML, so it becomes a space.
+ * Our own HTML never has newlines inside text tags.
  *
  * The function iterates character-by-character, using a depth counter to track
  * nesting levels of the specific tags defined in `textTags`.
@@ -102,7 +104,7 @@
       }
 
       if (textDepth > 0) {
-        [output appendFormat:@"%C", c];
+        [output appendFormat:@"%C", c == '\n' ? ' ' : c];
       } else {
         if (![whitespaceAndNewlineSet characterIsMember:c]) {
           [output appendFormat:@"%C", c];
@@ -260,7 +262,9 @@
     // into our canonical tag subset. Gumbo already extracts the <body>.
     NSString *normalized = [self normalizeExternalHtml:html];
     if (normalized != nil) {
-      fixedHtml = normalized;
+      // The normalizer already drops layout whitespace between blocks, so this
+      // only turns newlines inside text into spaces.
+      fixedHtml = [self stripExtraWhiteSpacesAndNewlines:normalized];
     }
   }
 
