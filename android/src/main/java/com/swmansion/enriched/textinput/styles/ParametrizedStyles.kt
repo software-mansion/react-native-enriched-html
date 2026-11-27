@@ -96,6 +96,31 @@ class ParametrizedStyles(
     afterTextChangedManualLinks(startCursorPosition, endCursorPosition)
     afterTextChangedLinks(startCursorPosition, endCursorPosition)
     detectActiveMention(s, startCursorPosition)
+    removeEditedMentions(startCursorPosition, endCursorPosition)
+  }
+
+  // A mention whose content has been edited is no longer a mention. detectActiveMention only
+  // finds such mentions in words that start with an indicator, so the edited range is checked
+  // here as well (e.g. a mention text without the indicator, or one with several spaces).
+  private fun removeEditedMentions(
+    start: Int,
+    end: Int,
+  ) {
+    val spannable = view.text as? Spannable ?: return
+    val safeStart = start.coerceIn(0, spannable.length)
+    val safeEnd = end.coerceIn(safeStart, spannable.length)
+    var removedAny = false
+
+    for (span in spannable.getSpans(safeStart, safeEnd, EnrichedInputMentionSpan::class.java)) {
+      val spanStart = spannable.getSpanStart(span)
+      val spanEnd = spannable.getSpanEnd(span)
+      if (spannable.subSequence(spanStart, spanEnd).toString() == span.getText()) continue
+
+      spannable.removeSpan(span)
+      removedAny = true
+    }
+
+    if (removedAny) view.selection?.validateStyles()
   }
 
   // Re-runs in-progress mention detection on a pure caret move (no text change),
