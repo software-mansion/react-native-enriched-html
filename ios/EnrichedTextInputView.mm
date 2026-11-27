@@ -63,6 +63,7 @@ using namespace facebook::react;
   NSArray<NSDictionary *> *_contextMenuItems;
   NSString *_submitBehavior;
   NSDictionary<NSAttributedStringKey, id> *_capturedAttributesBeforeChange;
+  NSRange _capturedReplacementRange;
   NSString *_recentlyEmittedAlignment;
   CustomStyleData *_recentlyEmittedCustomStyle;
 }
@@ -2080,15 +2081,32 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
 - (bool)textView:(UITextView *)textView
     shouldChangeTextInRange:(NSRange)range
             replacementText:(NSString *)text {
-  // Capture the attributes at range.location that are being replaced
-  // (autocorrect / predictive) so didProcessEditing: can re-stamp them onto the
-  // replacement. Skip pure deletions (text.length == 0) — there is no incoming
-  // text to receive attributes, and capturing here would cause the deleted
-  // character's CustomStyleData to be re-stamped onto the widened editedRange.
-  if (range.length > 0 && text.length > 0) {
-    _capturedAttributesBeforeChange =
-        [textView.textStorage attributesAtIndex:range.location
-                                 effectiveRange:NULL];
+  // Autocorrect, spellcheck and predictive text replace a word at the caret and
+  // drop its styling, so capture it for didProcessEditing: to re-apply.
+  // Typing over a selection is handled by the typing attributes instead.
+  if (range.length > 0 && text.length > 0 &&
+      textView.selectedRange.length == 0) {
+    NSDictionary *attrs = [textView.textStorage attributesAtIndex:range.location
+                                                   effectiveRange:NULL];
+    NSMutableDictionary *captured = [[NSMutableDictionary alloc] init];
+    for (StyleBase *style in stylesDict.allValues) {
+      if ([style isParagraph]) {
+        id value = attrs[[style getKey]];
+        if (value != nil) {
+          captured[[style getKey]] = value;
+        }
+        continue;
+      }
+      // Skips styles that never extend to new text (mentions, links, images).
+      AttributeEntry *entry =
+          [style getEntryIfPresent:NSMakeRange(range.location, 1)];
+      if (entry != nullptr) {
+        captured[entry.key] = entry.value;
+      }
+    }
+    _capturedAttributesBeforeChange = captured;
+    // Only the replacement text; didProcessEditing:'s editedRange can be wider.
+    _capturedReplacementRange = NSMakeRange(range.location, text.length);
   }
 
   // Check if the user pressed "Enter"
@@ -2174,6 +2192,14 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
   // native TextKit issue.
   if (textView.markedTextRange == nil && text.length > 0) {
     [attributesManager repeatRecentTypingAttributesManagement];
+
+    // Replacing a selection - we need to manually extend typing attributes that
+    // were there before, as by default the attributes manager only takes a
+    // preceding index into account. Must run after the repeat above, which
+    // resets the typing attributes.
+    if (range.length > 0 && textView.selectedRange.length > 0) {
+      [attributesManager extendTypingAttributesFromReplacedRange:range];
+    }
   }
 
   return YES;
@@ -2318,12 +2344,14 @@ Class<RCTComponentViewProtocol> EnrichedTextInputViewCls(void) {
     if (_capturedAttributesBeforeChange != nil) {
       // Skip while an IME composition is in progress; restamp on commit.
       if (textView.markedTextRange == nil) {
+        NSRange restampRange = NSIntersectionRange(
+            _capturedReplacementRange, NSMakeRange(0, textStorage.length));
         NSSet *customKeys = [attributesManager customAttributesKeys];
         for (NSString *key in _capturedAttributesBeforeChange) {
           if ([customKeys containsObject:key]) {
             [textStorage addAttribute:key
                                 value:_capturedAttributesBeforeChange[key]
-                                range:editedRange];
+                                range:restampRange];
           }
         }
       }
