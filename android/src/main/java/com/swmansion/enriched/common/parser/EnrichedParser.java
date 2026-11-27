@@ -446,12 +446,6 @@ public class EnrichedParser {
         }
       } else if (c > 0x7E || c < ' ') {
         out.append("&#").append((int) c).append(";");
-      } else if (c == ' ') {
-        while (i + 1 < end && text.charAt(i + 1) == ' ') {
-          out.append("&nbsp;");
-          i++;
-        }
-        out.append(' ');
       } else {
         out.append(c);
       }
@@ -483,6 +477,8 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
   private final XMLReader mReader;
   private final SpannableStringBuilder mSpannableStringBuilder;
   private final Pattern mLinkRegex;
+  // Depth of tags that hold text. Whitespace outside of them is layout only.
+  private int mTextTagDepth = 0;
   private int currentOrderedListItemIndex = 0;
   private boolean isInOrderedList = false;
   private boolean isInCheckboxList = false;
@@ -531,6 +527,17 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
     mReader = parser;
     mSpanFactory = spanFactory;
     mLinkRegex = linkRegex;
+  }
+
+  private static boolean isTextTag(String tag) {
+    return tag.equalsIgnoreCase("p")
+        || tag.equalsIgnoreCase("li")
+        || tag.equalsIgnoreCase("h1")
+        || tag.equalsIgnoreCase("h2")
+        || tag.equalsIgnoreCase("h3")
+        || tag.equalsIgnoreCase("h4")
+        || tag.equalsIgnoreCase("h5")
+        || tag.equalsIgnoreCase("h6");
   }
 
   public Spanned convert() {
@@ -1092,14 +1099,22 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
   public void endPrefixMapping(String prefix) {}
 
   public void startElement(String uri, String localName, String qName, Attributes attributes) {
+    if (isTextTag(localName)) mTextTagDepth++;
     handleStartTag(localName, attributes);
   }
 
   public void endElement(String uri, String localName, String qName) {
+    if (isTextTag(localName) && mTextTagDepth > 0) mTextTagDepth--;
     handleEndTag(localName);
   }
 
   public void characters(char[] ch, int start, int length) {
+    // Text keeps its spaces as written.
+    if (mTextTagDepth > 0) {
+      appendPreservedCharacters(ch, start, length);
+      return;
+    }
+
     StringBuilder sb = new StringBuilder();
 
     /*
@@ -1132,6 +1147,18 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
     // whitespace collapsing. A space-only list item (e.g. <li> </li>) would
     // have its space dropped when the preceding char is a newline, leaving
     // nothing to anchor a span — the ZWS placeholder must still be inserted.
+    if (sb.length() > 0) isEmptyTag = false;
+    mSpannableStringBuilder.append(sb);
+  }
+
+  // Keeps leading, trailing and consecutive spaces. A newline inside text is not a line break in
+  // HTML, so it becomes a space.
+  private void appendPreservedCharacters(char[] ch, int start, int length) {
+    StringBuilder sb = new StringBuilder(length);
+    for (int i = 0; i < length; i++) {
+      char c = ch[i + start];
+      sb.append(c == '\n' ? ' ' : c);
+    }
     if (sb.length() > 0) isEmptyTag = false;
     mSpannableStringBuilder.append(sb);
   }
