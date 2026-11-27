@@ -14,6 +14,7 @@
 - (void)clearRemovedTypingAttributes;
 - (void)manageTypingAttributesWithOnlySelection:(BOOL)onlySelectionChanged;
 - (void)repeatRecentTypingAttributesManagement;
+- (void)extendTypingAttributesFromReplacedRange:(NSRange)range;
 - (void)handleDirtyRangesStyling;
 - (NSSet<NSString *> *)customAttributesKeys;
 @end

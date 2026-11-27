@@ -242,4 +242,16 @@
   [self manageTypingAttributesWithOnlySelection:_recentOnlySelectionStatus];
 }
 
+- (void)extendTypingAttributesFromReplacedRange:(NSRange)range {
+  if (NSMaxRange(range) > _input->textView.textStorage.string.length) {
+    return;
+  }
+  // Same filtering as extending from the preceding character: styles that
+  // shouldn't be extended (mentions, links, images) are skipped.
+  NSMutableDictionary *newAttrs =
+      [_input->textView.typingAttributes mutableCopy];
+  [self restoreInlineStylesPresentInRange:range intoAttrs:newAttrs];
+  _input->textView.typingAttributes = newAttrs;
+}
+
 @end
