@@ -780,7 +780,9 @@
       [styleArr addObject:@([MentionStyle getType])];
       // extract html expression into dict using some regex
       NSMutableDictionary *paramsDict = [[NSMutableDictionary alloc] init];
-      NSString *pattern = @"(\\w+)=(['\"])(.*?)\\2";
+      // An attribute name is anything but whitespace, quotes, "=", "<", ">"
+      // and "/", so names such as "data-id" are kept whole.
+      NSString *pattern = @"([^\\s\"'=<>/]+)=(['\"])(.*?)\\2";
       NSRegularExpression *regex =
           [NSRegularExpression regularExpressionWithPattern:pattern
                                                     options:0
