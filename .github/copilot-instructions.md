@@ -1,7 +1,8 @@
 # Review instructions
 
 Condensed from `.agents/skills/review-changes/` (code review + parity stages; no device testing).
-Keep the two in sync. Copilot reads only the first 4,000 characters — keep this file short.
+Keep the two in sync. CodeRabbit PR review loads this file automatically as a code guideline
+(see `.coderabbit.yaml`); keep it short and focused on what a PR bot can check.
 
 react-native-enriched ships one `EnrichedTextInput` / `EnrichedText` API on three
 implementations: iOS (`ios/`), Android (`android/`), web (`src/web/`). Shared: TS API (`src/`),

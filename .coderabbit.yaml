@@ -1,0 +1,31 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+#
+# CodeRabbit PR review config. Reference: https://docs.coderabbit.ai/reference/configuration
+#
+# Review rules are not duplicated here. CodeRabbit loads them automatically as code
+# guidelines from `.github/copilot-instructions.md` and
+# `.agents/skills/review-changes/SKILL.md` (source of truth).
+
+language: en-US
+
+reviews:
+  # `chill` keeps comments focused on real problems; our guidelines already ask for no nits.
+  profile: chill
+  # The PR template already has a summary, and the guidelines ask for no PR summaries.
+  high_level_summary: false
+  poem: false
+  auto_review:
+    enabled: true
+    drafts: false
+  path_filters:
+    # Lockfiles
+    - '!**/yarn.lock'
+    - '!**/Podfile.lock'
+    # Screenshot baselines for e2e tests
+    - '!.maestro/**/screenshots/**'
+    - '!.playwright/screenshots/**'
+    - '!.argent/e2e/**/__baselines__/**'
+
+knowledge_base:
+  code_guidelines:
+    enabled: true

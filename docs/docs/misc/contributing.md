@@ -291,12 +291,13 @@ which lets agents drive the iOS simulator, Android emulator and web example
 app, and a review skill that checks a change's code, feature parity between
 iOS, Android and web, and tests it on devices.
 
-| What              | Where                                                                                                                                            |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Argent MCP server | `.mcp.json` (Claude Code), `.codex/config.toml` (Codex), `.cursor/mcp.json` (Cursor)                                                             |
-| Argent rules      | `.claude/rules/`, `.cursor/rules/`, `developer_instructions` in `.codex/config.toml`                                                             |
-| Argent skills     | not committed: installed on your machine by `argent init` (see below)                                                                            |
-| Review skill      | `.agents/skills/review-changes/` (symlinked into `.claude/skills/`), condensed for GitHub Copilot PR review in `.github/copilot-instructions.md` |
+| What              | Where                                                                                                                                        |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Argent MCP server | `.mcp.json` (Claude Code), `.codex/config.toml` (Codex), `.cursor/mcp.json` (Cursor)                                                         |
+| Argent rules      | `.claude/rules/`, `.cursor/rules/`, `developer_instructions` in `.codex/config.toml`                                                         |
+| Argent skills     | not committed: installed on your machine by `argent init` (see below)                                                                        |
+| Review skill      | `.agents/skills/review-changes/` (symlinked into `.claude/skills/`), condensed for CodeRabbit PR review in `.github/copilot-instructions.md` |
+| PR review bot     | [CodeRabbit](https://www.coderabbit.ai), configured in `.coderabbit.yaml`                                                                    |
 
 To use it:
 
@@ -328,7 +329,8 @@ ignores and git ignores too; copy any changes into the committed
 :::info
 
 When you change the review rules in `.agents/skills/review-changes/`, update
-`.github/copilot-instructions.md` too.
+`.github/copilot-instructions.md` too. CodeRabbit reads that file (despite its
+name) as review guidelines for every PR.
 
 :::
 
