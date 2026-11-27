@@ -40,12 +40,17 @@
  * The function iterates character-by-character, using a depth counter to track
  * nesting levels of the specific tags defined in `textTags`.
  *
+ * `stripLayout` NO leaves whitespaces outside tags untouched. Used for
+ * normalizer output: the normalizer already drops layout whitespace, and text
+ * it leaves outside text tags is real content that we don't want to strip.
+ *
  * IMPORTANT:
  * The `textTags` set acts as a whitelist for "Content Mode". If you add support
  * for a new HTML tag that contains visible text (e.g., h4, h5, h6),
  * you MUST add it to the `textTags` set below.
  */
-+ (NSString *)stripExtraWhiteSpacesAndNewlines:(NSString *)html {
++ (NSString *)stripExtraWhiteSpacesAndNewlines:(NSString *)html
+                                   stripLayout:(BOOL)stripLayout {
   NSSet *textTags =
       [NSSet setWithObjects:@"p", @"h1", @"h2", @"h3", @"h4", @"h5", @"h6",
                             @"li", @"b", @"a", @"s", @"mention", @"code", @"u",
@@ -106,7 +111,7 @@
       if (textDepth > 0) {
         [output appendFormat:@"%C", c == '\n' ? ' ' : c];
       } else {
-        if (![whitespaceAndNewlineSet characterIsMember:c]) {
+        if (!stripLayout || ![whitespaceAndNewlineSet characterIsMember:c]) {
           [output appendFormat:@"%C", c];
         }
       }
@@ -216,7 +221,8 @@
 
 + (NSString *_Nullable)initiallyProcessHtml:(NSString *_Nonnull)html
                           useHtmlNormalizer:(BOOL)useHtmlNormalizer {
-  NSString *htmlWithoutSpaces = [self stripExtraWhiteSpacesAndNewlines:html];
+  NSString *htmlWithoutSpaces = [self stripExtraWhiteSpacesAndNewlines:html
+                                                           stripLayout:YES];
   NSString *fixedHtml = nullptr;
 
   // 13 is the length of "<html></html>". The length guard only applies to the
@@ -262,9 +268,10 @@
     // into our canonical tag subset. Gumbo already extracts the <body>.
     NSString *normalized = [self normalizeExternalHtml:html];
     if (normalized != nil) {
-      // The normalizer already drops layout whitespace between blocks, so this
-      // only turns newlines inside text into spaces.
-      fixedHtml = [self stripExtraWhiteSpacesAndNewlines:normalized];
+      // Only turn newlines inside text tags into spaces; leave everything else
+      // as the normalizer wrote it.
+      fixedHtml = [self stripExtraWhiteSpacesAndNewlines:normalized
+                                             stripLayout:NO];
     }
   }
 
