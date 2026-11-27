@@ -94,6 +94,13 @@ import { normalizeColorValue } from './normalization/colorNormalizer';
 import { handleCheckboxPress } from './htmlExtensions/handleCheckboxPress';
 import { runFocused } from './utils/runFocused';
 
+// Keep leading, trailing and consecutive spaces, which ProseMirror collapses by
+// default. `true` rather than `'full'`, so that line breaks between blocks of
+// pretty-printed HTML don't turn into content.
+const SET_CONTENT_OPTIONS = {
+  parseOptions: { preserveWhitespace: true },
+} as const;
+
 export const EnrichedTextInput = ({
   ref,
   defaultValue,
@@ -275,7 +282,7 @@ export const EnrichedTextInput = ({
       onCreate: ({ editor: _editor }) => {
         // Setting initial content in this way ensures all custom plugins are run and applied
         runSafelyInEditor(_editor, (e) =>
-          e.commands.setContent(tiptapContent ?? '')
+          e.commands.setContent(tiptapContent ?? '', SET_CONTENT_OPTIONS)
         );
       },
       onFocus: ({ event }) => {
@@ -373,7 +380,8 @@ export const EnrichedTextInput = ({
               value,
               useHtmlNormalizerRef.current,
               sanitizationConfigRef.current
-            )
+            ),
+            SET_CONTENT_OPTIONS
           )
         ),
       setSelection: (start, end) => {
