@@ -479,6 +479,10 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
   private final Pattern mLinkRegex;
   // Depth of tags that hold text. Whitespace outside of them is layout only.
   private int mTextTagDepth = 0;
+  // Whitespace-only text inside a text tag waits here until the next tag shows whether it is
+  // text content or layout around a nested block.
+  private final StringBuilder mPendingWhitespace = new StringBuilder();
+  private boolean mAfterBlockEnd = false;
   private int currentOrderedListItemIndex = 0;
   private boolean isInOrderedList = false;
   private boolean isInCheckboxList = false;
@@ -538,6 +542,22 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
         || tag.equalsIgnoreCase("h4")
         || tag.equalsIgnoreCase("h5")
         || tag.equalsIgnoreCase("h6");
+  }
+
+  private static boolean isBlockTag(String tag) {
+    return isTextTag(tag)
+        || tag.equalsIgnoreCase("ul")
+        || tag.equalsIgnoreCase("ol")
+        || tag.equalsIgnoreCase("blockquote")
+        || tag.equalsIgnoreCase("codeblock");
+  }
+
+  private static boolean isWhitespaceOnly(char[] ch, int start, int length) {
+    for (int i = start; i < start + length; i++) {
+      char c = ch[i];
+      if (c != ' ' && c != '\n' && c != '\t' && c != '\r') return false;
+    }
+    return true;
   }
 
   public Spanned convert() {
@@ -1099,11 +1119,21 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
   public void endPrefixMapping(String prefix) {}
 
   public void startElement(String uri, String localName, String qName, Attributes attributes) {
+    // Whitespace right before a nested block is layout, before an inline tag it is content.
+    if (isBlockTag(localName)) {
+      mPendingWhitespace.setLength(0);
+    } else {
+      flushPendingWhitespace();
+    }
+    mAfterBlockEnd = false;
     if (isTextTag(localName)) mTextTagDepth++;
     handleStartTag(localName, attributes);
   }
 
   public void endElement(String uri, String localName, String qName) {
+    // Whitespace right before a closing tag is content of that element.
+    flushPendingWhitespace();
+    mAfterBlockEnd = isBlockTag(localName);
     if (isTextTag(localName) && mTextTagDepth > 0) mTextTagDepth--;
     handleEndTag(localName);
   }
@@ -1111,7 +1141,14 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
   public void characters(char[] ch, int start, int length) {
     // Text keeps its spaces as written.
     if (mTextTagDepth > 0) {
-      appendPreservedCharacters(ch, start, length);
+      if (isWhitespaceOnly(ch, start, length)) {
+        // Whitespace right after a nested block is layout.
+        if (!mAfterBlockEnd) mPendingWhitespace.append(ch, start, length);
+        return;
+      }
+      flushPendingWhitespace();
+      mAfterBlockEnd = false;
+      appendPreservedCharacters(new String(ch, start, length));
       return;
     }
 
@@ -1153,14 +1190,20 @@ class HtmlToSpannedConverter<T> implements ContentHandler {
 
   // Keeps leading, trailing and consecutive spaces. A newline inside text is not a line break in
   // HTML, so it becomes a space.
-  private void appendPreservedCharacters(char[] ch, int start, int length) {
-    StringBuilder sb = new StringBuilder(length);
-    for (int i = 0; i < length; i++) {
-      char c = ch[i + start];
+  private void appendPreservedCharacters(CharSequence text) {
+    StringBuilder sb = new StringBuilder(text.length());
+    for (int i = 0; i < text.length(); i++) {
+      char c = text.charAt(i);
       sb.append(c == '\n' ? ' ' : c);
     }
     if (sb.length() > 0) isEmptyTag = false;
     mSpannableStringBuilder.append(sb);
+  }
+
+  private void flushPendingWhitespace() {
+    if (mPendingWhitespace.length() == 0) return;
+    appendPreservedCharacters(mPendingWhitespace);
+    mPendingWhitespace.setLength(0);
   }
 
   public void ignorableWhitespace(char[] ch, int start, int length) {}
