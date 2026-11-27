@@ -625,7 +625,10 @@
         NSArray *entityInfo = htmlEntitiesDict[@(i)];
         if (entityInfo != nullptr) {
           NSString *escaped = entityInfo[0];
-          NSString *unescaped = entityInfo[1];
+          // A newline written as an entity (e.g. &#10;) becomes a space.
+          NSString *unescaped =
+              [entityInfo[1] stringByReplacingOccurrencesOfString:@"\n"
+                                                       withString:@" "];
           [plainText appendString:unescaped];
           // the iterator will forward by 1 itself
           i += escaped.length - 1;
